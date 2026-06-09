@@ -109,13 +109,20 @@
 			// Submenu children: skip the .wp-submenu-head, then zip by index.
 			var subLis = li.querySelectorAll( '.wp-submenu > li:not(.wp-submenu-head)' );
 			node.submenu.forEach( function ( child, idx ) {
-				model[ child.slug ] = {
-					title: child.title,
-					icon: '',
-					hiddenRoles: child.hiddenRoles.slice(),
-					isSub: true,
-					parent: node.slug
-				};
+				// A submenu item can share its slug with the top-level parent —
+				// WordPress's self-link convention (Posts + All Posts both map
+				// to edit.php). The stored config is slug-keyed, so they are one
+				// identity; the top-level entry (which carries the icon) must
+				// win. Only create a model entry for a genuinely distinct slug.
+				if ( ! model[ child.slug ] ) {
+					model[ child.slug ] = {
+						title: child.title,
+						icon: '',
+						hiddenRoles: child.hiddenRoles.slice(),
+						isSub: true,
+						parent: node.slug
+					};
+				}
 				var sli = subLis[ idx ];
 				if ( ! sli ) { return; }
 				sli.dataset.amxSlug = child.slug;
@@ -465,7 +472,14 @@
 	function buildConfig() {
 		var cfg = { items: {}, top_order: [], sub_order: {} };
 
-		document.querySelectorAll( '#adminmenu > li.menu-top.amx-item[data-amx-slug]' ).forEach( function ( li ) {
+		var topLis = document.querySelectorAll( '#adminmenu > li.menu-top.amx-item[data-amx-slug]' );
+
+		// Top-level slugs own their identity. A submenu item sharing one of these
+		// slugs (WP self-link convention) must not emit a conflicting items entry.
+		var topSlugs = {};
+		topLis.forEach( function ( li ) { topSlugs[ li.dataset.amxSlug ] = true; } );
+
+		topLis.forEach( function ( li ) {
 			var slug = li.dataset.amxSlug;
 			cfg.top_order.push( slug );
 
@@ -483,6 +497,10 @@
 				subLis.forEach( function ( sli ) {
 					var sslug = sli.dataset.amxSlug;
 					cfg.sub_order[ slug ].push( sslug );
+
+					// Ordering still records the slug, but a submenu that shares
+					// a top-level slug carries no separate override of its own.
+					if ( topSlugs[ sslug ] ) { return; }
 
 					var sm   = model[ sslug ];
 					var sdef = pristineSub( sslug );
