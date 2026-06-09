@@ -2,10 +2,24 @@
 
 Three layers, smallest and fastest first.
 
-> **Honest note:** these suites were authored and statically validated (JSON/XML
-> parse, PHP brace-balance, and the `Ordering` algorithm verified via a faithful
-> port) but have **not** been executed in CI yet — run them locally before
-> trusting green. Nothing here has touched a real PHP or browser runtime.
+> **Status:** all three layers have now been executed and pass against a local
+> wp-env (Docker via colima): unit 23/23, integration 13/13, E2E 4/4. Two fixes
+> were needed to get there — the integration bootstrap referenced the pre-rename
+> plugin filename, and `@wordpress/scripts` v30 dropped the `test-unit-php`
+> command (`test:php` now calls phpunit directly in the tests container). See the
+> gotchas below before a first run.
+
+## Gotchas (first run)
+
+- **Activate the plugin on the tests instance.** wp-env mounts the plugin on both
+  the dev (`:8888`) and tests (`:8889`) instances, but the E2E layer drives the
+  tests instance as a real site and needs the plugin *activated* there:
+  `npx wp-env run tests-cli wp plugin activate amx-inline-menu-editor`.
+  (The integration layer loads the plugin via the test bootstrap, so it does not
+  depend on activation.)
+- **`test:php` runs phpunit in the container directly** — there is no longer a
+  `wp-scripts test-unit-php`. The script is
+  `wp-env run tests-cli --env-cwd=… vendor/bin/phpunit -c phpunit-integration.xml.dist`.
 
 ## 1. Unit (pure PHP, no WordPress, no Docker)
 

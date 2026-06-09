@@ -4,14 +4,14 @@ In-place editing of the WordPress admin menu — rename items, reorder them, swa
 
 ## Status
 
-v1 foundation. The server core (replay engine, REST API, sanitization) and the full test harness are complete and the plugin installs cleanly. The editor's interaction model is **mid-rework**: it is being moved to click-to-select with debounced autosave, specified in [`FIXES.md`](FIXES.md). The bundled `assets/amx-edit.js` is still the original always-visible per-item-control model (plus an icon-preview fix), so the following are **not yet implemented**:
+v1 complete. The server core (replay engine, REST API, sanitization) and the editor are done, and all three test layers are green (unit 23/23, integration 13/13, E2E 4/4 against wp-env). The editor uses the click-to-select model with debounced autosave specified in [`FIXES.md`](FIXES.md):
 
-- debounced autosave (current code relies on a manual Save button)
-- click-to-select with a single shared controls panel (no chrome until selection)
-- wiring the icon picker into autosave (icon persistence depends on this)
-- forcing a stable expanded state while editing (folded-mode breakage)
+- **Debounced autosave (~500 ms)** on reorder, rename, icon pick, visibility toggle, and per-item reset — no manual Save button; a "Saving… / Saved ✓" status indicator instead. Reload only on Exit (which flushes any pending save) and on Reset all.
+- **Click-to-select with one shared controls panel.** No edit chrome until an item is selected: each row shows only a hover/focus-revealed drag handle. Selecting an item opens the shared panel (rename, icon picker for top-level items, per-role visibility, reset-this-item).
+- **Stable expanded menu while editing.** Folded/auto-fold mode is neutralized on entry and re-stripped if `common.js` reapplies it, so editing always happens against the expanded menu.
+- **Icon persistence** is wired into autosave and covered by an E2E test (pick → POST carries the icon → survives reload).
 
-See `FIXES.md` for the punchlist and acceptance criteria, and `SPEC.md` for the durable design.
+See `FIXES.md` for the resolved punchlist and `SPEC.md` for the durable design.
 
 ## Important: visibility is cosmetic, not access control
 
