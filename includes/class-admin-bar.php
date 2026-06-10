@@ -6,10 +6,10 @@
  * (and fragile) for the toggle to live inside the very menu it rearranges and
  * can hide. The toggle just flips a URL param; nothing is persisted.
  *
- * @package AdminMenuCustomizer
+ * @package AdminMenuMaestro
  */
 
-namespace AMX;
+namespace AdminMenuMaestro;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -32,19 +32,19 @@ class Admin_Bar {
 
 		$editing = is_edit_mode();
 
-		// Toggle target: current URL with amx_edit added or removed.
-		$current = remove_query_arg( 'amx_edit' );
-		$href    = $editing ? $current : add_query_arg( 'amx_edit', '1', $current );
+		// Toggle target: current URL with amm_edit added or removed.
+		$current = remove_query_arg( 'amm_edit' );
+		$href    = $editing ? $current : add_query_arg( 'amm_edit', '1', $current );
 
 		$bar->add_node(
 			array(
-				'id'    => 'amx-toggle',
+				'id'    => 'amm-toggle',
 				'title' => $editing
-					? '<span class="ab-icon dashicons dashicons-yes" style="margin-top:2px;"></span>' . esc_html__( 'Exit Menu Editor', 'amx-inline-menu-editor' )
-					: '<span class="ab-icon dashicons dashicons-admin-generic" style="margin-top:2px;"></span>' . esc_html__( 'Edit Menu', 'amx-inline-menu-editor' ),
+					? '<span class="ab-icon dashicons dashicons-yes" style="margin-top:2px;"></span>' . esc_html__( 'Exit Menu Editor', 'admin-menu-maestro' )
+					: '<span class="ab-icon dashicons dashicons-admin-generic" style="margin-top:2px;"></span>' . esc_html__( 'Edit Menu', 'admin-menu-maestro' ),
 				'href'  => esc_url( $href ),
 				'meta'  => array(
-					'title' => esc_attr__( 'Toggle in-place admin menu editing', 'amx-inline-menu-editor' ),
+					'title' => esc_attr__( 'Toggle in-place admin menu editing', 'admin-menu-maestro' ),
 				),
 			)
 		);

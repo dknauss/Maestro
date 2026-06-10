@@ -20,10 +20,10 @@
  *   'sub_order' => [ '<parent_slug>' => [ '<slug>', ... ] ],
  * ]
  *
- * @package AdminMenuCustomizer
+ * @package AdminMenuMaestro
  */
 
-namespace AMX;
+namespace AdminMenuMaestro;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -43,7 +43,7 @@ class Config {
 	 */
 	public function get() {
 		if ( null === $this->cache ) {
-			$stored      = get_option( AMX_OPTION, array() );
+			$stored      = get_option( ADMIN_MENU_MAESTRO_OPTION, array() );
 			$this->cache = is_array( $stored ) ? $stored : array();
 		}
 		return $this->cache;
@@ -61,7 +61,7 @@ class Config {
 	 */
 	public function save( array $raw ) {
 		$clean = $this->sanitize( $raw );
-		update_option( AMX_OPTION, $clean, false );
+		update_option( ADMIN_MENU_MAESTRO_OPTION, $clean, false );
 		$this->cache = $clean;
 		return $clean;
 	}
@@ -72,7 +72,7 @@ class Config {
 	 * @return void
 	 */
 	public function reset() {
-		delete_option( AMX_OPTION );
+		delete_option( ADMIN_MENU_MAESTRO_OPTION );
 		$this->cache = array();
 	}
 

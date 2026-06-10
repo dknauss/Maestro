@@ -6,10 +6,10 @@
  * current saved config, the effective menu model (with DOM ids), and the
  * pristine defaults for per-item reset.
  *
- * @package AdminMenuCustomizer
+ * @package AdminMenuMaestro
  */
 
-namespace AMX;
+namespace AdminMenuMaestro;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -44,51 +44,51 @@ class Assets {
 		}
 
 		wp_enqueue_style(
-			'amx-edit',
-			AMX_URL . 'assets/amx-edit.css',
+			'admin-menu-maestro',
+			ADMIN_MENU_MAESTRO_URL . 'assets/admin-menu-maestro.css',
 			array(),
-			AMX_VERSION
+			ADMIN_MENU_MAESTRO_VERSION
 		);
 
 		// jquery-ui-sortable is registered in wp-admin out of the box.
 		wp_enqueue_script(
-			'amx-edit',
-			AMX_URL . 'assets/amx-edit.js',
+			'admin-menu-maestro',
+			ADMIN_MENU_MAESTRO_URL . 'assets/admin-menu-maestro.js',
 			array( 'jquery', 'jquery-ui-sortable', 'wp-i18n' ),
-			AMX_VERSION,
+			ADMIN_MENU_MAESTRO_VERSION,
 			true
 		);
 
 		wp_localize_script(
-			'amx-edit',
-			'amxData',
+			'admin-menu-maestro',
+			'ammData',
 			array(
 				'restUrl'   => esc_url_raw( rest_url( Rest::NS . '/config' ) ),
 				'nonce'     => wp_create_nonce( 'wp_rest' ),
-				'exitUrl'   => esc_url_raw( remove_query_arg( 'amx_edit' ) ),
+				'exitUrl'   => esc_url_raw( remove_query_arg( 'amm_edit' ) ),
 				'roles'     => wp_roles()->get_names(),
 				'iconSets'  => $this->icon_sets(),
 				'config'    => $this->config->get(),
 				'menu'      => $this->replay->get_menu_model(),
 				'pristine'  => $this->replay->get_pristine(),
 				'i18n'      => array(
-					'idle'       => __( 'Editor active — click an item to edit.', 'amx-inline-menu-editor' ),
-					'saving'     => __( 'Saving…', 'amx-inline-menu-editor' ),
-					'saved'      => __( 'Saved ✓', 'amx-inline-menu-editor' ),
-					'saveError'  => __( 'Save failed. Retrying on next change.', 'amx-inline-menu-editor' ),
-					'rename'     => __( 'Title', 'amx-inline-menu-editor' ),
-					'icon'       => __( 'Icon', 'amx-inline-menu-editor' ),
-					'iconDialog' => __( 'Choose an icon', 'amx-inline-menu-editor' ),
-					'iconSearch' => __( 'Search icons', 'amx-inline-menu-editor' ),
-					'iconNone'   => __( 'No icon', 'amx-inline-menu-editor' ),
-					'iconNoneHint' => __( 'Remove the icon (uses the menu default).', 'amx-inline-menu-editor' ),
-					'visibility' => __( 'Visibility', 'amx-inline-menu-editor' ),
-					'resetItem'  => __( 'Reset this item', 'amx-inline-menu-editor' ),
-					'resetAll'   => __( 'Reset all', 'amx-inline-menu-editor' ),
-					'exit'       => __( 'Exit', 'amx-inline-menu-editor' ),
-					'hideFrom'   => __( 'Hide from these roles:', 'amx-inline-menu-editor' ),
-					'confirmAll' => __( 'Reset ALL menu customizations to WordPress defaults? This cannot be undone.', 'amx-inline-menu-editor' ),
-					'drag'       => __( 'Drag to reorder', 'amx-inline-menu-editor' ),
+					'idle'       => __( 'Editor active — click an item to edit.', 'admin-menu-maestro' ),
+					'saving'     => __( 'Saving…', 'admin-menu-maestro' ),
+					'saved'      => __( 'Saved ✓', 'admin-menu-maestro' ),
+					'saveError'  => __( 'Save failed. Retrying on next change.', 'admin-menu-maestro' ),
+					'rename'     => __( 'Title', 'admin-menu-maestro' ),
+					'icon'       => __( 'Icon', 'admin-menu-maestro' ),
+					'iconDialog' => __( 'Choose an icon', 'admin-menu-maestro' ),
+					'iconSearch' => __( 'Search icons', 'admin-menu-maestro' ),
+					'iconNone'   => __( 'No icon', 'admin-menu-maestro' ),
+					'iconNoneHint' => __( 'Remove the icon (uses the menu default).', 'admin-menu-maestro' ),
+					'visibility' => __( 'Visibility', 'admin-menu-maestro' ),
+					'resetItem'  => __( 'Reset this item', 'admin-menu-maestro' ),
+					'resetAll'   => __( 'Reset all', 'admin-menu-maestro' ),
+					'exit'       => __( 'Exit', 'admin-menu-maestro' ),
+					'hideFrom'   => __( 'Hide from these roles:', 'admin-menu-maestro' ),
+					'confirmAll' => __( 'Reset ALL menu customizations to WordPress defaults? This cannot be undone.', 'admin-menu-maestro' ),
+					'drag'       => __( 'Drag to reorder', 'admin-menu-maestro' ),
 				),
 			)
 		);
@@ -105,7 +105,7 @@ class Assets {
 	 * @return array
 	 */
 	private function icon_sets() {
-		$bootstrap = require AMX_DIR . 'includes/icons-bootstrap.php';
+		$bootstrap = require ADMIN_MENU_MAESTRO_DIR . 'includes/icons-bootstrap.php';
 		$bi        = array();
 		foreach ( $bootstrap as $id => $src ) {
 			$bi[] = array(
@@ -118,7 +118,7 @@ class Assets {
 		return array(
 			array(
 				'id'    => 'dashicons',
-				'label' => __( 'Dashicons', 'amx-inline-menu-editor' ),
+				'label' => __( 'Dashicons', 'admin-menu-maestro' ),
 				'type'  => 'class',
 				'icons' => array_map(
 					function ( $cls ) {
@@ -133,7 +133,7 @@ class Assets {
 			),
 			array(
 				'id'    => 'bootstrap',
-				'label' => __( 'Bootstrap', 'amx-inline-menu-editor' ),
+				'label' => __( 'Bootstrap', 'admin-menu-maestro' ),
 				'type'  => 'data',
 				'icons' => $bi,
 			),

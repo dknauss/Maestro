@@ -12,10 +12,10 @@
  *   - Top-level order                          -> the proper core API:
  *     `custom_menu_order` + `menu_order`, which run just after admin_menu.
  *
- * @package AdminMenuCustomizer
+ * @package AdminMenuMaestro
  */
 
-namespace AMX;
+namespace AdminMenuMaestro;
 
 defined( 'ABSPATH' ) || exit;
 

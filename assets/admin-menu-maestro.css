@@ -1,7 +1,7 @@
 /**
- * Inline Admin Menu Editor (AMX) — edit-mode styles.
+ * Admin Menu Maestro — edit-mode styles.
  *
- * Scoped under body.amx-editing so nothing leaks into normal admin use.
+ * Scoped under body.amm-editing so nothing leaks into normal admin use.
  * The editor uses a click-to-select model: per item, only a hover-revealed
  * drag handle plus a selection highlight. All controls live in the shared
  * bottom toolbar panel, not on each item.
@@ -12,33 +12,33 @@
  * common.js writes them back. These rules are defensive: if anything sneaks
  * the class in for a frame, the layout still holds at the expanded width.
  */
-body.amx-editing.folded #adminmenu,
-body.amx-editing.folded #adminmenuwrap,
-body.amx-editing.folded #adminmenuback,
-body.amx-editing.auto-fold #adminmenu,
-body.amx-editing.auto-fold #adminmenuwrap,
-body.amx-editing.auto-fold #adminmenuback {
+body.amm-editing.folded #adminmenu,
+body.amm-editing.folded #adminmenuwrap,
+body.amm-editing.folded #adminmenuback,
+body.amm-editing.auto-fold #adminmenu,
+body.amm-editing.auto-fold #adminmenuwrap,
+body.amm-editing.auto-fold #adminmenuback {
 	width: 160px !important;
 }
-body.amx-editing.folded #wpcontent,
-body.amx-editing.folded #wpfooter,
-body.amx-editing.auto-fold #wpcontent,
-body.amx-editing.auto-fold #wpfooter {
+body.amm-editing.folded #wpcontent,
+body.amm-editing.folded #wpfooter,
+body.amm-editing.auto-fold #wpcontent,
+body.amm-editing.auto-fold #wpfooter {
 	margin-left: 160px !important;
 }
-body.amx-editing #collapse-menu {
+body.amm-editing #collapse-menu {
 	display: none !important;
 }
 
 /* ---------- expanded submenus while editing ------------------------------ */
-.amx-editing #adminmenu .wp-submenu {
+.amm-editing #adminmenu .wp-submenu {
 	display: block !important;
 	position: static !important;
 	width: auto !important;
 	box-shadow: none !important;
 	min-width: 0 !important;
 }
-.amx-editing #adminmenu .wp-submenu-head {
+.amm-editing #adminmenu .wp-submenu-head {
 	display: block !important;
 	color: #a7aaad;
 }
@@ -46,8 +46,8 @@ body.amx-editing #collapse-menu {
 /* ---------- per-item DOM: handle + selection ---------------------------- */
 
 /* The handle is invisible until the row is hovered or focus is within it. */
-.amx-editing #adminmenu .amx-handle,
-.amx-editing #adminmenu .amx-subhandle {
+.amm-editing #adminmenu .amm-handle,
+.amm-editing #adminmenu .amm-subhandle {
 	cursor: grab;
 	color: #a7aaad;
 	font-size: 16px;
@@ -58,51 +58,51 @@ body.amx-editing #collapse-menu {
 	opacity: 0;
 	transition: opacity 120ms ease;
 }
-.amx-editing #adminmenu .amx-subhandle {
+.amm-editing #adminmenu .amm-subhandle {
 	line-height: 28px;
 }
-.amx-editing #adminmenu .amx-item:hover .amx-handle,
-.amx-editing #adminmenu .amx-item:focus-within .amx-handle,
-.amx-editing #adminmenu .amx-subitem:hover .amx-subhandle,
-.amx-editing #adminmenu .amx-subitem:focus-within .amx-subhandle,
-.amx-editing #adminmenu .amx-selected .amx-handle,
-.amx-editing #adminmenu .amx-selected .amx-subhandle {
+.amm-editing #adminmenu .amm-item:hover .amm-handle,
+.amm-editing #adminmenu .amm-item:focus-within .amm-handle,
+.amm-editing #adminmenu .amm-subitem:hover .amm-subhandle,
+.amm-editing #adminmenu .amm-subitem:focus-within .amm-subhandle,
+.amm-editing #adminmenu .amm-selected .amm-handle,
+.amm-editing #adminmenu .amm-selected .amm-subhandle {
 	opacity: 1;
 }
 
 /* Faint affordance on hover; firm outline on selection. */
-.amx-editing #adminmenu .amx-item:hover,
-.amx-editing #adminmenu .amx-subitem:hover {
+.amm-editing #adminmenu .amm-item:hover,
+.amm-editing #adminmenu .amm-subitem:hover {
 	outline: 1px dashed rgba( 240, 246, 252, 0.18 );
 	outline-offset: -1px;
 }
-.amx-editing #adminmenu .amx-selected {
+.amm-editing #adminmenu .amm-selected {
 	outline: 2px solid #2271b1 !important;
 	outline-offset: -2px;
 }
-.amx-editing #adminmenu .amx-item.amx-has-hidden > a,
-.amx-editing #adminmenu .amx-subitem.amx-has-hidden > a {
+.amm-editing #adminmenu .amm-item.amm-has-hidden > a,
+.amm-editing #adminmenu .amm-subitem.amm-has-hidden > a {
 	opacity: 0.55;
 }
 
 /* Anchors don't navigate while editing — make that visible. */
-.amx-editing #adminmenu a {
+.amm-editing #adminmenu a {
 	cursor: pointer;
 }
 
 /* Sortable drag visuals. */
-.amx-editing #adminmenu .ui-sortable-helper {
+.amm-editing #adminmenu .ui-sortable-helper {
 	background: #2c3338;
 	box-shadow: 0 2px 8px rgba( 0, 0, 0, 0.4 );
 }
-.amx-editing #adminmenu .ui-sortable-placeholder {
+.amm-editing #adminmenu .ui-sortable-placeholder {
 	visibility: visible !important;
 	background: rgba( 34, 113, 177, 0.25 );
 	height: 34px;
 }
 
 /* ---------- popovers (icon picker, visibility) -------------------------- */
-.amx-popover {
+.amm-popover {
 	position: absolute;
 	z-index: 100000;
 	background: #fff;
@@ -111,11 +111,11 @@ body.amx-editing #collapse-menu {
 	box-shadow: 0 4px 16px rgba( 0, 0, 0, 0.18 );
 	padding: 10px;
 }
-.amx-icon-popover {
+.amm-icon-popover {
 	width: 300px;
 	max-width: 92vw;
 }
-.amx-icon-search {
+.amm-icon-search {
 	width: 100%;
 	box-sizing: border-box;
 	margin: 0 0 8px;
@@ -123,21 +123,21 @@ body.amx-editing #collapse-menu {
 	border: 1px solid #8c8f94;
 	border-radius: 3px;
 }
-.amx-icon-none {
+.amm-icon-none {
 	margin: 0 0 8px;
 	width: 100%;
 }
-.amx-icon-none[aria-pressed="true"] {
+.amm-icon-none[aria-pressed="true"] {
 	border-color: #2271b1;
 	box-shadow: 0 0 0 1px #2271b1;
 }
-.amx-icon-tabs {
+.amm-icon-tabs {
 	display: flex;
 	gap: 4px;
 	margin: 0 0 8px;
 	border-bottom: 1px solid #dcdcde;
 }
-.amx-icon-tab {
+.amm-icon-tab {
 	background: transparent;
 	border: 0;
 	border-bottom: 2px solid transparent;
@@ -146,12 +146,12 @@ body.amx-editing #collapse-menu {
 	color: #50575e;
 	font-size: 13px;
 }
-.amx-icon-tab[aria-selected="true"] {
+.amm-icon-tab[aria-selected="true"] {
 	color: #1d2327;
 	border-bottom-color: #2271b1;
 	font-weight: 600;
 }
-.amx-icon-grid {
+.amm-icon-grid {
 	display: grid;
 	grid-template-columns: repeat( auto-fill, minmax( 36px, 1fr ) );
 	gap: 4px;
@@ -160,11 +160,11 @@ body.amx-editing #collapse-menu {
 }
 /* display:grid/flex above outrank the UA [hidden] rule, so tab-switching and
    the search filter wouldn't hide anything without this. */
-.amx-icon-grid[hidden],
-.amx-icon-cell[hidden] {
+.amm-icon-grid[hidden],
+.amm-icon-cell[hidden] {
 	display: none;
 }
-.amx-icon-cell {
+.amm-icon-cell {
 	background: #f6f7f7;
 	border: 1px solid transparent;
 	border-radius: 3px;
@@ -175,27 +175,27 @@ body.amx-editing #collapse-menu {
 	align-items: center;
 	justify-content: center;
 }
-.amx-icon-cell img {
+.amm-icon-cell img {
 	width: 20px;
 	height: 20px;
 	display: block;
 }
-.amx-icon-cell:hover { background: #e0e7ec; }
-.amx-icon-cell:focus-visible {
+.amm-icon-cell:hover { background: #e0e7ec; }
+.amm-icon-cell:focus-visible {
 	outline: 2px solid #2271b1;
 	outline-offset: 1px;
 }
-.amx-icon-cell.is-current {
+.amm-icon-cell.is-current {
 	border-color: #2271b1;
 	background: #dbe9f5;
 }
-.amx-vis-popover { min-width: 200px; }
-.amx-vis-head {
+.amm-vis-popover { min-width: 200px; }
+.amm-vis-head {
 	margin: 0 0 6px;
 	font-weight: 600;
 	color: #1d2327;
 }
-.amx-vis-row {
+.amm-vis-row {
 	display: block;
 	padding: 3px 0;
 	color: #1d2327;
@@ -203,7 +203,7 @@ body.amx-editing #collapse-menu {
 }
 
 /* ---------- toolbar + shared controls panel ----------------------------- */
-.amx-toolbar {
+.amm-toolbar {
 	position: fixed;
 	bottom: 0;
 	left: 160px; /* clears the admin menu column */
@@ -217,18 +217,18 @@ body.amx-editing #collapse-menu {
 	border-top: 2px solid #2271b1;
 	box-shadow: 0 -2px 10px rgba( 0, 0, 0, 0.25 );
 }
-.amx-toolbar .button { margin: 0; }
+.amm-toolbar .button { margin: 0; }
 
-.amx-status {
+.amm-status {
 	color: #c3c4c7;
 	font-size: 13px;
 	white-space: nowrap;
 }
-.amx-status-saving { color: #f0b849; }
-.amx-status-saved  { color: #6bc187; }
-.amx-status-error  { color: #f86368; }
+.amm-status-saving { color: #f0b849; }
+.amm-status-saved  { color: #6bc187; }
+.amm-status-error  { color: #f86368; }
 
-.amx-panel {
+.amm-panel {
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -237,8 +237,8 @@ body.amx-editing #collapse-menu {
 	padding-left: 12px;
 	border-left: 1px solid #3c434a;
 }
-.amx-panel[hidden] { display: none; }
-.amx-panel-label {
+.amm-panel[hidden] { display: none; }
+.amm-panel-label {
 	color: #c3c4c7;
 	font-size: 13px;
 	font-weight: 600;
@@ -247,14 +247,14 @@ body.amx-editing #collapse-menu {
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
-.amx-panel-field {
+.amm-panel-field {
 	display: flex;
 	align-items: center;
 	gap: 4px;
 	color: #c3c4c7;
 	font-size: 12px;
 }
-.amx-rename-input {
+.amm-rename-input {
 	width: 180px;
 	max-width: 100%;
 	font-size: 13px;
@@ -265,7 +265,7 @@ body.amx-editing #collapse-menu {
 	color: #1d2327;
 }
 
-.amx-toolbar-right {
+.amm-toolbar-right {
 	display: flex;
 	gap: 8px;
 	margin-left: auto;
@@ -273,17 +273,17 @@ body.amx-editing #collapse-menu {
 
 /* Inherit the WP admin column collapse breakpoint. */
 @media screen and ( max-width: 782px ) {
-	.amx-toolbar { left: 0; }
-	.amx-panel-label { max-width: 120px; }
-	.amx-rename-input { width: 120px; }
+	.amm-toolbar { left: 0; }
+	.amm-panel-label { max-width: 120px; }
+	.amm-rename-input { width: 120px; }
 
 	/* Comfortable touch targets and a viewport-fitting picker on small screens. */
-	.amx-icon-popover { width: 92vw; }
-	.amx-icon-grid {
+	.amm-icon-popover { width: 92vw; }
+	.amm-icon-grid {
 		grid-template-columns: repeat( auto-fill, minmax( 44px, 1fr ) );
 		max-height: 50vh;
 	}
-	.amx-icon-cell { min-height: 44px; }
-	.amx-icon-tab { padding: 10px 12px; }
-	.amx-vis-row { padding: 8px 0; }
+	.amm-icon-cell { min-height: 44px; }
+	.amm-icon-tab { padding: 10px 12px; }
+	.amm-vis-row { padding: 8px 0; }
 }

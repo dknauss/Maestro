@@ -1,7 +1,7 @@
 /**
- * Inline Admin Menu Editor (AMX) — in-place editor.
+ * Admin Menu Maestro — in-place editor.
  *
- * PHP localises amxData with the precise DOM model (the <li> id for each
+ * PHP localises ammData with the precise DOM model (the <li> id for each
  * top-level item, ordered submenu slugs, pristine titles/icons). The editor
  * uses a click-to-select model: per item, only a hover-revealed drag handle
  * and a selection target — no per-item button clusters. A single shared
@@ -19,11 +19,11 @@
 ( function ( $ ) {
 	'use strict';
 
-	if ( typeof window.amxData === 'undefined' ) {
+	if ( typeof window.ammData === 'undefined' ) {
 		return;
 	}
 
-	var D = window.amxData;
+	var D = window.ammData;
 	var I = D.i18n;
 
 	// Flat working model: slug -> { title, icon, hiddenRoles, isSub, parent? }.
@@ -53,14 +53,14 @@
 		return n;
 	}
 	function closePopovers() {
-		document.querySelectorAll( '.amx-popover' ).forEach( function ( p ) { p.remove(); } );
+		document.querySelectorAll( '.amm-popover' ).forEach( function ( p ) { p.remove(); } );
 	}
 	function cssEscape( s ) {
 		if ( window.CSS && window.CSS.escape ) { return window.CSS.escape( s ); }
 		return String( s ).replace( /(["\\\]])/g, '\\$1' );
 	}
 	function liForSlug( slug ) {
-		return document.querySelector( '[data-amx-slug="' + cssEscape( slug ) + '"]' );
+		return document.querySelector( '[data-amm-slug="' + cssEscape( slug ) + '"]' );
 	}
 
 	/* ---------- folded-mode override -------------------------------------- */
@@ -91,7 +91,7 @@
 	/* ---------- build model + wire the DOM --------------------------------- */
 
 	function init() {
-		document.body.classList.add( 'amx-editing' );
+		document.body.classList.add( 'amm-editing' );
 		forceUnfold();
 
 		D.menu.forEach( function ( node ) {
@@ -104,9 +104,9 @@
 
 			var li = node.liId ? document.getElementById( node.liId ) : null;
 			if ( ! li ) { return; }
-			li.dataset.amxSlug = node.slug;
-			li.classList.add( 'amx-item' );
-			if ( node.hiddenRoles.length ) { li.classList.add( 'amx-has-hidden' ); }
+			li.dataset.ammSlug = node.slug;
+			li.classList.add( 'amm-item' );
+			if ( node.hiddenRoles.length ) { li.classList.add( 'amm-has-hidden' ); }
 
 			decorateTop( li );
 
@@ -129,9 +129,9 @@
 				}
 				var sli = subLis[ idx ];
 				if ( ! sli ) { return; }
-				sli.dataset.amxSlug = child.slug;
-				sli.classList.add( 'amx-subitem' );
-				if ( child.hiddenRoles.length ) { sli.classList.add( 'amx-has-hidden' ); }
+				sli.dataset.ammSlug = child.slug;
+				sli.classList.add( 'amm-subitem' );
+				if ( child.hiddenRoles.length ) { sli.classList.add( 'amm-has-hidden' ); }
 				decorateSub( sli );
 			} );
 		} );
@@ -142,13 +142,13 @@
 	}
 
 	function decorateTop( li ) {
-		var handle = el( 'span', 'amx-handle dashicons dashicons-move' );
+		var handle = el( 'span', 'amm-handle dashicons dashicons-move' );
 		handle.title = I.drag;
 		li.insertBefore( handle, li.firstChild );
 	}
 
 	function decorateSub( sli ) {
-		var handle = el( 'span', 'amx-subhandle dashicons dashicons-move' );
+		var handle = el( 'span', 'amm-subhandle dashicons dashicons-move' );
 		handle.title = I.drag;
 		sli.insertBefore( handle, sli.firstChild );
 	}
@@ -165,29 +165,29 @@
 			if ( a ) { e.preventDefault(); }
 
 			// Drag handle is for dragging only — don't select.
-			if ( e.target.closest( '.amx-handle, .amx-subhandle' ) ) {
+			if ( e.target.closest( '.amm-handle, .amm-subhandle' ) ) {
 				return;
 			}
 			// Popovers may be placed over the menu region — let them handle their own clicks.
-			if ( e.target.closest( '.amx-popover' ) ) {
+			if ( e.target.closest( '.amm-popover' ) ) {
 				return;
 			}
 
-			var li = e.target.closest( 'li.amx-item, li.amx-subitem' );
+			var li = e.target.closest( 'li.amm-item, li.amm-subitem' );
 			if ( ! li ) { return; }
 			selectItem( li );
 		}, true );
 	}
 
 	function selectItem( li ) {
-		var slug = li.dataset.amxSlug;
+		var slug = li.dataset.ammSlug;
 		if ( ! slug || ! model[ slug ] ) { return; }
 
-		document.querySelectorAll( '.amx-selected' ).forEach( function ( n ) {
-			n.classList.remove( 'amx-selected' );
+		document.querySelectorAll( '.amm-selected' ).forEach( function ( n ) {
+			n.classList.remove( 'amm-selected' );
 		} );
 		selectedSlug = slug;
-		li.classList.add( 'amx-selected' );
+		li.classList.add( 'amm-selected' );
 		populatePanel( slug );
 		closePopovers();
 	}
@@ -195,21 +195,21 @@
 	/* ---------- toolbar + shared controls panel --------------------------- */
 
 	function buildToolbar() {
-		var bar = el( 'div', 'amx-toolbar' );
+		var bar = el( 'div', 'amm-toolbar' );
 
-		statusEl = el( 'span', 'amx-status amx-status-idle' );
+		statusEl = el( 'span', 'amm-status amm-status-idle' );
 		statusEl.textContent = I.idle;
 		bar.appendChild( statusEl );
 
 		// Shared panel — empty/hidden until something is selected.
-		var p = el( 'div', 'amx-panel' );
+		var p = el( 'div', 'amm-panel' );
 		p.hidden = true;
 
-		var label = el( 'span', 'amx-panel-label' );
+		var label = el( 'span', 'amm-panel-label' );
 
-		var renameField = el( 'label', 'amx-panel-field' );
+		var renameField = el( 'label', 'amm-panel-field' );
 		renameField.appendChild( document.createTextNode( I.rename + ' ' ) );
-		var rename = el( 'input', 'amx-rename-input' );
+		var rename = el( 'input', 'amm-rename-input' );
 		rename.type = 'text';
 		rename.addEventListener( 'keydown', function ( e ) {
 			if ( e.key === 'Enter' ) {
@@ -223,7 +223,7 @@
 		rename.addEventListener( 'blur', commitRename );
 		renameField.appendChild( rename );
 
-		var iconBtn = el( 'button', 'button amx-icon-btn' );
+		var iconBtn = el( 'button', 'button amm-icon-btn' );
 		iconBtn.type = 'button';
 		iconBtn.textContent = I.icon;
 		iconBtn.addEventListener( 'click', function ( e ) {
@@ -231,7 +231,7 @@
 			openIconPicker( iconBtn );
 		} );
 
-		var visBtn = el( 'button', 'button amx-vis-btn' );
+		var visBtn = el( 'button', 'button amm-vis-btn' );
 		visBtn.type = 'button';
 		visBtn.textContent = I.visibility;
 		visBtn.addEventListener( 'click', function ( e ) {
@@ -239,7 +239,7 @@
 			openVisibilityPicker( visBtn );
 		} );
 
-		var resetItemBtn = el( 'button', 'button amx-reset-item' );
+		var resetItemBtn = el( 'button', 'button amm-reset-item' );
 		resetItemBtn.type = 'button';
 		resetItemBtn.textContent = I.resetItem;
 		resetItemBtn.addEventListener( 'click', resetSelected );
@@ -260,13 +260,13 @@
 			resetBtn: resetItemBtn,
 		};
 
-		var right = el( 'div', 'amx-toolbar-right' );
+		var right = el( 'div', 'amm-toolbar-right' );
 
-		var resetAll = el( 'button', 'button amx-reset-all', I.resetAll );
+		var resetAll = el( 'button', 'button amm-reset-all', I.resetAll );
 		resetAll.type = 'button';
 		resetAll.addEventListener( 'click', doResetAll );
 
-		var exit = el( 'a', 'button amx-exit', I.exit );
+		var exit = el( 'a', 'button amm-exit', I.exit );
 		exit.href = D.exitUrl;
 		exit.addEventListener( 'click', onExit );
 
@@ -329,7 +329,7 @@
 		var slug = selectedSlug;
 		var sets = D.iconSets || [];
 
-		var pop = el( 'div', 'amx-popover amx-icon-popover' );
+		var pop = el( 'div', 'amm-popover amm-icon-popover' );
 		pop.setAttribute( 'role', 'dialog' );
 		pop.setAttribute( 'aria-modal', 'true' );
 		pop.setAttribute( 'aria-label', I.iconDialog );
@@ -345,14 +345,14 @@
 		}
 
 		// --- search ---
-		var search = el( 'input', 'amx-icon-search' );
+		var search = el( 'input', 'amm-icon-search' );
 		search.type = 'search';
 		search.setAttribute( 'aria-label', I.iconSearch );
 		search.placeholder = I.iconSearch;
 		pop.appendChild( search );
 
 		// --- "no icon" escape hatch ---
-		var noneBtn = el( 'button', 'button amx-icon-none', I.iconNone );
+		var noneBtn = el( 'button', 'button amm-icon-none', I.iconNone );
 		noneBtn.type = 'button';
 		noneBtn.title = I.iconNoneHint;
 		if ( ! model[ slug ].icon ) { noneBtn.setAttribute( 'aria-pressed', 'true' ); }
@@ -360,7 +360,7 @@
 		pop.appendChild( noneBtn );
 
 		// --- tabs ---
-		var tablist = el( 'div', 'amx-icon-tabs' );
+		var tablist = el( 'div', 'amm-icon-tabs' );
 		tablist.setAttribute( 'role', 'tablist' );
 		tablist.setAttribute( 'aria-label', I.iconDialog );
 		pop.appendChild( tablist );
@@ -369,10 +369,10 @@
 		var tabs   = [];
 
 		sets.forEach( function ( set, si ) {
-			var tabId   = 'amx-tab-' + set.id;
-			var panelId = 'amx-panel-' + set.id;
+			var tabId   = 'amm-tab-' + set.id;
+			var panelId = 'amm-panel-' + set.id;
 
-			var tab = el( 'button', 'amx-icon-tab', set.label );
+			var tab = el( 'button', 'amm-icon-tab', set.label );
 			tab.type = 'button';
 			tab.id = tabId;
 			tab.setAttribute( 'role', 'tab' );
@@ -382,18 +382,18 @@
 			tablist.appendChild( tab );
 			tabs.push( tab );
 
-			var panel = el( 'div', 'amx-icon-grid' );
+			var panel = el( 'div', 'amm-icon-grid' );
 			panel.id = panelId;
 			panel.setAttribute( 'role', 'tabpanel' );
 			panel.setAttribute( 'aria-labelledby', tabId );
 			panel.hidden = si !== 0;
 
 			set.icons.forEach( function ( ic ) {
-				var b = el( 'button', 'amx-icon-cell' + ( set.type === 'class' ? ' dashicons ' + ic.class : ' amx-icon-img' ) );
+				var b = el( 'button', 'amm-icon-cell' + ( set.type === 'class' ? ' dashicons ' + ic.class : ' amm-icon-img' ) );
 				b.type = 'button';
 				b.title = ic.label;
 				b.setAttribute( 'aria-label', ic.label );
-				b.dataset.amxName = ( ic.label || '' ).toLowerCase();
+				b.dataset.ammName = ( ic.label || '' ).toLowerCase();
 				b.tabIndex = -1;
 				if ( model[ slug ].icon === ic.id ) {
 					b.classList.add( 'is-current' );
@@ -440,7 +440,7 @@
 		}
 		pop.addEventListener( 'keydown', function ( e ) {
 			if ( ! /^Arrow/.test( e.key ) ) { return; }
-			if ( ! e.target.classList || ! e.target.classList.contains( 'amx-icon-cell' ) ) { return; }
+			if ( ! e.target.classList || ! e.target.classList.contains( 'amm-icon-cell' ) ) { return; }
 			var cells = visibleCells();
 			var i = cells.indexOf( e.target );
 			if ( i === -1 ) { return; }
@@ -465,7 +465,7 @@
 			if ( ! panel ) { return; }
 			var firstShown = null;
 			Array.prototype.forEach.call( panel.children, function ( c ) {
-				var hit = ! q || ( c.dataset.amxName || '' ).indexOf( q ) !== -1;
+				var hit = ! q || ( c.dataset.ammName || '' ).indexOf( q ) !== -1;
 				c.hidden = ! hit;
 				c.tabIndex = -1;
 				if ( hit && ! firstShown ) { firstShown = c; }
@@ -563,11 +563,11 @@
 		if ( ! selectedSlug ) { return; }
 
 		var slug = selectedSlug;
-		var pop  = el( 'div', 'amx-popover amx-vis-popover' );
-		pop.appendChild( el( 'p', 'amx-vis-head', I.hideFrom ) );
+		var pop  = el( 'div', 'amm-popover amm-vis-popover' );
+		pop.appendChild( el( 'p', 'amm-vis-head', I.hideFrom ) );
 
 		Object.keys( D.roles ).forEach( function ( roleKey ) {
-			var row = el( 'label', 'amx-vis-row' );
+			var row = el( 'label', 'amm-vis-row' );
 			var cb  = el( 'input' );
 			cb.type = 'checkbox';
 			cb.value = roleKey;
@@ -581,7 +581,7 @@
 				}
 				var li = liForSlug( slug );
 				if ( li ) {
-					li.classList.toggle( 'amx-has-hidden', model[ slug ].hiddenRoles.length > 0 );
+					li.classList.toggle( 'amm-has-hidden', model[ slug ].hiddenRoles.length > 0 );
 				}
 				scheduleAutosave();
 			} );
@@ -604,7 +604,7 @@
 		m.hiddenRoles = [];
 
 		var li = liForSlug( selectedSlug );
-		if ( li ) { li.classList.remove( 'amx-has-hidden' ); }
+		if ( li ) { li.classList.remove( 'amm-has-hidden' ); }
 
 		if ( ! m.isSub ) {
 			m.icon = def.icon || '';
@@ -645,8 +645,8 @@
 
 	function initSortables() {
 		$( '#adminmenu' ).sortable( {
-			items:     '> li.menu-top.amx-item',
-			handle:    '.amx-handle',
+			items:     '> li.menu-top.amm-item',
+			handle:    '.amm-handle',
 			axis:      'y',
 			tolerance: 'pointer',
 			cursor:    'grabbing',
@@ -655,8 +655,8 @@
 
 		$( '#adminmenu .wp-submenu' ).each( function () {
 			$( this ).sortable( {
-				items:     '> li.amx-subitem',
-				handle:    '.amx-subhandle',
+				items:     '> li.amm-subitem',
+				handle:    '.amm-subhandle',
 				axis:      'y',
 				tolerance: 'pointer',
 				cursor:    'grabbing',
@@ -672,15 +672,15 @@
 		// Object.prototype or break JSON serialisation of the payload.
 		var cfg = { items: Object.create( null ), top_order: [], sub_order: Object.create( null ) };
 
-		var topLis = document.querySelectorAll( '#adminmenu > li.menu-top.amx-item[data-amx-slug]' );
+		var topLis = document.querySelectorAll( '#adminmenu > li.menu-top.amm-item[data-amm-slug]' );
 
 		// Top-level slugs own their identity. A submenu item sharing one of these
 		// slugs (WP self-link convention) must not emit a conflicting items entry.
 		var topSlugs = Object.create( null );
-		topLis.forEach( function ( li ) { topSlugs[ li.dataset.amxSlug ] = true; } );
+		topLis.forEach( function ( li ) { topSlugs[ li.dataset.ammSlug ] = true; } );
 
 		topLis.forEach( function ( li ) {
-			var slug = li.dataset.amxSlug;
+			var slug = li.dataset.ammSlug;
 			cfg.top_order.push( slug );
 
 			var m   = model[ slug ];
@@ -691,11 +691,11 @@
 			if ( m.hiddenRoles.length )             { entry.hidden_roles = m.hiddenRoles; }
 			if ( Object.keys( entry ).length )      { cfg.items[ slug ] = entry; }
 
-			var subLis = li.querySelectorAll( '.wp-submenu > li.amx-subitem[data-amx-slug]' );
+			var subLis = li.querySelectorAll( '.wp-submenu > li.amm-subitem[data-amm-slug]' );
 			if ( subLis.length ) {
 				cfg.sub_order[ slug ] = [];
 				subLis.forEach( function ( sli ) {
-					var sslug = sli.dataset.amxSlug;
+					var sslug = sli.dataset.ammSlug;
 					cfg.sub_order[ slug ].push( sslug );
 
 					// Ordering still records the slug, but a submenu that shares
@@ -717,7 +717,7 @@
 
 	function setStatus( state ) {
 		if ( ! statusEl ) { return; }
-		statusEl.className = 'amx-status amx-status-' + state;
+		statusEl.className = 'amm-status amm-status-' + state;
 		statusEl.textContent =
 			state === 'saving' ? I.saving :
 			state === 'saved'  ? I.saved  :

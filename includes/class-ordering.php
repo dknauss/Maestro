@@ -12,10 +12,10 @@
  *   - Desired names that no longer exist (orphans) are silently skipped.
  *   - A duplicated name in the desired order is honoured once.
  *
- * @package AdminMenuCustomizer
+ * @package AdminMenuMaestro
  */
 
-namespace AMX;
+namespace AdminMenuMaestro;
 
 defined( 'ABSPATH' ) || exit;
 
