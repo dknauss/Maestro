@@ -15,6 +15,7 @@
 	"devDependencies": {
 		"@playwright/test": "^1.45.0",
 		"@wordpress/env": "^10.6.0",
-		"@wordpress/scripts": "^30.5.0"
+		"@wordpress/scripts": "^30.5.0",
+		"bootstrap-icons": "^1.13.1"
 	}
 }

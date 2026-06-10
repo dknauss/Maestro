@@ -112,27 +112,79 @@ body.amx-editing #collapse-menu {
 	padding: 10px;
 }
 .amx-icon-popover {
-	width: 280px;
+	width: 300px;
+	max-width: 92vw;
+}
+.amx-icon-search {
+	width: 100%;
+	box-sizing: border-box;
+	margin: 0 0 8px;
+	padding: 6px 8px;
+	border: 1px solid #8c8f94;
+	border-radius: 3px;
+}
+.amx-icon-none {
+	margin: 0 0 8px;
+	width: 100%;
+}
+.amx-icon-none[aria-pressed="true"] {
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+.amx-icon-tabs {
+	display: flex;
+	gap: 4px;
+	margin: 0 0 8px;
+	border-bottom: 1px solid #dcdcde;
+}
+.amx-icon-tab {
+	background: transparent;
+	border: 0;
+	border-bottom: 2px solid transparent;
+	padding: 6px 10px;
+	cursor: pointer;
+	color: #50575e;
+	font-size: 13px;
+}
+.amx-icon-tab[aria-selected="true"] {
+	color: #1d2327;
+	border-bottom-color: #2271b1;
+	font-weight: 600;
 }
 .amx-icon-grid {
 	display: grid;
-	grid-template-columns: repeat( 8, 1fr );
-	gap: 2px;
-	max-height: 220px;
+	grid-template-columns: repeat( auto-fill, minmax( 36px, 1fr ) );
+	gap: 4px;
+	max-height: 240px;
 	overflow-y: auto;
+}
+/* display:grid/flex above outrank the UA [hidden] rule, so tab-switching and
+   the search filter wouldn't hide anything without this. */
+.amx-icon-grid[hidden],
+.amx-icon-cell[hidden] {
+	display: none;
 }
 .amx-icon-cell {
 	background: #f6f7f7;
 	border: 1px solid transparent;
 	border-radius: 3px;
-	height: 30px;
+	min-height: 36px;
 	cursor: pointer;
 	color: #1d2327;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 }
+.amx-icon-cell img {
+	width: 20px;
+	height: 20px;
+	display: block;
+}
 .amx-icon-cell:hover { background: #e0e7ec; }
+.amx-icon-cell:focus-visible {
+	outline: 2px solid #2271b1;
+	outline-offset: 1px;
+}
 .amx-icon-cell.is-current {
 	border-color: #2271b1;
 	background: #dbe9f5;
@@ -224,4 +276,14 @@ body.amx-editing #collapse-menu {
 	.amx-toolbar { left: 0; }
 	.amx-panel-label { max-width: 120px; }
 	.amx-rename-input { width: 120px; }
+
+	/* Comfortable touch targets and a viewport-fitting picker on small screens. */
+	.amx-icon-popover { width: 92vw; }
+	.amx-icon-grid {
+		grid-template-columns: repeat( auto-fill, minmax( 44px, 1fr ) );
+		max-height: 50vh;
+	}
+	.amx-icon-cell { min-height: 44px; }
+	.amx-icon-tab { padding: 10px 12px; }
+	.amx-vis-row { padding: 8px 0; }
 }

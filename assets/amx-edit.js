@@ -327,27 +327,183 @@
 		if ( ! selectedSlug || model[ selectedSlug ].isSub ) { return; }
 
 		var slug = selectedSlug;
-		var pop  = el( 'div', 'amx-popover amx-icon-popover' );
-		var grid = el( 'div', 'amx-icon-grid' );
+		var sets = D.iconSets || [];
 
-		D.dashicons.forEach( function ( dc ) {
-			var b = el( 'button', 'amx-icon-cell dashicons ' + dc );
-			b.type = 'button';
-			b.title = dc;
-			if ( model[ slug ].icon === dc ) { b.classList.add( 'is-current' ); }
-			b.addEventListener( 'click', function ( e ) {
-				e.preventDefault();
-				model[ slug ].icon = dc;
-				var li = liForSlug( slug );
-				if ( li ) { applyIconPreview( li, dc ); }
-				closePopovers();
-				scheduleAutosave();
+		var pop = el( 'div', 'amx-popover amx-icon-popover' );
+		pop.setAttribute( 'role', 'dialog' );
+		pop.setAttribute( 'aria-modal', 'true' );
+		pop.setAttribute( 'aria-label', I.iconDialog );
+
+		// --- choose an icon, persist, close ---
+		function choose( iconId ) {
+			model[ slug ].icon = iconId;
+			var li = liForSlug( slug );
+			if ( li ) { applyIconPreview( li, iconId || 'none' ); }
+			closePopovers();
+			anchorBtn.focus();
+			scheduleAutosave();
+		}
+
+		// --- search ---
+		var search = el( 'input', 'amx-icon-search' );
+		search.type = 'search';
+		search.setAttribute( 'aria-label', I.iconSearch );
+		search.placeholder = I.iconSearch;
+		pop.appendChild( search );
+
+		// --- "no icon" escape hatch ---
+		var noneBtn = el( 'button', 'button amx-icon-none', I.iconNone );
+		noneBtn.type = 'button';
+		noneBtn.title = I.iconNoneHint;
+		if ( ! model[ slug ].icon ) { noneBtn.setAttribute( 'aria-pressed', 'true' ); }
+		noneBtn.addEventListener( 'click', function ( e ) { e.preventDefault(); choose( '' ); } );
+		pop.appendChild( noneBtn );
+
+		// --- tabs ---
+		var tablist = el( 'div', 'amx-icon-tabs' );
+		tablist.setAttribute( 'role', 'tablist' );
+		tablist.setAttribute( 'aria-label', I.iconDialog );
+		pop.appendChild( tablist );
+
+		var panels = [];
+		var tabs   = [];
+
+		sets.forEach( function ( set, si ) {
+			var tabId   = 'amx-tab-' + set.id;
+			var panelId = 'amx-panel-' + set.id;
+
+			var tab = el( 'button', 'amx-icon-tab', set.label );
+			tab.type = 'button';
+			tab.id = tabId;
+			tab.setAttribute( 'role', 'tab' );
+			tab.setAttribute( 'aria-controls', panelId );
+			tab.setAttribute( 'aria-selected', si === 0 ? 'true' : 'false' );
+			tab.tabIndex = si === 0 ? 0 : -1;
+			tablist.appendChild( tab );
+			tabs.push( tab );
+
+			var panel = el( 'div', 'amx-icon-grid' );
+			panel.id = panelId;
+			panel.setAttribute( 'role', 'tabpanel' );
+			panel.setAttribute( 'aria-labelledby', tabId );
+			panel.hidden = si !== 0;
+
+			set.icons.forEach( function ( ic ) {
+				var b = el( 'button', 'amx-icon-cell' + ( set.type === 'class' ? ' dashicons ' + ic.class : ' amx-icon-img' ) );
+				b.type = 'button';
+				b.title = ic.label;
+				b.setAttribute( 'aria-label', ic.label );
+				b.dataset.amxName = ( ic.label || '' ).toLowerCase();
+				b.tabIndex = -1;
+				if ( model[ slug ].icon === ic.id ) {
+					b.classList.add( 'is-current' );
+					b.setAttribute( 'aria-pressed', 'true' );
+				}
+				if ( set.type === 'data' ) {
+					var im = el( 'img' );
+					im.src = ic.src;
+					im.alt = '';
+					b.appendChild( im );
+				}
+				b.addEventListener( 'click', function ( e ) { e.preventDefault(); choose( ic.id ); } );
+				panel.appendChild( b );
 			} );
-			grid.appendChild( b );
+
+			pop.appendChild( panel );
+			panels.push( panel );
+
+			tab.addEventListener( 'click', function () { activateTab( si ); } );
 		} );
 
-		pop.appendChild( grid );
+		function activateTab( idx ) {
+			tabs.forEach( function ( t, i ) {
+				t.setAttribute( 'aria-selected', i === idx ? 'true' : 'false' );
+				t.tabIndex = i === idx ? 0 : -1;
+				panels[ i ].hidden = i !== idx;
+			} );
+			tabs[ idx ].focus();
+			applyFilter();
+		}
+
+		// Arrow-key tab switching (WAI-ARIA tabs pattern).
+		tablist.addEventListener( 'keydown', function ( e ) {
+			var cur = tabs.findIndex( function ( t ) { return t.getAttribute( 'aria-selected' ) === 'true'; } );
+			if ( e.key === 'ArrowRight' ) { e.preventDefault(); activateTab( ( cur + 1 ) % tabs.length ); }
+			else if ( e.key === 'ArrowLeft' ) { e.preventDefault(); activateTab( ( cur - 1 + tabs.length ) % tabs.length ); }
+		} );
+
+		// Roving arrow-key navigation within the visible grid.
+		function visibleCells() {
+			var panel = panels.find( function ( p ) { return ! p.hidden; } );
+			if ( ! panel ) { return []; }
+			return Array.prototype.filter.call( panel.children, function ( c ) { return ! c.hidden; } );
+		}
+		pop.addEventListener( 'keydown', function ( e ) {
+			if ( ! /^Arrow/.test( e.key ) ) { return; }
+			if ( ! e.target.classList || ! e.target.classList.contains( 'amx-icon-cell' ) ) { return; }
+			var cells = visibleCells();
+			var i = cells.indexOf( e.target );
+			if ( i === -1 ) { return; }
+			var cols = Math.max( 1, Math.floor( e.target.parentNode.clientWidth / e.target.offsetWidth ) || 8 );
+			var next = i;
+			if ( e.key === 'ArrowRight' ) { next = Math.min( cells.length - 1, i + 1 ); }
+			else if ( e.key === 'ArrowLeft' ) { next = Math.max( 0, i - 1 ); }
+			else if ( e.key === 'ArrowDown' ) { next = Math.min( cells.length - 1, i + cols ); }
+			else if ( e.key === 'ArrowUp' ) { next = Math.max( 0, i - cols ); }
+			if ( next !== i ) {
+				e.preventDefault();
+				cells[ i ].tabIndex = -1;
+				cells[ next ].tabIndex = 0;
+				cells[ next ].focus();
+			}
+		} );
+
+		// Search filter across the active panel; first match becomes tabbable.
+		function applyFilter() {
+			var q = search.value.trim().toLowerCase();
+			var panel = panels.find( function ( p ) { return ! p.hidden; } );
+			if ( ! panel ) { return; }
+			var firstShown = null;
+			Array.prototype.forEach.call( panel.children, function ( c ) {
+				var hit = ! q || ( c.dataset.amxName || '' ).indexOf( q ) !== -1;
+				c.hidden = ! hit;
+				c.tabIndex = -1;
+				if ( hit && ! firstShown ) { firstShown = c; }
+			} );
+			if ( firstShown ) { firstShown.tabIndex = 0; }
+		}
+		search.addEventListener( 'input', applyFilter );
+
+		// Escape closes and restores focus; Tab is trapped within the dialog.
+		pop.addEventListener( 'keydown', function ( e ) {
+			if ( e.key === 'Escape' ) {
+				e.preventDefault();
+				closePopovers();
+				anchorBtn.focus();
+				return;
+			}
+			if ( e.key !== 'Tab' ) { return; }
+			var focusable = pop.querySelectorAll(
+				'input, button, [tabindex]:not([tabindex="-1"])'
+			);
+			focusable = Array.prototype.filter.call( focusable, function ( n ) {
+				return ! n.hidden && n.offsetParent !== null;
+			} );
+			if ( ! focusable.length ) { return; }
+			var first = focusable[ 0 ];
+			var last  = focusable[ focusable.length - 1 ];
+			if ( e.shiftKey && document.activeElement === first ) {
+				e.preventDefault();
+				last.focus();
+			} else if ( ! e.shiftKey && document.activeElement === last ) {
+				e.preventDefault();
+				first.focus();
+			}
+		} );
+
 		placePopover( pop, anchorBtn );
+		applyFilter();
+		search.focus();
 	}
 
 	// Reflect an icon value into the rendered menu image. The picker only ever
@@ -358,26 +514,45 @@
 		var img = li.querySelector( '.wp-menu-image' );
 		if ( ! img ) { return; }
 
-		// Drop every dashicons-* token (including the dashicons-before marker).
-		// Splitting on whitespace avoids a regex that also matched dashicons-before.
+		// Drop every dashicons-* token (including dashicons-before) and the svg
+		// marker, so each branch starts from a clean slate. Splitting on
+		// whitespace avoids a regex that also matched dashicons-before.
 		var keep = img.className.split( /\s+/ ).filter( function ( c ) {
-			return c && c.indexOf( 'dashicons-' ) !== 0;
+			return c && c.indexOf( 'dashicons-' ) !== 0 && c !== 'svg';
 		} );
+
+		function clearBg() {
+			img.style.backgroundImage = '';
+			img.style.backgroundRepeat = '';
+			img.style.backgroundPosition = '';
+			img.style.backgroundSize = '';
+		}
+		function setBg() {
+			img.style.backgroundImage = 'url("' + icon.replace( /"/g, '%22' ) + '")';
+			img.style.backgroundRepeat = 'no-repeat';
+			img.style.backgroundPosition = 'center';
+			img.style.backgroundSize = '20px auto';
+		}
 
 		if ( /^dashicons-/.test( icon ) ) {
 			// Dashicon glyph: font class, no background image.
 			keep.push( 'dashicons-before', icon );
 			img.className = keep.join( ' ' );
-			img.style.backgroundImage = '';
-		} else if ( /^(https?:\/\/|\/\/|\/|data:)/.test( icon ) ) {
-			// Custom image icon: render via background-image, as core does.
+			clearBg();
+		} else if ( /^data:image\//.test( icon ) ) {
+			// Base64 image data-URI: borrow core's ".svg" sizing and paint it.
+			keep.push( 'svg' );
 			img.className = keep.join( ' ' );
-			img.style.backgroundImage = 'url("' + icon.replace( /"/g, '%22' ) + '")';
+			setBg();
+		} else if ( /^(https?:\/\/|\/\/|\/)/.test( icon ) ) {
+			// URL icon: core would render an <img>; approximate via background.
+			img.className = keep.join( ' ' );
+			setBg();
 		} else {
 			// Empty / "none" / "div": no faithful client-side reconstruction, so
 			// clear the stale preview. The authoritative icon returns on Exit reload.
 			img.className = keep.join( ' ' );
-			img.style.backgroundImage = '';
+			clearBg();
 		}
 	}
 

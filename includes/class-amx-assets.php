@@ -67,7 +67,7 @@ class Assets {
 				'nonce'     => wp_create_nonce( 'wp_rest' ),
 				'exitUrl'   => esc_url_raw( remove_query_arg( 'amx_edit' ) ),
 				'roles'     => wp_roles()->get_names(),
-				'dashicons' => $this->dashicon_set(),
+				'iconSets'  => $this->icon_sets(),
 				'config'    => $this->config->get(),
 				'menu'      => $this->replay->get_menu_model(),
 				'pristine'  => $this->replay->get_pristine(),
@@ -78,6 +78,10 @@ class Assets {
 					'saveError'  => __( 'Save failed. Retrying on next change.', 'amx-inline-menu-editor' ),
 					'rename'     => __( 'Title', 'amx-inline-menu-editor' ),
 					'icon'       => __( 'Icon', 'amx-inline-menu-editor' ),
+					'iconDialog' => __( 'Choose an icon', 'amx-inline-menu-editor' ),
+					'iconSearch' => __( 'Search icons', 'amx-inline-menu-editor' ),
+					'iconNone'   => __( 'No icon', 'amx-inline-menu-editor' ),
+					'iconNoneHint' => __( 'Remove the icon (uses the menu default).', 'amx-inline-menu-editor' ),
 					'visibility' => __( 'Visibility', 'amx-inline-menu-editor' ),
 					'resetItem'  => __( 'Reset this item', 'amx-inline-menu-editor' ),
 					'resetAll'   => __( 'Reset all', 'amx-inline-menu-editor' ),
@@ -87,6 +91,52 @@ class Assets {
 					'drag'       => __( 'Drag to reorder', 'amx-inline-menu-editor' ),
 				),
 			)
+		);
+	}
+
+	/**
+	 * Icon sets for the picker. Each set declares how its cells render:
+	 *   - 'class' : the icon id IS a CSS class (dashicons), rendered as a glyph.
+	 *   - 'data'  : the icon id maps to a base64 data-URI image src.
+	 * The stored value is the icon id for a class set, or the data-URI for a data
+	 * set — both pass Config::sanitize_icon(). The picker is presentational; the
+	 * validator (not this list) is the authority on what may be saved.
+	 *
+	 * @return array
+	 */
+	private function icon_sets() {
+		$bootstrap = require AMX_DIR . 'includes/icons-bootstrap.php';
+		$bi        = array();
+		foreach ( $bootstrap as $id => $src ) {
+			$bi[] = array(
+				'id'    => $src,                                  // stored value = the data-URI
+				'src'   => $src,                                  // preview source
+				'label' => ucwords( str_replace( array( 'bi-', '-' ), array( '', ' ' ), $id ) ),
+			);
+		}
+
+		return array(
+			array(
+				'id'    => 'dashicons',
+				'label' => __( 'Dashicons', 'amx-inline-menu-editor' ),
+				'type'  => 'class',
+				'icons' => array_map(
+					function ( $cls ) {
+						return array(
+							'id'    => $cls,
+							'class' => $cls,
+							'label' => ucwords( str_replace( array( 'dashicons-', '-' ), array( '', ' ' ), $cls ) ),
+						);
+					},
+					$this->dashicon_set()
+				),
+			),
+			array(
+				'id'    => 'bootstrap',
+				'label' => __( 'Bootstrap', 'amx-inline-menu-editor' ),
+				'type'  => 'data',
+				'icons' => $bi,
+			),
 		);
 	}
 

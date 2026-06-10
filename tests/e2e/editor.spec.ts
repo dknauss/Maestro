@@ -104,14 +104,14 @@ test.describe( 'Inline Admin Menu Editor — editor', () => {
 		const picker = page.locator( '.amx-icon-popover' );
 		await expect( picker ).toBeVisible();
 
-		// Capture the POST so we can assert the icon is in the payload — the
-		// confirmed miss before this work was the icon not being persisted.
-		const saveReq = page.waitForRequest(
-			r => POST_SAVE( r.url() ) && r.method() === 'POST'
+		// Wait for the save to COMPLETE (not just fire) so the reload below sees
+		// the stored icon — and assert the icon is in the payload. The confirmed
+		// miss before this work was the icon not being persisted at all.
+		const saveResp = page.waitForResponse(
+			r => POST_SAVE( r.url() ) && r.request().method() === 'POST' && r.ok()
 		);
 		await picker.locator( '.amx-icon-cell.dashicons-book' ).click();
-		const req = await saveReq;
-		const payload = req.postDataJSON();
+		const payload = ( await saveResp ).request().postDataJSON();
 		expect( payload?.config?.items?.[ 'edit.php' ]?.icon ).toBe( 'dashicons-book' );
 
 		// Preview updated synchronously.
@@ -125,6 +125,59 @@ test.describe( 'Inline Admin Menu Editor — editor', () => {
 		page.once( 'dialog', d => d.accept() );
 		await page.locator( '.amx-reset-all' ).click();
 		await expect( page.locator( '#menu-posts .wp-menu-image' ) ).not.toHaveClass( /dashicons-book/ );
+	} );
+
+	test( 'a bundled Bootstrap (data-URI) icon persists across reload', async ( { page } ) => {
+		await page.goto( '/wp-admin/index.php?amx_edit=1' );
+
+		await page.locator( '#menu-posts > a.menu-top' ).click();
+		const panel = page.locator( '.amx-toolbar .amx-panel' );
+		await expect( panel ).toBeVisible();
+		await panel.locator( '.amx-icon-btn' ).click();
+
+		const picker = page.locator( '.amx-icon-popover' );
+		await expect( picker ).toBeVisible();
+
+		// Switch to the Bootstrap tab: its panel shows, the Dashicons panel hides.
+		await picker.getByRole( 'tab', { name: 'Bootstrap' } ).click();
+		await expect( picker.locator( '#amx-panel-dashicons' ) ).toBeHidden();
+		const btPanel = picker.locator( '#amx-panel-bootstrap' );
+		await expect( btPanel ).toBeVisible();
+
+		// The search filter narrows the visible cells (regression guard: a CSS
+		// display rule once outranked [hidden] and the filter silently no-op'd).
+		const allCells = await btPanel.locator( '.amx-icon-cell:visible' ).count();
+		await picker.locator( '.amx-icon-search' ).fill( 'gear' );
+		await expect
+			.poll( () => btPanel.locator( '.amx-icon-cell:visible' ).count() )
+			.toBeLessThan( allCells );
+		await picker.locator( '.amx-icon-search' ).fill( '' );
+
+		// Pick a known icon by its accessible name.
+		// Wait for completion so the reload sees the stored value (not just fired).
+		const saveResp = page.waitForResponse(
+			r => POST_SAVE( r.url() ) && r.request().method() === 'POST' && r.ok()
+		);
+		await picker.getByRole( 'button', { name: 'Gear', exact: true } ).click();
+
+		// The payload carries a base64 SVG data-URI, not a dashicon class.
+		const payload = ( await saveResp ).request().postDataJSON();
+		const icon = payload?.config?.items?.[ 'edit.php' ]?.icon as string;
+		expect( icon ).toMatch( /^data:image\/svg\+xml;base64,/ );
+
+		// Preview repaints via background-image + core's .svg sizing class.
+		await expect( page.locator( '#menu-posts .wp-menu-image' ) ).toHaveClass( /\bsvg\b/ );
+
+		// Persistence: core re-renders the data-URI icon after reload.
+		await page.goto( '/wp-admin/index.php?amx_edit=1' );
+		const img = page.locator( '#menu-posts .wp-menu-image' );
+		await expect( img ).toHaveClass( /\bsvg\b/ );
+		await expect( img ).toHaveAttribute( 'style', /data:image\/svg\+xml;base64,/ );
+
+		// Clean up.
+		page.once( 'dialog', d => d.accept() );
+		await page.locator( '.amx-reset-all' ).click();
+		await expect( page.locator( '#menu-posts .wp-menu-image' ) ).not.toHaveClass( /\bsvg\b/ );
 	} );
 
 } );
