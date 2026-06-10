@@ -27,12 +27,16 @@
 	var I = D.i18n;
 
 	// Flat working model: slug -> { title, icon, hiddenRoles, isSub, parent? }.
-	var model = {};
+	// Null-prototype so a menu slug like "__proto__" (plugins register arbitrary
+	// strings) can't pollute the prototype or shadow built-ins on lookup.
+	var model = Object.create( null );
 	var selectedSlug = null;
 	var panel = {};        // references into the shared panel
 	var statusEl = null;   // status indicator span
 	var saveTimer = null;
-	var lastEnqueuedSave = 0;
+	var saveInFlight = false;  // a full-replace POST is currently running
+	var savePending = false;   // another change arrived mid-flight; save again on land
+	var inFlight = null;       // promise that settles when the whole save chain is done
 
 	/* ---------- helpers ---------------------------------------------------- */
 
@@ -346,18 +350,35 @@
 		placePopover( pop, anchorBtn );
 	}
 
-	function applyIconPreview( li, dc ) {
+	// Reflect an icon value into the rendered menu image. The picker only ever
+	// supplies dashicons, but reset feeds back the pristine icon, which can be a
+	// URL / data-URI / "none" / "" (custom icons are out of scope for the picker
+	// but still reachable on reset). Branch so we never push a URL as a CSS class.
+	function applyIconPreview( li, icon ) {
 		var img = li.querySelector( '.wp-menu-image' );
 		if ( ! img ) { return; }
-		// Drop every dashicons-* token (including dashicons-before), then re-add
-		// the marker class plus the chosen icon. Splitting on whitespace avoids
-		// the earlier regex that also matched "dashicons-before".
+
+		// Drop every dashicons-* token (including the dashicons-before marker).
+		// Splitting on whitespace avoids a regex that also matched dashicons-before.
 		var keep = img.className.split( /\s+/ ).filter( function ( c ) {
 			return c && c.indexOf( 'dashicons-' ) !== 0;
 		} );
-		keep.push( 'dashicons-before', dc );
-		img.className = keep.join( ' ' );
-		img.style.backgroundImage = ''; // clear any custom SVG/url icon.
+
+		if ( /^dashicons-/.test( icon ) ) {
+			// Dashicon glyph: font class, no background image.
+			keep.push( 'dashicons-before', icon );
+			img.className = keep.join( ' ' );
+			img.style.backgroundImage = '';
+		} else if ( /^(https?:\/\/|\/\/|\/|data:)/.test( icon ) ) {
+			// Custom image icon: render via background-image, as core does.
+			img.className = keep.join( ' ' );
+			img.style.backgroundImage = 'url("' + icon.replace( /"/g, '%22' ) + '")';
+		} else {
+			// Empty / "none" / "div": no faithful client-side reconstruction, so
+			// clear the stale preview. The authoritative icon returns on Exit reload.
+			img.className = keep.join( ' ' );
+			img.style.backgroundImage = '';
+		}
 	}
 
 	/* ---------- visibility picker ----------------------------------------- */
@@ -412,7 +433,9 @@
 
 		if ( ! m.isSub ) {
 			m.icon = def.icon || '';
-			if ( li && def.icon ) { applyIconPreview( li, def.icon ); }
+			// Always refresh — when the pristine icon is empty this clears any
+			// stale dashicon preview rather than leaving it until reload.
+			if ( li ) { applyIconPreview( li, m.icon ); }
 		}
 		updateMenuLabel( selectedSlug );
 		populatePanel( selectedSlug );
@@ -470,13 +493,15 @@
 	/* ---------- build payload + autosave ---------------------------------- */
 
 	function buildConfig() {
-		var cfg = { items: {}, top_order: [], sub_order: {} };
+		// Null-prototype slug-keyed maps: a slug of "__proto__" must not mutate
+		// Object.prototype or break JSON serialisation of the payload.
+		var cfg = { items: Object.create( null ), top_order: [], sub_order: Object.create( null ) };
 
 		var topLis = document.querySelectorAll( '#adminmenu > li.menu-top.amx-item[data-amx-slug]' );
 
 		// Top-level slugs own their identity. A submenu item sharing one of these
 		// slugs (WP self-link convention) must not emit a conflicting items entry.
-		var topSlugs = {};
+		var topSlugs = Object.create( null );
 		topLis.forEach( function ( li ) { topSlugs[ li.dataset.amxSlug ] = true; } );
 
 		topLis.forEach( function ( li ) {
@@ -535,17 +560,29 @@
 		if ( saveTimer ) {
 			clearTimeout( saveTimer );
 			saveTimer = null;
-			return doAutosave();
 		}
-		return Promise.resolve();
+		return doAutosave();
 	}
 
+	// The endpoint is a full replace, so two POSTs in flight at once can arrive
+	// out of order and let an older snapshot overwrite newer edits. Serialise:
+	// never overlap requests. If a change lands while a save is running, set a
+	// pending flag and fire exactly one more save when the current one settles —
+	// that trailing POST carries the latest buildConfig(). The returned promise
+	// resolves only after the whole chain (including the trailing save) is done,
+	// so onExit can safely await it.
 	function doAutosave() {
 		saveTimer = null;
-		setStatus( 'saving' );
-		var myId = ++lastEnqueuedSave;
 
-		return fetch( D.restUrl, {
+		if ( saveInFlight ) {
+			savePending = true;
+			return inFlight || Promise.resolve();
+		}
+
+		saveInFlight = true;
+		setStatus( 'saving' );
+
+		inFlight = fetch( D.restUrl, {
 			method:      'POST',
 			headers:     {
 				'Content-Type': 'application/json',
@@ -558,12 +595,20 @@
 				if ( ! r.ok ) { throw new Error( 'HTTP ' + r.status ); }
 				return r.json();
 			} )
-			.then( function () {
-				if ( myId === lastEnqueuedSave ) { setStatus( 'saved' ); }
-			} )
-			.catch( function () {
-				if ( myId === lastEnqueuedSave ) { setStatus( 'error' ); }
-			} );
+			.then( function () { return settleSave( true ); } )
+			.catch( function () { return settleSave( false ); } );
+
+		return inFlight;
+	}
+
+	function settleSave( ok ) {
+		saveInFlight = false;
+		if ( savePending ) {
+			savePending = false;
+			return doAutosave(); // captures edits made while the last POST was in flight
+		}
+		setStatus( ok ? 'saved' : 'error' );
+		return null;
 	}
 
 	function doResetAll( e ) {
