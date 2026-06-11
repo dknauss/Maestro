@@ -7,8 +7,8 @@
 		"env:start": "wp-env start",
 		"env:stop": "wp-env stop",
 		"env:clean": "wp-env clean all",
-		"test:php": "wp-env run tests-cli --env-cwd=wp-content/plugins/amx-inline-menu-editor vendor/bin/phpunit -c phpunit-integration.xml.dist",
-		"pretest:e2e": "wp-env run tests-cli wp plugin activate amx-inline-menu-editor/admin-menu-maestro.php",
+		"test:php": "wp-env run tests-cli --env-cwd=wp-content/plugins/admin-menu-maestro vendor/bin/phpunit -c phpunit-integration.xml.dist",
+		"pretest:e2e": "wp-env run tests-cli wp plugin activate admin-menu-maestro/admin-menu-maestro.php",
 		"test:e2e": "playwright test",
 		"test:e2e:headed": "playwright test --headed"
 	},

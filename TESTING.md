@@ -14,7 +14,7 @@ Three layers, smallest and fastest first.
 - **Activate the plugin on the tests instance.** wp-env mounts the plugin on both
   the dev (`:8888`) and tests (`:8889`) instances, but the E2E layer drives the
   tests instance as a real site and needs the plugin *activated* there:
-  `npx wp-env run tests-cli wp plugin activate amx-inline-menu-editor`.
+  `npx wp-env run tests-cli wp plugin activate admin-menu-maestro`.
   (The integration layer loads the plugin via the test bootstrap, so it does not
   depend on activation.)
 - **`test:php` runs phpunit in the container directly** — there is no longer a
