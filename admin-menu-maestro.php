@@ -53,26 +53,10 @@ function is_edit_mode() {
 }
 
 /**
- * One-time migration from the pre-1.0 option key. Harmless if the legacy option
- * is absent. Runs before Config reads the new key.
- */
-function migrate_legacy_option() {
-	if ( false !== get_option( ADMIN_MENU_MAESTRO_OPTION, false ) ) {
-		return; // already on the new key.
-	}
-	$legacy = get_option( 'amx_config', false );
-	if ( false !== $legacy ) {
-		update_option( ADMIN_MENU_MAESTRO_OPTION, $legacy, false );
-		delete_option( 'amx_config' );
-	}
-}
-
-/**
  * Boot the plugin. One Config instance is shared by everyone so the pristine
  * snapshot captured during the replay pass is reachable at asset-enqueue time.
  */
 function boot() {
-	migrate_legacy_option();
 	$config = new Config();
 	$replay = new Replay( $config );
 
