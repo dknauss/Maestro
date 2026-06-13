@@ -44,6 +44,29 @@ npm run test:e2e                                 # Playwright end-to-end
 
 See `TESTING.md` for details and the standalone (non-Docker) paths.
 
+## Playground demo (role testing)
+
+A WordPress Playground blueprint (`playground/blueprint.json`) spins up a throwaway
+site for trying the editor — including **per-role visibility** — without a local
+WordPress. It installs [User Switching](https://wordpress.org/plugins/user-switching/),
+creates four test users (`editor`, `author`, `contributor`, `subscriber`, all
+password `password`), activates Admin Menu Maestro, and drops you into edit mode
+as `admin`.
+
+```bash
+npm run playground
+```
+
+This builds the runtime-only plugin, mounts it into Playground, runs the
+blueprint, and serves at `http://127.0.0.1:9400`. Hide a menu item from a role
+in the editor, then use **Switch To** (admin bar) to view the menu as that user.
+
+> **Hosted Playground:** because this repo is private, playground.wordpress.net
+> can't fetch the plugin. Once the repo is public, swap the `wp plugin activate`
+> step in `playground/blueprint.json` for an `installPlugin` step with a
+> `git:directory` resource pointing at the repo, and open it via
+> `https://playground.wordpress.net/?blueprint-url=…`.
+
 ## License
 
 GPL-2.0-or-later. See [`LICENSE`](LICENSE).

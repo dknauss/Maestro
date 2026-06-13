@@ -10,7 +10,9 @@
 		"test:php": "wp-env run tests-cli --env-cwd=wp-content/plugins/admin-menu-maestro vendor/bin/phpunit -c phpunit-integration.xml.dist",
 		"pretest:e2e": "wp-env run tests-cli wp plugin activate admin-menu-maestro/admin-menu-maestro.php",
 		"test:e2e": "playwright test",
-		"test:e2e:headed": "playwright test --headed"
+		"test:e2e:headed": "playwright test --headed",
+		"preplayground": "bash bin/build.sh",
+		"playground": "npx @wp-playground/cli@latest server --mount-before-install=./build/admin-menu-maestro:/wordpress/wp-content/plugins/admin-menu-maestro --blueprint=playground/blueprint.json"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.45.0",
