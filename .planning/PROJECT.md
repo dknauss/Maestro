@@ -40,7 +40,7 @@ security boundary.
 - [x] Extended automated tests (per-role visibility e2e, reset/edge cases)
 - [x] Performance sanity check (admin-load overhead, edit-mode payload)
 - [x] WordPress.org assets (readme screenshots, icon/banner graphics, screenshots, user docs)
-- [ ] Submit to WordPress.org
+- [x] Submit to WordPress.org — submitted; in the .org review queue (approval/SVN access pending, external)
 
 ### Out of Scope
 
@@ -58,7 +58,7 @@ security boundary.
 - **Verification:** Phase 3 is complete. Unit tests are 44/44, wp-env integration is 29/29 with 81 assertions, and Playwright E2E is 9/9. Coverage now includes icon sanitization, reset-all edge cases, non-autoloaded storage, edit-mode-only assets, localized payload budget, localized editor labels, reset-this-item, and per-role visibility.
 - **Release assets:** Phase 4 is complete. WordPress.org icon, banner, and screenshot graphics exist under `.wordpress-org/` and are referenced from the GitHub/wp.org readmes. User-facing documentation is published in the GitHub README, WordPress.org readme, and `docs/user-guide.md`.
 - **Localization:** The plugin is translation-ready with the `admin-menu-maestro` text domain and `Domain Path: /languages`. PHP strings use WordPress translation helpers, and JavaScript editor labels are passed through `ammData.i18n` from PHP. The repo ships a POT template plus starter catalogs for `es_ES`, `de_DE`, `ja`, `fr_FR`, `pt_BR`, and `it_IT`; WordPress.org language packs can still override and extend them, and native-speaker/Polyglots review is welcome.
-- **Submit prep:** Phase 5 is in progress. The runtime zip builds cleanly, WPCS passes, Plugin Check 2.0.0 reports no errors on the extracted build zip, npm audit reports 0 vulnerabilities after removing unused `@wordpress/scripts`, and local unit/integration/E2E tests pass. Final WordPress.org submission remains.
+- **Submit:** Phase 5 is complete. The runtime zip builds cleanly, WPCS passes, Plugin Check 2.0.0 reports no errors on the extracted build zip, npm audit reports 0 vulnerabilities after removing unused `@wordpress/scripts`, and local unit/integration/E2E tests pass. **The plugin has been submitted to WordPress.org** and is in the review queue; approval and SVN access are pending (external, out of our hands). On approval: commit to SVN `trunk`, tag `1.0.0`, and upload `.wordpress-org/` to the SVN `assets/` dir.
 - **Future roadmap (post-1.0 backlog):** reparenting (top↔sub, highlighting minefield); separator management; keyboard-accessible reordering; per-item-reset UI affordance with a "modified" indicator; custom icon upload (SVG sanitization); import/export config as JSON; optional enforcement bridge (opt-in, clearly-labelled defense-in-depth); multisite/network defaults with per-site override; configurable admin-menu width (V2-09); admin-toolbar editing feasibility research (V2-10); UI/UX design polish for edit-mode hierarchy, responsive behavior, modified-state affordances, status clarity, and icon-picker scanability (V2-12); documentation link hygiene for prose references to project files (V2-13); deterministic banner source/regeneration with the "ADMIN MENU" leader line removed (V2-14).
 
 ## Constraints
@@ -78,7 +78,7 @@ security boundary.
 | Unique slug, no `Update URI` header | Slug uniqueness is the .org collision protection; the header is disallowed by Plugin Check | ✓ Good |
 | Strip `menu-icon-*` for custom image icons | Core's `background-image:none !important` on its own items hid data-URI/URL icons | ✓ Good |
 | Visibility is cosmetic only | Authorization is a separate, mature concern; half-enforcement is the worst failure mode | ✓ Good |
-| Apply GSD for release-readiness + future roadmap | Formalize the path to .org and track post-1.0 work | — Pending |
+| Apply GSD for release-readiness + future roadmap | Formalize the path to .org and track post-1.0 work | ✓ Good |
 
 ---
-*Last updated: 2026-06-14 during Phase 5 Submit prep*
+*Last updated: 2026-06-14 after v1.0.0 submission to WordPress.org (all 5 phases complete; awaiting .org review)*

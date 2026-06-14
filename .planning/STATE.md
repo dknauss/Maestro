@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-06-14)
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
-**Current focus:** Phase 5 — Submit (in progress)
+**Current focus:** v1.0.0 submitted to WordPress.org — awaiting review verdict (all 5 phases complete)
 
 ## Current Position
 
-Phase: 5 of 5 (Submit)
-Plan: 1 of TBD in current phase
-Status: Release checks are green; docs are aligned; final WordPress.org submission remains
-Last activity: 2026-06-14 — Built starter language packs for the top six non-English WordPress locales, documented localization coverage, added localized-payload integration coverage, archived FIXES.md as historical, rebuilt docs around the v1.0.0 release state
+Phase: 5 of 5 (Submit) — complete
+Plan: —
+Status: All milestone work done. Plugin submitted to WordPress.org; in the review queue. Approval and SVN access are pending (external). On approval: SVN commit to trunk, tag 1.0.0, upload .wordpress-org/ to the SVN assets/ dir.
+Last activity: 2026-06-14 — Submitted to WordPress.org; reconciled planning docs to the submitted state (phases 1–5 complete); confirmed CI green, Dependabot 0 open alerts, Playground demo link live; repointed git remote to dknauss/Maestro
 
-Progress: [████████░░] 80%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -60,11 +60,12 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-- Final WordPress.org submission / review-ticket confirmation.
+- Await WordPress.org review verdict. On approval: SVN commit to `trunk`, tag `1.0.0`, upload `.wordpress-org/` to the SVN `assets/` dir.
+- Optional: tag `v1.0.0` in git to mark the submitted release.
 
 ### Blockers/Concerns
 
-- GitHub reported 8 Dependabot vulnerabilities before the dependency cleanup; local `npm audit` is now clean. Re-check GitHub after the dependency commit lands.
+- Resolved: GitHub Dependabot now reports **0 open alerts** (verified 2026-06-14, post dependency cleanup). The earlier 8 are closed.
 
 ## Session Continuity
 

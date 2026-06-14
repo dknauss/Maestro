@@ -95,7 +95,7 @@ Post-1.0 backlog (from SPEC.md → Roadmap). Tracked, not in this roadmap.
 | REL-02 | Phase 4: Release Assets | Complete |
 | REL-03 | Phase 4: Release Assets | Complete |
 | REL-04 | Phase 4: Release Assets | Complete |
-| REL-05 | Phase 5: Submit | Pending |
+| REL-05 | Phase 5: Submit | Complete (submitted; awaiting .org review) |
 
 **Coverage:**
 - v1 requirements: 20 total

@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Accessibility Audit** - Verify keyboard operability, focus management, ARIA correctness, and announce save status
 - [x] **Phase 3: Verification** - Extend automated test coverage for role visibility, reset edge cases, and icon sanitization; measure performance overhead
 - [x] **Phase 4: Release Assets** - Produce all WordPress.org listing artifacts: readme, graphics, screenshots, user docs
-- [ ] **Phase 5: Submit** - Final Plugin Check + WPCS pass on build zip and submit to WordPress.org
+- [x] **Phase 5: Submit** - Final Plugin Check + WPCS pass on build zip and submit to WordPress.org
 
 ## Phase Details
 
@@ -91,4 +91,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Accessibility Audit | 1/TBD | Complete | Static/code audit complete; keyboard selection added; focus management and save announcements hardened; keyboard reorder gap documented for v2 |
 | 3. Verification | 2/TBD | Complete | Added and ran E2E coverage for reset-this-item and per-role visibility; added integration checks for reset-all edge cases, non-autoloaded storage, edit-mode-only assets, localized payload budget, and localized editor labels; unit 44/44, integration 29/29, E2E 9/9 |
 | 4. Release Assets | 4/TBD | Complete | WordPress.org icon, banner, screenshots, readme captions, and user-facing docs are complete |
-| 5. Submit | 1/TBD | In progress | Release zip builds cleanly; WPCS passes; official Plugin Check 2.0.0 reports no errors on the extracted build zip; npm audit is clean after removing unused `@wordpress/scripts`; final WordPress.org submission remains |
+| 5. Submit | 1/TBD | Complete | Release zip builds cleanly; WPCS passes; official Plugin Check 2.0.0 reports no errors on the extracted build zip; npm audit clean. **Submitted to WordPress.org — in the review queue** (approval/SVN access pending, external) |
+
+**Milestone status:** all five phases complete. v1.0.0 work is done and submitted;
+the only remaining step is WordPress.org's review verdict (external). Run
+`/gsd:complete-milestone` to archive once approved and a v1.1 scope is chosen.
