@@ -5,16 +5,17 @@
 See: .planning/PROJECT.md (updated 2026-06-14)
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
-**Current focus:** v1.0.0 submitted to WordPress.org — awaiting review verdict (all 5 phases complete)
+**Current focus:** v1.1 "Polish & Accessibility" — milestone scoped; roadmap being created
 
 ## Current Position
 
-Phase: 5 of 5 (Submit) — complete
+Milestone: v1.1 Polish & Accessibility (phases 6–8; v1.0 phases 1–5 complete)
+Phase: Not started (roadmap being created)
 Plan: —
-Status: All milestone work done. Plugin submitted to WordPress.org; in the review queue. Approval and SVN access are pending (external). On approval: SVN commit to trunk, tag 1.0.0, upload .wordpress-org/ to the SVN assets/ dir.
-Last activity: 2026-06-14 — Submitted to WordPress.org; reconciled planning docs to the submitted state (phases 1–5 complete); confirmed CI green, Dependabot 0 open alerts, Playground demo link live; repointed git remote to dknauss/Maestro
+Status: v1.1 scoped — 6 requirements promoted from the v2 backlog (ICON-01, A11Y-06, UX-01, UX-02, DOC-01, REL-06). Roadmap in progress. v1.0.0 remains submitted to WordPress.org, awaiting review (external; on approval → SVN commit to trunk, tag 1.0.0, upload .wordpress-org/ to SVN assets/).
+Last activity: 2026-06-14 — Scoped v1.1 (Polish & Accessibility); promoted six backlog items to milestone requirements
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0% (v1.1)
 
 ## Performance Metrics
 

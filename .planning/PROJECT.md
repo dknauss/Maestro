@@ -15,6 +15,20 @@ Editing the admin menu happens directly on the menu, with zero ceremony and zero
 risk to access — changes are cosmetic deltas, never a rebuilt menu, and never a
 security boundary.
 
+## Current Milestone: v1.1 — Polish & Accessibility
+
+**Goal:** Refine the shipped editor and finish the accessibility story — no new architecture.
+
+**Target items (promoted from the v2 backlog):**
+- ICON-01 (V2-11) — solid/heavier bundled icon set that mixes with dashicons
+- A11Y-06 (V2-03) — keyboard-accessible reordering (closes the v1 mouse-only gap)
+- UX-01 (V2-04) — "modified" indicator + discoverable per-item reset
+- UX-02 (V2-12) — UI/UX polish (hierarchy, spacing, responsive, status clarity, icon-picker scanability, onboarding)
+- DOC-01 (V2-13) — documentation link hygiene
+- REL-06 (V2-14) — banner rebuilt from an editable source with a repeatable pipeline
+
+*v1.0 (WordPress.org release readiness) is complete and submitted; awaiting .org review.*
+
 ## Requirements
 
 ### Validated
@@ -33,14 +47,16 @@ security boundary.
 
 ### Active
 
-<!-- This milestone: v1.0 WordPress.org release readiness. -->
+<!-- This milestone: v1.1 Polish & Accessibility (see Current Milestone above). -->
 
-- [x] Security review (REST auth, `sanitize_icon` data-URI/URL surface, slug handling, capability filter, option writes)
-- [x] Accessibility review/audit (keyboard operability, focus management, save announcements)
-- [x] Extended automated tests (per-role visibility e2e, reset/edge cases)
-- [x] Performance sanity check (admin-load overhead, edit-mode payload)
-- [x] WordPress.org assets (readme screenshots, icon/banner graphics, screenshots, user docs)
-- [x] Submit to WordPress.org — submitted; in the .org review queue (approval/SVN access pending, external)
+- [ ] ICON-01 — solid/heavier bundled icon set that mixes with dashicons (V2-11)
+- [ ] A11Y-06 — keyboard-accessible reordering (V2-03)
+- [ ] UX-01 — "modified" indicator + discoverable per-item reset (V2-04)
+- [ ] UX-02 — UI/UX design polish (V2-12)
+- [ ] DOC-01 — documentation link hygiene (V2-13)
+- [ ] REL-06 — banner source/regeneration pipeline (V2-14)
+
+*v1.0 release readiness (security, a11y audit, verification, .org assets, submit) is complete and shipped — see the Validated list and the Submit note in Context.*
 
 ### Out of Scope
 

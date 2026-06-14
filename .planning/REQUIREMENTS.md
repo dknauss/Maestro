@@ -42,11 +42,37 @@ left to publish responsibly.
 - [x] **REL-02**: WordPress.org SVN `assets/` graphics exist: `icon-128x128`, `icon-256x256`, `banner-772x250`, `banner-1544x500`
 - [x] **REL-03**: Annotated screenshots captured (from the Playground demo) for the listing
 - [x] **REL-04**: User-facing documentation (how to edit, per-role visibility caveat, icons)
-- [ ] **REL-05**: Final Plugin Check + WPCS pass on the build zip, then submit to WordPress.org
+- [x] **REL-05**: Final Plugin Check + WPCS pass on the build zip, then submit to WordPress.org
+
+## v1.1 Requirements
+
+Milestone: **v1.1 "Polish & Accessibility."** Refine the shipped editor and
+finish the accessibility story — no new architecture. Promoted from the v2
+backlog (origin IDs noted).
+
+### Icons
+
+- [ ] **ICON-01** (from V2-11): The bundled picker icons read at a weight that mixes with WordPress's solid dashicons — switch to Bootstrap `*-fill` variants (regenerate via `bin/generate-bootstrap-icons.mjs`); fall back to Heroicons Mini (solid, 20px) if still too light.
+
+### Accessibility
+
+- [ ] **A11Y-06** (from V2-03): Menu items can be reordered with the keyboard (move up/down and/or ARIA grab semantics), closing the documented v1 mouse-only gap.
+
+### Editor UX
+
+- [ ] **UX-01** (from V2-04): Each changed item shows a clear "modified" indicator, and per-item reset is a discoverable affordance (not hidden).
+- [ ] **UX-02** (from V2-12): The edit-mode UI is visually polished and responsive — control hierarchy, spacing, save/error status clarity, icon-picker scanability, first-run cues — native to WP admin, with no text-overlap or control-resize regressions (deliverables: before/after screenshots + keyboard/mouse walkthrough notes).
+
+### Docs & Assets
+
+- [ ] **DOC-01** (from V2-13): In-prose references to project files are markdown links, not bare paths, across README, readme.txt, user guide, SPEC, TESTING, and planning docs.
+- [ ] **REL-06** (from V2-14): The wp.org/GitHub banner is rebuilt from an editable SVG master under `.wordpress-org/source/`, the decorative leader line before "ADMIN MENU" removed, with a repeatable `npm run assets:banners` pipeline (Inkscape render → Pillow downscale/crop); public assets replaced only after visual review.
 
 ## v2 Requirements
 
 Post-1.0 backlog (from SPEC.md → Roadmap). Tracked, not in this roadmap.
+
+**Promoted to v1.1 (Polish & Accessibility):** V2-03, V2-04, V2-11, V2-12, V2-13, V2-14 — now tracked as the v1.1 Requirements above; left in this list for lineage.
 
 - **V2-01**: Reparenting — move items between top-level and submenu (with `parent_file`/`submenu_file` highlighting)
 - **V2-02**: Separator management — add/move/delete with synthetic stable IDs
@@ -96,12 +122,18 @@ Post-1.0 backlog (from SPEC.md → Roadmap). Tracked, not in this roadmap.
 | REL-03 | Phase 4: Release Assets | Complete |
 | REL-04 | Phase 4: Release Assets | Complete |
 | REL-05 | Phase 5: Submit | Complete (submitted; awaiting .org review) |
+| A11Y-06 | Phase 6: Accessibility & Interaction | Pending |
+| UX-01 | Phase 6: Accessibility & Interaction | Pending |
+| ICON-01 | Phase 7: Visual Polish & Icons | Pending |
+| UX-02 | Phase 7: Visual Polish & Icons | Pending |
+| DOC-01 | Phase 8: Docs & Brand Assets | Pending |
+| REL-06 | Phase 8: Docs & Brand Assets | Pending |
 
 **Coverage:**
-- v1 requirements: 20 total
-- Mapped to phases: 20
+- v1.0 requirements: 20 total — mapped to phases 1–5, all Complete
+- v1.1 requirements: 6 total — mapped to phases 6–8, all Pending
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-06-13*
-*Last updated: 2026-06-14 after adding UI/UX design polish to the v2 backlog*
+*Last updated: 2026-06-14 — v1.1 traceability added (phases 6–8)*
