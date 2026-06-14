@@ -1,13 +1,14 @@
 # Roadmap: Admin Menu Maestro
 
-## Overview
+## Milestones
 
-The plugin is feature-complete and green. This milestone hardens it for public
-distribution: confirm security posture, audit accessibility, extend automated
-coverage, verify performance is not surprising, produce all WordPress.org listing
-assets, and submit. Phases are review/audit/asset work — not feature-building.
+- ✅ **v1.0 WordPress.org Release Readiness** - Phases 1–5 (submitted 2026-06-14; awaiting .org review)
+- 🚧 **v1.1 Polish & Accessibility** - Phases 6–8 (in progress)
 
 ## Phases
+
+<details>
+<summary>✅ v1.0 WordPress.org Release Readiness (Phases 1–5) — submitted 2026-06-14</summary>
 
 **Phase Numbering:**
 - Integer phases (1, 2, 3): Planned milestone work
@@ -20,8 +21,6 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Verification** - Extend automated test coverage for role visibility, reset edge cases, and icon sanitization; measure performance overhead
 - [x] **Phase 4: Release Assets** - Produce all WordPress.org listing artifacts: readme, graphics, screenshots, user docs
 - [x] **Phase 5: Submit** - Final Plugin Check + WPCS pass on build zip and submit to WordPress.org
-
-## Phase Details
 
 ### Phase 1: Security Review
 **Goal**: Every known attack surface in the plugin's REST + storage layer is confirmed safe or hardened
@@ -80,10 +79,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. The plugin is submitted to WordPress.org and a confirmation (SVN commit or review ticket) is on record
 **Plans**: TBD
 
-## Progress
-
-**Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
+### v1.0 Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -93,6 +89,63 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 4. Release Assets | 4/TBD | Complete | WordPress.org icon, banner, screenshots, readme captions, and user-facing docs are complete |
 | 5. Submit | 1/TBD | Complete | Release zip builds cleanly; WPCS passes; official Plugin Check 2.0.0 reports no errors on the extracted build zip; npm audit clean. **Submitted to WordPress.org — in the review queue** (approval/SVN access pending, external) |
 
-**Milestone status:** all five phases complete. v1.0.0 work is done and submitted;
-the only remaining step is WordPress.org's review verdict (external). Run
-`/gsd:complete-milestone` to archive once approved and a v1.1 scope is chosen.
+</details>
+
+## Milestone v1.1 — Polish & Accessibility
+
+**Milestone Goal:** Refine the shipped editor and finish the accessibility story. No new architecture — keyboard reordering, modified-state indicators, visual polish, heavier icons, documentation link hygiene, and a repeatable banner pipeline.
+
+- [ ] **Phase 6: Accessibility & Interaction** - Keyboard-accessible reordering + modified indicator with per-item reset affordance
+- [ ] **Phase 7: Visual Polish & Icons** - Heavier bundled icon set mixed with dashicons + edit-mode UI polish
+- [ ] **Phase 8: Docs & Brand Assets** - Documentation link hygiene + editable SVG banner source with repeatable generation pipeline
+
+## Phase Details (v1.1)
+
+### Phase 6: Accessibility & Interaction
+**Goal**: The editor is fully keyboard-operable for reordering, and every changed item visibly signals its modified state with a discoverable per-item reset
+**Depends on**: Phase 5
+**Requirements**: A11Y-06, UX-01
+**Success Criteria** (what must be TRUE):
+  1. Menu items can be moved up and down using keyboard controls (e.g. modifier+arrow or ARIA grab/drop semantics) without a mouse — confirmed by keyboard-only walkthrough
+  2. The keyboard reordering implementation holds at 0 regressions: unit 44/44, integration 29/29, e2e 9/9 green, Plugin Check 0 errors
+  3. Each menu item that differs from the default shows a visible "modified" indicator in edit mode — confirmed by before/after screenshot
+  4. Per-item reset is a discoverable affordance (visible or keyboard-reachable without prior knowledge), not buried or hidden
+**Plans**: TBD
+
+### Phase 7: Visual Polish & Icons
+**Goal**: The bundled icon picker reads at a weight that mixes naturally with WordPress's solid dashicons, and the overall edit-mode UI is visually polished and responsive
+**Depends on**: Phase 6
+**Requirements**: ICON-01, UX-02
+**Success Criteria** (what must be TRUE):
+  1. The bundled icon set uses solid/filled variants (Bootstrap `*-fill` or Heroicons Mini fallback) that sit visually alongside dashicons without appearing noticeably lighter — confirmed by side-by-side screenshot of the two tabs
+  2. Edit-mode control hierarchy, spacing, and status clarity are improved with no text-overlap or control-resize regressions — confirmed by before/after screenshots and keyboard/mouse walkthrough notes
+  3. Icon picker grid is visually scannable at the dashicons grid size (20px glyphs)
+  4. UI changes hold at 0 regressions: unit 44/44, integration 29/29, e2e 9/9 green, Plugin Check 0 errors
+**Plans**: TBD
+
+### Phase 8: Docs & Brand Assets
+**Goal**: In-prose file references across all project docs are live markdown links, and the wp.org/GitHub banner is rebuilt from an editable SVG master with a repeatable generation pipeline
+**Depends on**: Phase 7
+**Requirements**: DOC-01, REL-06
+**Success Criteria** (what must be TRUE):
+  1. Bare file-path references in README, readme.txt, user guide, SPEC, TESTING, and planning docs are converted to markdown links — confirmed by a grep for common bare-path patterns returning no results
+  2. An editable SVG master for the banner exists under `.wordpress-org/source/` with the decorative leader line before "ADMIN MENU" removed
+  3. `npm run assets:banners` regenerates `banner-772x250.png` and `banner-1544x500.png` from the SVG master (Inkscape render + Pillow downscale/crop) without manual steps
+  4. The public banner files under `.wordpress-org/` are replaced with the regenerated versions after visual review
+**Plans**: TBD
+
+## Progress
+
+**Execution Order:**
+v1.0 complete (Phases 1–5). v1.1 executes: 6 → 7 → 8
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1. Security Review | v1.0 | 2/TBD | Complete | 2026-06-14 |
+| 2. Accessibility Audit | v1.0 | 1/TBD | Complete | 2026-06-14 |
+| 3. Verification | v1.0 | 2/TBD | Complete | 2026-06-14 |
+| 4. Release Assets | v1.0 | 4/TBD | Complete | 2026-06-14 |
+| 5. Submit | v1.0 | 1/TBD | Complete | 2026-06-14 |
+| 6. Accessibility & Interaction | v1.1 | 0/TBD | Not started | - |
+| 7. Visual Polish & Icons | v1.1 | 0/TBD | Not started | - |
+| 8. Docs & Brand Assets | v1.1 | 0/TBD | Not started | - |
