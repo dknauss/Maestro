@@ -2,8 +2,8 @@
 
 Three layers, smallest and fastest first.
 
-> **Current local status:** all three layers pass: unit 44/44, integration 27/27
-> with 61 assertions, and E2E 9/9. The E2E suite includes Phase 3 coverage for
+> **Current local status:** all three layers pass: unit 44/44, integration 29/29
+> with 81 assertions, and E2E 9/9. The E2E suite includes Phase 3 coverage for
 > reset-this-item and per-role visibility.
 
 ## Gotchas (first run)
@@ -34,7 +34,8 @@ Config: `phpunit-unit.xml.dist` → bootstrap `tests/bootstrap-unit.php` (fakes
 ## 2. Integration (WordPress test suite, via wp-env)
 
 Covers `Config::sanitize()`, the replay engine mutating real `$menu`/`$submenu`
-globals, role-based visibility, and the REST round-trip. Uses Docker.
+globals, role-based visibility, the REST round-trip, and the localized editor
+payload. Uses Docker.
 
 ```bash
 npm install

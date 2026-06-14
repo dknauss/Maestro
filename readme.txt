@@ -22,7 +22,8 @@ place:
   native icon forms is accepted (dashicon, "none", base64 image data-URI, or an
   image URL).
 * **Hide** items from chosen roles. Custom roles registered by other plugins
-  (User Role Editor, Members, etc.) appear automatically.
+  ([User Role Editor](https://wordpress.org/plugins/user-role-editor/),
+  [Members](https://wordpress.org/plugins/members/), etc.) appear automatically.
 * **Reset** a single item to its default, or reset everything at once.
 
 Changes are **global** — one configuration applies to everyone — and are stored
@@ -37,12 +38,23 @@ which is a different plane from authorization.
 
 If you need to actually *prevent* access, pair this with a capability manager:
 
-* **User Role Editor** — simplest way to edit what a role can do.
-* **PublishPress Capabilities** — menu-aware; its Pro tier can block admin pages
-  by URL.
+* **[User Role Editor](https://wordpress.org/plugins/user-role-editor/)** —
+  simplest way to edit what a role can do.
+* **[PublishPress Capabilities](https://wordpress.org/plugins/capability-manager-enhanced/)** —
+  menu-aware; its Pro tier can block admin pages by URL.
 
 The `admin_menu_maestro_capability` filter lets such a plugin hand editing rights to a custom
 capability instead of the default `manage_options`.
+
+= Localization =
+
+Admin Menu Maestro uses the `admin-menu-maestro` text domain. PHP strings use
+WordPress translation helpers, and editor labels are passed to JavaScript in a
+localized payload so the UI can be translated. The plugin ships a translation
+template plus starter language packs for Spanish (`es_ES`), German (`de_DE`),
+Japanese (`ja`), French (`fr_FR`), Portuguese (Brazil) (`pt_BR`), and Italian
+(`it_IT`). WordPress.org language packs can still override and extend the
+bundled catalogs; native-speaker and WordPress Polyglots review is welcome.
 
 == How to use ==
 
@@ -100,9 +112,12 @@ active plugins.
 * `Rest` — `admin-menu-maestro/v1/config` (GET/POST/DELETE), capability-gated, `X-WP-Nonce`.
 * The editor JS is driven by a localized model (with DOM ids), not DOM scraping,
   and diffs against captured pristine defaults so the stored config stays sparse.
+* Localized editor labels are passed from PHP to JavaScript in `ammData.i18n`;
+  the runtime zip includes the bundled POT template and starter catalogs.
 * WordPress.org listing graphics live in the repository's `.wordpress-org/`
   directory: `icon.svg`, `icon-128x128.png`, `icon-256x256.png`,
-  `banner-772x250.png`, and `banner-1544x500.png`.
+  `banner-772x250.png`, `banner-1544x500.png`, and `screenshot-1.png` through
+  `screenshot-4.png`.
 
 == Screenshots ==
 

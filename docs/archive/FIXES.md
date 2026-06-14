@@ -1,4 +1,9 @@
-# FIXES — handoff brief
+# FIXES — archived handoff brief
+
+This file is historical. It records the early install, slug, autosave, and UI
+fixes that shaped v1.0.0. It is not the active punchlist; use `SPEC.md`,
+`TESTING.md`, `README.md`, `readme.txt`, and `.planning/STATE.md` for current
+release state.
 
 Four reported problems from first install/testing. **All four are now fixed in
 this tree.** #1 and #2 (packaging, slug collision) were resolved earlier; #3 and

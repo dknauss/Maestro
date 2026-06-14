@@ -77,7 +77,18 @@ themes, and plugins. If a user has the required capability and knows the URL,
 that page can still load even when its menu item is hidden.
 
 For real access control, pair Admin Menu Maestro with a capability manager such
-as User Role Editor or PublishPress Capabilities.
+as [User Role Editor](https://wordpress.org/plugins/user-role-editor/) or
+[PublishPress Capabilities](https://wordpress.org/plugins/capability-manager-enhanced/).
+
+## Language Support
+
+Admin Menu Maestro is translation-ready with the `admin-menu-maestro` text
+domain. The plugin ships a translation template plus starter language packs for
+Spanish (`es_ES`), German (`de_DE`), Japanese (`ja`), French (`fr_FR`),
+Portuguese (Brazil) (`pt_BR`), and Italian (`it_IT`). These catalogs cover the
+admin-bar toggle, editor buttons, picker labels, save status messages, and reset
+prompts. WordPress.org language packs can still override and extend the bundled
+translations; native-speaker and WordPress Polyglots review is welcome.
 
 ## Reset Changes
 

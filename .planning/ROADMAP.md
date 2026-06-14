@@ -89,6 +89,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Security Review | 2/TBD | Complete | Static Codex Security scan complete; nonce integration coverage added; one low-severity DOM XSS hardening issue fixed |
 | 2. Accessibility Audit | 1/TBD | Complete | Static/code audit complete; keyboard selection added; focus management and save announcements hardened; keyboard reorder gap documented for v2 |
-| 3. Verification | 2/TBD | Complete | Added and ran E2E coverage for reset-this-item and per-role visibility; added integration checks for reset-all edge cases, non-autoloaded storage, edit-mode-only assets, and localized payload budget; unit 44/44, integration 27/27, E2E 9/9 |
+| 3. Verification | 2/TBD | Complete | Added and ran E2E coverage for reset-this-item and per-role visibility; added integration checks for reset-all edge cases, non-autoloaded storage, edit-mode-only assets, localized payload budget, and localized editor labels; unit 44/44, integration 29/29, E2E 9/9 |
 | 4. Release Assets | 4/TBD | Complete | WordPress.org icon, banner, screenshots, readme captions, and user-facing docs are complete |
 | 5. Submit | 1/TBD | In progress | Release zip builds cleanly; WPCS passes; official Plugin Check 2.0.0 reports no errors on the extracted build zip; npm audit is clean after removing unused `@wordpress/scripts`; final WordPress.org submission remains |

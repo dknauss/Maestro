@@ -14,7 +14,7 @@
 			"step": "installPlugin",
 			"pluginData": {
 				"resource": "git:directory",
-				"url": "https://github.com/dknauss/admin-menu-maestro",
+				"url": "https://github.com/dknauss/Maestro",
 				"ref": "main",
 				"refType": "branch",
 				"path": "/"

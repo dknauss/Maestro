@@ -19,7 +19,7 @@ security boundary.
 
 ### Validated
 
-<!-- Shipped and working: unit 44 / integration 23 / e2e 7 green; phpcs clean; Plugin Check 0/0 on the build zip. -->
+<!-- Shipped and working: unit 44 / integration 29 / e2e 9 green; phpcs clean; Plugin Check reports no errors on the build zip. -->
 
 - ✓ Click-to-select editing (whole-row drag reorder, no handles) — shipped
 - ✓ Debounced single-flight autosave with status indicator — shipped
@@ -50,15 +50,16 @@ security boundary.
 
 ## Context
 
-- **State:** built, tested, documented (SPEC.md = design, FIXES.md = history, TESTING.md = test layers). Public repo: dknauss/admin-menu-maestro.
+- **State:** built, tested, documented (SPEC.md = design, TESTING.md = test layers, docs/archive/FIXES.md = historical fix log). Public GitHub repo: dknauss/Maestro. WordPress plugin slug/package remains `admin-menu-maestro`.
 - **Codebase map:** SPEC.md serves as the architecture reference, so GSD codebase mapping was skipped. Components: `Config` (option storage + sanitize), `Ordering` (pure reorder), `Replay` (mutates `$menu`/`$submenu` on `admin_menu` PHP_INT_MAX + `menu_order`), `Rest` (REST controller), `Admin_Bar` (toggle), `Assets` (enqueue/localize, edit mode only).
 - **Tooling:** wp-env (WP 7.0), Playwright e2e, PHPUnit unit+integration, WPCS via phpcs, official Plugin Check. `bin/build.sh` emits a runtime-only `admin-menu-maestro.zip`.
 - **Security scan:** Codex Security scan `317283f_20260614T024544Z` produced validated markdown/HTML reports under `/tmp/codex-security-scans/admin-menu-maestro/317283f_20260614T024544Z`; it found one low-severity DOM XSS hardening issue in the editor helper and fixed it by switching `el()` from `innerHTML` to `textContent`. Follow-up nonce integration tests now close SEC-01.
 - **Accessibility audit:** Static/code audit closed Phase 2. Keyboard selection now works with `Enter`/`Space`, focus moves into the shared panel, icon/visibility popovers have dialog focus handling, save success/failure is announced through the WordPress a11y API, and the v1 keyboard-reordering gap is documented for v2.
-- **Verification:** Phase 3 is complete. Unit tests are 44/44, wp-env integration is 27/27 with 61 assertions, and Playwright E2E is 9/9. Coverage now includes icon sanitization, reset-all edge cases, non-autoloaded storage, edit-mode-only assets, localized payload budget, reset-this-item, and per-role visibility.
+- **Verification:** Phase 3 is complete. Unit tests are 44/44, wp-env integration is 29/29 with 81 assertions, and Playwright E2E is 9/9. Coverage now includes icon sanitization, reset-all edge cases, non-autoloaded storage, edit-mode-only assets, localized payload budget, localized editor labels, reset-this-item, and per-role visibility.
 - **Release assets:** Phase 4 is complete. WordPress.org icon, banner, and screenshot graphics exist under `.wordpress-org/` and are referenced from the GitHub/wp.org readmes. User-facing documentation is published in the GitHub README, WordPress.org readme, and `docs/user-guide.md`.
+- **Localization:** The plugin is translation-ready with the `admin-menu-maestro` text domain and `Domain Path: /languages`. PHP strings use WordPress translation helpers, and JavaScript editor labels are passed through `ammData.i18n` from PHP. The repo ships a POT template plus starter catalogs for `es_ES`, `de_DE`, `ja`, `fr_FR`, `pt_BR`, and `it_IT`; WordPress.org language packs can still override and extend them, and native-speaker/Polyglots review is welcome.
 - **Submit prep:** Phase 5 is in progress. The runtime zip builds cleanly, WPCS passes, Plugin Check 2.0.0 reports no errors on the extracted build zip, npm audit reports 0 vulnerabilities after removing unused `@wordpress/scripts`, and local unit/integration/E2E tests pass. Final WordPress.org submission remains.
-- **Future roadmap (post-1.0 backlog):** reparenting (top↔sub, highlighting minefield); separator management; keyboard-accessible reordering; per-item-reset UI affordance with a "modified" indicator; custom icon upload (SVG sanitization); import/export config as JSON; optional enforcement bridge (opt-in, clearly-labelled defense-in-depth); multisite/network defaults with per-site override; configurable admin-menu width (V2-09); admin-toolbar editing feasibility research (V2-10); UI/UX design polish for edit-mode hierarchy, responsive behavior, modified-state affordances, status clarity, and icon-picker scanability (V2-12).
+- **Future roadmap (post-1.0 backlog):** reparenting (top↔sub, highlighting minefield); separator management; keyboard-accessible reordering; per-item-reset UI affordance with a "modified" indicator; custom icon upload (SVG sanitization); import/export config as JSON; optional enforcement bridge (opt-in, clearly-labelled defense-in-depth); multisite/network defaults with per-site override; configurable admin-menu width (V2-09); admin-toolbar editing feasibility research (V2-10); UI/UX design polish for edit-mode hierarchy, responsive behavior, modified-state affordances, status clarity, and icon-picker scanability (V2-12); documentation link hygiene for prose references to project files (V2-13).
 
 ## Constraints
 

@@ -1,6 +1,9 @@
 {
 	"core": "WordPress/WordPress#7.0",
-	"plugins": [ "." ],
+	"plugins": [],
+	"mappings": {
+		"wp-content/plugins/admin-menu-maestro": "."
+	},
 	"config": {
 		"WP_DEBUG": true,
 		"SCRIPT_DEBUG": true

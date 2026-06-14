@@ -10,6 +10,7 @@
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       admin-menu-maestro
+ * Domain Path:       /languages
  *
  * @package AdminMenuMaestro
  */
@@ -51,6 +52,24 @@ function capability() {
 function is_edit_mode() {
 	return isset( $_GET['amm_edit'] ) && current_user_can( capability() ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 }
+
+/**
+ * Register bundled translations with WordPress' just-in-time loader.
+ */
+function register_translation_path() {
+	global $l10n, $wp_textdomain_registry;
+
+	if ( ! is_object( $wp_textdomain_registry ) || ! method_exists( $wp_textdomain_registry, 'set_custom_path' ) ) {
+		return;
+	}
+
+	$wp_textdomain_registry->set_custom_path( 'admin-menu-maestro', ADMIN_MENU_MAESTRO_DIR . 'languages' );
+
+	if ( isset( $l10n['admin-menu-maestro'] ) && $l10n['admin-menu-maestro'] instanceof \NOOP_Translations ) {
+		unset( $l10n['admin-menu-maestro'] );
+	}
+}
+add_action( 'init', __NAMESPACE__ . '\\register_translation_path' );
 
 /**
  * Boot the plugin. One Config instance is shared by everyone so the pristine

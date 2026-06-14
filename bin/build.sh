@@ -16,6 +16,9 @@ mkdir -p "$STAGE"
 cp "$ROOT/$SLUG.php" "$STAGE/"
 cp -r "$ROOT/includes" "$STAGE/"
 cp -r "$ROOT/assets" "$STAGE/"
+if [ -d "$ROOT/languages" ]; then
+	cp -r "$ROOT/languages" "$STAGE/"
+fi
 cp "$ROOT/readme.txt" "$STAGE/"
 
 ( cd "$OUT" && zip -rq "$SLUG.zip" "$SLUG" )

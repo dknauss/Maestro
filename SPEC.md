@@ -109,6 +109,21 @@ The editor does **not** scrape the DOM to discover the menu. PHP localizes a mod
 
 This is the most environment-sensitive seam and is exercised only by the E2E layer.
 
+### Localization / i18n contract
+
+The plugin text domain is `admin-menu-maestro`, matching the WordPress.org slug
+and plugin header. The plugin declares `Domain Path: /languages`, ships a POT
+template, and bundles starter catalogs for `es_ES`, `de_DE`, `ja`, `fr_FR`,
+`pt_BR`, and `it_IT`. Runtime PHP strings use WordPress translation helpers with
+that text domain. The editor does not hardcode user-facing English strings in
+JavaScript; PHP passes translated labels, dialog names, button text, status
+messages, and reset prompts through `ammData.i18n` via `wp_localize_script()`.
+
+WordPress.org language packs can still override and extend the bundled
+translations. The bundled catalogs are starter translations and should remain
+open to native-speaker and WordPress Polyglots review. Plugin Check validates
+the shipped runtime artifact.
+
 ### Editor interaction model
 
 The editor is **selection-based**, not per-item-decorated. This keeps the DOM changes to the menu minimal, which is what makes it survive WordPress's own menu CSS (including folded mode) and stay light.
@@ -213,4 +228,4 @@ Coverage targets the seams most likely to break: the pure ordering logic (unit),
 - [`@wordpress/env`](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-env/)
 - [WordPress PHPUnit test suite](https://make.wordpress.org/core/handbook/testing/automated-testing/phpunit/)
 - [Playwright](https://playwright.dev/)
-- Capability managers for real enforcement: User Role Editor; PublishPress Capabilities (menu-aware; Pro blocks pages by URL).
+- Capability managers for real enforcement: [User Role Editor](https://wordpress.org/plugins/user-role-editor/); [PublishPress Capabilities](https://wordpress.org/plugins/capability-manager-enhanced/) (menu-aware; Pro blocks pages by URL).
