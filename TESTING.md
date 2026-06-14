@@ -39,11 +39,11 @@ globals, role-based visibility, and the REST round-trip. Uses Docker.
 ```bash
 npm install
 npm run env:start          # boots WordPress + MySQL in Docker
-npm run test:php           # wp-scripts runs PHPUnit inside the tests container
+npm run test:php           # runs PHPUnit inside the tests container
 ```
 
-`wp-scripts test-unit-php` provisions the WP PHPUnit library and sets
-`WP_TESTS_DIR`, which `tests/bootstrap-integration.php` reads. Config:
+`@wordpress/env` provisions the WP PHPUnit library in the tests container. The
+`test:php` script runs `vendor/bin/phpunit` there directly with config:
 `phpunit-integration.xml.dist`.
 
 Standalone (no wp-env): install the WP test library with a configured test DB,

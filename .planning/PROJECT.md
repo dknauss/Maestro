@@ -57,6 +57,7 @@ security boundary.
 - **Accessibility audit:** Static/code audit closed Phase 2. Keyboard selection now works with `Enter`/`Space`, focus moves into the shared panel, icon/visibility popovers have dialog focus handling, save success/failure is announced through the WordPress a11y API, and the v1 keyboard-reordering gap is documented for v2.
 - **Verification:** Phase 3 is complete. Unit tests are 44/44, wp-env integration is 27/27 with 61 assertions, and Playwright E2E is 9/9. Coverage now includes icon sanitization, reset-all edge cases, non-autoloaded storage, edit-mode-only assets, localized payload budget, reset-this-item, and per-role visibility.
 - **Release assets:** Phase 4 is complete. WordPress.org icon, banner, and screenshot graphics exist under `.wordpress-org/` and are referenced from the GitHub/wp.org readmes. User-facing documentation is published in the GitHub README, WordPress.org readme, and `docs/user-guide.md`.
+- **Submit prep:** Phase 5 is in progress. The runtime zip builds cleanly, WPCS passes, Plugin Check 2.0.0 reports no errors on the extracted build zip, npm audit reports 0 vulnerabilities after removing unused `@wordpress/scripts`, and local unit/integration/E2E tests pass. Final WordPress.org submission remains.
 - **Future roadmap (post-1.0 backlog):** reparenting (top↔sub, highlighting minefield); separator management; keyboard-accessible reordering; per-item-reset UI affordance with a "modified" indicator; custom icon upload (SVG sanitization); import/export config as JSON; optional enforcement bridge (opt-in, clearly-labelled defense-in-depth); multisite/network defaults with per-site override; configurable admin-menu width (V2-09); admin-toolbar editing feasibility research (V2-10).
 
 ## Constraints
@@ -79,4 +80,4 @@ security boundary.
 | Apply GSD for release-readiness + future roadmap | Formalize the path to .org and track post-1.0 work | — Pending |
 
 ---
-*Last updated: 2026-06-14 after closing Phase 4 Release Assets*
+*Last updated: 2026-06-14 during Phase 5 Submit prep*
