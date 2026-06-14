@@ -1,6 +1,6 @@
 # Admin Menu Maestro
 
-[![CI](https://github.com/dknauss/Maestro/actions/workflows/ci.yml/badge.svg)](https://github.com/dknauss/Maestro/actions/workflows/ci.yml) [![Latest Tag](https://img.shields.io/github/v/tag/dknauss/Maestro)](https://github.com/dknauss/Maestro/tags)
+[![CI](https://github.com/dknauss/Maestro/actions/workflows/ci.yml/badge.svg)](https://github.com/dknauss/Maestro/actions/workflows/ci.yml) [![Latest Tag](https://img.shields.io/github/v/tag/dknauss/Maestro)](https://github.com/dknauss/Maestro/tags) [![Docs](https://img.shields.io/badge/docs-available-0a7ea4.svg)](docs/)
 [![License: GPL-2.0-or-later](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
 [![WordPress 6.4+](https://img.shields.io/badge/WordPress-6.4%2B-21759b.svg?logo=wordpress&logoColor=white)](https://wordpress.org/)
 [![Tested up to WP 7.0](https://img.shields.io/badge/tested%20up%20to-WP%207.0-21759b.svg?logo=wordpress&logoColor=white)](https://wordpress.org/)
