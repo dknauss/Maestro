@@ -12,7 +12,8 @@
 		"test:e2e": "playwright test",
 		"test:e2e:headed": "playwright test --headed",
 		"preplayground": "bash bin/build.sh",
-		"playground": "npx @wp-playground/cli@latest server --mount-before-install=./build/maestro-menu-editor:/wordpress/wp-content/plugins/maestro-menu-editor --blueprint=playground/blueprint.json"
+		"playground": "npx @wp-playground/cli@latest server --mount-before-install=./build/maestro-menu-editor:/wordpress/wp-content/plugins/maestro-menu-editor --blueprint=playground/blueprint.json",
+		"assets:banners": "OUT_DIR=.wordpress-org python3 .wordpress-org/source/build_final.py"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.45.0",
