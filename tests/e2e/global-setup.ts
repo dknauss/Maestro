@@ -10,7 +10,7 @@ import { dirname } from 'path';
  */
 function ensureEditorUser() {
 	try {
-		execFileSync( 'npx', [ 'wp-env', 'run', 'tests-cli', 'wp', 'user', 'get', 'amm_editor' ], { stdio: 'ignore' } );
+		execFileSync( 'npx', [ 'wp-env', 'run', 'tests-cli', 'wp', 'user', 'get', 'maestro_editor' ], { stdio: 'ignore' } );
 	} catch ( e ) {
 		execFileSync(
 			'npx',
@@ -21,15 +21,15 @@ function ensureEditorUser() {
 				'wp',
 				'user',
 				'create',
-				'amm_editor',
-				'amm-editor@example.com',
+				'maestro_editor',
+				'maestro-editor@example.com',
 				'--role=editor',
 				'--user_pass=password',
 			],
 			{ stdio: 'inherit' }
 		);
 	}
-	execFileSync( 'npx', [ 'wp-env', 'run', 'tests-cli', 'wp', 'user', 'update', 'amm_editor', '--user_pass=password' ], { stdio: 'inherit' } );
+	execFileSync( 'npx', [ 'wp-env', 'run', 'tests-cli', 'wp', 'user', 'update', 'maestro_editor', '--user_pass=password' ], { stdio: 'inherit' } );
 }
 
 function ensureAdminPassword() {

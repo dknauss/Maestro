@@ -11,7 +11,7 @@ Three layers, smallest and fastest first.
 - **Activate the plugin on the tests instance.** wp-env mounts the plugin on both
   the dev (`:8888`) and tests (`:8889`) instances, but the E2E layer drives the
   tests instance as a real site and needs the plugin *activated* there:
-  `npx wp-env run tests-cli wp plugin activate admin-menu-maestro`.
+  `npx wp-env run tests-cli wp plugin activate maestro-menu-editor/maestro-menu-editor.php`.
   (The integration layer loads the plugin via the test bootstrap, so it does not
   depend on activation.)
 - **`test:php` runs phpunit in the container directly** — there is no longer a
@@ -62,7 +62,7 @@ npx playwright install     # one-time browser download
 npm run test:e2e           # or: npm run test:e2e:headed
 ```
 
-The E2E global setup normalizes the tests-site `admin` and `amm_editor`
+The E2E global setup normalizes the tests-site `admin` and `maestro_editor`
 passwords to `password` before browser login, so reruns are deterministic even
 after a persisted wp-env database has drifted.
 

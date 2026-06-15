@@ -1,7 +1,7 @@
 /**
  * Admin Menu Maestro — edit-mode styles.
  *
- * Scoped under body.amm-editing so nothing leaks into normal admin use.
+ * Scoped under body.maestro-editing so nothing leaks into normal admin use.
  * The editor uses a click-to-select model: there are no per-item controls or
  * drag handles — clicking a row selects it (a subtle highlight) and the whole
  * row is draggable to reorder. All controls live in the shared bottom toolbar
@@ -13,26 +13,26 @@
  * common.js writes them back. These rules are defensive: if anything sneaks
  * the class in for a frame, the layout still holds at the expanded width.
  */
-body.amm-editing.folded #adminmenu,
-body.amm-editing.folded #adminmenuwrap,
-body.amm-editing.folded #adminmenuback,
-body.amm-editing.auto-fold #adminmenu,
-body.amm-editing.auto-fold #adminmenuwrap,
-body.amm-editing.auto-fold #adminmenuback {
+body.maestro-editing.folded #adminmenu,
+body.maestro-editing.folded #adminmenuwrap,
+body.maestro-editing.folded #adminmenuback,
+body.maestro-editing.auto-fold #adminmenu,
+body.maestro-editing.auto-fold #adminmenuwrap,
+body.maestro-editing.auto-fold #adminmenuback {
 	width: 160px !important;
 }
-body.amm-editing.folded #wpcontent,
-body.amm-editing.folded #wpfooter,
-body.amm-editing.auto-fold #wpcontent,
-body.amm-editing.auto-fold #wpfooter {
+body.maestro-editing.folded #wpcontent,
+body.maestro-editing.folded #wpfooter,
+body.maestro-editing.auto-fold #wpcontent,
+body.maestro-editing.auto-fold #wpfooter {
 	margin-left: 160px !important;
 }
-body.amm-editing #collapse-menu {
+body.maestro-editing #collapse-menu {
 	display: none !important;
 }
 
 /* ---------- expanded submenus while editing ------------------------------ */
-.amm-editing #adminmenu .wp-submenu {
+.maestro-editing #adminmenu .wp-submenu {
 	display: block !important;
 	position: static !important;
 	width: auto !important;
@@ -42,7 +42,7 @@ body.amm-editing #collapse-menu {
 /* WordPress repeats the parent title in a hidden .wp-submenu-head for folded
  * flyouts. With submenus force-expanded here it would show as a second, icon-
  * less copy of the label — keep it hidden. */
-.amm-editing #adminmenu .wp-submenu-head {
+.maestro-editing #adminmenu .wp-submenu-head {
 	display: none !important;
 }
 
@@ -51,33 +51,33 @@ body.amm-editing #collapse-menu {
 /* No drag handles: the whole row is the drag target (see initSortables). A
  * plain click selects; only real movement drags. We deliberately avoid a grab/
  * hand cursor — the single selection highlight is the only affordance. */
-.amm-editing #adminmenu a {
+.maestro-editing #adminmenu a {
 	cursor: default;
 }
 
 /* Subtle, selection-only highlight: a tinted row with a left accent bar. */
-.amm-editing #adminmenu .amm-selected > a {
+.maestro-editing #adminmenu .maestro-selected > a {
 	background: rgba( 34, 113, 177, 0.22 );
 	box-shadow: inset 3px 0 0 #2271b1;
 }
-.amm-editing #adminmenu .amm-item.amm-has-hidden > a,
-.amm-editing #adminmenu .amm-subitem.amm-has-hidden > a {
+.maestro-editing #adminmenu .maestro-item.maestro-has-hidden > a,
+.maestro-editing #adminmenu .maestro-subitem.maestro-has-hidden > a {
 	opacity: 0.55;
 }
 
 /* Sortable drag visuals. */
-.amm-editing #adminmenu .ui-sortable-helper {
+.maestro-editing #adminmenu .ui-sortable-helper {
 	background: #2c3338;
 	box-shadow: 0 2px 8px rgba( 0, 0, 0, 0.4 );
 }
-.amm-editing #adminmenu .ui-sortable-placeholder {
+.maestro-editing #adminmenu .ui-sortable-placeholder {
 	visibility: visible !important;
 	background: rgba( 34, 113, 177, 0.25 );
 	height: 34px;
 }
 
 /* ---------- popovers (icon picker, visibility) -------------------------- */
-.amm-popover {
+.maestro-popover {
 	position: absolute;
 	z-index: 100000;
 	background: #fff;
@@ -86,11 +86,11 @@ body.amm-editing #collapse-menu {
 	box-shadow: 0 4px 16px rgba( 0, 0, 0, 0.18 );
 	padding: 10px;
 }
-.amm-icon-popover {
+.maestro-icon-popover {
 	width: 300px;
 	max-width: 92vw;
 }
-.amm-icon-search {
+.maestro-icon-search {
 	width: 100%;
 	box-sizing: border-box;
 	margin: 0 0 8px;
@@ -98,21 +98,21 @@ body.amm-editing #collapse-menu {
 	border: 1px solid #8c8f94;
 	border-radius: 3px;
 }
-.amm-icon-none {
+.maestro-icon-none {
 	margin: 0 0 8px;
 	width: 100%;
 }
-.amm-icon-none[aria-pressed="true"] {
+.maestro-icon-none[aria-pressed="true"] {
 	border-color: #2271b1;
 	box-shadow: 0 0 0 1px #2271b1;
 }
-.amm-icon-tabs {
+.maestro-icon-tabs {
 	display: flex;
 	gap: 4px;
 	margin: 0 0 8px;
 	border-bottom: 1px solid #dcdcde;
 }
-.amm-icon-tab {
+.maestro-icon-tab {
 	background: transparent;
 	border: 0;
 	border-bottom: 2px solid transparent;
@@ -121,12 +121,12 @@ body.amm-editing #collapse-menu {
 	color: #50575e;
 	font-size: 13px;
 }
-.amm-icon-tab[aria-selected="true"] {
+.maestro-icon-tab[aria-selected="true"] {
 	color: #1d2327;
 	border-bottom-color: #2271b1;
 	font-weight: 600;
 }
-.amm-icon-grid {
+.maestro-icon-grid {
 	display: grid;
 	grid-template-columns: repeat( auto-fill, minmax( 36px, 1fr ) );
 	gap: 4px;
@@ -135,11 +135,11 @@ body.amm-editing #collapse-menu {
 }
 /* display:grid/flex above outrank the UA [hidden] rule, so tab-switching and
    the search filter wouldn't hide anything without this. */
-.amm-icon-grid[hidden],
-.amm-icon-cell[hidden] {
+.maestro-icon-grid[hidden],
+.maestro-icon-cell[hidden] {
 	display: none;
 }
-.amm-icon-cell {
+.maestro-icon-cell {
 	background: #f6f7f7;
 	border: 1px solid transparent;
 	border-radius: 3px;
@@ -150,27 +150,27 @@ body.amm-editing #collapse-menu {
 	align-items: center;
 	justify-content: center;
 }
-.amm-icon-cell img {
+.maestro-icon-cell img {
 	width: 20px;
 	height: 20px;
 	display: block;
 }
-.amm-icon-cell:hover { background: #e0e7ec; }
-.amm-icon-cell:focus-visible {
+.maestro-icon-cell:hover { background: #e0e7ec; }
+.maestro-icon-cell:focus-visible {
 	outline: 2px solid #2271b1;
 	outline-offset: 1px;
 }
-.amm-icon-cell.is-current {
+.maestro-icon-cell.is-current {
 	border-color: #2271b1;
 	background: #dbe9f5;
 }
-.amm-vis-popover { min-width: 200px; }
-.amm-vis-head {
+.maestro-vis-popover { min-width: 200px; }
+.maestro-vis-head {
 	margin: 0 0 6px;
 	font-weight: 600;
 	color: #1d2327;
 }
-.amm-vis-row {
+.maestro-vis-row {
 	display: block;
 	padding: 3px 0;
 	color: #1d2327;
@@ -178,7 +178,7 @@ body.amm-editing #collapse-menu {
 }
 
 /* ---------- toolbar + shared controls panel ----------------------------- */
-.amm-toolbar {
+.maestro-toolbar {
 	position: fixed;
 	bottom: 0;
 	left: 160px; /* clears the admin menu column */
@@ -192,18 +192,18 @@ body.amm-editing #collapse-menu {
 	border-top: 2px solid #2271b1;
 	box-shadow: 0 -2px 10px rgba( 0, 0, 0, 0.25 );
 }
-.amm-toolbar .button { margin: 0; }
+.maestro-toolbar .button { margin: 0; }
 
-.amm-status {
+.maestro-status {
 	color: #c3c4c7;
 	font-size: 13px;
 	white-space: nowrap;
 }
-.amm-status-saving { color: #f0b849; }
-.amm-status-saved  { color: #6bc187; }
-.amm-status-error  { color: #f86368; }
+.maestro-status-saving { color: #f0b849; }
+.maestro-status-saved  { color: #6bc187; }
+.maestro-status-error  { color: #f86368; }
 
-.amm-panel {
+.maestro-panel {
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -212,8 +212,8 @@ body.amm-editing #collapse-menu {
 	padding-left: 12px;
 	border-left: 1px solid #3c434a;
 }
-.amm-panel[hidden] { display: none; }
-.amm-panel-label {
+.maestro-panel[hidden] { display: none; }
+.maestro-panel-label {
 	color: #c3c4c7;
 	font-size: 13px;
 	font-weight: 600;
@@ -222,14 +222,14 @@ body.amm-editing #collapse-menu {
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
-.amm-panel-field {
+.maestro-panel-field {
 	display: flex;
 	align-items: center;
 	gap: 4px;
 	color: #c3c4c7;
 	font-size: 12px;
 }
-.amm-rename-input {
+.maestro-rename-input {
 	width: 180px;
 	max-width: 100%;
 	font-size: 13px;
@@ -240,7 +240,7 @@ body.amm-editing #collapse-menu {
 	color: #1d2327;
 }
 
-.amm-toolbar-right {
+.maestro-toolbar-right {
 	display: flex;
 	gap: 8px;
 	margin-left: auto;
@@ -248,17 +248,17 @@ body.amm-editing #collapse-menu {
 
 /* Inherit the WP admin column collapse breakpoint. */
 @media screen and ( max-width: 782px ) {
-	.amm-toolbar { left: 0; }
-	.amm-panel-label { max-width: 120px; }
-	.amm-rename-input { width: 120px; }
+	.maestro-toolbar { left: 0; }
+	.maestro-panel-label { max-width: 120px; }
+	.maestro-rename-input { width: 120px; }
 
 	/* Comfortable touch targets and a viewport-fitting picker on small screens. */
-	.amm-icon-popover { width: 92vw; }
-	.amm-icon-grid {
+	.maestro-icon-popover { width: 92vw; }
+	.maestro-icon-grid {
 		grid-template-columns: repeat( auto-fill, minmax( 44px, 1fr ) );
 		max-height: 50vh;
 	}
-	.amm-icon-cell { min-height: 44px; }
-	.amm-icon-tab { padding: 10px 12px; }
-	.amm-vis-row { padding: 8px 0; }
+	.maestro-icon-cell { min-height: 44px; }
+	.maestro-icon-tab { padding: 10px 12px; }
+	.maestro-vis-row { padding: 8px 0; }
 }

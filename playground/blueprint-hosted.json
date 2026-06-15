@@ -1,11 +1,11 @@
 {
 	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
 	"meta": {
-		"title": "Admin Menu Maestro — live demo",
+		"title": "Maestro — live demo",
 		"author": "dknauss",
 		"description": "In-place admin menu editor, with User Switching and test users (editor, author, contributor, subscriber) for trying per-role menu visibility."
 	},
-	"landingPage": "/wp-admin/index.php?amm_edit=1",
+	"landingPage": "/wp-admin/index.php?maestro_edit=1",
 	"preferredVersions": { "php": "8.3", "wp": "latest" },
 	"login": true,
 	"plugins": [ "user-switching" ],
@@ -20,7 +20,7 @@
 				"path": "/"
 			},
 			"options": { "activate": true },
-			"progress": { "caption": "Installing Admin Menu Maestro" }
+			"progress": { "caption": "Installing Maestro" }
 		},
 		{
 			"step": "wp-cli",

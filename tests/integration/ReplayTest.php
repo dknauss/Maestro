@@ -4,13 +4,13 @@
  * to the real $menu / $submenu globals, plus reorder via the menu_order filter.
  * Runs under the WordPress PHPUnit test suite (WP_UnitTestCase).
  *
- * @package AdminMenuMaestro
+ * @package Maestro
  */
 
-namespace AdminMenuMaestro\Tests\Integration;
+namespace Maestro\Tests\Integration;
 
-use AdminMenuMaestro\Config;
-use AdminMenuMaestro\Replay;
+use Maestro\Config;
+use Maestro\Replay;
 use WP_UnitTestCase;
 
 class ReplayTest extends WP_UnitTestCase {
@@ -41,7 +41,7 @@ class ReplayTest extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 		$this->seed_menu();
-		delete_option( 'admin_menu_maestro' );
+		delete_option( 'maestro_config' );
 	}
 
 	private function run_replay() {

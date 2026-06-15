@@ -1,4 +1,4 @@
-# Admin Menu Maestro
+# Maestro
 
 [![CI](https://github.com/dknauss/Maestro/actions/workflows/ci.yml/badge.svg)](https://github.com/dknauss/Maestro/actions/workflows/ci.yml) [![Latest Tag](https://img.shields.io/github/v/tag/dknauss/Maestro)](https://github.com/dknauss/Maestro/tags) [![Docs](https://img.shields.io/badge/docs-available-0a7ea4.svg)](docs/)
 [![License: GPL-2.0-or-later](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
@@ -7,7 +7,7 @@
 [![PHP 7.4+](https://img.shields.io/badge/PHP-7.4%2B-777bb4.svg?logo=php&logoColor=white)](https://www.php.net/)
 [![Live demo in WordPress Playground](https://img.shields.io/badge/▶_Playground-Live_demo-3858e9.svg?logo=wordpress&logoColor=white)](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/main/playground/blueprint-hosted.json)
 
-![Admin Menu Maestro banner](.wordpress-org/banner-1544x500.png)
+![Maestro banner](.wordpress-org/banner-1544x500.png)
 
 In-place editing of the WordPress admin menu — rename items, reorder them, swap top-level icons, and hide items per role. Global configuration, no separate settings screen: the editor is toggled from the admin bar and operates on the menu itself.
 
@@ -29,7 +29,7 @@ Click any screenshot to open the full-size image.
 
 ## Important: visibility is cosmetic, not access control
 
-Hiding a menu item only declutters the menu — the underlying page still loads for anyone who knows its URL, because a page's own registered capability is the real lock. For actual access control, pair this with a capability manager ([User Role Editor](https://wordpress.org/plugins/user-role-editor/), or [PublishPress Capabilities](https://wordpress.org/plugins/capability-manager-enhanced/)). The `admin_menu_maestro_capability` filter lets such a plugin hand editing rights to a custom capability instead of the default `manage_options`.
+Hiding a menu item only declutters the menu — the underlying page still loads for anyone who knows its URL, because a page's own registered capability is the real lock. For actual access control, pair this with a capability manager ([User Role Editor](https://wordpress.org/plugins/user-role-editor/), or [PublishPress Capabilities](https://wordpress.org/plugins/capability-manager-enhanced/)). The `maestro_capability` filter lets such a plugin hand editing rights to a custom capability instead of the default `manage_options`.
 
 ## Quick start
 
@@ -64,11 +64,11 @@ See `SPEC.md` for the durable design and `docs/archive/FIXES.md` for the histori
 
 ## Localization
 
-The plugin uses the `admin-menu-maestro` text domain and ships a translation template plus starter language packs for Spanish (`es_ES`), German (`de_DE`), Japanese (`ja`), French (`fr_FR`), Portuguese (Brazil) (`pt_BR`), and Italian (`it_IT`). PHP-visible strings use WordPress translation helpers, and the editor receives its UI labels through the localized `ammData.i18n` payload so JavaScript controls, dialogs, status messages, and button text are translatable. WordPress.org language packs can still override and extend the bundled catalogs; native-speaker and WordPress Polyglots review is welcome.
+The plugin uses the `maestro` text domain and ships a translation template plus starter language packs for Spanish (`es_ES`), German (`de_DE`), Japanese (`ja`), French (`fr_FR`), Portuguese (Brazil) (`pt_BR`), and Italian (`it_IT`). PHP-visible strings use WordPress translation helpers, and the editor receives its UI labels through the localized `maestroData.i18n` payload so JavaScript controls, dialogs, status messages, and button text are translatable. WordPress.org language packs can still override and extend the bundled catalogs; native-speaker and WordPress Polyglots review is welcome.
 
 ## Repository layout
 
-- **Runtime plugin** — `admin-menu-maestro.php`, `includes/`, `assets/`, `languages/`, `readme.txt`. This is all that ships to a site.
+- **Runtime plugin** — `maestro.php`, `includes/`, `assets/`, `languages/`, `readme.txt`. This is all that ships to a site.
 - **WordPress.org listing assets** — `.wordpress-org/` contains the directory icon (`icon.svg`, `icon-128x128.png`, `icon-256x256.png`), banners (`banner-772x250.png`, `banner-1544x500.png`), and screenshots (`screenshot-1.png` through `screenshot-4.png`).
 - **Dev & tooling** — `tests/`, `composer.json`, `package.json`, `.wp-env.json`, `playwright.config.ts`, `phpunit-*.xml.dist`, `bin/build.sh`.
 - **Docs** — `docs/user-guide.md` (user walkthrough), `SPEC.md` (durable specification), `TESTING.md` (how to run each test layer), and `docs/archive/FIXES.md` (historical fix log).
@@ -78,7 +78,7 @@ The plugin uses the `admin-menu-maestro` text domain and ships a translation tem
 Build a runtime-only zip and upload it under Plugins → Add New → Upload:
 
 ```bash
-bin/build.sh        # writes build/admin-menu-maestro.zip (runtime files only)
+bin/build.sh        # writes build/maestro.zip (runtime files only)
 ```
 
 Activate it; **Edit Menu** appears in the admin bar. Never ship the dev tooling inside the installed plugin.
@@ -100,7 +100,7 @@ A WordPress Playground blueprint (`playground/blueprint.json`) spins up a throwa
 site for trying the editor — including **per-role visibility** — without a local
 WordPress. It installs [User Switching](https://wordpress.org/plugins/user-switching/),
 creates four test users (`editor`, `author`, `contributor`, `subscriber`, all
-password `password`), activates Admin Menu Maestro, and drops you into edit mode
+password `password`), activates Maestro, and drops you into edit mode
 as `admin`.
 
 ```bash

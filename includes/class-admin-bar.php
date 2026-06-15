@@ -6,17 +6,17 @@
  * (and fragile) for the toggle to live inside the very menu it rearranges and
  * can hide. The toggle just flips a URL param; nothing is persisted.
  *
- * @package AdminMenuMaestro
+ * @package Maestro
  */
 
-namespace AdminMenuMaestro;
+namespace Maestro;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Registers the edit-mode toggle node in the WordPress admin bar.
  *
- * @package AdminMenuMaestro
+ * @package Maestro
  */
 class Admin_Bar {
 
@@ -40,19 +40,19 @@ class Admin_Bar {
 
 		$editing = is_edit_mode();
 
-		// Toggle target: current URL with amm_edit added or removed.
-		$current = remove_query_arg( 'amm_edit' );
-		$href    = $editing ? $current : add_query_arg( 'amm_edit', '1', $current );
+		// Toggle target: current URL with maestro_edit added or removed.
+		$current = remove_query_arg( 'maestro_edit' );
+		$href    = $editing ? $current : add_query_arg( 'maestro_edit', '1', $current );
 
 		$bar->add_node(
 			array(
-				'id'    => 'amm-toggle',
+				'id'    => 'maestro-toggle',
 				'title' => $editing
-					? '<span class="ab-icon dashicons dashicons-exit" style="margin-top:2px;"></span>' . esc_html__( 'Exit Editor', 'admin-menu-maestro' )
-					: '<span class="ab-icon dashicons dashicons-edit" style="margin-top:2px;"></span>' . esc_html__( 'Edit Admin Menu', 'admin-menu-maestro' ),
+					? '<span class="ab-icon dashicons dashicons-exit" style="margin-top:2px;"></span>' . esc_html__( 'Exit Editor', 'maestro-menu-editor' )
+					: '<span class="ab-icon dashicons dashicons-edit" style="margin-top:2px;"></span>' . esc_html__( 'Edit Admin Menu', 'maestro-menu-editor' ),
 				'href'  => esc_url( $href ),
 				'meta'  => array(
-					'title' => esc_attr__( 'Toggle in-place admin menu editing', 'admin-menu-maestro' ),
+					'title' => esc_attr__( 'Toggle in-place admin menu editing', 'maestro-menu-editor' ),
 				),
 			)
 		);

@@ -20,17 +20,17 @@
  *   'sub_order' => [ '<parent_slug>' => [ '<slug>', ... ] ],
  * ]
  *
- * @package AdminMenuMaestro
+ * @package Maestro
  */
 
-namespace AdminMenuMaestro;
+namespace Maestro;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Storage and sanitisation layer for the sparse menu-override config.
  *
- * @package AdminMenuMaestro
+ * @package Maestro
  */
 class Config {
 
@@ -48,7 +48,7 @@ class Config {
 	 */
 	public function get() {
 		if ( null === $this->cache ) {
-			$stored      = get_option( ADMIN_MENU_MAESTRO_OPTION, array() );
+			$stored      = get_option( MAESTRO_OPTION, array() );
 			$this->cache = is_array( $stored ) ? $stored : array();
 		}
 		return $this->cache;
@@ -66,7 +66,7 @@ class Config {
 	 */
 	public function save( array $raw ) {
 		$clean = $this->sanitize( $raw );
-		update_option( ADMIN_MENU_MAESTRO_OPTION, $clean, false );
+		update_option( MAESTRO_OPTION, $clean, false );
 		$this->cache = $clean;
 		return $clean;
 	}
@@ -77,7 +77,7 @@ class Config {
 	 * @return void
 	 */
 	public function reset() {
-		delete_option( ADMIN_MENU_MAESTRO_OPTION );
+		delete_option( MAESTRO_OPTION );
 		$this->cache = array();
 	}
 

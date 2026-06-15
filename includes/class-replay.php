@@ -12,17 +12,17 @@
  *   - Top-level order                          -> the proper core API:
  *     `custom_menu_order` + `menu_order`, which run just after admin_menu.
  *
- * @package AdminMenuMaestro
+ * @package Maestro
  */
 
-namespace AdminMenuMaestro;
+namespace Maestro;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Replay engine — applies stored menu overrides onto the WP menu globals each request.
  *
- * @package AdminMenuMaestro
+ * @package Maestro
  */
 class Replay {
 

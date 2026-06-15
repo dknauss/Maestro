@@ -103,7 +103,7 @@ const php = `<?php
  * to regenerate. Source: Bootstrap Icons v${ version } (MIT). Icons are recoloured
  * to WordPress's menu grey (${ MENU_GREY }); see the generator for the rationale.
  *
- * @package AdminMenuMaestro
+ * @package Maestro
  */
 
 defined( 'ABSPATH' ) || exit;

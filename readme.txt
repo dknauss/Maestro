@@ -1,10 +1,11 @@
-=== Admin Menu Maestro ===
-Contributors: danknauss
-Tags: admin, menu, icons, roles, customize
+=== Maestro - Inline Admin Menu Editor ===
+Contributors: dpknauss
+Donate link: https://www.paypal.com/paypalme/DanKnauss
+Tags: admin menu, menu editor, admin, dashboard, icons
 Requires at least: 6.4
 Tested up to: 7.0
-Requires PHP: 7.4
 Stable tag: 1.0.0
+Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -43,12 +44,12 @@ If you need to actually *prevent* access, pair this with a capability manager:
 * **[PublishPress Capabilities](https://wordpress.org/plugins/capability-manager-enhanced/)** —
   menu-aware; its Pro tier can block admin pages by URL.
 
-The `admin_menu_maestro_capability` filter lets such a plugin hand editing rights to a custom
+The `maestro_capability` filter lets such a plugin hand editing rights to a custom
 capability instead of the default `manage_options`.
 
 = Localization =
 
-Admin Menu Maestro uses the `admin-menu-maestro` text domain. PHP strings use
+Maestro uses the `maestro-menu-editor` text domain. PHP strings use
 WordPress translation helpers, and editor labels are passed to JavaScript in a
 localized payload so the UI can be translated. The plugin ships a translation
 template plus starter language packs for Spanish (`es_ES`), German (`de_DE`),
@@ -103,16 +104,16 @@ active plugins.
 
 == Architecture (for developers) ==
 
-* `Config` — reads/writes/sanitizes a single option (`admin_menu_maestro`) holding only
+* `Config` — reads/writes/sanitizes a single option (`maestro_config`) holding only
   the deltas. Reset = delete the option; the natural menu returns automatically.
 * `Replay` — on a late `admin_menu` pass, applies rename/icon/visibility to the
   `$menu`/`$submenu` globals and reorders submenus. Top-level order uses the
   core `custom_menu_order` + `menu_order` filters. Resilient to missing slugs
   (orphans are skipped) and new items (appended at the end).
-* `Rest` — `admin-menu-maestro/v1/config` (GET/POST/DELETE), capability-gated, `X-WP-Nonce`.
+* `Rest` — `maestro/v1/config` (GET/POST/DELETE), capability-gated, `X-WP-Nonce`.
 * The editor JS is driven by a localized model (with DOM ids), not DOM scraping,
   and diffs against captured pristine defaults so the stored config stays sparse.
-* Localized editor labels are passed from PHP to JavaScript in `ammData.i18n`;
+* Localized editor labels are passed from PHP to JavaScript in `maestroData.i18n`;
   the runtime zip includes the bundled POT template and starter catalogs.
 * WordPress.org listing graphics live in the repository's `.wordpress-org/`
   directory: `icon.svg`, `icon-128x128.png`, `icon-256x256.png`,

@@ -2,7 +2,7 @@
 /**
  * REST controller for the menu config.
  *
- * Routes (namespace admin-menu-maestro/v1):
+ * Routes (namespace maestro/v1):
  *   GET    /config  -> current stored config
  *   POST   /config  -> full-replace save (sanitized)
  *   DELETE /config  -> reset (delete the option)
@@ -11,21 +11,21 @@
  * (X-WP-Nonce header, value = wp_create_nonce('wp_rest')) is validated by core's
  * REST cookie auth layer when the request is same-origin from the admin JS.
  *
- * @package AdminMenuMaestro
+ * @package Maestro
  */
 
-namespace AdminMenuMaestro;
+namespace Maestro;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
  * REST controller — exposes GET / POST / DELETE for the menu config.
  *
- * @package AdminMenuMaestro
+ * @package Maestro
  */
 class Rest {
 
-	const NS = 'admin-menu-maestro/v1';
+	const NS = 'maestro/v1';
 
 	/**
 	 * Shared config instance.
@@ -110,7 +110,7 @@ class Rest {
 	public function save_config( \WP_REST_Request $request ) {
 		$incoming = $request->get_param( 'config' );
 		if ( ! is_array( $incoming ) ) {
-			return new \WP_Error( 'amm_bad_payload', __( 'Invalid config payload.', 'admin-menu-maestro' ), array( 'status' => 400 ) );
+			return new \WP_Error( 'maestro_bad_payload', __( 'Invalid config payload.', 'maestro-menu-editor' ), array( 'status' => 400 ) );
 		}
 
 		$saved = $this->config->save( $incoming );

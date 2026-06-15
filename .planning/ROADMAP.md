@@ -1,4 +1,4 @@
-# Roadmap: Admin Menu Maestro
+# Roadmap: Maestro
 
 ## Milestones
 

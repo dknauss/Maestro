@@ -1,120 +1,120 @@
 # Copyright (C) 2026 Dan Knauss
 # This file is distributed under the GPL-2.0-or-later.
-# Starter German translations for Admin Menu Maestro.
+# Starter Portuguese (Brazil) translations for Admin Menu Maestro.
 msgid ""
 msgstr ""
-"Project-Id-Version: Admin Menu Maestro 1.0.0\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/admin-menu-maestro\n"
-"Last-Translator: Admin Menu Maestro contributors <support@newlocal.media>\n"
-"Language-Team: German <de@li.org>\n"
+"Project-Id-Version: Maestro - Inline Admin Menu Editor 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/maestro-menu-editor\n"
+"Last-Translator: Dan Knauss <dan.knauss@gmail.com>\n"
+"Language-Team: Brazilian Portuguese <pt_BR@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "PO-Revision-Date: 2026-06-14 13:06+0000\n"
-"Language: de_DE\n"
+"Language: pt_BR\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: WP-CLI 2.12.0\n"
-"X-Domain: admin-menu-maestro\n"
+"X-Domain: maestro-menu-editor\n"
 
 #. Plugin Name of the plugin
-#: admin-menu-maestro.php
+#: maestro-menu-editor.php
 msgid "Admin Menu Maestro"
 msgstr "Admin Menu Maestro"
 
 #. Plugin URI of the plugin
-#: admin-menu-maestro.php
-msgid "https://newlocal.media/admin-menu-maestro"
-msgstr "https://newlocal.media/admin-menu-maestro"
+#: maestro-menu-editor.php
+msgid "https://github.com/dknauss/Maestro/"
+msgstr "https://github.com/dknauss/Maestro/"
 
 #. Description of the plugin
-#: admin-menu-maestro.php
+#: maestro-menu-editor.php
 msgid "In-place editing of the WordPress admin menu — rename items, reorder them, swap top-level dashicons, and hide items per role. Global config, no separate settings screen. Cosmetic only: hiding declutters, it does not lock access."
-msgstr "Direkte Bearbeitung des WordPress-Admin-Menüs: Elemente umbenennen, neu anordnen, Dashicons der obersten Ebene austauschen und Elemente je Rolle ausblenden. Globale Konfiguration, keine separate Einstellungsseite. Nur visuell: Ausblenden räumt das Menü auf, sperrt aber keinen Zugriff."
+msgstr "Edição no próprio menu de administração do WordPress: renomeie itens, reordene, troque dashicons de nível superior e oculte itens por função. Configuração global, sem tela de configurações separada. Apenas visual: ocultar organiza o menu, mas não bloqueia o acesso."
 
 #. Author of the plugin
-#: admin-menu-maestro.php
+#: maestro-menu-editor.php
 msgid "Dan Knauss"
 msgstr "Dan Knauss"
 
 #: includes/class-admin-bar.php:51
 msgid "Exit Editor"
-msgstr "Editor verlassen"
+msgstr "Sair do editor"
 
 #: includes/class-admin-bar.php:52
 msgid "Edit Admin Menu"
-msgstr "Admin-Menü bearbeiten"
+msgstr "Editar menu de administração"
 
 #: includes/class-admin-bar.php:55
 msgid "Toggle in-place admin menu editing"
-msgstr "Direkte Bearbeitung des Admin-Menüs umschalten"
+msgstr "Alternar edição no próprio menu de administração"
 
 #: includes/class-assets.php:88
 msgid "Editor active — click an item to edit."
-msgstr "Editor aktiv: Klicke auf ein Element, um es zu bearbeiten."
+msgstr "Editor ativo: clique em um item para editar."
 
 #: includes/class-assets.php:89
 msgid "Saving…"
-msgstr "Speichern..."
+msgstr "Salvando..."
 
 #: includes/class-assets.php:90
 msgid "Saved ✓"
-msgstr "Gespeichert ✓"
+msgstr "Salvo ✓"
 
 #: includes/class-assets.php:91
 msgid "Save failed. Retrying on next change."
-msgstr "Speichern fehlgeschlagen. Bei der nächsten Änderung wird es erneut versucht."
+msgstr "Falha ao salvar. Tentará novamente na próxima alteração."
 
 #: includes/class-assets.php:92
 msgid "Title"
-msgstr "Titel"
+msgstr "Título"
 
 #: includes/class-assets.php:93
 msgid "Icon"
-msgstr "Icon"
+msgstr "Ícone"
 
 #: includes/class-assets.php:94
 msgid "Choose an icon"
-msgstr "Icon auswählen"
+msgstr "Escolha um ícone"
 
 #: includes/class-assets.php:95
 msgid "Search icons"
-msgstr "Icons suchen"
+msgstr "Pesquisar ícones"
 
 #: includes/class-assets.php:96
 msgid "No icon"
-msgstr "Kein Icon"
+msgstr "Sem ícone"
 
 #: includes/class-assets.php:97
 msgid "Remove the icon (uses the menu default)."
-msgstr "Icon entfernen (verwendet die Menü-Standardeinstellung)."
+msgstr "Remover o ícone (usa o padrão do menu)."
 
 #: includes/class-assets.php:98
 msgid "Visibility"
-msgstr "Sichtbarkeit"
+msgstr "Visibilidade"
 
 #: includes/class-assets.php:99
 msgid "Reset this item"
-msgstr "Dieses Element zurücksetzen"
+msgstr "Redefinir este item"
 
 #: includes/class-assets.php:100
 msgid "Reset all"
-msgstr "Alles zurücksetzen"
+msgstr "Redefinir tudo"
 
 #: includes/class-assets.php:101
 msgid "Exit"
-msgstr "Beenden"
+msgstr "Sair"
 
 #: includes/class-assets.php:102
 msgid "Hide from these roles:"
-msgstr "Für diese Rollen ausblenden:"
+msgstr "Ocultar destas funções:"
 
 #: includes/class-assets.php:103
 msgid "Reset ALL menu customizations to WordPress defaults? This cannot be undone."
-msgstr "ALLE Menüanpassungen auf die WordPress-Standardeinstellungen zurücksetzen? Dies kann nicht rückgängig gemacht werden."
+msgstr "Redefinir TODAS as personalizações do menu para os padrões do WordPress? Isto não pode ser desfeito."
 
 #: includes/class-assets.php:104
 msgid "Drag to reorder"
-msgstr "Zum Neuordnen ziehen"
+msgstr "Arraste para reordenar"
 
 #: includes/class-assets.php:134
 msgid "Dashicons"
@@ -126,4 +126,4 @@ msgstr "Bootstrap"
 
 #: includes/class-rest.php:113
 msgid "Invalid config payload."
-msgstr "Ungültige Konfigurationsdaten."
+msgstr "Dados de configuração inválidos."

@@ -1,20 +1,20 @@
 <?php
 /**
- * Integration tests for the admin-menu-maestro/v1/config REST routes: capability
+ * Integration tests for the maestro/v1/config REST routes: capability
  * gating, the save round-trip (including sanitization), and reset. Runs under
  * WP_UnitTestCase.
  *
- * @package AdminMenuMaestro
+ * @package Maestro
  */
 
-namespace AdminMenuMaestro\Tests\Integration;
+namespace Maestro\Tests\Integration;
 
 use WP_REST_Request;
 use WP_UnitTestCase;
 
 class RestConfigTest extends WP_UnitTestCase {
 
-	const ROUTE = '/admin-menu-maestro/v1/config';
+	const ROUTE = '/maestro/v1/config';
 
 	/**
 	 * @var \WP_REST_Server
@@ -27,7 +27,7 @@ class RestConfigTest extends WP_UnitTestCase {
 		$wp_rest_server = new \WP_REST_Server();
 		$this->server  = $wp_rest_server;
 		do_action( 'rest_api_init' );
-		delete_option( 'admin_menu_maestro' );
+		delete_option( 'maestro_config' );
 	}
 
 	public function tear_down() {
@@ -56,12 +56,12 @@ class RestConfigTest extends WP_UnitTestCase {
 	 */
 	public function test_missing_rest_nonce_rejects_cookie_authenticated_requests( $method ) {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
-		update_option( 'admin_menu_maestro', array( 'items' => array( 'edit.php' => array( 'title' => 'Existing' ) ) ) );
+		update_option( 'maestro_config', array( 'items' => array( 'edit.php' => array( 'title' => 'Existing' ) ) ) );
 
 		$res = $this->dispatch_as_cookie_auth_request( $this->request_for_method( $method ), null );
 
 		$this->assertSame( 401, $res->get_status(), 'Missing nonce should demote cookie auth to anonymous, so the capability gate rejects the request.' );
-		$this->assertSame( 'Existing', get_option( 'admin_menu_maestro' )['items']['edit.php']['title'], 'Rejected requests must not mutate config.' );
+		$this->assertSame( 'Existing', get_option( 'maestro_config' )['items']['edit.php']['title'], 'Rejected requests must not mutate config.' );
 	}
 
 	/**
@@ -69,14 +69,14 @@ class RestConfigTest extends WP_UnitTestCase {
 	 */
 	public function test_invalid_rest_nonce_rejects_cookie_authenticated_requests( $method ) {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
-		update_option( 'admin_menu_maestro', array( 'items' => array( 'edit.php' => array( 'title' => 'Existing' ) ) ) );
+		update_option( 'maestro_config', array( 'items' => array( 'edit.php' => array( 'title' => 'Existing' ) ) ) );
 
 		$res = $this->dispatch_as_cookie_auth_request( $this->request_for_method( $method ), 'not-a-valid-nonce' );
 
 		$this->assertWPError( $res );
 		$this->assertSame( 'rest_cookie_invalid_nonce', $res->get_error_code() );
 		$this->assertSame( 403, $res->get_error_data()['status'] );
-		$this->assertSame( 'Existing', get_option( 'admin_menu_maestro' )['items']['edit.php']['title'], 'Rejected requests must not mutate config.' );
+		$this->assertSame( 'Existing', get_option( 'maestro_config' )['items']['edit.php']['title'], 'Rejected requests must not mutate config.' );
 	}
 
 	public function route_methods() {
@@ -249,7 +249,7 @@ class RestConfigTest extends WP_UnitTestCase {
 	public function test_reset_clears_config() {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		update_option(
-			'admin_menu_maestro',
+			'maestro_config',
 			array(
 				'items'     => array( 'edit.php' => array( 'title' => 'X' ) ),
 				'top_order' => array( 'edit.php', 'index.php' ),
@@ -261,18 +261,18 @@ class RestConfigTest extends WP_UnitTestCase {
 
 		$this->assertSame( 200, $res->get_status() );
 		$this->assertTrue( $res->get_data()['reset'] );
-		$this->assertFalse( get_option( 'admin_menu_maestro' ) );
+		$this->assertFalse( get_option( 'maestro_config' ) );
 	}
 
 	public function test_reset_is_idempotent_when_config_is_empty() {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
-		delete_option( 'admin_menu_maestro' );
+		delete_option( 'maestro_config' );
 
 		$res = $this->server->dispatch( new WP_REST_Request( 'DELETE', self::ROUTE ) );
 
 		$this->assertSame( 200, $res->get_status() );
 		$this->assertTrue( $res->get_data()['reset'] );
 		$this->assertSame( array(), $res->get_data()['config'] );
-		$this->assertFalse( get_option( 'admin_menu_maestro' ) );
+		$this->assertFalse( get_option( 'maestro_config' ) );
 	}
 }

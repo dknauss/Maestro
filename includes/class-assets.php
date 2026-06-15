@@ -6,17 +6,17 @@
  * current saved config, the effective menu model (with DOM ids), and the
  * pristine defaults for per-item reset.
  *
- * @package AdminMenuMaestro
+ * @package Maestro
  */
 
-namespace AdminMenuMaestro;
+namespace Maestro;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Asset loader — enqueues the editor JS/CSS and passes all runtime data to JS.
  *
- * @package AdminMenuMaestro
+ * @package Maestro
  */
 class Assets {
 
@@ -57,51 +57,51 @@ class Assets {
 		}
 
 		wp_enqueue_style(
-			'admin-menu-maestro',
-			ADMIN_MENU_MAESTRO_URL . 'assets/admin-menu-maestro.css',
+			'maestro',
+			MAESTRO_URL . 'assets/maestro.css',
 			array(),
-			ADMIN_MENU_MAESTRO_VERSION
+			MAESTRO_VERSION
 		);
 
 		// jquery-ui-sortable is registered in wp-admin out of the box.
 		wp_enqueue_script(
-			'admin-menu-maestro',
-			ADMIN_MENU_MAESTRO_URL . 'assets/admin-menu-maestro.js',
+			'maestro',
+			MAESTRO_URL . 'assets/maestro.js',
 			array( 'jquery', 'jquery-ui-sortable', 'wp-a11y', 'wp-i18n' ),
-			ADMIN_MENU_MAESTRO_VERSION,
+			MAESTRO_VERSION,
 			true
 		);
 
 		wp_localize_script(
-			'admin-menu-maestro',
-			'ammData',
+			'maestro',
+			'maestroData',
 			array(
 				'restUrl'  => esc_url_raw( rest_url( Rest::NS . '/config' ) ),
 				'nonce'    => wp_create_nonce( 'wp_rest' ),
-				'exitUrl'  => esc_url_raw( remove_query_arg( 'amm_edit' ) ),
+				'exitUrl'  => esc_url_raw( remove_query_arg( 'maestro_edit' ) ),
 				'roles'    => wp_roles()->get_names(),
 				'iconSets' => $this->icon_sets(),
 				'config'   => $this->config->get(),
 				'menu'     => $this->replay->get_menu_model(),
 				'pristine' => $this->replay->get_pristine(),
 				'i18n'     => array(
-					'idle'         => __( 'Editor active — click an item to edit.', 'admin-menu-maestro' ),
-					'saving'       => __( 'Saving…', 'admin-menu-maestro' ),
-					'saved'        => __( 'Saved ✓', 'admin-menu-maestro' ),
-					'saveError'    => __( 'Save failed. Retrying on next change.', 'admin-menu-maestro' ),
-					'rename'       => __( 'Title', 'admin-menu-maestro' ),
-					'icon'         => __( 'Icon', 'admin-menu-maestro' ),
-					'iconDialog'   => __( 'Choose an icon', 'admin-menu-maestro' ),
-					'iconSearch'   => __( 'Search icons', 'admin-menu-maestro' ),
-					'iconNone'     => __( 'No icon', 'admin-menu-maestro' ),
-					'iconNoneHint' => __( 'Remove the icon (uses the menu default).', 'admin-menu-maestro' ),
-					'visibility'   => __( 'Visibility', 'admin-menu-maestro' ),
-					'resetItem'    => __( 'Reset this item', 'admin-menu-maestro' ),
-					'resetAll'     => __( 'Reset all', 'admin-menu-maestro' ),
-					'exit'         => __( 'Exit', 'admin-menu-maestro' ),
-					'hideFrom'     => __( 'Hide from these roles:', 'admin-menu-maestro' ),
-					'confirmAll'   => __( 'Reset ALL menu customizations to WordPress defaults? This cannot be undone.', 'admin-menu-maestro' ),
-					'drag'         => __( 'Drag to reorder', 'admin-menu-maestro' ),
+					'idle'         => __( 'Editor active — click an item to edit.', 'maestro-menu-editor' ),
+					'saving'       => __( 'Saving…', 'maestro-menu-editor' ),
+					'saved'        => __( 'Saved ✓', 'maestro-menu-editor' ),
+					'saveError'    => __( 'Save failed. Retrying on next change.', 'maestro-menu-editor' ),
+					'rename'       => __( 'Title', 'maestro-menu-editor' ),
+					'icon'         => __( 'Icon', 'maestro-menu-editor' ),
+					'iconDialog'   => __( 'Choose an icon', 'maestro-menu-editor' ),
+					'iconSearch'   => __( 'Search icons', 'maestro-menu-editor' ),
+					'iconNone'     => __( 'No icon', 'maestro-menu-editor' ),
+					'iconNoneHint' => __( 'Remove the icon (uses the menu default).', 'maestro-menu-editor' ),
+					'visibility'   => __( 'Visibility', 'maestro-menu-editor' ),
+					'resetItem'    => __( 'Reset this item', 'maestro-menu-editor' ),
+					'resetAll'     => __( 'Reset all', 'maestro-menu-editor' ),
+					'exit'         => __( 'Exit', 'maestro-menu-editor' ),
+					'hideFrom'     => __( 'Hide from these roles:', 'maestro-menu-editor' ),
+					'confirmAll'   => __( 'Reset ALL menu customizations to WordPress defaults? This cannot be undone.', 'maestro-menu-editor' ),
+					'drag'         => __( 'Drag to reorder', 'maestro-menu-editor' ),
 				),
 			)
 		);
@@ -118,7 +118,7 @@ class Assets {
 	 * @return array
 	 */
 	private function icon_sets() {
-		$bootstrap = require ADMIN_MENU_MAESTRO_DIR . 'includes/icons-bootstrap.php';
+		$bootstrap = require MAESTRO_DIR . 'includes/icons-bootstrap.php';
 		$bi        = array();
 		foreach ( $bootstrap as $id => $src ) {
 			$bi[] = array(
@@ -131,7 +131,7 @@ class Assets {
 		return array(
 			array(
 				'id'    => 'dashicons',
-				'label' => __( 'Dashicons', 'admin-menu-maestro' ),
+				'label' => __( 'Dashicons', 'maestro-menu-editor' ),
 				'type'  => 'class',
 				'icons' => array_map(
 					function ( $cls ) {
@@ -146,7 +146,7 @@ class Assets {
 			),
 			array(
 				'id'    => 'bootstrap',
-				'label' => __( 'Bootstrap', 'admin-menu-maestro' ),
+				'label' => __( 'Bootstrap', 'maestro-menu-editor' ),
 				'type'  => 'data',
 				'icons' => $bi,
 			),

@@ -1,11 +1,11 @@
 {
 	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
 	"meta": {
-		"title": "Admin Menu Maestro — role-testing demo",
+		"title": "Maestro — role-testing demo",
 		"author": "dknauss",
 		"description": "In-place admin menu editor, plus User Switching and test users (editor, author, contributor, subscriber) for trying per-role menu visibility."
 	},
-	"landingPage": "/wp-admin/index.php?amm_edit=1",
+	"landingPage": "/wp-admin/index.php?maestro_edit=1",
 	"preferredVersions": { "php": "8.3", "wp": "latest" },
 	"login": true,
 	"plugins": [ "user-switching" ],
@@ -32,8 +32,8 @@
 		},
 		{
 			"step": "wp-cli",
-			"command": "wp plugin activate admin-menu-maestro",
-			"progress": { "caption": "Activating Admin Menu Maestro" }
+			"command": "wp plugin activate maestro-menu-editor/maestro-menu-editor.php",
+			"progress": { "caption": "Activating Maestro" }
 		}
 	]
 }

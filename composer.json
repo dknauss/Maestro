@@ -1,6 +1,6 @@
 {
-	"name": "danknauss/admin-menu-maestro",
-	"description": "In-place editing of the WordPress admin menu — rename, reorder, dashicons, per-role visibility.",
+	"name": "danknauss/maestro",
+	"description": "In-place editing of the WordPress admin menu — rename, reorder, icons, per-role visibility.",
 	"type": "wordpress-plugin",
 	"license": "GPL-2.0-or-later",
 	"require": {
@@ -16,14 +16,14 @@
 	},
 	"autoload-dev": {
 		"psr-4": {
-			"AdminMenuMaestro\\Tests\\Unit\\": "tests/unit/",
-			"AdminMenuMaestro\\Tests\\Integration\\": "tests/integration/"
+			"Maestro\\Tests\\Unit\\": "tests/unit/",
+			"Maestro\\Tests\\Integration\\": "tests/integration/"
 		}
 	},
 	"scripts": {
 		"test:unit": "phpunit -c phpunit-unit.xml.dist",
 		"test:integration": "phpunit -c phpunit-integration.xml.dist",
-		"lint": "phpcs --standard=phpcs.xml.dist"
+		"lint": "phpcs --standard=phpcs.xml.dist maestro-menu-editor.php includes/"
 	},
 	"config": {
 		"allow-plugins": {

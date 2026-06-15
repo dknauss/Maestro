@@ -7,7 +7,7 @@
  * `wp-scripts test-unit-php`. Standalone, set WP_TESTS_DIR (and optionally
  * WP_TESTS_PHPUNIT_POLYFILLS_PATH) and run with the WP test DB configured.
  *
- * @package AdminMenuMaestro
+ * @package Maestro
  */
 
 $_tests_dir = getenv( 'WP_TESTS_DIR' );
@@ -33,7 +33,7 @@ require_once "{$_tests_dir}/includes/functions.php";
 tests_add_filter(
 	'muplugins_loaded',
 	static function () {
-		require dirname( __DIR__ ) . '/admin-menu-maestro.php';
+		require dirname( __DIR__ ) . '/maestro-menu-editor.php';
 	}
 );
 

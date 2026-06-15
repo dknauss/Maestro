@@ -6,7 +6,7 @@
  * to regenerate. Source: Bootstrap Icons v1.13.1 (MIT). Icons are recoloured
  * to WordPress's menu grey (#a7aaad); see the generator for the rationale.
  *
- * @package AdminMenuMaestro
+ * @package Maestro
  */
 
 defined( 'ABSPATH' ) || exit;

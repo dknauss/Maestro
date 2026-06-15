@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<ruleset name="Admin Menu Maestro">
-	<description>WordPress Coding Standards for Admin Menu Maestro (wp.org submission).</description>
+<ruleset name="Maestro">
+	<description>WordPress Coding Standards for Maestro - Inline Admin Menu Editor (wp.org submission).</description>
 
 	<!-- Scan the runtime PHP only. Tests, tooling, vendor, and the generated
 	     icon map do not ship and are not subject to the submission ruleset. -->
@@ -23,20 +23,20 @@
 	<rule ref="WordPress.WP.I18n">
 		<properties>
 			<property name="text_domain" type="array">
-				<element value="admin-menu-maestro"/>
+				<element value="maestro-menu-editor"/>
 			</property>
 		</properties>
 	</rule>
 
 	<!-- Every global symbol must carry one of our prefixes. Namespaced classes
-	     and functions satisfy this via AdminMenuMaestro; the others cover
+	     and functions satisfy this via Maestro; the others cover
 	     constants, option/hook strings. -->
 	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
 		<properties>
 			<property name="prefixes" type="array">
-				<element value="AdminMenuMaestro"/>
-				<element value="admin_menu_maestro"/>
-				<element value="ADMIN_MENU_MAESTRO"/>
+				<element value="Maestro"/>
+				<element value="maestro"/>
+				<element value="MAESTRO"/>
 			</property>
 		</properties>
 	</rule>

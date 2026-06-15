@@ -8,12 +8,12 @@
  * doesn't safely match. The classifier is the security allowlist and is pure
  * (preg only); the WP-function-dependent sanitisation is covered by integration.
  *
- * @package AdminMenuMaestro
+ * @package Maestro
  */
 
-namespace AdminMenuMaestro\Tests\Unit;
+namespace Maestro\Tests\Unit;
 
-use AdminMenuMaestro\Config;
+use Maestro\Config;
 use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 class IconValidationTest extends TestCase {

@@ -3,9 +3,9 @@
 # Starter Spanish (Spain) translations for Admin Menu Maestro.
 msgid ""
 msgstr ""
-"Project-Id-Version: Admin Menu Maestro 1.0.0\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/admin-menu-maestro\n"
-"Last-Translator: Admin Menu Maestro contributors <support@newlocal.media>\n"
+"Project-Id-Version: Maestro - Inline Admin Menu Editor 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/maestro-menu-editor\n"
+"Last-Translator: Dan Knauss <dan.knauss@gmail.com>\n"
 "Language-Team: Equipo español <es@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -14,25 +14,25 @@ msgstr ""
 "Language: es_ES\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: WP-CLI 2.12.0\n"
-"X-Domain: admin-menu-maestro\n"
+"X-Domain: maestro-menu-editor\n"
 
 #. Plugin Name of the plugin
-#: admin-menu-maestro.php
+#: maestro-menu-editor.php
 msgid "Admin Menu Maestro"
 msgstr "Admin Menu Maestro"
 
 #. Plugin URI of the plugin
-#: admin-menu-maestro.php
-msgid "https://newlocal.media/admin-menu-maestro"
-msgstr "https://newlocal.media/admin-menu-maestro"
+#: maestro-menu-editor.php
+msgid "https://github.com/dknauss/Maestro/"
+msgstr "https://github.com/dknauss/Maestro/"
 
 #. Description of the plugin
-#: admin-menu-maestro.php
+#: maestro-menu-editor.php
 msgid "In-place editing of the WordPress admin menu — rename items, reorder them, swap top-level dashicons, and hide items per role. Global config, no separate settings screen. Cosmetic only: hiding declutters, it does not lock access."
 msgstr "Edición directa del menú de administración de WordPress: cambia nombres, reordena elementos, sustituye dashicons de nivel superior y oculta elementos por perfil. Configuración global, sin pantalla de ajustes independiente. Solo visual: ocultar despeja el menú, no bloquea el acceso."
 
 #. Author of the plugin
-#: admin-menu-maestro.php
+#: maestro-menu-editor.php
 msgid "Dan Knauss"
 msgstr "Dan Knauss"
 

@@ -1,18 +1,18 @@
 {
-	"name": "admin-menu-maestro",
+	"name": "maestro",
 	"version": "1.0.0",
 	"private": true,
-	"description": "Tooling for Admin Menu Maestro: wp-env, PHP integration tests, Playwright E2E.",
+	"description": "Tooling for Maestro - Inline Admin Menu Editor: wp-env, PHP integration tests, Playwright E2E.",
 	"scripts": {
 		"env:start": "wp-env start",
 		"env:stop": "wp-env stop",
 		"env:clean": "wp-env clean all",
-		"test:php": "wp-env run tests-cli --env-cwd=wp-content/plugins/admin-menu-maestro vendor/bin/phpunit -c phpunit-integration.xml.dist",
-		"pretest:e2e": "wp-env run tests-cli wp plugin activate admin-menu-maestro",
+		"test:php": "wp-env run tests-cli --env-cwd=wp-content/plugins/maestro-menu-editor vendor/bin/phpunit -c phpunit-integration.xml.dist",
+		"pretest:e2e": "wp-env run tests-cli wp plugin activate maestro-menu-editor/maestro-menu-editor.php",
 		"test:e2e": "playwright test",
 		"test:e2e:headed": "playwright test --headed",
 		"preplayground": "bash bin/build.sh",
-		"playground": "npx @wp-playground/cli@latest server --mount-before-install=./build/admin-menu-maestro:/wordpress/wp-content/plugins/admin-menu-maestro --blueprint=playground/blueprint.json"
+		"playground": "npx @wp-playground/cli@latest server --mount-before-install=./build/maestro-menu-editor:/wordpress/wp-content/plugins/maestro-menu-editor --blueprint=playground/blueprint.json"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.45.0",

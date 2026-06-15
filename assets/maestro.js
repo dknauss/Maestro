@@ -1,7 +1,7 @@
 /**
- * Admin Menu Maestro — in-place editor.
+ * Maestro — in-place editor.
  *
- * PHP localises ammData with the precise DOM model (the <li> id for each
+ * PHP localises maestroData with the precise DOM model (the <li> id for each
  * top-level item, ordered submenu slugs, pristine titles/icons). The editor
  * uses a click-to-select model with no per-item chrome: clicking a row selects
  * it (a subtle highlight) and the whole row is draggable to reorder — there are
@@ -20,11 +20,11 @@
 ( function ( $ ) {
 	'use strict';
 
-	if ( typeof window.ammData === 'undefined' ) {
+	if ( typeof window.maestroData === 'undefined' ) {
 		return;
 	}
 
-	var D = window.ammData;
+	var D = window.maestroData;
 	var I = D.i18n;
 
 	// Flat working model: slug -> { title, icon, hiddenRoles, isSub, parent? }.
@@ -54,7 +54,7 @@
 		return n;
 	}
 	function closePopovers() {
-		document.querySelectorAll( '.amm-popover' ).forEach( function ( p ) { p.remove(); } );
+		document.querySelectorAll( '.maestro-popover' ).forEach( function ( p ) { p.remove(); } );
 	}
 	function speak( message ) {
 		if ( window.wp && window.wp.a11y && typeof window.wp.a11y.speak === 'function' ) {
@@ -66,7 +66,7 @@
 		return String( s ).replace( /(["\\\]])/g, '\\$1' );
 	}
 	function liForSlug( slug ) {
-		return document.querySelector( '[data-amm-slug="' + cssEscape( slug ) + '"]' );
+		return document.querySelector( '[data-maestro-slug="' + cssEscape( slug ) + '"]' );
 	}
 
 	/* ---------- folded-mode override -------------------------------------- */
@@ -97,7 +97,7 @@
 	/* ---------- build model + wire the DOM --------------------------------- */
 
 	function init() {
-		document.body.classList.add( 'amm-editing' );
+		document.body.classList.add( 'maestro-editing' );
 		forceUnfold();
 
 		D.menu.forEach( function ( node ) {
@@ -110,9 +110,9 @@
 
 			var li = node.liId ? document.getElementById( node.liId ) : null;
 			if ( ! li ) { return; }
-			li.dataset.ammSlug = node.slug;
-			li.classList.add( 'amm-item' );
-			if ( node.hiddenRoles.length ) { li.classList.add( 'amm-has-hidden' ); }
+			li.dataset.maestroSlug = node.slug;
+			li.classList.add( 'maestro-item' );
+			if ( node.hiddenRoles.length ) { li.classList.add( 'maestro-has-hidden' ); }
 
 			// Submenu children: skip the .wp-submenu-head, then zip by index.
 			var subLis = li.querySelectorAll( '.wp-submenu > li:not(.wp-submenu-head)' );
@@ -133,9 +133,9 @@
 				}
 				var sli = subLis[ idx ];
 				if ( ! sli ) { return; }
-				sli.dataset.ammSlug = child.slug;
-				sli.classList.add( 'amm-subitem' );
-				if ( child.hiddenRoles.length ) { sli.classList.add( 'amm-has-hidden' ); }
+				sli.dataset.maestroSlug = child.slug;
+				sli.classList.add( 'maestro-subitem' );
+				if ( child.hiddenRoles.length ) { sli.classList.add( 'maestro-has-hidden' ); }
 			} );
 		} );
 
@@ -156,11 +156,11 @@
 			if ( a ) { e.preventDefault(); }
 
 			// Popovers may be placed over the menu region — let them handle their own clicks.
-			if ( e.target.closest( '.amm-popover' ) ) {
+			if ( e.target.closest( '.maestro-popover' ) ) {
 				return;
 			}
 
-			var li = e.target.closest( 'li.amm-item, li.amm-subitem' );
+			var li = e.target.closest( 'li.maestro-item, li.maestro-subitem' );
 			if ( ! li ) { return; }
 			selectItem( li, { focusPanel: true } );
 		}, true );
@@ -169,11 +169,11 @@
 			if ( e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar' ) {
 				return;
 			}
-			if ( e.target.closest( '.amm-popover' ) ) {
+			if ( e.target.closest( '.maestro-popover' ) ) {
 				return;
 			}
 
-			var li = e.target.closest( 'li.amm-item, li.amm-subitem' );
+			var li = e.target.closest( 'li.maestro-item, li.maestro-subitem' );
 			if ( ! li ) { return; }
 			e.preventDefault();
 			selectItem( li, { focusPanel: true } );
@@ -181,15 +181,15 @@
 	}
 
 	function selectItem( li, opts ) {
-		var slug = li.dataset.ammSlug;
+		var slug = li.dataset.maestroSlug;
 		if ( ! slug || ! model[ slug ] ) { return; }
 		opts = opts || {};
 
-		document.querySelectorAll( '.amm-selected' ).forEach( function ( n ) {
-			n.classList.remove( 'amm-selected' );
+		document.querySelectorAll( '.maestro-selected' ).forEach( function ( n ) {
+			n.classList.remove( 'maestro-selected' );
 		} );
 		selectedSlug = slug;
-		li.classList.add( 'amm-selected' );
+		li.classList.add( 'maestro-selected' );
 		populatePanel( slug );
 		closePopovers();
 		if ( opts.focusPanel && panel.rename ) {
@@ -204,9 +204,9 @@
 	/* ---------- toolbar + shared controls panel --------------------------- */
 
 	function buildToolbar() {
-		var bar = el( 'div', 'amm-toolbar' );
+		var bar = el( 'div', 'maestro-toolbar' );
 
-		statusEl = el( 'span', 'amm-status amm-status-idle' );
+		statusEl = el( 'span', 'maestro-status maestro-status-idle' );
 		statusEl.setAttribute( 'role', 'status' );
 		statusEl.setAttribute( 'aria-live', 'polite' );
 		statusEl.setAttribute( 'aria-atomic', 'true' );
@@ -214,14 +214,14 @@
 		bar.appendChild( statusEl );
 
 		// Shared panel — empty/hidden until something is selected.
-		var p = el( 'div', 'amm-panel' );
+		var p = el( 'div', 'maestro-panel' );
 		p.hidden = true;
 
-		var label = el( 'span', 'amm-panel-label' );
+		var label = el( 'span', 'maestro-panel-label' );
 
-		var renameField = el( 'label', 'amm-panel-field' );
+		var renameField = el( 'label', 'maestro-panel-field' );
 		renameField.appendChild( document.createTextNode( I.rename + ' ' ) );
-		var rename = el( 'input', 'amm-rename-input' );
+		var rename = el( 'input', 'maestro-rename-input' );
 		rename.type = 'text';
 		rename.addEventListener( 'keydown', function ( e ) {
 			if ( e.key === 'Enter' ) {
@@ -235,7 +235,7 @@
 		rename.addEventListener( 'blur', commitRename );
 		renameField.appendChild( rename );
 
-		var iconBtn = el( 'button', 'button amm-icon-btn' );
+		var iconBtn = el( 'button', 'button maestro-icon-btn' );
 		iconBtn.type = 'button';
 		iconBtn.textContent = I.icon;
 		iconBtn.addEventListener( 'click', function ( e ) {
@@ -243,7 +243,7 @@
 			openIconPicker( iconBtn );
 		} );
 
-		var visBtn = el( 'button', 'button amm-vis-btn' );
+		var visBtn = el( 'button', 'button maestro-vis-btn' );
 		visBtn.type = 'button';
 		visBtn.textContent = I.visibility;
 		visBtn.addEventListener( 'click', function ( e ) {
@@ -251,7 +251,7 @@
 			openVisibilityPicker( visBtn );
 		} );
 
-		var resetItemBtn = el( 'button', 'button amm-reset-item' );
+		var resetItemBtn = el( 'button', 'button maestro-reset-item' );
 		resetItemBtn.type = 'button';
 		resetItemBtn.textContent = I.resetItem;
 		resetItemBtn.addEventListener( 'click', resetSelected );
@@ -272,13 +272,13 @@
 			resetBtn: resetItemBtn,
 		};
 
-		var right = el( 'div', 'amm-toolbar-right' );
+		var right = el( 'div', 'maestro-toolbar-right' );
 
-		var resetAll = el( 'button', 'button amm-reset-all', I.resetAll );
+		var resetAll = el( 'button', 'button maestro-reset-all', I.resetAll );
 		resetAll.type = 'button';
 		resetAll.addEventListener( 'click', doResetAll );
 
-		var exit = el( 'a', 'button amm-exit', I.exit );
+		var exit = el( 'a', 'button maestro-exit', I.exit );
 		exit.href = D.exitUrl;
 		exit.addEventListener( 'click', onExit );
 
@@ -341,7 +341,7 @@
 		var slug = selectedSlug;
 		var sets = D.iconSets || [];
 
-		var pop = el( 'div', 'amm-popover amm-icon-popover' );
+		var pop = el( 'div', 'maestro-popover maestro-icon-popover' );
 		pop.setAttribute( 'role', 'dialog' );
 		pop.setAttribute( 'aria-modal', 'true' );
 		pop.setAttribute( 'aria-label', I.iconDialog );
@@ -357,14 +357,14 @@
 		}
 
 		// --- search ---
-		var search = el( 'input', 'amm-icon-search' );
+		var search = el( 'input', 'maestro-icon-search' );
 		search.type = 'search';
 		search.setAttribute( 'aria-label', I.iconSearch );
 		search.placeholder = I.iconSearch;
 		pop.appendChild( search );
 
 		// --- "no icon" escape hatch ---
-		var noneBtn = el( 'button', 'button amm-icon-none', I.iconNone );
+		var noneBtn = el( 'button', 'button maestro-icon-none', I.iconNone );
 		noneBtn.type = 'button';
 		noneBtn.title = I.iconNoneHint;
 		if ( ! model[ slug ].icon ) { noneBtn.setAttribute( 'aria-pressed', 'true' ); }
@@ -372,7 +372,7 @@
 		pop.appendChild( noneBtn );
 
 		// --- tabs ---
-		var tablist = el( 'div', 'amm-icon-tabs' );
+		var tablist = el( 'div', 'maestro-icon-tabs' );
 		tablist.setAttribute( 'role', 'tablist' );
 		tablist.setAttribute( 'aria-label', I.iconDialog );
 		pop.appendChild( tablist );
@@ -381,10 +381,10 @@
 		var tabs   = [];
 
 		sets.forEach( function ( set, si ) {
-			var tabId   = 'amm-tab-' + set.id;
-			var panelId = 'amm-panel-' + set.id;
+			var tabId   = 'maestro-tab-' + set.id;
+			var panelId = 'maestro-panel-' + set.id;
 
-			var tab = el( 'button', 'amm-icon-tab', set.label );
+			var tab = el( 'button', 'maestro-icon-tab', set.label );
 			tab.type = 'button';
 			tab.id = tabId;
 			tab.setAttribute( 'role', 'tab' );
@@ -394,18 +394,18 @@
 			tablist.appendChild( tab );
 			tabs.push( tab );
 
-			var panel = el( 'div', 'amm-icon-grid' );
+			var panel = el( 'div', 'maestro-icon-grid' );
 			panel.id = panelId;
 			panel.setAttribute( 'role', 'tabpanel' );
 			panel.setAttribute( 'aria-labelledby', tabId );
 			panel.hidden = si !== 0;
 
 			set.icons.forEach( function ( ic ) {
-				var b = el( 'button', 'amm-icon-cell' + ( set.type === 'class' ? ' dashicons ' + ic.class : ' amm-icon-img' ) );
+				var b = el( 'button', 'maestro-icon-cell' + ( set.type === 'class' ? ' dashicons ' + ic.class : ' maestro-icon-img' ) );
 				b.type = 'button';
 				b.title = ic.label;
 				b.setAttribute( 'aria-label', ic.label );
-				b.dataset.ammName = ( ic.label || '' ).toLowerCase();
+				b.dataset.maestroName = ( ic.label || '' ).toLowerCase();
 				b.tabIndex = -1;
 				if ( model[ slug ].icon === ic.id ) {
 					b.classList.add( 'is-current' );
@@ -452,7 +452,7 @@
 		}
 		pop.addEventListener( 'keydown', function ( e ) {
 			if ( ! /^Arrow/.test( e.key ) ) { return; }
-			if ( ! e.target.classList || ! e.target.classList.contains( 'amm-icon-cell' ) ) { return; }
+			if ( ! e.target.classList || ! e.target.classList.contains( 'maestro-icon-cell' ) ) { return; }
 			var cells = visibleCells();
 			var i = cells.indexOf( e.target );
 			if ( i === -1 ) { return; }
@@ -477,7 +477,7 @@
 			if ( ! panel ) { return; }
 			var firstShown = null;
 			Array.prototype.forEach.call( panel.children, function ( c ) {
-				var hit = ! q || ( c.dataset.ammName || '' ).indexOf( q ) !== -1;
+				var hit = ! q || ( c.dataset.maestroName || '' ).indexOf( q ) !== -1;
 				c.hidden = ! hit;
 				c.tabIndex = -1;
 				if ( hit && ! firstShown ) { firstShown = c; }
@@ -591,16 +591,16 @@
 		if ( ! selectedSlug ) { return; }
 
 		var slug = selectedSlug;
-		var pop  = el( 'div', 'amm-popover amm-vis-popover' );
+		var pop  = el( 'div', 'maestro-popover maestro-vis-popover' );
 		pop.setAttribute( 'role', 'dialog' );
 		pop.setAttribute( 'aria-modal', 'true' );
 		pop.setAttribute( 'aria-label', I.visibility );
 		pop.tabIndex = -1;
-		pop.appendChild( el( 'p', 'amm-vis-head', I.hideFrom ) );
+		pop.appendChild( el( 'p', 'maestro-vis-head', I.hideFrom ) );
 		var firstCheckbox = null;
 
 		Object.keys( D.roles ).forEach( function ( roleKey ) {
-			var row = el( 'label', 'amm-vis-row' );
+			var row = el( 'label', 'maestro-vis-row' );
 			var cb  = el( 'input' );
 			cb.type = 'checkbox';
 			cb.value = roleKey;
@@ -615,7 +615,7 @@
 				}
 				var li = liForSlug( slug );
 				if ( li ) {
-					li.classList.toggle( 'amm-has-hidden', model[ slug ].hiddenRoles.length > 0 );
+					li.classList.toggle( 'maestro-has-hidden', model[ slug ].hiddenRoles.length > 0 );
 				}
 				scheduleAutosave();
 			} );
@@ -665,7 +665,7 @@
 		m.hiddenRoles = [];
 
 		var li = liForSlug( selectedSlug );
-		if ( li ) { li.classList.remove( 'amm-has-hidden' ); }
+		if ( li ) { li.classList.remove( 'maestro-has-hidden' ); }
 
 		if ( ! m.isSub ) {
 			m.icon = def.icon || '';
@@ -711,7 +711,7 @@
 		// control) from starting a top-level drag, so child reordering is handled
 		// solely by the per-submenu sortable below.
 		$( '#adminmenu' ).sortable( {
-			items:     '> li.menu-top.amm-item',
+			items:     '> li.menu-top.maestro-item',
 			cancel:    '.wp-submenu, input, button',
 			distance:  6,
 			axis:      'y',
@@ -721,7 +721,7 @@
 
 		$( '#adminmenu .wp-submenu' ).each( function () {
 			$( this ).sortable( {
-				items:     '> li.amm-subitem',
+				items:     '> li.maestro-subitem',
 				distance:  6,
 				axis:      'y',
 				tolerance: 'pointer',
@@ -737,15 +737,15 @@
 		// Object.prototype or break JSON serialisation of the payload.
 		var cfg = { items: Object.create( null ), top_order: [], sub_order: Object.create( null ) };
 
-		var topLis = document.querySelectorAll( '#adminmenu > li.menu-top.amm-item[data-amm-slug]' );
+		var topLis = document.querySelectorAll( '#adminmenu > li.menu-top.maestro-item[data-maestro-slug]' );
 
 		// Top-level slugs own their identity. A submenu item sharing one of these
 		// slugs (WP self-link convention) must not emit a conflicting items entry.
 		var topSlugs = Object.create( null );
-		topLis.forEach( function ( li ) { topSlugs[ li.dataset.ammSlug ] = true; } );
+		topLis.forEach( function ( li ) { topSlugs[ li.dataset.maestroSlug ] = true; } );
 
 		topLis.forEach( function ( li ) {
-			var slug = li.dataset.ammSlug;
+			var slug = li.dataset.maestroSlug;
 			cfg.top_order.push( slug );
 
 			var m   = model[ slug ];
@@ -756,11 +756,11 @@
 			if ( m.hiddenRoles.length )             { entry.hidden_roles = m.hiddenRoles; }
 			if ( Object.keys( entry ).length )      { cfg.items[ slug ] = entry; }
 
-			var subLis = li.querySelectorAll( '.wp-submenu > li.amm-subitem[data-amm-slug]' );
+			var subLis = li.querySelectorAll( '.wp-submenu > li.maestro-subitem[data-maestro-slug]' );
 			if ( subLis.length ) {
 				cfg.sub_order[ slug ] = [];
 				subLis.forEach( function ( sli ) {
-					var sslug = sli.dataset.ammSlug;
+					var sslug = sli.dataset.maestroSlug;
 					cfg.sub_order[ slug ].push( sslug );
 
 					// Ordering still records the slug, but a submenu that shares
@@ -782,7 +782,7 @@
 
 	function setStatus( state ) {
 		if ( ! statusEl ) { return; }
-		statusEl.className = 'amm-status amm-status-' + state;
+		statusEl.className = 'maestro-status maestro-status-' + state;
 		statusEl.textContent =
 			state === 'saving' ? I.saving :
 			state === 'saved'  ? I.saved  :

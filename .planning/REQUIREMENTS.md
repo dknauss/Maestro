@@ -1,4 +1,4 @@
-# Requirements: Admin Menu Maestro
+# Requirements: Maestro
 
 **Defined:** 2026-06-13
 **Core Value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
@@ -14,7 +14,7 @@ left to publish responsibly.
 - [x] **SEC-01**: REST routes reject non-capable users and missing/invalid nonces (verified, not just asserted)
 - [x] **SEC-02**: `Config::sanitize_icon()` cannot yield an executable/unsafe value for any of the four icon forms (data-URI and URL surfaces confirmed non-executing in render context)
 - [x] **SEC-03**: Slug, title, and role inputs are sanitized server-side with no injection or stored-XSS path
-- [x] **SEC-04**: The `admin_menu_maestro_capability` filter and edit-mode gate cannot be used to escalate privileges or act beyond the editor
+- [x] **SEC-04**: The `maestro_capability` filter and edit-mode gate cannot be used to escalate privileges or act beyond the editor
 - [x] **SEC-05**: Option writes/reads are safe (no unserialize-of-untrusted, no autoload bloat) and documented
 
 ### Accessibility

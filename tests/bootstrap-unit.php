@@ -6,7 +6,7 @@
  * classes whose tested methods are pure (Ordering, Config::is_valid_icon).
  * Those methods never call WordPress functions, so no stubbing is needed.
  *
- * @package AdminMenuMaestro
+ * @package Maestro
  */
 
 require_once dirname( __DIR__ ) . '/vendor/autoload.php';

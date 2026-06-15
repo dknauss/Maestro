@@ -2,26 +2,26 @@
 /**
  * Integration checks for localization-sensitive editor payload contracts.
  *
- * @package AdminMenuMaestro
+ * @package Maestro
  */
 
-namespace AdminMenuMaestro\Tests\Integration;
+namespace Maestro\Tests\Integration;
 
-use AdminMenuMaestro\Assets;
-use AdminMenuMaestro\Config;
-use AdminMenuMaestro\Replay;
+use Maestro\Assets;
+use Maestro\Config;
+use Maestro\Replay;
 use WP_UnitTestCase;
 
 class LocalizationTest extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-		unset( $_GET['amm_edit'] );
+		unset( $_GET['maestro_edit'] );
 		$this->reset_asset_state();
 	}
 
 	public function tear_down() {
-		unset( $_GET['amm_edit'] );
+		unset( $_GET['maestro_edit'] );
 		$this->reset_asset_state();
 		parent::tear_down();
 	}
@@ -31,13 +31,13 @@ class LocalizationTest extends WP_UnitTestCase {
 
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		set_current_screen( 'dashboard' );
-		$_GET['amm_edit'] = '1';
+		$_GET['maestro_edit'] = '1';
 
 		$assets = new Assets( new Config(), new Replay( new Config() ) );
 		$assets->enqueue();
 
-		$data = isset( $wp_scripts->registered['admin-menu-maestro']->extra['data'] )
-			? $wp_scripts->registered['admin-menu-maestro']->extra['data']
+		$data = isset( $wp_scripts->registered['maestro']->extra['data'] )
+			? $wp_scripts->registered['maestro']->extra['data']
 			: '';
 
 		$this->assertStringContainsString( '"i18n"', $data );
@@ -48,9 +48,9 @@ class LocalizationTest extends WP_UnitTestCase {
 	}
 
 	public function test_plugin_header_declares_matching_text_domain() {
-		$plugin = file_get_contents( dirname( dirname( __DIR__ ) ) . '/admin-menu-maestro.php' );
+		$plugin = file_get_contents( dirname( dirname( __DIR__ ) ) . '/maestro-menu-editor.php' );
 
-		$this->assertStringContainsString( 'Text Domain:       admin-menu-maestro', $plugin );
+		$this->assertStringContainsString( 'Text Domain:       maestro-menu-editor', $plugin );
 		$this->assertStringContainsString( 'Domain Path:       /languages', $plugin );
 	}
 
@@ -77,9 +77,9 @@ class LocalizationTest extends WP_UnitTestCase {
 	}
 
 	private function reset_asset_state() {
-		wp_dequeue_script( 'admin-menu-maestro' );
-		wp_dequeue_style( 'admin-menu-maestro' );
-		wp_deregister_script( 'admin-menu-maestro' );
-		wp_deregister_style( 'admin-menu-maestro' );
+		wp_dequeue_script( 'maestro' );
+		wp_dequeue_style( 'maestro' );
+		wp_deregister_script( 'maestro' );
+		wp_deregister_style( 'maestro' );
 	}
 }

@@ -5,7 +5,7 @@
 #
 set -euo pipefail
 
-SLUG="admin-menu-maestro"
+SLUG="maestro-menu-editor"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUT="$ROOT/build"
 STAGE="$OUT/$SLUG"

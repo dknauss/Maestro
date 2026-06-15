@@ -1,127 +1,129 @@
 # Copyright (C) 2026 Dan Knauss
 # This file is distributed under the GPL-2.0-or-later.
+# Starter Italian translations for Admin Menu Maestro.
 msgid ""
 msgstr ""
-"Project-Id-Version: Admin Menu Maestro 1.0.0\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/admin-menu-maestro\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"Project-Id-Version: Maestro - Inline Admin Menu Editor 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/maestro-menu-editor\n"
+"Last-Translator: Dan Knauss <dan.knauss@gmail.com>\n"
+"Language-Team: Italian <it@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-06-14T13:04:39+00:00\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2026-06-14 13:06+0000\n"
+"Language: it_IT\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: WP-CLI 2.12.0\n"
-"X-Domain: admin-menu-maestro\n"
+"X-Domain: maestro-menu-editor\n"
 
 #. Plugin Name of the plugin
-#: admin-menu-maestro.php
+#: maestro-menu-editor.php
 msgid "Admin Menu Maestro"
-msgstr ""
+msgstr "Admin Menu Maestro"
 
 #. Plugin URI of the plugin
-#: admin-menu-maestro.php
-msgid "https://newlocal.media/admin-menu-maestro"
-msgstr ""
+#: maestro-menu-editor.php
+msgid "https://github.com/dknauss/Maestro/"
+msgstr "https://github.com/dknauss/Maestro/"
 
 #. Description of the plugin
-#: admin-menu-maestro.php
+#: maestro-menu-editor.php
 msgid "In-place editing of the WordPress admin menu — rename items, reorder them, swap top-level dashicons, and hide items per role. Global config, no separate settings screen. Cosmetic only: hiding declutters, it does not lock access."
-msgstr ""
+msgstr "Modifica in linea del menu di amministrazione di WordPress: rinomina gli elementi, riordinali, cambia i dashicon di primo livello e nascondi elementi per ruolo. Configurazione globale, nessuna schermata impostazioni separata. Solo visivo: nascondere riordina il menu, ma non blocca l’accesso."
 
 #. Author of the plugin
-#: admin-menu-maestro.php
+#: maestro-menu-editor.php
 msgid "Dan Knauss"
-msgstr ""
+msgstr "Dan Knauss"
 
 #: includes/class-admin-bar.php:51
 msgid "Exit Editor"
-msgstr ""
+msgstr "Esci dall’editor"
 
 #: includes/class-admin-bar.php:52
 msgid "Edit Admin Menu"
-msgstr ""
+msgstr "Modifica menu di amministrazione"
 
 #: includes/class-admin-bar.php:55
 msgid "Toggle in-place admin menu editing"
-msgstr ""
+msgstr "Attiva/disattiva la modifica in linea del menu di amministrazione"
 
 #: includes/class-assets.php:88
 msgid "Editor active — click an item to edit."
-msgstr ""
+msgstr "Editor attivo: fai clic su un elemento per modificarlo."
 
 #: includes/class-assets.php:89
 msgid "Saving…"
-msgstr ""
+msgstr "Salvataggio..."
 
 #: includes/class-assets.php:90
 msgid "Saved ✓"
-msgstr ""
+msgstr "Salvato ✓"
 
 #: includes/class-assets.php:91
 msgid "Save failed. Retrying on next change."
-msgstr ""
+msgstr "Salvataggio non riuscito. Verrà riprovato alla prossima modifica."
 
 #: includes/class-assets.php:92
 msgid "Title"
-msgstr ""
+msgstr "Titolo"
 
 #: includes/class-assets.php:93
 msgid "Icon"
-msgstr ""
+msgstr "Icona"
 
 #: includes/class-assets.php:94
 msgid "Choose an icon"
-msgstr ""
+msgstr "Scegli un’icona"
 
 #: includes/class-assets.php:95
 msgid "Search icons"
-msgstr ""
+msgstr "Cerca icone"
 
 #: includes/class-assets.php:96
 msgid "No icon"
-msgstr ""
+msgstr "Nessuna icona"
 
 #: includes/class-assets.php:97
 msgid "Remove the icon (uses the menu default)."
-msgstr ""
+msgstr "Rimuovi l’icona (usa il valore predefinito del menu)."
 
 #: includes/class-assets.php:98
 msgid "Visibility"
-msgstr ""
+msgstr "Visibilità"
 
 #: includes/class-assets.php:99
 msgid "Reset this item"
-msgstr ""
+msgstr "Reimposta questo elemento"
 
 #: includes/class-assets.php:100
 msgid "Reset all"
-msgstr ""
+msgstr "Reimposta tutto"
 
 #: includes/class-assets.php:101
 msgid "Exit"
-msgstr ""
+msgstr "Esci"
 
 #: includes/class-assets.php:102
 msgid "Hide from these roles:"
-msgstr ""
+msgstr "Nascondi a questi ruoli:"
 
 #: includes/class-assets.php:103
 msgid "Reset ALL menu customizations to WordPress defaults? This cannot be undone."
-msgstr ""
+msgstr "Reimpostare TUTTE le personalizzazioni del menu ai valori predefiniti di WordPress? L’azione non può essere annullata."
 
 #: includes/class-assets.php:104
 msgid "Drag to reorder"
-msgstr ""
+msgstr "Trascina per riordinare"
 
 #: includes/class-assets.php:134
 msgid "Dashicons"
-msgstr ""
+msgstr "Dashicons"
 
 #: includes/class-assets.php:149
 msgid "Bootstrap"
-msgstr ""
+msgstr "Bootstrap"
 
 #: includes/class-rest.php:113
 msgid "Invalid config payload."
-msgstr ""
+msgstr "Dati di configurazione non validi."

@@ -1,14 +1,14 @@
 <?php
 /**
- * Pure unit tests for AdminMenuMaestro\Ordering. No WordPress, no database — just the
+ * Pure unit tests for Maestro\Ordering. No WordPress, no database — just the
  * resilience contract. Mirrors the cases validated during development.
  *
- * @package AdminMenuMaestro
+ * @package Maestro
  */
 
-namespace AdminMenuMaestro\Tests\Unit;
+namespace Maestro\Tests\Unit;
 
-use AdminMenuMaestro\Ordering;
+use Maestro\Ordering;
 use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 class OrderingTest extends TestCase {

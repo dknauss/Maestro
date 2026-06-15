@@ -12,17 +12,17 @@
  *   - Desired names that no longer exist (orphans) are silently skipped.
  *   - A duplicated name in the desired order is honoured once.
  *
- * @package AdminMenuMaestro
+ * @package Maestro
  */
 
-namespace AdminMenuMaestro;
+namespace Maestro;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Pure menu ordering utilities — no WordPress calls, purely array manipulation.
  *
- * @package AdminMenuMaestro
+ * @package Maestro
  */
 class Ordering {
 
