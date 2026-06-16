@@ -86,6 +86,6 @@ v1.0 complete (Phases 1–5, archived). v1.1 executes: 6 → 7 → 8
 | 3. Verification | v1.0 | ✓ | Complete (archived) | 2026-06-14 |
 | 4. Release Assets | v1.0 | ✓ | Complete (archived) | 2026-06-14 |
 | 5. Submit | v1.0 | ✓ | Complete (archived) | 2026-06-14 |
-| 6. Accessibility & Interaction | 3/3 | Complete   | 2026-06-16 | - |
+| 6. Accessibility & Interaction | 3/3 | Complete    | 2026-06-16 | - |
 | 7. Visual Polish & Icons | v1.1 | 0/3 | Not started | - |
 | 8. Docs & Brand Assets | v1.1 | 0/TBD | Not started | - |
