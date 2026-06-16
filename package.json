@@ -4,6 +4,7 @@
 	"private": true,
 	"description": "Tooling for Maestro: The Inline Admin Menu Editor: wp-env, PHP integration tests, Playwright E2E.",
 	"scripts": {
+		"test:js": "node --test",
 		"env:start": "wp-env start",
 		"env:stop": "wp-env stop",
 		"env:clean": "wp-env clean all",
