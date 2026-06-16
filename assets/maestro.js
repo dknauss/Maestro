@@ -191,6 +191,7 @@
 		} );
 
 		buildToolbar();
+		buildFirstRunCue();
 		bindMenuSelection();
 		initSortables();
 
@@ -1038,6 +1039,55 @@
 				window.location.href = D.exitUrl;
 			} );
 		}
+	}
+
+	/* ---------- first-run cue --------------------------------------------- */
+
+	/**
+	 * Show a one-time inline hint ("Click a menu item to start editing.") above
+	 * the toolbar, gated on a localStorage flag. Dismissible by click or keyboard
+	 * (Enter/Space). Does not steal focus. Safe in private-browsing mode.
+	 *
+	 * Uses i18n strings I.firstRun / I.firstRunDismiss from the localized payload.
+	 */
+	function buildFirstRunCue() {
+		var seen = false;
+		try {
+			seen = window.localStorage.getItem( 'maestroFirstRunDone' ) === '1';
+		} catch ( storageErr ) {
+			// Private-browsing or blocked localStorage — skip the cue silently.
+			return;
+		}
+		if ( seen ) { return; }
+
+		var cue = el( 'div', 'maestro-firstrun' );
+		cue.setAttribute( 'role', 'note' );
+		cue.setAttribute( 'aria-label', I.firstRun );
+
+		var text = el( 'span', 'maestro-firstrun-text', I.firstRun );
+		var dismissBtn = el( 'button', 'maestro-firstrun-dismiss', I.firstRunDismiss );
+		dismissBtn.type = 'button';
+
+		function dismiss() {
+			try {
+				window.localStorage.setItem( 'maestroFirstRunDone', '1' );
+			} catch ( storageErr ) {
+				// Storage unavailable — still remove the element; just won't persist.
+			}
+			cue.remove();
+		}
+
+		dismissBtn.addEventListener( 'click', dismiss );
+		dismissBtn.addEventListener( 'keydown', function ( e ) {
+			if ( e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar' ) {
+				e.preventDefault();
+				dismiss();
+			}
+		} );
+
+		cue.appendChild( text );
+		cue.appendChild( dismissBtn );
+		document.body.appendChild( cue );
 	}
 
 	/* ---------- go --------------------------------------------------------- */

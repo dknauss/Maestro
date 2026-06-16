@@ -194,8 +194,10 @@ body.maestro-editing #collapse-menu {
 }
 .maestro-icon-grid {
 	display: grid;
-	grid-template-columns: repeat( auto-fill, minmax( 36px, 1fr ) );
-	gap: 4px;
+	/* 40px cell min-size: 20px glyph + 10px padding each side → consistent visual grid.
+	 * Matches the dashicons tab cell density so both tabs read as one system. */
+	grid-template-columns: repeat( auto-fill, minmax( 40px, 1fr ) );
+	gap: 3px;
 	max-height: 240px;
 	overflow-y: auto;
 }
@@ -209,12 +211,14 @@ body.maestro-editing #collapse-menu {
 	background: #f6f7f7;
 	border: 1px solid transparent;
 	border-radius: 3px;
-	min-height: 36px;
+	min-height: 40px; /* matches min-size so solid glyphs sit on a consistent 20px grid */
+	padding: 9px; /* (40px - 20px img - 2px border) / 2 = 9px; centers glyph precisely */
 	cursor: pointer;
 	color: #1d2327;
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	box-sizing: border-box;
 }
 .maestro-icon-cell img {
 	width: 20px;
@@ -350,19 +354,68 @@ body.maestro-editing #collapse-menu {
 	border-left: 2px solid #3c434a; /* mirrors panel zone separator */
 }
 
+/* ---------- first-run cue ----------------------------------------------- */
+
+/* A small inline notice placed above the toolbar, telling a first-time user
+ * how to begin. Shown once (localStorage-gated), dismissible by keyboard.
+ * Native admin colours; does not cover the menu being explained. */
+.maestro-firstrun {
+	position: fixed;
+	bottom: 53px; /* sits just above the toolbar (which is ~53px tall at default font) */
+	left: 160px; /* aligns with the admin menu right edge, same as the toolbar */
+	right: 0;
+	z-index: 99998; /* below popover (100000) and toolbar (99999), above WP content */
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 8px 16px;
+	background: #f0f6fc; /* light tint — distinct from the dark toolbar, native admin */
+	border-top: 1px solid #c3c4c7;
+	border-bottom: 1px solid #c3c4c7;
+	font-size: 13px;
+	color: #1d2327;
+}
+.maestro-firstrun-text {
+	flex: 1;
+}
+.maestro-firstrun-dismiss {
+	flex-shrink: 0;
+	background: transparent;
+	border: 1px solid #8c8f94;
+	border-radius: 3px;
+	padding: 3px 10px;
+	font-size: 12px;
+	color: #50575e;
+	cursor: pointer;
+	line-height: 1.4;
+}
+.maestro-firstrun-dismiss:hover {
+	border-color: #2271b1;
+	color: #2271b1;
+}
+.maestro-firstrun-dismiss:focus-visible {
+	outline: 2px solid #2271b1;
+	outline-offset: 2px;
+}
+
 /* Inherit the WP admin column collapse breakpoint. */
 @media screen and ( max-width: 782px ) {
 	.maestro-toolbar { left: 0; }
+	.maestro-firstrun { left: 0; } /* matches toolbar at collapsed width */
 	.maestro-panel-label { max-width: 120px; }
 	.maestro-rename-input { width: 120px; }
 
-	/* Comfortable touch targets and a viewport-fitting picker on small screens. */
+	/* Comfortable touch targets and a viewport-fitting picker on small screens.
+	 * The 44px min-height here OVERRIDES the 40px desktop rule — touch law wins. */
 	.maestro-icon-popover { width: 92vw; }
 	.maestro-icon-grid {
 		grid-template-columns: repeat( auto-fill, minmax( 44px, 1fr ) );
 		max-height: 50vh;
 	}
-	.maestro-icon-cell { min-height: 44px; }
+	.maestro-icon-cell {
+		min-height: 44px; /* 44px touch target preserved exactly as before */
+		padding: 12px;    /* (44px - 20px) / 2 = 12px — keeps glyph centred */
+	}
 	.maestro-icon-tab { padding: 10px 12px; }
 	.maestro-vis-row { padding: 8px 0; }
 }
