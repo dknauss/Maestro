@@ -748,13 +748,14 @@
 			var slug = li.dataset.maestroSlug;
 			cfg.top_order.push( slug );
 
-			var m   = model[ slug ];
-			var def = pristineTop( slug );
+			var m    = model[ slug ];
+			var def  = pristineTop( slug );
+			var diff = window.maestroLogic.diffItem( m, def );
 			var entry = {};
-			if ( m.title && m.title !== def.title ) { entry.title = m.title; }
-			if ( m.icon && m.icon !== def.icon )    { entry.icon  = m.icon; }
-			if ( m.hiddenRoles.length )             { entry.hidden_roles = m.hiddenRoles; }
-			if ( Object.keys( entry ).length )      { cfg.items[ slug ] = entry; }
+			if ( diff.fields.indexOf( 'title' ) !== -1 )       { entry.title = m.title; }
+			if ( diff.fields.indexOf( 'icon' ) !== -1 )        { entry.icon  = m.icon; }
+			if ( diff.fields.indexOf( 'hiddenRoles' ) !== -1 ) { entry.hidden_roles = m.hiddenRoles; }
+			if ( diff.modified )                                { cfg.items[ slug ] = entry; }
 
 			var subLis = li.querySelectorAll( '.wp-submenu > li.maestro-subitem[data-maestro-slug]' );
 			if ( subLis.length ) {
@@ -767,12 +768,13 @@
 					// a top-level slug carries no separate override of its own.
 					if ( topSlugs[ sslug ] ) { return; }
 
-					var sm   = model[ sslug ];
-					var sdef = pristineSub( sslug );
-					var se   = {};
-					if ( sm.title && sm.title !== sdef.title ) { se.title = sm.title; }
-					if ( sm.hiddenRoles.length )               { se.hidden_roles = sm.hiddenRoles; }
-					if ( Object.keys( se ).length )            { cfg.items[ sslug ] = se; }
+					var sm    = model[ sslug ];
+					var sdef  = pristineSub( sslug );
+					var sdiff = window.maestroLogic.diffItem( sm, sdef );
+					var se    = {};
+					if ( sdiff.fields.indexOf( 'title' ) !== -1 )       { se.title = sm.title; }
+					if ( sdiff.fields.indexOf( 'hiddenRoles' ) !== -1 ) { se.hidden_roles = sm.hiddenRoles; }
+					if ( sdiff.modified )                                { cfg.items[ sslug ] = se; }
 				} );
 			}
 		} );
