@@ -19,7 +19,7 @@ backlog (origin IDs noted).
 
 ### Icons
 
-- [ ] **ICON-01** (from V2-11): The bundled picker icons read at a weight that mixes with WordPress's solid dashicons — switch to Bootstrap `*-fill` variants (regenerate via `bin/generate-bootstrap-icons.mjs`); fall back to Heroicons Mini (solid, 20px) if still too light.
+- [x] **ICON-01** (from V2-11): The bundled picker icons read at a weight that mixes with WordPress's solid dashicons — switch to Bootstrap `*-fill` variants (regenerate via `bin/generate-bootstrap-icons.mjs`); fall back to Heroicons Mini (solid, 20px) if still too light.
 
 ### Accessibility
 
@@ -71,7 +71,7 @@ Post-1.0 backlog (from SPEC.md → Roadmap). Tracked, not in this roadmap.
 |-------------|-------|--------|
 | A11Y-06 | Phase 6: Accessibility & Interaction | Complete |
 | UX-01 | Phase 6: Accessibility & Interaction | Complete |
-| ICON-01 | Phase 7: Visual Polish & Icons | Pending |
+| ICON-01 | Phase 7: Visual Polish & Icons | Complete |
 | UX-02 | Phase 7: Visual Polish & Icons | Pending |
 | DOC-01 | Phase 8: Docs & Brand Assets | Pending |
 | REL-06 | Phase 8: Docs & Brand Assets | Complete (shipped during wp.org rename) |

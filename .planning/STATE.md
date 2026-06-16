@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Polish & Accessibility
 status: planning
-stopped_at: Completed 06-accessibility-interaction/06-03-PLAN.md
-last_updated: "2026-06-16T05:33:30.473Z"
+stopped_at: Completed 07-visual-polish-icons/07-01-PLAN.md
+last_updated: "2026-06-16T06:12:38.878Z"
 last_activity: 2026-06-14 — Completed & archived the v1.0 milestone; v1.1 roadmap (phases 6–8) in place
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 10
-  completed_plans: 3
+  completed_plans: 4
   percent: 10
 ---
 
@@ -58,6 +58,7 @@ Progress: [█░░░░░░░░░] 10%
 | Phase 06-accessibility-interaction P01 | 43 | 6 tasks | 7 files |
 | Phase 06-accessibility-interaction P02 | 13 | 2 tasks | 4 files |
 | Phase 06-accessibility-interaction P03 | 21 | 3 tasks | 7 files |
+| Phase 07-visual-polish-icons P01 | 15 | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,9 @@ Recent decisions affecting current work:
 - [Phase 06-accessibility-interaction]: e2e reset-all cleanup: waitForNavigation() before expect.poll() prevents 51265eval racing doResetAll's window.location.reload()
 - [Phase 06-accessibility-interaction]: Non-color modified indicator: amber #dba617 bullet glyph (5.5:1 on #1d2327) + clip-path screen-reader-text — color supplementary, shape+text are the signal (WCAG 1.4.1 / 1.4.11)
 - [Phase 06-accessibility-interaction]: refreshModifiedIndicator driven by maestroLogic.diffItem (unit-tested) wired to commitRename, icon choose, visibility change, resetSelected, and init sweep — single source of truth
+- [Phase 07-visual-polish-icons]: resolveIcon fill policy: 58 direct fills + 7 SYNONYM_FILL + 22 retained outline; journal-text and graph-up stayed outline (bootstrap-icons v1.13.1 lacks journal-fill and graph-up-arrow-fill)
+- [Phase 07-visual-polish-icons]: Generator side-effect guard: main() called only when process.argv[1] === fileURLToPath(import.meta.url) — enables side-effect-free import for unit testing
+- [Phase 07-visual-polish-icons]: PerformanceTest payload lower bound (70 KiB) unchanged: fill SVG bundle still exceeds 70 KiB after switch to solid variants
 
 ### Pending Todos
 
@@ -97,6 +101,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-16T05:06:33.825Z
-Stopped at: Completed 06-accessibility-interaction/06-03-PLAN.md
+Last session: 2026-06-16T06:12:38.875Z
+Stopped at: Completed 07-visual-polish-icons/07-01-PLAN.md
 Resume file: None
