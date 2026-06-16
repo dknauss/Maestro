@@ -252,7 +252,7 @@ body.maestro-editing #collapse-menu {
 	z-index: 99999;
 	display: flex;
 	align-items: center;
-	gap: 12px;
+	gap: 16px; /* deliberate inter-zone gap: status | panel | right-actions */
 	padding: 10px 16px;
 	background: #1d2327;
 	border-top: 2px solid #2271b1;
@@ -260,11 +260,45 @@ body.maestro-editing #collapse-menu {
 }
 .maestro-toolbar .button { margin: 0; }
 
+/* Status zone — sits to the left, never overlapped by the panel label. */
 .maestro-status {
 	color: #c3c4c7;
 	font-size: 13px;
 	white-space: nowrap;
+	flex-shrink: 0; /* never compress: keeps status visible when label is long */
+	display: flex;
+	align-items: center;
+	gap: 5px;
 }
+
+/* Non-color leading glyph: changes per state so status is distinguishable
+ * by shape as well as colour (WCAG 1.4.1). */
+.maestro-status::before {
+	content: '○'; /* idle: open circle */
+	font-size: 10px;
+	line-height: 1;
+	speak: never; /* presentational; screen reader hears the text label */
+}
+@keyframes maestro-pulse {
+	0%, 100% { opacity: 1; }
+	50%       { opacity: 0.35; }
+}
+.maestro-status-saving::before {
+	content: '⏳'; /* hourglass glyph for "in progress" */
+	animation: maestro-pulse 1.4s ease-in-out infinite;
+}
+@media ( prefers-reduced-motion: reduce ) {
+	.maestro-status-saving::before {
+		animation: none;
+	}
+}
+.maestro-status-saved::before {
+	content: '✓'; /* check mark: success */
+}
+.maestro-status-error::before {
+	content: '⚠'; /* warning triangle: failure */
+}
+
 .maestro-status-saving { color: #f0b849; }
 .maestro-status-saved  { color: #6bc187; }
 .maestro-status-error  { color: #f86368; }
@@ -275,18 +309,19 @@ body.maestro-editing #collapse-menu {
 	gap: 8px;
 	flex: 1;
 	min-width: 0;
-	padding-left: 12px;
-	border-left: 1px solid #3c434a;
+	padding-left: 16px; /* wider inset reinforces the left-separator as a zone boundary */
+	border-left: 2px solid #3c434a; /* 2px makes the divider more prominent */
 }
 .maestro-panel[hidden] { display: none; }
 .maestro-panel-label {
 	color: #c3c4c7;
 	font-size: 13px;
 	font-weight: 600;
-	max-width: 240px;
+	max-width: 200px; /* tighter cap: status zone must not be overrun */
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+	flex-shrink: 1;
 }
 .maestro-panel-field {
 	display: flex;
@@ -310,6 +345,9 @@ body.maestro-editing #collapse-menu {
 	display: flex;
 	gap: 8px;
 	margin-left: auto;
+	flex-shrink: 0; /* keeps reset-all/exit reachable; never squeezed */
+	padding-left: 16px;
+	border-left: 2px solid #3c434a; /* mirrors panel zone separator */
 }
 
 /* Inherit the WP admin column collapse breakpoint. */
