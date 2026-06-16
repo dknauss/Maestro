@@ -5,15 +5,15 @@
 See: .planning/PROJECT.md (updated 2026-06-14)
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
-**Current focus:** v1.1 "Polish & Accessibility" — milestone scoped; roadmap being created
+**Current focus:** v1.1 "Polish & Accessibility" — milestone scoped and roadmapped (phases 6–8); ready to plan Phase 6
 
 ## Current Position
 
-Milestone: v1.1 Polish & Accessibility (phases 6–8; v1.0 phases 1–5 complete)
-Phase: Not started (roadmap being created)
+Milestone: v1.1 Polish & Accessibility (phases 6–8; v1.0 phases 1–5 complete & archived)
+Phase: Not started (roadmap complete; Phase 6 next to plan)
 Plan: —
-Status: v1.1 scoped — 6 requirements promoted from the v2 backlog (ICON-01, A11Y-06, UX-01, UX-02, DOC-01, REL-06). Roadmap in progress. v1.0.0 remains submitted to WordPress.org, awaiting review (external; on approval → SVN commit to trunk, tag 1.0.0, upload .wordpress-org/ to SVN assets/).
-Last activity: 2026-06-14 — Scoped v1.1 (Polish & Accessibility); promoted six backlog items to milestone requirements
+Status: v1.0 milestone archived → `.planning/milestones/v1.0-*` + `.planning/MILESTONES.md` + `.planning/RETROSPECTIVE.md`. v1.1 scoped + roadmapped — 6 requirements promoted from the v2 backlog (ICON-01, A11Y-06, UX-01, UX-02, DOC-01; REL-06 already done). v1.0.0 remains submitted to WordPress.org, awaiting review (external; on approval → SVN commit to trunk, tag 1.0.0, upload .wordpress-org/ to SVN assets/).
+Last activity: 2026-06-14 — Completed & archived the v1.0 milestone; v1.1 roadmap (phases 6–8) in place
 
 Progress: [░░░░░░░░░░] 0% (v1.1)
 
@@ -67,7 +67,8 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
-- Resolved: GitHub Dependabot now reports **0 open alerts** (verified 2026-06-14, post dependency cleanup). The earlier 8 are closed.
+- Resolved: the earlier 8 Dependabot alerts are closed (2026-06-14 dependency cleanup).
+- Resolved (2026-06-15): a new moderate alert (#13, `js-yaml` GHSA-h67p-54hq-rp68, quadratic merge-key DoS) surfaced after the GHSA was published. Triaged as **dev-only** — `js-yaml@3.14.2` is pulled solely by `@wordpress/env` (local test harness) and is never shipped (`bin/build.sh` packages PHP + assets, not `node_modules`). `npm audit` reports `fixAvailable:false` (wp-env requires js-yaml 3.x; forcing 4.x removes `safeLoad` and breaks wp-env). `npm prune` cleared 1342 orphaned/extraneous packages from `node_modules` but did not change the lockfile or the alert. Alert **dismissed as `tolerable_risk`**. No runtime/user exposure.
 
 ## Session Continuity
 
