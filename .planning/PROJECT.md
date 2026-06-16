@@ -97,4 +97,4 @@ security boundary.
 | Apply GSD for release-readiness + future roadmap | Formalize the path to .org and track post-1.0 work | ✓ Good |
 
 ---
-*Last updated: 2026-06-14 after v1.0.0 submission to WordPress.org (all 5 phases complete; awaiting .org review)*
+*Last updated: 2026-06-14 — v1.0 milestone completed & archived (see .planning/MILESTONES.md); all 5 phases done, submitted to WordPress.org awaiting .org review. Now on v1.1 (Polish & Accessibility).*

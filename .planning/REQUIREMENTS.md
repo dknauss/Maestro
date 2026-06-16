@@ -1,48 +1,15 @@
 # Requirements: Maestro
 
 **Defined:** 2026-06-13
+**Last updated:** 2026-06-14 — v1.0 archived; v1.1 is the active milestone
 **Core Value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
 
-## v1 Requirements
+## v1.0 Requirements — ✅ shipped & archived
 
-Milestone: **v1.0 WordPress.org release readiness.** The plugin's features are
-already shipped (see PROJECT.md → Validated); these requirements cover what's
-left to publish responsibly.
-
-### Security
-
-- [x] **SEC-01**: REST routes reject non-capable users and missing/invalid nonces (verified, not just asserted)
-- [x] **SEC-02**: `Config::sanitize_icon()` cannot yield an executable/unsafe value for any of the four icon forms (data-URI and URL surfaces confirmed non-executing in render context)
-- [x] **SEC-03**: Slug, title, and role inputs are sanitized server-side with no injection or stored-XSS path
-- [x] **SEC-04**: The `maestro_capability` filter and edit-mode gate cannot be used to escalate privileges or act beyond the editor
-- [x] **SEC-05**: Option writes/reads are safe (no unserialize-of-untrusted, no autoload bloat) and documented
-
-### Accessibility
-
-- [x] **A11Y-01**: The selection model is fully keyboard operable (select, rename, icon, visibility, reset reachable without a mouse)
-- [x] **A11Y-02**: Focus is managed sensibly on select / panel open / popover open+close
-- [x] **A11Y-03**: Save status is announced to assistive tech (e.g. `wp.a11y.speak()` on Saved/Error)
-- [x] **A11Y-04**: Icon picker dialog/tabs/grid expose correct ARIA roles and labels (audit-confirmed)
-- [x] **A11Y-05**: Keyboard-accessible reordering gap is documented as a known limitation (full fix is v2)
-
-### Testing
-
-- [x] **TEST-01**: E2E proves per-role visibility — hide from a role, switch user, confirm hidden for them and present for admin
-- [x] **TEST-02**: E2E/integration cover reset-this-item and reset-all edge cases
-- [x] **TEST-03**: Icon-form and sanitization edge cases have explicit coverage (rejections + acceptances)
-
-### Performance
-
-- [x] **PERF-01**: Admin-load overhead is measured and acceptable (single autoload:false option read; replay is O(menu))
-- [x] **PERF-02**: Edit-mode localized payload (menu model + bundled icons) is only loaded in edit mode and is reasonably sized
-
-### Release
-
-- [x] **REL-01**: readme.txt has a `== Screenshots ==` section matching shipped screenshots
-- [x] **REL-02**: WordPress.org SVN `assets/` graphics exist: `icon-128x128`, `icon-256x256`, `banner-772x250`, `banner-1544x500`
-- [x] **REL-03**: Annotated screenshots captured (from the Playground demo) for the listing
-- [x] **REL-04**: User-facing documentation (how to edit, per-role visibility caveat, icons)
-- [x] **REL-05**: Final Plugin Check + WPCS pass on the build zip, then submit to WordPress.org
+The 20 v1.0 "WordPress.org release readiness" requirements (SEC, A11Y, TEST,
+PERF, REL — all Complete) are archived in
+[milestones/v1.0-REQUIREMENTS.md](milestones/v1.0-REQUIREMENTS.md). v1.0.0 was
+submitted to WordPress.org on 2026-06-14 and is awaiting .org review.
 
 ## v1.1 Requirements
 
@@ -98,30 +65,10 @@ Post-1.0 backlog (from SPEC.md → Roadmap). Tracked, not in this roadmap.
 | Front-end or non-admin-menu editing | Admin menu only |
 | Rebuilt/stored full menu | Delta-only by design (reset trivially, survive plugin churn) |
 
-## Traceability
+## Traceability (v1.1)
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SEC-01 | Phase 1: Security Review | Complete |
-| SEC-02 | Phase 1: Security Review | Complete |
-| SEC-03 | Phase 1: Security Review | Complete |
-| SEC-04 | Phase 1: Security Review | Complete |
-| SEC-05 | Phase 1: Security Review | Complete |
-| A11Y-01 | Phase 2: Accessibility Audit | Complete |
-| A11Y-02 | Phase 2: Accessibility Audit | Complete |
-| A11Y-03 | Phase 2: Accessibility Audit | Complete |
-| A11Y-04 | Phase 2: Accessibility Audit | Complete |
-| A11Y-05 | Phase 2: Accessibility Audit | Complete |
-| TEST-01 | Phase 3: Verification | Complete |
-| TEST-02 | Phase 3: Verification | Complete |
-| TEST-03 | Phase 3: Verification | Complete |
-| PERF-01 | Phase 3: Verification | Complete |
-| PERF-02 | Phase 3: Verification | Complete |
-| REL-01 | Phase 4: Release Assets | Complete |
-| REL-02 | Phase 4: Release Assets | Complete |
-| REL-03 | Phase 4: Release Assets | Complete |
-| REL-04 | Phase 4: Release Assets | Complete |
-| REL-05 | Phase 5: Submit | Complete (submitted; awaiting .org review) |
 | A11Y-06 | Phase 6: Accessibility & Interaction | Pending |
 | UX-01 | Phase 6: Accessibility & Interaction | Pending |
 | ICON-01 | Phase 7: Visual Polish & Icons | Pending |
@@ -130,10 +77,10 @@ Post-1.0 backlog (from SPEC.md → Roadmap). Tracked, not in this roadmap.
 | REL-06 | Phase 8: Docs & Brand Assets | Complete (shipped during wp.org rename) |
 
 **Coverage:**
-- v1.0 requirements: 20 total — mapped to phases 1–5, all Complete
-- v1.1 requirements: 6 total — mapped to phases 6–8, all Pending
+- v1.1 requirements: 6 total — mapped to phases 6–8 (REL-06 already Complete; 5 Pending)
 - Unmapped: 0 ✓
+- v1.0 (20 reqs) archived → [milestones/v1.0-REQUIREMENTS.md](milestones/v1.0-REQUIREMENTS.md)
 
 ---
 *Requirements defined: 2026-06-13*
-*Last updated: 2026-06-14 — v1.1 traceability added (phases 6–8)*
+*Last updated: 2026-06-14 — v1.0 archived at milestone completion; v1.1 traceability retained*
