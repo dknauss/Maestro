@@ -28,12 +28,26 @@ backlog (origin IDs noted).
 ### Editor UX
 
 - [x] **UX-01** (from V2-04): Each changed item shows a clear "modified" indicator, and per-item reset is a discoverable affordance (not hidden).
-- [x] **UX-02** (from V2-12): The edit-mode UI is visually polished and responsive — control hierarchy, spacing, save/error status clarity, icon-picker scanability, first-run cues — native to WP admin, with no text-overlap or control-resize regressions (deliverables: before/after screenshots + keyboard/mouse walkthrough notes).
+- [ ] **UX-02** (from V2-12): The edit-mode UI is visually polished and responsive — control hierarchy, spacing, save/error status clarity, icon-picker scanability, first-run cues — native to WP admin, with no text-overlap or control-resize regressions (deliverables: before/after screenshots + keyboard/mouse walkthrough notes). **Reopened 2026-06-16** — BUG-01..05 (see Defects) falsify the "no text-overlap or control-resize regressions" and status-clarity criteria.
 
 ### Docs & Assets
 
 - [ ] **DOC-01** (from V2-13): In-prose references to project files are markdown links, not bare paths, across README, readme.txt, user guide, SPEC, TESTING, and planning docs.
 - [x] **REL-06** (from V2-14): The wp.org/GitHub banner is rebuilt from an editable SVG master under `.wordpress-org/source/`, the decorative leader line before "ADMIN MENU" removed, with a repeatable `npm run assets:banners` pipeline (Inkscape render → Pillow downscale/crop); public assets replaced only after visual review. — **Done** (shipped during the wp.org rename: brand-first banner with the "THE INLINE ADMIN MENU EDITOR" subtitle).
+
+### Defects (triaged 2026-06-16 — wp-sudo thread screenshots)
+
+Four edit-mode UI defects found after the v1.1 polish merge. All map to **Phase 7
+/ UX-02**. **BUG-01 and BUG-03 falsify UX-02 success criterion 2** ("no text-overlap
+or control-resize regressions"), so **UX-02 is reopened** and Phase 7 cannot sign off
+until these close. **BUG-01, BUG-02, BUG-03, BUG-04 visually confirmed via wp-sudo-thread
+screenshots 2026-06-16.**
+
+- [ ] **BUG-01** — *Double checkmark on "Saved" (`✓ Saved ✓`).* Two checkmark sources: the non-color status glyph [`.maestro-status-saved::before { content: '✓' }`](../assets/maestro.css#L299) **and** the localized string [`'saved' => 'Saved ✓'`](../includes/class-assets.php#L99). Fix: drop the `✓` from the i18n string — the status glyph is the single canonical mark (and is `speak:never`, so the SR text loses nothing). *Regression from Phase 7 (07-02): the glyph was added without stripping the ✓ already baked into the string.* (That remaining glyph becomes a dashicon under **BUG-05**.) Severity: low (cosmetic). Effort: trivial.
+- [ ] **BUG-02** — *Rename input shifts horizontally as the name changes; "Title" label unclear.* The panel is a nowrap flex row `[current-name label] [Title + input] [Icon] [Visibility] [Reset]` ([maestro.js:412–416](../assets/maestro.js#L412)). [`.maestro-panel-label`](../assets/maestro.css#L320) (max-width 200px, ellipsis) holds the selected item's name and sits **left** of the input, so the input's x-position tracks name length. *Screenshot evidence:* the selected item shows as `**Media**  Title  [Media]` — the name appears **twice** (bold breadcrumb label *and* inside the input) with the vague "Title" label between them. **Decision (2026-06-16):** keep the breadcrumb label — it's valued for being specific about *what* is targeted — but **move it to the right of the rename control** so the input's left edge is fixed and never shifts as the name length changes. So: order becomes `[Title/Rename input] [breadcrumb label] [Icon] [Visibility] [Reset]` (reorder the appends at [maestro.js:412–416](../assets/maestro.js#L412)); the breadcrumb keeps its max-width + ellipsis. Also (b): the [`'rename' => 'Title'`](../includes/class-assets.php#L101) label doesn't read as a rename control — relabel ("Rename"/"Menu label") or replace with a placeholder inside the input. Severity: medium (usability). Effort: small + a layout call.
+- [ ] **BUG-03** — *Action buttons overlap as the viewport shrinks.* [`.maestro-toolbar`](../assets/maestro.css#L251) is `display:flex` with **no `flex-wrap`**; the [`<782px` media query](../assets/maestro.css#L402) only narrows the label/input widths and sets `left:0` — it never wraps. Below a threshold the non-shrinkable zones (status + right-actions are `flex-shrink:0`) and the panel buttons collide, so Visibility / Reset the item / Reset all / Exit overlay each other. Fix: let the toolbar wrap and/or a stacked small-screen layout and/or collapse panel actions into an overflow menu (mind the fixed-bottom positioning + 44px touch targets). Severity: medium (broken at small viewport). Effort: medium.
+- [ ] **BUG-04** — *Open circle by "Editor active" reads as a dead control.* It is **not** a control: it's the idle-state non-color status glyph [`.maestro-status::before { content: '○' }`](../assets/maestro.css#L280) (`speak:never`), the shape cue paired with ⏳/✓/⚠. Working as designed, but its radio/toggle look is a misleading affordance. *Confirmed in screenshot: the `○` renders as a ring before "Editor active".* Fix (**do not wire it**): restyle so it doesn't read as interactive (smaller/dimmer dot, not a ring) — folds into the BUG-05 status-icon rework. *Turning "Editor active" into a real on/off toggle is a feature, not this fix — out of scope.* Severity: low. Effort: small.
+- [ ] **BUG-05** — *Status indicators use emoji glyphs; replace with dashicons.* The four status states render Unicode dingbats via CSS `content:` — `○` idle, `⏳` saving, `✓` saved, `⚠` error ([maestro.css:281–303](../assets/maestro.css#L281)). `⏳` and `⚠` default to **color-emoji** presentation on many platforms (the reported "off"-looking hourglass) and disappear entirely where emoji are disabled. Replace all four with **dashicons** — already loaded in admin and already used by the icon picker ([maestro.js:565](../assets/maestro.js#L565)), so zero new weight and natively WP. Suggested mapping: idle → a small CSS-drawn dot or `dashicons-marker` (de-emphasised, also resolves BUG-04); saving → `dashicons-update` with a CSS spin (WP's standard loading icon, honour `prefers-reduced-motion` as today); saved → `dashicons-yes`/`dashicons-yes-alt`; error → `dashicons-warning`. The four remain four distinct shapes, so the Phase 7 WCAG 1.4.1 "distinguishable by shape, not colour alone" decision still holds; keep them `aria-hidden`/`speak:never` with the text as the SR label. (Bootstrap Icons `*-fill` — also bundled — is the fallback if a dashicon shape is missing, but prefer dashicons for native admin parity.) Severity: low–medium (visual consistency + robustness). Effort: small. → Phase 7 / UX-02.
 
 ## v2 Requirements
 
@@ -56,6 +70,11 @@ Post-1.0 backlog (from SPEC.md → Roadmap). Tracked, not in this roadmap.
 - **V2-12**: UI/UX design polish — review the edit-mode surface as a working admin tool, not a marketing screen. Improve control hierarchy, spacing, responsive behavior, modified-state affordances, save/error status clarity, icon-picker scanability, and first-run/onboarding cues while staying visually native to WordPress admin. Deliverables should include before/after screenshots, keyboard/mouse walkthrough notes, and regression checks that text does not overlap or resize controls awkwardly.
 - **V2-13**: Documentation link hygiene — whenever docs refer to another project file in prose, link it instead of leaving a bare path. Example: "See [`SPEC.md`](../SPEC.md) for the durable design and [`docs/archive/FIXES.md`](../docs/archive/FIXES.md) for the historical fix log." Apply this consistently across GitHub README, wp.org readme, user guide, SPEC, TESTING, and planning docs where relative links make sense.
 - **V2-14**: Brand asset source/regeneration — rebuild the WordPress.org/GitHub banner from an editable source, remove the decorative leader line before "ADMIN MENU" so it does not read like punctuation, and commit a repeatable generation path for `banner-772x250.png` and `banner-1544x500.png`. Follow the Borges repo pattern: keep an SVG master under `.wordpress-org/source/`, render a high-resolution reference PNG with Inkscape, downscale/crop with Pillow, expose `npm run assets:banners`, and replace submitted/public assets only after visual review.
+- **V2-15**: Role cloning for per-user menu hiding — let an admin create one or more custom roles that copy an existing role's capabilities verbatim, so menu items can be hidden from specific users (e.g. one particular admin) **without changing their real privileges**. The clone carries identical caps and only a distinct role *key*, which Maestro's existing per-role visibility can already target. *Design options to evaluate (performance-led):*
+  - **(a) Static snapshot** — `add_role( $key, $name, $source->capabilities )` at creation. Simplest; but the clone *drifts* when the source role's caps later change (e.g. a plugin grants the source new caps).
+  - **(b) Dynamic inheritance** — register the clone with no stored caps and a `user_has_cap` / `map_meta_cap` filter that resolves the clone to its source role at request time. Always in sync, negligible per-check cost, and keeps the autoloaded `wp_user_roles` option lean (favour few, slim roles over many fat ones).
+  - **Alternative that may obviate roles entirely: per-user visibility** — store hidden items keyed by user ID instead of cloning a role. More direct for "hide from one admin," but adds a new dimension to the delta model (today: global + per-role) and new storage/merge logic.
+  *Constraint:* must stay inside the "visibility is cosmetic" principle (see Out of Scope) — privileges are untouched; this only widens *who* a cosmetic rule can target. *Deliverable first:* a short feasibility note (snapshot vs dynamic vs per-user), not a build commitment. Relates to V2-07 (enforcement bridge), V2-08 (multisite defaults).
 
 ## Out of Scope
 
@@ -72,12 +91,17 @@ Post-1.0 backlog (from SPEC.md → Roadmap). Tracked, not in this roadmap.
 | A11Y-06 | Phase 6: Accessibility & Interaction | Complete |
 | UX-01 | Phase 6: Accessibility & Interaction | Complete |
 | ICON-01 | Phase 7: Visual Polish & Icons | Complete |
-| UX-02 | Phase 7: Visual Polish & Icons | Complete |
+| UX-02 | Phase 7: Visual Polish & Icons | Reopened (BUG-01..04) |
+| BUG-01 | Phase 7: Visual Polish & Icons | Pending |
+| BUG-02 | Phase 7: Visual Polish & Icons | Pending |
+| BUG-03 | Phase 7: Visual Polish & Icons | Pending |
+| BUG-04 | Phase 7: Visual Polish & Icons | Pending |
+| BUG-05 | Phase 7: Visual Polish & Icons | Pending |
 | DOC-01 | Phase 8: Docs & Brand Assets | Pending |
 | REL-06 | Phase 8: Docs & Brand Assets | Complete (shipped during wp.org rename) |
 
 **Coverage:**
-- v1.1 requirements: 6 total — mapped to phases 6–8 (REL-06 already Complete; 5 Pending)
+- v1.1 requirements: 6 + 5 defects (BUG-01..05) — all mapped to phases 6–8 (REL-06 Complete; UX-02 reopened; 10 Pending)
 - Unmapped: 0 ✓
 - v1.0 (20 reqs) archived → [milestones/v1.0-REQUIREMENTS.md](milestones/v1.0-REQUIREMENTS.md)
 

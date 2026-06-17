@@ -9,7 +9,7 @@ last_activity: 2026-06-14 — Completed & archived the v1.0 milestone; v1.1 road
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 10
+  total_plans: 11
   completed_plans: 5
   percent: 10
 ---
@@ -92,6 +92,8 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
+- **Edit-mode defects (triaged 2026-06-16, wp-sudo thread; BUG-01..04 visually confirmed via screenshots)** — BUG-01..05 in REQUIREMENTS.md → Defects, mapped to Phase 7 / plan 07-04. UX-02 reopened (BUG-01 + BUG-03 contradict its "no text-overlap / control-resize" criterion). No code changed yet — fixes deferred to 07-04 execution. Root causes / fixes: BUG-01 double ✓ = i18n string `'Saved ✓'` + glyph both render → drop ✓ from string; BUG-02 = breadcrumb name label sits left of rename input in a flex row → **keep the breadcrumb (user values it) but move it right of the input** so the input can't shift, + relabel "Title"; BUG-03 = `.maestro-toolbar` has no `flex-wrap` → wrap/stack at narrow widths; BUG-04 = idle status glyph `○` misreads as a control → de-emphasise (folds into BUG-05); BUG-05 = status states use emoji glyphs `○⏳✓⚠` (`⏳`/`⚠` go color-emoji / can be disabled) → replace with dashicons (already loaded; `dashicons-update` spin / `-yes` / `-warning` / dot), preserving the WCAG 1.4.1 shape distinction.
+- **V2-15 (backlog)** — role cloning for per-user menu hiding: feasibility note to compare static snapshot vs dynamic `user_has_cap` inheritance vs per-user visibility before any build.
 - Await WordPress.org review verdict. On approval: SVN commit to `trunk`, tag `1.0.0`, upload `.wordpress-org/` to the SVN `assets/` dir.
 
 (Done: git tag `v1.0.0` + GitHub Release "Admin Menu Maestro 1.0.0" published, anchored at the finalize-1.0.0 commit `c5f31b8`.)
