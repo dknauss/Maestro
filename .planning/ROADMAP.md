@@ -26,8 +26,8 @@ Full phase details, success criteria, and outcomes are archived in
 **Milestone Goal:** Refine the shipped editor and finish the accessibility story. No new architecture — keyboard reordering, modified-state indicators, visual polish, heavier icons, documentation link hygiene, and a repeatable banner pipeline.
 
 - [x] **Phase 6: Accessibility & Interaction** — Keyboard-accessible reordering + modified indicator with per-item reset affordance (completed 2026-06-16)
-- [ ] **Phase 7: Visual Polish & Icons** — Heavier bundled icon set mixed with dashicons + edit-mode UI polish
-- [ ] **Phase 8: Docs & Brand Assets** — Documentation link hygiene (test-first checker) + verify/reconcile the shipped banner pipeline
+- [x] **Phase 7: Visual Polish & Icons** — Heavier bundled icon set mixed with dashicons + edit-mode UI polish (completed 2026-06-17; includes plan 07-04 defect fixes BUG-01..05 + idle-icon refinement)
+- [ ] **Phase 8: Docs & Brand Assets** — Documentation link hygiene (test-first checker) + verify/reconcile the shipped banner pipeline + listing polish (readme copy, Playground link, banner, screenshots)
 
 ## Phase Details (v1.1)
 
@@ -56,10 +56,10 @@ Full phase details, success criteria, and outcomes are archived in
   3. Icon picker grid is visually scannable at the dashicons grid size (20px glyphs)
   4. UI changes hold at 0 regressions: unit 44/44, integration 29/29, e2e 9/9 green, Plugin Check 0 errors
 **Plans**: 4 plans
-  - [ ] 07-01-PLAN.md — TDD fill-resolution policy + regenerate solid icon bundle [ICON-01]
-  - [ ] 07-02-PLAN.md — edit-mode polish: toolbar hierarchy, non-color status, ~20px grid, first-run cue [UX-02]
-  - [ ] 07-03-PLAN.md — e2e regression + side-by-side/before-after screenshots + walkthrough notes [UX-02, ICON-01]
-  - [ ] 07-04-PLAN.md — edit-mode defect fixes: BUG-01 (drop ✓ from i18n string), BUG-02 (move breadcrumb right of input so it can't shift + relabel "Title"), BUG-03 (toolbar wrap/stack at narrow widths), BUG-04+BUG-05 (replace emoji status glyphs ○⏳✓⚠ with dashicons; idle dot de-emphasised) + regression screenshots at narrow viewport [BUG-01, BUG-02, BUG-03, BUG-04, BUG-05, UX-02]
+  - [x] 07-01-PLAN.md — TDD fill-resolution policy + regenerate solid icon bundle [ICON-01]
+  - [x] 07-02-PLAN.md — edit-mode polish: toolbar hierarchy, non-color status, ~20px grid, first-run cue [UX-02]
+  - [x] 07-03-PLAN.md — e2e regression + side-by-side/before-after screenshots + walkthrough notes [UX-02, ICON-01]
+  - [x] 07-04-PLAN.md — edit-mode defect fixes: BUG-01 (drop ✓ from i18n string), BUG-02 (move breadcrumb right of input so it can't shift + relabel "Title"), BUG-03 (toolbar wrap/stack at narrow widths), BUG-04+BUG-05 (replace emoji status glyphs ○⏳✓⚠ with dashicons; idle dot de-emphasised) + regression screenshots at narrow viewport [BUG-01, BUG-02, BUG-03, BUG-04, BUG-05, UX-02]
 
 ### Phase 8: Docs & Brand Assets
 **Goal**: In-prose file references are live markdown links; the wp.org/GitHub banner is rebuilt from an editable SVG master with a repeatable pipeline; and the live directory listing is polished for the next release (readme copy, Playground demo link, refreshed banner + screenshots)
@@ -92,5 +92,5 @@ v1.0 complete (Phases 1–5, archived). v1.1 executes: 6 → 7 → 8
 | 4. Release Assets | v1.0 | ✓ | Complete (archived) | 2026-06-14 |
 | 5. Submit | v1.0 | ✓ | Complete (archived) | 2026-06-14 |
 | 6. Accessibility & Interaction | 3/3 | Complete    | 2026-06-16 | - |
-| 7. Visual Polish & Icons | 2/4 | In Progress (UX-02 reopened — BUG-01..04) |  | - |
+| 7. Visual Polish & Icons | 4/4 | Complete | 2026-06-17 | - |
 | 8. Docs & Brand Assets | v1.1 | 0/TBD | Not started | - |

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Polish & Accessibility
 status: planning
-stopped_at: Completed 07-visual-polish-icons/07-02-PLAN.md
+stopped_at: Completed Phase 7 (plan 07-04 defect fixes BUG-01..05 + idle-icon refinement); Phase 8 next
 last_updated: "2026-06-16T06:30:14.586Z"
-last_activity: 2026-06-14 — Completed & archived the v1.0 milestone; v1.1 roadmap (phases 6–8) in place
+last_activity: 2026-06-17 — Phase 7 signed off (UX-02 + BUG-01..05, full regression gate green); v1.0.0 live on wordpress.org
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 11
-  completed_plans: 5
-  percent: 10
+  completed_plans: 7
+  percent: 54
 ---
 
 # Project State
@@ -21,17 +21,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-14)
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
-**Current focus:** v1.1 "Polish & Accessibility" — milestone scoped and roadmapped (phases 6–8); ready to plan Phase 6
+**Current focus:** v1.1 "Polish & Accessibility" — milestone scoped and roadmapped (phases 6–8); Phases 6 & 7 complete; Phase 8 next
 
 ## Current Position
 
 Milestone: v1.1 Polish & Accessibility (phases 6–8; v1.0 phases 1–5 complete & archived)
-Phase: Not started (roadmap complete; Phase 6 next to plan)
+Phase: Phases 6 & 7 complete; Phase 8 (Docs & Brand Assets) next
 Plan: —
-Status: v1.0 milestone archived → `.planning/milestones/v1.0-*` + `.planning/MILESTONES.md` + `.planning/RETROSPECTIVE.md`. v1.1 scoped + roadmapped — 6 requirements promoted from the v2 backlog (ICON-01, A11Y-06, UX-01, UX-02, DOC-01; REL-06 already done). **v1.0.0 ACCEPTED by WordPress.org 2026-06-16** — next external action is the SVN deploy (commit runtime files to trunk, `svn cp` tag 1.0.0, upload `.wordpress-org/` to the SVN `assets/` dir).
+Status: v1.0 milestone archived → `.planning/milestones/v1.0-*` + `.planning/MILESTONES.md` + `.planning/RETROSPECTIVE.md`. v1.1 scoped + roadmapped — 6 requirements promoted from the v2 backlog (ICON-01, A11Y-06, UX-01, UX-02, DOC-01; REL-06 already done). **v1.0.0 published to wordpress.org 2026-06-17** (GitHub Actions -> SVN). **Phase 7 (Visual Polish & Icons) signed off 2026-06-17** (UX-02 + BUG-01..05; full regression gate green). Phase 8 (Docs & Brand Assets) is next.
 Last activity: 2026-06-14 — Completed & archived the v1.0 milestone; v1.1 roadmap (phases 6–8) in place
 
-Progress: [█░░░░░░░░░] 10%
+Progress: [#####-----] 54%
 
 ## Performance Metrics
 
