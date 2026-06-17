@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Polish & Accessibility
 status: planning
-stopped_at: Completed Phase 7 (plan 07-04 defect fixes BUG-01..05 + idle-icon refinement); Phase 8 next
-last_updated: "2026-06-16T06:30:14.586Z"
-last_activity: 2026-06-17 — Phase 7 signed off (UX-02 + BUG-01..05, full regression gate green); v1.0.0 live on wordpress.org
+stopped_at: Completed 08-docs-brand-assets/08-01-PLAN.md
+last_updated: "2026-06-17T15:25:47.517Z"
+last_activity: 2026-06-14 — Completed & archived the v1.0 milestone; v1.1 roadmap (phases 6–8) in place
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 11
-  completed_plans: 7
+  total_plans: 10
+  completed_plans: 6
   percent: 54
 ---
 
@@ -60,6 +60,7 @@ Progress: [#####-----] 54%
 | Phase 06-accessibility-interaction P03 | 21 | 3 tasks | 7 files |
 | Phase 07-visual-polish-icons P01 | 15 | 3 tasks | 3 files |
 | Phase 07-visual-polish-icons P02 | 7 | 2 tasks | 3 files |
+| Phase 08-docs-brand-assets P01 | 15 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,8 @@ Recent decisions affecting current work:
 - [Phase 07-visual-polish-icons]: Generator side-effect guard: main() called only when process.argv[1] === fileURLToPath(import.meta.url) — enables side-effect-free import for unit testing
 - [Phase 07-visual-polish-icons]: PerformanceTest payload lower bound (70 KiB) unchanged: fill SVG bundle still exceeds 70 KiB after switch to solid variants
 - [Phase 07-visual-polish-icons]: Non-color status via ::before glyphs (○ ⏳ ✓ ⚠); icon grid cell 40px for precise 20px centering; first-run cue as fixed bar above toolbar, localStorage-gated
+- [Phase 08-docs-brand-assets]: readme.txt added to CORE_EXCLUDE in doc-link checker: appears as a bare token in README.md prose but is excluded per DOC-01 scope (wp.org convention file, not a linkable repo doc)
+- [Phase 08-docs-brand-assets]: test:js uses 'node --test tests/js/*.mjs' glob pattern — Node 24.14 rejects the directory form (node --test tests/js/) with MODULE_NOT_FOUND; glob is the correct alternative
 
 ### Pending Todos
 
@@ -106,6 +109,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-16T06:30:14.582Z
-Stopped at: Completed 07-visual-polish-icons/07-02-PLAN.md
+Last session: 2026-06-17T15:25:47.514Z
+Stopped at: Completed 08-docs-brand-assets/08-01-PLAN.md
 Resume file: None
