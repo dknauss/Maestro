@@ -370,7 +370,11 @@
 		var p = el( 'div', 'maestro-panel' );
 		p.hidden = true;
 
-		var label = el( 'span', 'maestro-panel-label' );
+		// UX-05: the selected item's name is screen-reader-only — the buttons are
+		// self-explanatory and the visible breadcrumb ate horizontal space. Kept in
+		// the DOM (populated in populatePanel) so SR users still get item/submenu
+		// context; `screen-reader-text` is WordPress admin's always-present SR class.
+		var label = el( 'span', 'maestro-panel-label screen-reader-text' );
 
 		var renameField = el( 'label', 'maestro-panel-field' );
 		renameField.appendChild( document.createTextNode( I.rename + ' ' ) );
