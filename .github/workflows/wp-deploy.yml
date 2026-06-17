@@ -1,0 +1,39 @@
+name: Deploy to WordPress.org
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to WordPress.org SVN
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      # No build toolchain: the runtime is plain PHP/JS/CSS. bin/build.sh
+      # assembles the exact shippable tree under build/maestro-menu-editor.
+      - name: Build runtime tree
+        run: bash bin/build.sh
+
+      - name: Stage WordPress.org assets
+        run: |
+          mkdir -p build/wporg-assets
+          rsync -a .wordpress-org/ build/wporg-assets/ \
+            --exclude '.DS_Store' \
+            --exclude 'source/'
+
+      - name: WordPress.org plugin deploy
+        uses: 10up/action-wordpress-plugin-deploy@stable
+        env:
+          SVN_USERNAME: ${{ secrets.WP_ORG_SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.WP_ORG_SVN_PASSWORD }}
+          SLUG: maestro-menu-editor
+          BUILD_DIR: build/maestro-menu-editor
+          ASSETS_DIR: build/wporg-assets

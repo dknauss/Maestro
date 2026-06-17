@@ -1,0 +1,35 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  release:
+    name: Build and publish release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Build release zip
+        run: bash bin/build.sh
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: build/maestro-menu-editor.zip
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+
+      # Hand off to the SVN deploy workflow for the same tag.
+      - name: Dispatch WordPress.org deploy
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run wp-deploy.yml --ref "$GITHUB_REF_NAME"
