@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Polish & Accessibility
-status: complete
-stopped_at: Phase 8 complete — v1.1 milestone (DOC-01, REL-06, DOC-02, DOC-03) done; REL-07/REL-08 deferred
-last_updated: "2026-06-17T12:00:00.000Z"
-last_activity: 2026-06-17 — Phase 8 capstone complete; zero-regression bar held; v1.1 milestone ready to audit/close; v1.0.0 and v1.1.0 both live on wordpress.org
+milestone: v1.2
+milestone_name: Editor UX polish
+status: planning
+stopped_at: v1.2 started — defining roadmap (UX-03, UX-04, UX-07)
+last_updated: "2026-06-17T15:00:00.000Z"
+last_activity: 2026-06-17 — v1.2 (Editor UX polish) started; v1.0.0 + v1.1.1 live on wordpress.org
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 11
-  completed_plans: 11
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State

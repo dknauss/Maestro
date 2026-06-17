@@ -15,19 +15,16 @@ Editing the admin menu happens directly on the menu, with zero ceremony and zero
 risk to access — changes are cosmetic deltas, never a rebuilt menu, and never a
 security boundary.
 
-## Current Milestone: v1.1 — Polish & Accessibility
+## Current Milestone: v1.2 — Editor UX polish
 
-**Goal:** Refine the shipped editor and finish the accessibility story — no new architecture.
+**Goal:** Refine the edit-mode surface for clarity and small/mobile use — no new architecture, every change carrying its accessibility guardrail.
 
-**Target items (promoted from the v2 backlog):**
-- ICON-01 (V2-11) — solid/heavier bundled icon set that mixes with dashicons
-- A11Y-06 (V2-03) — keyboard-accessible reordering (closes the v1 mouse-only gap)
-- UX-01 (V2-04) — "modified" indicator + discoverable per-item reset
-- UX-02 (V2-12) — UI/UX polish (hierarchy, spacing, responsive, status clarity, icon-picker scanability, onboarding)
-- DOC-01 (V2-13) — documentation link hygiene
-- REL-06 (V2-14) — banner rebuilt from an editable source with a repeatable pipeline
+**Target items (from the v1.1 hands-on UX backlog):**
+- UX-03 — short "Menu Edit Mode" indicator + first-run attention cue (a11y: colour-not-alone, `prefers-reduced-motion`, keyboard/SR-safe tour)
+- UX-04 — rename label as an in-field placeholder that clears on focus (a11y: keep a programmatic label — placeholder is not an accessible name)
+- UX-07 — smaller buttons/rename input on small screens + a focused mobile pass (keep ≥44px real touch targets)
 
-*v1.0 (WordPress.org release readiness) is complete and submitted; awaiting .org review.*
+*Shipped: v1.0 (WordPress.org release readiness) and v1.1 (Polish & Accessibility) — both live on wordpress.org. UX-05 (SR-only item-name label) and UX-06 (Reset Item / Reset All) already shipped in 1.1.1.*
 
 ## Requirements
 
