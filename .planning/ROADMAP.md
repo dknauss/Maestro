@@ -62,9 +62,10 @@ Full phase details, success criteria, and outcomes are archived in
   - [ ] 07-04-PLAN.md — edit-mode defect fixes: BUG-01 (drop ✓ from i18n string), BUG-02 (move breadcrumb right of input so it can't shift + relabel "Title"), BUG-03 (toolbar wrap/stack at narrow widths), BUG-04+BUG-05 (replace emoji status glyphs ○⏳✓⚠ with dashicons; idle dot de-emphasised) + regression screenshots at narrow viewport [BUG-01, BUG-02, BUG-03, BUG-04, BUG-05, UX-02]
 
 ### Phase 8: Docs & Brand Assets
-**Goal**: In-prose file references across all project docs are live markdown links, and the wp.org/GitHub banner is rebuilt from an editable SVG master with a repeatable generation pipeline
+**Goal**: In-prose file references are live markdown links; the wp.org/GitHub banner is rebuilt from an editable SVG master with a repeatable pipeline; and the live directory listing is polished for the next release (readme copy, Playground demo link, refreshed banner + screenshots)
 **Depends on**: Phase 7
-**Requirements**: DOC-01, REL-06
+**Requirements**: DOC-01, REL-06, DOC-02, DOC-03, REL-07, REL-08
+**Listing polish added 2026-06-17** after the 1.0.0 page went live (see REQUIREMENTS.md → Docs & Assets). DOC-03 (Playground demo link) is a quick win and may ship as a standalone 1.0.1.
 **Success Criteria** (what must be TRUE):
   1. Bare file-path references in README, readme.txt, user guide, SPEC, TESTING, and planning docs are converted to markdown links — confirmed by a grep for common bare-path patterns returning no results
   2. An editable SVG master for the banner exists under `.wordpress-org/source/` with the decorative leader line before "ADMIN MENU" removed
@@ -75,6 +76,8 @@ Full phase details, success criteria, and outcomes are archived in
   - [ ] 08-02-PLAN.md — convert flagged refs to markdown links + fix 3 stale paths (GREEN: 0 offenders) [DOC-01]
   - [ ] 08-03-PLAN.md — verify `npm run assets:banners` regen + reconcile REL-06 mechanism wording (in-code SVG master + Inkscape + Pillow) [REL-06]
   - [ ] 08-04-PLAN.md — zero-regression suite + flip DOC-01 Complete + mark Phase 8 done [DOC-01, REL-06]
+  - [ ] 08-05-PLAN.md — readme.txt copy rewrite (wp-readme-optimizer) + Playground "Try it first" demo link in readme + GitHub README [DOC-02, DOC-03]
+  - [ ] 08-06-PLAN.md — refreshed banner graphic (REL-06 pipeline) + gallery-optimized screenshots & captions; replace public assets after visual review [REL-07, REL-08]
 
 ## Progress
 

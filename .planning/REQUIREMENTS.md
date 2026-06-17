@@ -9,7 +9,7 @@
 The 20 v1.0 "WordPress.org release readiness" requirements (SEC, A11Y, TEST,
 PERF, REL — all Complete) are archived in
 [milestones/v1.0-REQUIREMENTS.md](milestones/v1.0-REQUIREMENTS.md). v1.0.0 was
-submitted to WordPress.org on 2026-06-14 and **accepted 2026-06-16** (pending SVN deploy to trunk + assets).
+submitted on 2026-06-14, **accepted 2026-06-16, and published to the directory 2026-06-17** at https://wordpress.org/plugins/maestro-menu-editor/ (deployed via GitHub Actions → SVN).
 
 ## v1.1 Requirements
 
@@ -34,6 +34,13 @@ backlog (origin IDs noted).
 
 - [ ] **DOC-01** (from V2-13): In-prose references to project files are markdown links, not bare paths, across README, readme.txt, user guide, SPEC, TESTING, and planning docs.
 - [x] **REL-06** (from V2-14): The wp.org/GitHub banner is rebuilt from an editable SVG master under `.wordpress-org/source/`, the decorative leader line before "ADMIN MENU" removed, with a repeatable `npm run assets:banners` pipeline (Inkscape render → Pillow downscale/crop); public assets replaced only after visual review. — **Done** (shipped during the wp.org rename: brand-first banner with the "THE INLINE ADMIN MENU EDITOR" subtitle).
+
+**Listing polish (flagged 2026-06-17, after the 1.0.0 directory page went live — the live listing needs work before the next release):**
+
+- [ ] **DOC-02**: Rewrite the `readme.txt` copy for clarity and discoverability — short description, full description, FAQ, and tags — via the `wp-readme-optimizer` skill. The current copy is functional but flat; the live page reads dry.
+- [ ] **DOC-03**: Add the **WordPress Playground demo link** to `readme.txt` (a "Try it first" line in the intro) and the GitHub README, so visitors can trial Maestro before installing. The hosted blueprint already exists (`playground/blueprint-hosted.json`); mirror the Borges pattern (`playground.wordpress.net/?blueprint-url=…`). *Quick, near-term — could ship as a standalone 1.0.1.*
+- [ ] **REL-07**: New/refreshed **banner graphic** — a stronger design iteration on the brand-first banner, regenerated through the existing REL-06 pipeline (`npm run assets:banners`); replace `.wordpress-org/banner-*.png` after visual review.
+- [ ] **REL-08**: **Refreshed screenshots** for the new core-block directory gallery (per the 2026-06-10 meta update) — higher-quality captures with captions that "explain the interface or workflow." Keep the set visually uniform (→ clean grid) or go deliberately mixed (→ masonry); update the `== Screenshots ==` captions to match.
 
 ### Defects (triaged 2026-06-16 — wp-sudo thread screenshots)
 
