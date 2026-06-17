@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/paypalme/DanKnauss
 Tags: admin menu, admin menu editor, menu editor, hide menu items, menu icons
 Requires at least: 6.4
 Tested up to: 7.0
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -185,6 +185,18 @@ menu grey and embedded as data-URIs; see `bin/generate-bootstrap-icons.mjs`.
 * Discoverable per-item reset: the **Reset this item** button in the controls
   panel is now keyboard-reachable (Tab + Enter/Space) and is visually
   emphasised whenever the selected item has unsaved overrides.
+* Solid bundled icons: the Bootstrap Icons set now uses solid (`*-fill`)
+  variants, so it mixes naturally with WordPress's dashicons in the picker.
+* Edit-mode polish: clearer toolbar grouping, a more scannable icon grid, and a
+  dismissible first-run hint.
+* Native save status: the saving / saved / error states now use WordPress
+  dashicons (a spinner, a check, a warning) instead of emoji glyphs that some
+  platforms recoloured or dropped; the idle state shows no icon.
+* Fixes: the saved status no longer renders a double check mark; the rename
+  field no longer shifts as the title length changes; toolbar controls wrap
+  instead of overlapping on narrow screens.
+* Listing: rewritten description and FAQ, plus a "Try it first" link to a live
+  WordPress Playground demo.
 
 = 1.0.0 =
 * Initial release: rename, reorder, per-role visibility, reset.
@@ -197,5 +209,6 @@ menu grey and embedded as data-URIs; see `bin/generate-bootstrap-icons.mjs`.
 == Upgrade Notice ==
 
 = 1.1.0 =
-Keyboard-accessible reordering, a live "modified" indicator, and a discoverable
-per-item reset. No configuration changes required.
+Keyboard-accessible reordering, a live "modified" indicator, solid bundled
+icons, native dashicon save-status, and responsive/edit-mode polish. No
+configuration changes required.

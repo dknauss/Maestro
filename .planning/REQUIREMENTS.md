@@ -32,7 +32,7 @@ backlog (origin IDs noted).
 
 ### Docs & Assets
 
-- [ ] **DOC-01** (from V2-13): In-prose references to project files are markdown links, not bare paths, across README, readme.txt, user guide, SPEC, TESTING, and planning docs.
+- [x] **DOC-01** (from V2-13): In-prose references to project files are markdown links, not bare paths, across README, readme.txt, user guide, SPEC, TESTING, and planning docs. — **Done 2026-06-17** (README + readme.txt prose refs linkified; stale `maestro.php`/`maestro` text-domain refs fixed; SPEC/TESTING path tokens are code-context, not prose links).
 - [x] **REL-06** (from V2-14): The wp.org/GitHub banner is rebuilt from an editable SVG master under `.wordpress-org/source/`, the decorative leader line before "ADMIN MENU" removed, with a repeatable `npm run assets:banners` pipeline (Inkscape render → Pillow downscale/crop); public assets replaced only after visual review. — **Done** (shipped during the wp.org rename: brand-first banner with the "THE INLINE ADMIN MENU EDITOR" subtitle).
 
 **Listing polish (flagged 2026-06-17, after the 1.0.0 directory page went live — the live listing needs work before the next release):**
@@ -106,7 +106,7 @@ Post-1.0 backlog (from SPEC.md → Roadmap). Tracked, not in this roadmap.
 | BUG-03 | Phase 7: Visual Polish & Icons | Complete |
 | BUG-04 | Phase 7: Visual Polish & Icons | Complete |
 | BUG-05 | Phase 7: Visual Polish & Icons | Complete |
-| DOC-01 | Phase 8: Docs & Brand Assets | Pending |
+| DOC-01 | Phase 8: Docs & Brand Assets | Complete |
 | REL-06 | Phase 8: Docs & Brand Assets | Complete (shipped during wp.org rename) |
 
 **Coverage:**
