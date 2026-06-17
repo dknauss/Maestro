@@ -68,9 +68,9 @@ The plugin uses the `maestro-menu-editor` text domain and ships a translation te
 
 ## Repository layout
 
-- **Runtime plugin** — `maestro-menu-editor.php`, `includes/`, `assets/`, `languages/`, `readme.txt`. This is all that ships to a site.
-- **WordPress.org listing assets** — `.wordpress-org/` contains the directory icon (`icon.svg`, `icon-128x128.png`, `icon-256x256.png`), banners (`banner-772x250.png`, `banner-1544x500.png`), and screenshots (`screenshot-1.png` through `screenshot-4.png`).
-- **Dev & tooling** — `tests/`, `composer.json`, `package.json`, `.wp-env.json`, `playwright.config.ts`, `phpunit-*.xml.dist`, `bin/build.sh`.
+- **Runtime plugin** — [`maestro-menu-editor.php`](maestro-menu-editor.php), `includes/`, `assets/`, `languages/`, `readme.txt`. This is all that ships to a site.
+- **WordPress.org listing assets** — `.wordpress-org/` contains the directory icon ([`icon.svg`](.wordpress-org/icon.svg), `icon-128x128.png`, `icon-256x256.png`), banners (`banner-772x250.png`, `banner-1544x500.png`), and screenshots (`screenshot-1.png` through `screenshot-4.png`).
+- **Dev & tooling** — `tests/`, [`composer.json`](composer.json), [`package.json`](package.json), [`.wp-env.json`](.wp-env.json), [`playwright.config.ts`](playwright.config.ts), `phpunit-*.xml.dist`, [`bin/build.sh`](bin/build.sh).
 - **Docs** — [`docs/user-guide.md`](docs/user-guide.md) (user walkthrough), [`SPEC.md`](SPEC.md) (durable specification), [`TESTING.md`](TESTING.md) (how to run each test layer), and [`docs/archive/FIXES.md`](docs/archive/FIXES.md) (historical fix log).
 
 ## Install (to a site)
@@ -92,11 +92,11 @@ npm run test:php                                 # PHP integration tests
 npm run test:e2e                                 # Playwright end-to-end
 ```
 
-See `TESTING.md` for details and the standalone (non-Docker) paths.
+See [`TESTING.md`](TESTING.md) for details and the standalone (non-Docker) paths.
 
 ## Playground demo (role testing)
 
-A WordPress Playground blueprint (`playground/blueprint.json`) spins up a throwaway
+A WordPress Playground blueprint ([`playground/blueprint.json`](playground/blueprint.json)) spins up a throwaway
 site for trying the editor — including **per-role visibility** — without a local
 WordPress. It installs [User Switching](https://wordpress.org/plugins/user-switching/),
 creates four test users (`editor`, `author`, `contributor`, `subscriber`, all
@@ -113,7 +113,7 @@ in the editor, then use **Switch To** (admin bar) to view the menu as that user.
 
 > **Hosted Playground:** the [Live demo](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/main/playground/blueprint-hosted.json)
 > runs the same setup in the browser with no install. It uses
-> `playground/blueprint-hosted.json`, which installs the plugin straight from
+> [`playground/blueprint-hosted.json`](playground/blueprint-hosted.json), which installs the plugin straight from
 > this public repo via a `git:directory` resource (the local `blueprint.json`
 > mounts it instead).
 

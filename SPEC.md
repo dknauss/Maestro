@@ -34,12 +34,12 @@ A WordPress plugin that makes the admin menu editable **in place**: rename items
 
 | Class | File | Responsibility |
 |-------|------|----------------|
-| `Config` | `includes/class-config.php` | Read/write/sanitize the single option. Owns the override schema and the reset. |
-| `Ordering` | `includes/class-ordering.php` | Pure reorder logic (top-level + submenu) with the resilience contract. No WP calls — unit-testable. |
-| `Replay` | `includes/class-replay.php` | On a late `admin_menu` pass, mutate the globals (rename/icon/visibility) and reorder submenus; expose the editor model + pristine snapshot. |
-| `Rest` | `includes/class-rest.php` | `maestro/v1/config` GET/POST/DELETE, capability-gated. |
-| `Admin_Bar` | `includes/class-admin-bar.php` | The edit-mode toggle node. |
-| `Assets` | `includes/class-assets.php` | Enqueue + localize the editor, edit mode only. |
+| `Config` | [`includes/class-config.php`](includes/class-config.php) | Read/write/sanitize the single option. Owns the override schema and the reset. |
+| `Ordering` | [`includes/class-ordering.php`](includes/class-ordering.php) | Pure reorder logic (top-level + submenu) with the resilience contract. No WP calls — unit-testable. |
+| `Replay` | [`includes/class-replay.php`](includes/class-replay.php) | On a late `admin_menu` pass, mutate the globals (rename/icon/visibility) and reorder submenus; expose the editor model + pristine snapshot. |
+| `Rest` | [`includes/class-rest.php`](includes/class-rest.php) | `maestro/v1/config` GET/POST/DELETE, capability-gated. |
+| `Admin_Bar` | [`includes/class-admin-bar.php`](includes/class-admin-bar.php) | The edit-mode toggle node. |
+| `Assets` | [`includes/class-assets.php`](includes/class-assets.php) | Enqueue + localize the editor, edit mode only. |
 
 Two free functions in the bootstrap: `Maestro\capability()` (filterable via `maestro_capability`) and `Maestro\is_edit_mode()` (capability-gated `?maestro_edit=1`).
 
@@ -169,7 +169,7 @@ This model supersedes the original always-visible per-item control clusters, whi
 
 ## Testing Strategy
 
-Three layers (see `TESTING.md` for commands):
+Three layers (see [`TESTING.md`](TESTING.md) for commands):
 
 1. **Unit (pure PHP).** `Ordering` resilience cases (orphan drop, newcomer append, dedupe, query-arg slugs, empty passthrough) and the dashicon validator. No WordPress, no DB. The ordering algorithm was additionally cross-validated via a faithful port.
 2. **Integration (WP_UnitTestCase via wp-env).** Rename/icon/rename-submenu applied to real globals; role-based hide/show with factory users; submenu reorder; `menu_order` filter; empty-config no-op; full REST round-trip including capability rejection (subscriber ⇒ 403) and sanitization (bad icon dropped, unknown role filtered, markup stripped); reset clears the option.
