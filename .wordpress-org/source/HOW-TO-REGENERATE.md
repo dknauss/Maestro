@@ -4,6 +4,12 @@
 from one vector source, so you can re-tint, re-letter, or add an `-rtl` banner
 without redrawing anything.
 
+> **The SVG master is generated inside `build_final.py` — there is no standalone
+> `.svg` file to edit.** To change the artwork, edit the `banner_svg()` /
+> `icon_svg()` builders and the `P = dict(...)` palette in `build_final.py`, then
+> re-run the pipeline. `build_final.py` rasterizes the in-code SVG via Inkscape and
+> downscales 2× → 1× with Pillow (LANCZOS).
+
 ## Output
 Writes to `./assets/` (override with `OUT_DIR=/path python3 build_final.py`):
 

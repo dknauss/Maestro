@@ -28,7 +28,7 @@ composer install
 composer test:unit
 ```
 
-Config: `phpunit-unit.xml.dist` → bootstrap `tests/bootstrap-unit.php` (fakes
+Config: [`phpunit-unit.xml.dist`](phpunit-unit.xml.dist) → bootstrap [`tests/bootstrap-unit.php`](tests/bootstrap-unit.php) (fakes
 `ABSPATH`, loads only the pure classes — no stubbing required).
 
 ## 2. Integration (WordPress test suite, via wp-env)
@@ -45,7 +45,7 @@ npm run test:php           # runs PHPUnit inside the tests container
 
 `@wordpress/env` provisions the WP PHPUnit library in the tests container. The
 `test:php` script runs `vendor/bin/phpunit` there directly with config:
-`phpunit-integration.xml.dist`.
+[`phpunit-integration.xml.dist`](phpunit-integration.xml.dist).
 
 Standalone (no wp-env): install the WP test library with a configured test DB,
 export `WP_TESTS_DIR`, then `composer test:integration`.
@@ -67,7 +67,7 @@ passwords to `password` before browser login, so reruns are deterministic even
 after a persisted wp-env database has drifted.
 
 Targets the wp-env **tests** instance at `http://localhost:8889`
-(default login `admin` / `password`). `global-setup.ts` authenticates once and
+(default login `admin` / `password`). [`global-setup.ts`](tests/e2e/global-setup.ts) authenticates once and
 stores the session.
 
 ## What each layer is good for

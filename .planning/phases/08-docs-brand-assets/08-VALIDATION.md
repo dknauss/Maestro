@@ -1,10 +1,11 @@
 ---
 phase: 8
 slug: docs-brand-assets
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-15
+signed_off: 2026-06-17
 ---
 
 # Phase 8 — Validation Strategy
@@ -43,22 +44,24 @@ created: 2026-06-15
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | Status |
 |---------|------|------|-------------|-----------|-------------------|--------|
-| 08-01.T1 (TDD: doc-link checker — scanText/findOffenders flag inline-code refs resolving to real repo files, not yet links; exclude core + readme.txt + fenced + image/linked) | 08-01 | 1 | DOC-01 | unit/script (node) | `npm run test:js` (scanText fixtures green; strict findOffenders()===[] is RED until 08-02) | ⬜ pending |
-| 08-01.T2 (wire npm scripts; record RED offender baseline) | 08-01 | 1 | DOC-01 | script (RED gate) | `npm run check:doc-links` (exits non-zero — RED) | ⬜ pending |
-| 08-02.T1 (convert flagged refs to markdown links; fix 3 stale paths → GREEN) | 08-02 | 2 | DOC-01 | script (GREEN gate) | `npm run check:doc-links && npm run test:js` (0 offenders) | ⬜ pending |
-| 08-03.T1 (verify `npm run assets:banners` regenerates both banners; restore committed PNGs) | 08-03 | 1 | REL-06 | regen + dimensions | `npm run assets:banners && file .wordpress-org/banner-772x250.png \| grep -q "772 x 250" && file .wordpress-org/banner-1544x500.png \| grep -q "1544 x 500"` | ⬜ pending |
-| 08-03.T2 (reconcile REL-06 wording: in-code SVG master + Inkscape + Pillow; standalone-svg substitution) | 08-03 | 1 | REL-06 | doc grep | `grep -iq "build_final.py" .planning/REQUIREMENTS.md && grep -iqE "Inkscape\|Pillow" .planning/REQUIREMENTS.md` | ⬜ pending |
-| 08-04.T1 (Docker-free zero-regression gates) | 08-04 | 3 | DOC-01, REL-06 | unit+lint+checker | `composer test:unit && composer lint && npm run check:doc-links && npm run test:js` | ⬜ pending |
-| 08-04.T2 (flip DOC-01 Complete; mark Phase 8 done; sign off) | 08-04 | 3 | DOC-01 | tracking grep | `grep -q "\[x\] \*\*DOC-01" .planning/REQUIREMENTS.md` | ⬜ pending |
+| 08-01.T1 (TDD: doc-link checker — scanText/findOffenders flag inline-code refs resolving to real repo files, not yet links; exclude core + readme.txt + fenced + image/linked) | 08-01 | 1 | DOC-01 | unit/script (node) | `npm run test:js` (scanText fixtures green; strict findOffenders()===[] is RED until 08-02) | ✅ pass |
+| 08-01.T2 (wire npm scripts; record RED offender baseline) | 08-01 | 1 | DOC-01 | script (RED gate) | `npm run check:doc-links` (exits non-zero — RED) | ✅ pass |
+| 08-02.T1 (convert flagged refs to markdown links; fix 3 stale paths → GREEN) | 08-02 | 2 | DOC-01 | script (GREEN gate) | `npm run check:doc-links && npm run test:js` (0 offenders) | ✅ pass |
+| 08-03.T1 (verify `npm run assets:banners` regenerates both banners; restore committed PNGs) | 08-03 | 1 | REL-06 | regen + dimensions | `npm run assets:banners && file .wordpress-org/banner-772x250.png \| grep -q "772 x 250" && file .wordpress-org/banner-1544x500.png \| grep -q "1544 x 500"` | ✅ pass |
+| 08-03.T2 (reconcile REL-06 wording: in-code SVG master + Inkscape + Pillow; standalone-svg substitution) | 08-03 | 1 | REL-06 | doc grep | `grep -iq "build_final.py" .planning/REQUIREMENTS.md && grep -iqE "Inkscape\|Pillow" .planning/REQUIREMENTS.md` | ✅ pass |
+| 08-04.T1 (Docker-free zero-regression gates) | 08-04 | 3 | DOC-01, REL-06 | unit+lint+checker | `composer test:unit && composer lint && npm run check:doc-links && npm run test:js` | ✅ pass — PHP unit 44/44, lint clean, 0 offenders, JS 44/44 |
+| 08-04.T1b (Docker regression gates) | 08-04 | 3 | DOC-01, REL-06 | integration+e2e | `npm run test:php && npm run test:e2e` | ✅ pass — integration 29/29 (81 assertions), e2e 16/16 |
+| 08-04.T2 (flip DOC-01 Complete; mark Phase 8 done; sign off) | 08-04 | 3 | DOC-01 | tracking grep | `grep -q "\[x\] \*\*DOC-01" .planning/REQUIREMENTS.md` | ✅ pass |
 
 ---
 
 ## Wave 0 Requirements
 
-- [ ] Failing doc-link checker (RED) listing the inline-code refs that resolve to
+- [x] Failing doc-link checker (RED) listing the inline-code refs that resolve to
       real project files but are not yet markdown links, scoped to the in-scope docs
       (README, SPEC, TESTING, user-guide, planning) and EXCLUDING WP-core refs
       (`common.js`, `menu-header.php`, `wp-admin/*`) and `readme.txt` relative paths.
+      **Done (08-01):** `bin/check-doc-links.mjs` + `tests/js/doc-links.test.mjs` — RED baseline was 21 offenders.
 - *No new framework — reuse the Phase 6 `node:test` seam, or a standalone
   `bin/check-doc-links.mjs` invoked by an npm script.*
 
@@ -77,11 +80,11 @@ created: 2026-06-15
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 10s for unit loops
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 10s for unit loops
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** SIGNED OFF 2026-06-17 — Phase 8 capstone complete. Zero-regression bar held on docs/asset-only changes. DOC-01 verified GREEN (0 offenders). Phase 8 executable scope closed.
