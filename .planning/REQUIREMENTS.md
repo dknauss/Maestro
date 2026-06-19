@@ -1,7 +1,7 @@
 # Requirements: Maestro
 
 **Defined:** 2026-06-13
-**Last updated:** 2026-06-19 — V2-16 pulled forward to Phase 10 (v1.2 research spike); V2-17 (single-site privileged editor tier) added to v2 backlog
+**Last updated:** 2026-06-19 — V2-16 → Phase 10 (research spike); V2-17 added to v2 backlog; UX-08 (admin-bar mobile entry) + BUG-06/BUG-07 (bot-review audit) added to v1.2 backlog
 **Core Value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
 
 ## v1.0 Requirements — ✅ shipped & archived
@@ -67,6 +67,14 @@ Post-1.1 editor UI/UX refinements raised 2026-06-17 from hands-on use of the liv
 - [x] **UX-05**: ~~Remove the visible "Appearance" group label~~ — clarified: this was the **selected-item breadcrumb** (showed the item's name). **Shipped in 1.1.1** — made `screen-reader-text` (SR keeps item/submenu context; visible space reclaimed).
 - [x] **UX-06**: Tighten reset button labels — **"Reset Item"** / **"Reset All"**. **Shipped in 1.1.1** (i18n only; e2e selectors are class-based).
 - [ ] **UX-07**: Small-screen sizing — the wrap fix (BUG-03) is in, but on small/mobile the **buttons and rename field are still too large**. Reduce control + input sizing at narrow widths (denser padding/font), keeping a ≥44px touch-target floor only where a real tap target is needed, so the toolbar fits and reads well on mobile. Still needs a focused mobile pass.
+- [ ] **UX-08** (raised 2026-06-19, hands-on mobile use — not yet scheduled): **Admin-bar editor entry — mobile visibility + compact label.** The edit-mode toggle is a top-level admin-bar node added in [`class-admin-bar.php`](../includes/class-admin-bar.php#L47) (`maestro-toggle`, label "Edit Admin Menu" / "Exit Editor" with a dashicon). Two problems observed: **(a) the toggle disappears on mobile** — WordPress core hides most top-level admin-bar nodes at ≤782px, so on a phone there is *no entry point to the editor at all* (this is the more serious of the two — it's a functional loss, not just polish). Fix options to evaluate: keep the node visible at ≤782px via a targeted admin-bar CSS override, render it icon-only when narrow, or nest it under an always-visible parent (e.g. the site-name node). **(b) the label is long** — "Edit Admin Menu" is 3 words + icon while peer admin-bar toggles use single-word labels, so Maestro eats a lot of toolbar width; consider a shorter label ("Edit Menu" / "Editing", or icon-only on narrow widths) with the full phrasing kept as the `meta` title/`aria-label` for AT. *a11y:* whatever the visible label, the node must keep an accessible name (the existing `meta.title` already supplies a tooltip); icon-only must still expose text to AT. *Relates to UX-07 (the in-editor mobile pass) — same mobile concern, different surface (entry point vs. edit-mode toolbar).*
+
+### Defects (triaged 2026-06-19 — Copilot/Codex PR-review audit)
+
+Surfaced by auditing bot review comments on PRs #1–#34. Most were already addressed in later work; these two from **PR #24 (Codex, P2)** appear **still open** against current `assets/maestro.js` and touch shipped Phase 6 features (A11Y-06 keyboard reorder, UX-01 modified indicator). Both need a quick repro to confirm severity before scheduling.
+
+- [ ] **BUG-06** — *Separators not preserved during keyboard reorder.* On Alt+Arrow, [`maestro.js:301–304`](../assets/maestro.js#L301) re-appends **every** `li.menu-top.maestro-item` to `#adminmenu` in `newOrder` via `appendChild`, which moves all editable items to the **end** of the list — after any `li.wp-menu-separator` (and other non-`maestro-item` children). In a real admin menu with separators, the first keyboard move pushes all items past the separators, visibly distorting the menu until reload. The pure `reorderMove()` logic is fine; the **DOM application step** is the bug — it should shift only the selected node by one position (e.g. `insertBefore` relative to its neighbour) rather than re-appending the whole set. *Dovetails with V2-02 (separator management) and Phase 10 (WooCommerce adds separators).* Severity: medium (visual, self-heals on reload). Confirmed by code reading; needs repro on a separator-bearing menu.
+- [ ] **BUG-07** — *Modified badge lands after the submenu, not on the row.* [`maestro.js:107`](../assets/maestro.js#L107) appends `.maestro-modified-badge` directly to the `<li>`; the badge CSS ([`maestro.css:82`](../assets/maestro.css#L82)) is inline (`margin-left`/`vertical-align`), **not** absolutely positioned — so for a top-level item **with a submenu**, the badge is inserted *after* the `<ul class="wp-submenu">` and renders below/after the (expanded) submenu rather than next to the changed row's label, undermining the non-colour modified indicator. Fix: append the badge to the row's anchor/label (`a.menu-top` / `.wp-menu-name`) instead of the `<li>`. Severity: low–medium (the indicator is misplaced for parent items). Confirmed by code reading; needs visual repro. *Relates to UX-01.*
 
 ## v2 Requirements
 
@@ -144,4 +152,4 @@ Post-1.0 backlog (from SPEC.md → Roadmap). Tracked, not in this roadmap.
 
 ---
 *Requirements defined: 2026-06-13*
-*Last updated: 2026-06-19 — V2-16 → Phase 10 (research spike); V2-17 added to v2 backlog*
+*Last updated: 2026-06-19 — V2-16 → Phase 10; V2-17 added; UX-08 + BUG-06/BUG-07 added to v1.2 backlog (bot-review audit)*
