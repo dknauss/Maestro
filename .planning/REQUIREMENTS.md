@@ -142,10 +142,14 @@ Post-1.0 backlog (from SPEC.md → Roadmap). Tracked, not in this roadmap.
 | UX-04 | Phase 9: Editor UX Polish | Pending |
 | UX-07 | Phase 9: Editor UX Polish | Pending |
 | V2-16 | Phase 10: Third-Party Menu Compatibility Research | Pending (research spike) |
+| UX-08 | Phase 11: Editor Entry & Reorder Fixes | Pending (scaffolded — needs discuss) |
+| BUG-06 | Phase 11: Editor Entry & Reorder Fixes | Pending (scaffolded) |
+| BUG-07 | Phase 11: Editor Entry & Reorder Fixes | Pending (scaffolded) |
 
 **Coverage (v1.2):**
 - v1.2 build requirements: 3 (UX-03, UX-04, UX-07) — all mapped to Phase 9
 - v1.2 research spike: V2-16 (WooCommerce-first third-party menu compatibility) — pulled forward 2026-06-19, mapped to Phase 10
+- v1.2 follow-up fixes: UX-08 + BUG-06 + BUG-07 — scaffolded 2026-06-19 into Phase 11 (from the bot-review audit + mobile use); Phase 11 needs `/gsd:discuss-phase 11` before planning (UX-08 fix approach is an open decision)
 - Unmapped: 0 ✓
 - UX-05 and UX-06: shipped in v1.1.1 — not included in v1.2 scope
 - V2-17 (single-site privileged editor tier) added to the v2 backlog 2026-06-19 — research, not yet scheduled

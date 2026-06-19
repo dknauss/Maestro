@@ -4,7 +4,7 @@
 
 - ✅ **v1.0 WordPress.org Release Readiness** — Phases 1–5 (shipped 2026-06-14; submitted to .org, awaiting review) → [archive](milestones/v1.0-ROADMAP.md)
 - ✅ **v1.1 Polish & Accessibility** — Phases 6–8 (shipped 2026-06-17)
-- 🚧 **v1.2 Editor UX Polish** — Phases 9–10 (Phase 9 editor polish in progress; Phase 10 a WooCommerce-first third-party menu compatibility **research spike**, pulled forward from V2-16 on 2026-06-19)
+- 🚧 **v1.2 Editor UX Polish** — Phases 9–11 (Phase 9 editor polish in progress; Phase 10 a WooCommerce-first third-party menu compatibility **research spike** from V2-16; Phase 11 editor-entry & reorder fixes — UX-08 + BUG-06/07 from the 2026-06-19 bot-review audit)
 
 ## Phases
 
@@ -116,10 +116,23 @@ Full phase details, success criteria, and outcomes are archived in
   5. The research note lands in the repo (e.g. `docs/` or `.planning/`) and feeds the prioritized backlog (relates to V2-01 reparenting, V2-02 separators); no change to the zero-regression bar
 **Plans**: TBD
 
+### Phase 11: Editor Entry & Reorder Fixes
+**Goal**: The editor is reachable and compact on mobile, keyboard reorder preserves separators, and the modified-state badge sits on the changed row — closing the mobile-access gap and two visual defects surfaced by the 2026-06-19 bot-review audit
+**Depends on**: Phase 9
+**Requirements**: UX-08, BUG-06, BUG-07
+**Scaffolded 2026-06-19** from the Copilot/Codex PR-review audit + hands-on mobile use. **Needs `/gsd:discuss-phase 11` before planning** — the UX-08 fix approach is an open decision (see CONTEXT stub).
+**Success Criteria** (what must be TRUE):
+  1. The Maestro edit-mode toggle is reachable at ≤782px (mobile) — it is no longer hidden along with WP core's top-level admin-bar nodes; confirmed on a narrow viewport
+  2. The toggle's visible label is compact (parity with single-word peer admin-bar toggles) while retaining a programmatic accessible name (the `meta` title / `aria-label`); icon-only forms still expose text to AT
+  3. Keyboard reorder (Alt+Arrow) moves only the selected item by one position and leaves `wp-menu-separator` nodes in place — no menu distortion on a separator-bearing menu; confirmed by e2e on a menu that contains separators (BUG-06)
+  4. The modified-state badge renders on the changed row (next to the label/anchor), including top-level items that have submenus, not after the submenu `<ul>` — confirmed by screenshot/e2e (BUG-07)
+  5. Behavioral JS changes are red-first node:test where a logic seam exists; the full zero-regression bar holds (PHP unit, integration, e2e green; Plugin Check 0 errors; phpcs clean)
+**Plans**: TBD
+
 ## Progress
 
 **Execution Order:**
-v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). v1.2 executes: 9 → 10 (10 is a research spike; may run independently of 9)
+v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). v1.2 executes: 9 → 11 (build); 10 is an independent research spike (may run anytime). Phase 11 depends on Phase 9.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -131,5 +144,6 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 | 6. Accessibility & Interaction | v1.1 | 3/3 | Complete | 2026-06-16 |
 | 7. Visual Polish & Icons | v1.1 | 4/4 | Complete | 2026-06-17 |
 | 8. Docs & Brand Assets | v1.1 | 4/4 (executable scope; REL-07/08 deferred) | Complete | 2026-06-17 |
-| 9. Editor UX Polish | v1.2 | 0/TBD | Not started | - |
+| 9. Editor UX Polish | v1.2 | 0/6 | Not started | - |
 | 10. Third-Party Menu Compatibility Research | v1.2 | 0/TBD | Not started (research spike) | - |
+| 11. Editor Entry & Reorder Fixes | v1.2 | 0/TBD | Scaffolded (needs discuss) | - |
