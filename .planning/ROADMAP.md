@@ -144,6 +144,6 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 | 6. Accessibility & Interaction | v1.1 | 3/3 | Complete | 2026-06-16 |
 | 7. Visual Polish & Icons | v1.1 | 4/4 | Complete | 2026-06-17 |
 | 8. Docs & Brand Assets | v1.1 | 4/4 (executable scope; REL-07/08 deferred) | Complete | 2026-06-17 |
-| 9. Editor UX Polish | 1/6 | In Progress|  | - |
+| 9. Editor UX Polish | 2/6 | In Progress|  | - |
 | 10. Third-Party Menu Compatibility Research | v1.2 | 0/TBD | Not started (research spike) | - |
 | 11. Editor Entry & Reorder Fixes | v1.2 | 0/TBD | Scaffolded (needs discuss) | - |

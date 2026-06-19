@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Editor UX Polish
 status: planning
-stopped_at: Completed 09-01-PLAN.md — Wave 0 TDD seam green (56/56)
-last_updated: "2026-06-19T23:34:50.105Z"
+stopped_at: Completed 09-02-PLAN.md — UX-03 split mode indicator + modeLabel i18n
+last_updated: "2026-06-19T23:58:41.695Z"
 last_activity: 2026-06-17 — v1.2 roadmap written; v1.1 milestone archived; Phase 9 is the single phase for UX-03, UX-04, UX-07
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 16
-  completed_plans: 10
+  completed_plans: 11
   percent: 90
 ---
 
@@ -60,6 +60,7 @@ Progress: [#########-] 90%
 
 *Updated after each plan completion*
 | Phase 09-editor-ux-polish P01 | 525594m | 2 tasks | 4 files |
+| Phase 09-editor-ux-polish P02 | 21m | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,9 @@ Recent decisions affecting current work:
 - [Phase 09]: Behavioral JS (first-run cue gate, indicator state transitions) is test-eligible via node:test; CSS-only sizing is TDD-exempt per project CLAUDE.md
 - [Phase 09-editor-ux-polish]: modeStatusLabel returns '' for idle; 'Edit Mode' label is DOM-built in Plan 02
 - [Phase 09-editor-ux-polish]: firstRunSeen returns true on storage.getItem throws to safely suppress cue
+- [Phase 09-editor-ux-polish]: modeLabel key + LocalizationTest update shipped in one commit (never red mid-plan)
+- [Phase 09-editor-ux-polish]: idle dashicon is real DOM span (aria-hidden), not ::before, avoiding BUG-04 regression
+- [Phase 09-editor-ux-polish]: setStatus uses textContent='' at idle (not hidden attr); live region always present, only content varies
 
 ### Pending Todos
 
@@ -87,6 +91,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-19T23:34:50.103Z
-Stopped at: Completed 09-01-PLAN.md — Wave 0 TDD seam green (56/56)
+Last session: 2026-06-19T23:58:41.693Z
+Stopped at: Completed 09-02-PLAN.md — UX-03 split mode indicator + modeLabel i18n
 Resume file: None
