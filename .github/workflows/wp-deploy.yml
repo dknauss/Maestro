@@ -36,7 +36,7 @@ jobs:
           echo "version=${REF#v}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout ${{ steps.meta.outputs.ref }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ steps.meta.outputs.ref }}
 
