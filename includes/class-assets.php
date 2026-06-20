@@ -94,7 +94,6 @@ class Assets {
 				'menu'     => $this->replay->get_menu_model(),
 				'pristine' => $this->replay->get_pristine(),
 				'i18n'     => array(
-					'idle'              => __( 'Edit Mode', 'maestro-menu-editor' ),
 					'saving'            => __( 'Saving…', 'maestro-menu-editor' ),
 					'saved'             => __( 'Saved', 'maestro-menu-editor' ),
 					'saveError'         => __( 'Save failed. Retrying on next change.', 'maestro-menu-editor' ),
