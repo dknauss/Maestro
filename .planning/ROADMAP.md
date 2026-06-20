@@ -96,11 +96,11 @@ Full phase details, success criteria, and outcomes are archived in
   4. Every behavioral JS change — mode-indicator state transitions, first-run cue localStorage gate, placeholder clear-on-focus wiring — is covered by a red-first node:test unit test before implementation lands
   5. The full zero-regression bar holds: PHP unit, integration, and e2e suites green; phpcs clean
 **Plans**: 6 plans
-  - [ ] 09-01-PLAN.md — TDD seams: modeStatusLabel, firstRunSeen, placeholderVisible (red-first node:test) [UX-03, UX-04]
-  - [ ] 09-02-PLAN.md — UX-03 status split: short "Edit Mode" indicator (dashicon + text), separate transient save-status; modeLabel i18n + LocalizationTest [UX-03]
-  - [ ] 09-03-PLAN.md — UX-03 first-run one-shot pulse on first editable item (localStorage-gated, reduced-motion fallback, dual cleanup) [UX-03]
-  - [ ] 09-04-PLAN.md — UX-04 rename placeholder ("Menu label") + visually-hidden accessible label; renamePlaceholder i18n + LocalizationTest [UX-04]
-  - [ ] 09-05-PLAN.md — UX-07 mobile density + 44px tap-target floor at <=782px; 700px screenshot-review checkpoint (restructure only if needed) [UX-07]
+  - [x] 09-01-PLAN.md — TDD seams: modeStatusLabel, firstRunSeen, placeholderVisible (red-first node:test) [UX-03, UX-04]
+  - [x] 09-02-PLAN.md — UX-03 status split: short "Edit Mode" indicator (dashicon + text), separate transient save-status; modeLabel i18n + LocalizationTest [UX-03]
+  - [x] 09-03-PLAN.md — UX-03 first-run one-shot pulse on first editable item (localStorage-gated, reduced-motion fallback, dual cleanup) [UX-03]
+  - [x] 09-04-PLAN.md — UX-04 rename placeholder ("Menu label") + visually-hidden accessible label; renamePlaceholder i18n + LocalizationTest [UX-04]
+  - [x] 09-05-PLAN.md — UX-07 mobile density + 44px tap-target floor at <=782px; 700px screenshot-review checkpoint approved (no restructure needed) [UX-07]
   - [ ] 09-06-PLAN.md — zero-regression gate (full suite + Plugin Check) + flip UX-03/04/07 traceability to Complete [UX-03, UX-04, UX-07]
 
 ### Phase 10: Third-Party Menu Compatibility Research
@@ -156,7 +156,7 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 | 6. Accessibility & Interaction | v1.1 | 3/3 | Complete | 2026-06-16 |
 | 7. Visual Polish & Icons | v1.1 | 4/4 | Complete | 2026-06-17 |
 | 8. Docs & Brand Assets | v1.1 | 4/4 (executable scope; REL-07/08 deferred) | Complete | 2026-06-17 |
-| 9. Editor UX Polish | 4/6 | In Progress|  | - |
+| 9. Editor UX Polish | v1.2 | 5/6 | In Progress | - |
 | 10. Third-Party Menu Compatibility Research | v1.2 | 0/TBD | Not started (research spike) | - |
 | 11. Editor Entry & Reorder Fixes | v1.2 | 0/TBD | Scaffolded (needs discuss) | - |
 | 12. Release Assets Refresh | v1.2 | 0/TBD | Scaffolded (REL-07/08 folded in) | - |

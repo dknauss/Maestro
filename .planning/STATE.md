@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Editor UX Polish
 status: planning
-stopped_at: Completed 09-04-PLAN.md — UX-04 rename placeholder + accessible name
-last_updated: "2026-06-20T01:15:06.470Z"
+stopped_at: Completed 09-05-PLAN.md — UX-07 mobile density + 44px tap-target floor (checkpoint approved; no restructure)
+last_updated: "2026-06-20T02:00:00.000Z"
 last_activity: 2026-06-17 — v1.2 roadmap written; v1.1 milestone archived; Phase 9 is the single phase for UX-03, UX-04, UX-07
 progress:
   total_phases: 7
@@ -27,9 +27,9 @@ See: .planning/PROJECT.md (updated 2026-06-14)
 
 Milestone: v1.2 Editor UX Polish — in progress
 Phase: Phase 9 (Editor UX Polish) — next to plan
-Plan: none yet (0/TBD)
-Status: Ready to plan
-Last activity: 2026-06-17 — v1.2 roadmap written; v1.1 milestone archived; Phase 9 is the single phase for UX-03, UX-04, UX-07
+Plan: 09-06 (5/6 — 09-05 complete)
+Status: In progress
+Last activity: 2026-06-20 — Phase 9 Plan 05 complete (UX-07 mobile density + checkpoint approved; 09-06 zero-regression gate is next)
 
 Progress: [#########-] 90%
 
@@ -63,6 +63,7 @@ Progress: [#########-] 90%
 | Phase 09-editor-ux-polish P02 | 21m | 3 tasks | 5 files |
 | Phase 09-editor-ux-polish P03 | 15 | 2 tasks | 3 files |
 | Phase 09-editor-ux-polish P04 | 18 | 3 tasks | 5 files |
+| Phase 09-editor-ux-polish P05 | ~60m | 3 tasks (2 auto + 1 checkpoint) + regression fixes | 2 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,9 @@ Recent decisions affecting current work:
 - [Phase 09-editor-ux-polish]: renamePlaceholder key + LocalizationTest in same commit — integration never red between commits
 - [Phase 09-editor-ux-polish]: rename key retained in payload as SR label textContent; visually-hidden label provides accessible name; placeholder is NOT an accessible name
 - [Phase 09-editor-ux-polish]: placeholder colour #8c8f94 (WP muted-text token, AA non-text contrast); opacity:1 overrides Firefox default 0.54
+- [Phase 09-editor-ux-polish]: 700px density screenshot approved (no restructure) — flex-wrap (BUG-03) + denser padding/font is sufficient; 44px min-height floor fixed at WCAG 2.5.5 AAA
+- [Phase 09-editor-ux-polish]: specificity rule for media-query overrides — use parent scoping (.maestro-toolbar .child) not !important
+- [Phase 09-editor-ux-polish]: wave-boundary e2e gate pattern — when Docker/sandbox blocks per-task e2e, run full Playwright suite once at wave boundary before the regression-gate plan
 
 ### Pending Todos
 
@@ -98,6 +102,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-20T01:15:06.468Z
-Stopped at: Completed 09-04-PLAN.md — UX-04 rename placeholder + accessible name
+Last session: 2026-06-20T02:00:00.000Z
+Stopped at: Completed 09-05-PLAN.md — UX-07 mobile density + 44px tap-target floor (checkpoint approved; 09-06 next)
 Resume file: None
