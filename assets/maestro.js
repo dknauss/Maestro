@@ -1070,9 +1070,18 @@
 	 * Uses i18n strings I.firstRun / I.firstRunDismiss from the localized payload.
 	 */
 	function buildFirstRunCue() {
-		// Gate on the Plan-01 seam: returns true if seen OR if storage throws
-		// (private-browsing / blocked — treat as seen so the cue is skipped safely).
-		if ( window.maestroLogic.firstRunSeen( window.localStorage ) ) { return; }
+		// Gate on the Plan-01 seam. Access window.localStorage INSIDE try/catch:
+		// in blocked/partitioned-storage browsers the getter itself throws a
+		// SecurityError (before firstRunSeen's own guard can run), which would
+		// otherwise escape and abort edit-mode init. Treat any throw as "seen" so
+		// the cue is simply skipped for those users.
+		var firstRunCueSeen;
+		try {
+			firstRunCueSeen = window.maestroLogic.firstRunSeen( window.localStorage );
+		} catch ( storageErr ) {
+			firstRunCueSeen = true;
+		}
+		if ( firstRunCueSeen ) { return; }
 
 		var cue = el( 'div', 'maestro-firstrun' );
 		cue.setAttribute( 'role', 'note' );
@@ -1116,6 +1125,14 @@
 
 		cue.appendChild( text );
 		cue.appendChild( dismissBtn );
+
+		// Sit the cue flush above the toolbar regardless of the toolbar's height.
+		// UX-07's 44px tap targets make the ≤782px toolbar taller than the CSS
+		// default offset (and it can wrap), so measure the real height rather than
+		// trusting a fixed value — keeps the cue from being covered by the toolbar.
+		var toolbarEl = document.querySelector( '.maestro-toolbar' );
+		if ( toolbarEl ) { cue.style.bottom = toolbarEl.offsetHeight + 'px'; }
+
 		document.body.appendChild( cue );
 	}
 

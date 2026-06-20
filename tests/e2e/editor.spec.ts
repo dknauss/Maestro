@@ -654,6 +654,35 @@ test.describe( 'UX-03 — first-run pulse on first editable menu item', () => {
 
 } );
 
+test.describe( 'UX-07 — first-run cue clears the toolbar at narrow widths', () => {
+
+	// Regression guard (Codex PR #35): UX-07's 44px tap targets make the <=782px
+	// toolbar taller than the old fixed `bottom:53px` cue offset, so the cue was
+	// covered by the toolbar. The cue now measures the toolbar height in JS.
+	test( 'first-run cue is not covered by the taller toolbar at 700px', async ( { page } ) => {
+		await page.setViewportSize( { width: 700, height: 800 } );
+		await page.goto( '/wp-admin/index.php' );
+		await page.evaluate( () => {
+			try { localStorage.removeItem( 'maestroFirstRunDone' ); } catch ( e ) { /* private browsing */ }
+		} );
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+
+		const cue = page.locator( '.maestro-firstrun' );
+		const toolbar = page.locator( '.maestro-toolbar' );
+		await expect( cue ).toBeVisible();
+		await expect( toolbar ).toBeVisible();
+
+		const cueBox = await cue.boundingBox();
+		const tbBox = await toolbar.boundingBox();
+		expect( cueBox ).not.toBeNull();
+		expect( tbBox ).not.toBeNull();
+		// The cue's bottom edge must not extend past the toolbar's top edge (1px
+		// tolerance) — i.e. the cue sits fully above the toolbar, not under it.
+		expect( cueBox!.y + cueBox!.height ).toBeLessThanOrEqual( tbBox!.y + 1 );
+	} );
+
+} );
+
 test.describe( 'Phase 7 — status icon: none when idle, dashicon for save states', () => {
 
 	test( 'idle status shows no ::before glyph; the saved state keeps its dashicon', async ( { page } ) => {
