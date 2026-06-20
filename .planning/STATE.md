@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Editor UX Polish
-status: planning
-stopped_at: Completed 09-06-PLAN.md — Phase 9 zero-regression gate signed off; Phase 9 (UX-03/04/07) complete; next = Phase 11 (Editor Entry & Reorder Fixes) on the 1.2.0 release path
-last_updated: "2026-06-20T03:00:00.000Z"
-last_activity: 2026-06-19 — Phase 9 complete (UX-03/04/07); full suite green; next = Phase 11 (release path 9 → 11 → 12); Phase 10 is independent research
+status: completed
+stopped_at: Completed 11.1-01-PLAN.md — HARD-01 custom_menu_order gate shipped; Plan 01 green; next = Plan 02 (HARD-02 config payload bounds)
+last_updated: "2026-06-20T16:06:36.571Z"
+last_activity: 2026-06-19 — Phase 9 Plan 06 complete; zero-regression gate signed off; UX-03/04/07 all Complete; full suite JS 53/53, PHP 44/44, integration 29/29, e2e 24/24, phpcs clean, Plugin Check 0 errors
 progress:
-  total_phases: 7
+  total_phases: 8
   completed_phases: 3
-  total_plans: 16
-  completed_plans: 14
-  percent: 93
+  total_plans: 20
+  completed_plans: 16
+  percent: 90
 ---
 
 # Project State
@@ -65,6 +65,7 @@ Progress: [#########-] 90%
 | Phase 09-editor-ux-polish P04 | 18 | 3 tasks | 5 files |
 | Phase 09-editor-ux-polish P05 | ~60m | 3 tasks (2 auto + 1 checkpoint) + regression fixes | 2 files |
 | Phase 09-editor-ux-polish P06 | ~15m | 2 tasks (gate + traceability) | 3 files |
+| Phase 11.1-p1-review-hardening P01 | 3m | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,8 @@ Recent decisions affecting current work:
 - [Phase 09-editor-ux-polish]: wave-boundary e2e gate pattern — when Docker/sandbox blocks per-task e2e, run full Playwright suite once at wave boundary before the regression-gate plan
 - [Phase 09-editor-ux-polish P06 sign-off]: "Edit Mode" (not the literal "Menu Edit Mode") is the LOCKED idle indicator text — user's refinement; satisfies UX-03's intent (short, glanceable, non-colour-signalled); reconciliation recorded in ROADMAP Phase 9 success criteria. Same pattern as Phase 8 / REL-06.
 - [Phase 09-editor-ux-polish P06 sign-off]: Full suite green at sign-off — JS logic 53/53, PHP unit 44/44, integration 29/29, e2e 24/24, phpcs clean, Plugin Check 0 errors on shippable source. 3 e2e regressions caught and fixed by the orchestrator's full-suite gate (commits 38323c4, 927b682); 2 dead-surface items removed in code review (commit 1ef7fae).
+- [Phase 11.1-p1-review-hardening]: has_top_order() is public (not private): WP filter dispatch requires public visibility for array-style callbacks — private raises TypeError at call_user_func_array
+- [Phase 11.1-p1-review-hardening]: custom_menu_order gate reads config at filter-call time so WP's per-load invocation gets the live stored value; menu_order/reorder_top stays unconditional (harmless when gate is off, no-ops on empty order)
 
 ### Roadmap Evolution
 
@@ -109,6 +112,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-20T03:00:00.000Z
-Stopped at: Completed 09-06-PLAN.md — Phase 9 zero-regression gate signed off; UX-03/04/07 Complete; Phase 9 done; next = Phase 11 (needs /gsd:discuss-phase 11 before planning)
+Last session: 2026-06-20T16:06:36.569Z
+Stopped at: Completed 11.1-01-PLAN.md — HARD-01 custom_menu_order gate shipped; Plan 01 green; next = Plan 02 (HARD-02 config payload bounds)
 Resume file: None
