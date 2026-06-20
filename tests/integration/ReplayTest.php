@@ -183,4 +183,77 @@ class ReplayTest extends WP_UnitTestCase {
 		$this->assertSame( 'Posts', $menu[5][0] );
 		$this->assertSame( 'dashicons-admin-post', $menu[5][6] );
 	}
+
+	// -----------------------------------------------------------------------
+	// HARD-01: custom_menu_order gate (predicate-gated on stored top_order)
+	// -----------------------------------------------------------------------
+
+	/**
+	 * With no stored top_order, the custom_menu_order filter must return false so
+	 * Maestro does not claim core's menu-order machinery when it has no opinion.
+	 *
+	 * RED: before the fix, class-replay.php:59 registers __return_true unconditionally,
+	 * so apply_filters('custom_menu_order', false) returns true — this case must FAIL
+	 * in the working tree before the fix lands.
+	 */
+	public function test_custom_menu_order_off_without_top_order() {
+		// No top_order saved — config is empty.
+		remove_all_filters( 'custom_menu_order' );
+		new Replay( new Config() );
+
+		$this->assertFalse(
+			apply_filters( 'custom_menu_order', false ),
+			'custom_menu_order must return false when no top_order is stored.'
+		);
+	}
+
+	/**
+	 * With top_order stored as an empty array, the filter still returns false —
+	 * an empty order means Maestro has no ordering opinion either.
+	 */
+	public function test_custom_menu_order_off_with_empty_top_order_array() {
+		( new Config() )->save( array( 'top_order' => array() ) );
+
+		remove_all_filters( 'custom_menu_order' );
+		new Replay( new Config() );
+
+		$this->assertFalse(
+			apply_filters( 'custom_menu_order', false ),
+			'custom_menu_order must return false when top_order is an empty array.'
+		);
+	}
+
+	/**
+	 * With a single-entry top_order stored, the filter returns true — Maestro
+	 * has an ordering opinion and should engage core's machinery.
+	 */
+	public function test_custom_menu_order_on_with_single_entry_top_order() {
+		( new Config() )->save( array( 'top_order' => array( 'edit.php' ) ) );
+
+		remove_all_filters( 'custom_menu_order' );
+		new Replay( new Config() );
+
+		$this->assertTrue(
+			apply_filters( 'custom_menu_order', false ),
+			'custom_menu_order must return true when top_order has at least one entry.'
+		);
+	}
+
+	/**
+	 * With a multi-entry top_order stored, the filter returns true — same as the
+	 * single-entry case, ensures no off-by-one edge in the predicate.
+	 */
+	public function test_custom_menu_order_on_with_stored_top_order() {
+		( new Config() )->save(
+			array( 'top_order' => array( 'edit.php', 'index.php', 'upload.php' ) )
+		);
+
+		remove_all_filters( 'custom_menu_order' );
+		new Replay( new Config() );
+
+		$this->assertTrue(
+			apply_filters( 'custom_menu_order', false ),
+			'custom_menu_order must return true when top_order is non-empty.'
+		);
+	}
 }

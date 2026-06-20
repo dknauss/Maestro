@@ -56,7 +56,7 @@ class Replay {
 		add_action( 'admin_menu', array( $this, 'replay' ), PHP_INT_MAX );
 
 		// Top-level ordering goes through the dedicated core filters.
-		add_filter( 'custom_menu_order', '__return_true' );
+		add_filter( 'custom_menu_order', array( $this, 'has_top_order' ) );
 		add_filter( 'menu_order', array( $this, 'reorder_top' ) );
 	}
 
@@ -146,6 +146,18 @@ class Replay {
 				}
 			}
 		}
+	}
+
+	/**
+	 * `custom_menu_order` filter callback. Only claim core's menu-order machinery
+	 * when we actually have a stored top-level order; otherwise pass through so other
+	 * plugins/themes that hook custom_menu_order/menu_order are not overridden.
+	 *
+	 * @return bool
+	 */
+	public function has_top_order() {
+		$cfg = $this->config->get();
+		return ! empty( $cfg['top_order'] );
 	}
 
 	/**
