@@ -798,3 +798,45 @@ test.describe( 'UX-04 — rename placeholder + accessible name', () => {
 	} );
 
 } );
+
+test.describe( 'UX-07 — tap-target floor: every button and rename input >=44px tall at <=782px', () => {
+
+	// At 700px (the tightest viewport the existing e2e suite exercises, below the 782px
+	// WP admin mobile breakpoint) every real tap target must have a bounding-box height
+	// of at least 44px. This guards the min-height:44px rules added to the <=782px media
+	// query and proves they are not accidentally overridden by anything more specific.
+	test( 'all toolbar buttons and the rename input have boundingBox height >= 44 at 700px', async ( { page } ) => {
+		await page.setViewportSize( { width: 700, height: 800 } );
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+
+		// Select Posts to show the panel (and therefore the rename input).
+		await page.locator( '#menu-posts > a.menu-top' ).click();
+		const panel = page.locator( '.maestro-toolbar .maestro-panel' );
+		await expect( panel ).toBeVisible();
+
+		// Check every .maestro-toolbar .button element.
+		const toolbar = page.locator( '.maestro-toolbar' );
+		const buttons = await toolbar.locator( '.button' ).all();
+		expect( buttons.length ).toBeGreaterThan( 0 );
+
+		for ( const btn of buttons ) {
+			const box = await btn.boundingBox();
+			expect( box, 'boundingBox must not be null for toolbar button' ).not.toBeNull();
+			expect(
+				box!.height,
+				`toolbar button must be >= 44px tall (got ${ box!.height }px)`
+			).toBeGreaterThanOrEqual( 44 );
+		}
+
+		// Check the rename input specifically.
+		const renameInput = page.locator( '.maestro-rename-input' );
+		await expect( renameInput ).toBeVisible();
+		const renameBox = await renameInput.boundingBox();
+		expect( renameBox, 'boundingBox must not be null for rename input' ).not.toBeNull();
+		expect(
+			renameBox!.height,
+			`rename input must be >= 44px tall (got ${ renameBox!.height }px)`
+		).toBeGreaterThanOrEqual( 44 );
+	} );
+
+} );
