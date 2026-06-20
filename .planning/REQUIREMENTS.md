@@ -1,7 +1,7 @@
 # Requirements: Maestro
 
 **Defined:** 2026-06-13
-**Last updated:** 2026-06-19 — V2-16 → Phase 10; V2-17 added; UX-08/UX-09 + BUG-06/07/08 in v1.2 backlog; REL-07/08 → Phase 12. 1.2.0 cuts after Phases 9 → 11 → 12
+**Last updated:** 2026-06-20 — HARD-01/02/03 Complete (Phase 11.1 signed off); v1.2 hardening row closed; v1.2 coverage note updated
 **Core Value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
 
 ## v1.0 Requirements — ✅ shipped & archived
@@ -155,9 +155,9 @@ Post-1.0 backlog (from SPEC.md → Roadmap). Tracked, not in this roadmap.
 | UX-08 | Phase 11: Editor Entry & Reorder Fixes | Pending (scaffolded — needs discuss) |
 | BUG-06 | Phase 11: Editor Entry & Reorder Fixes | Pending (scaffolded) |
 | BUG-07 | Phase 11: Editor Entry & Reorder Fixes | Pending (scaffolded) |
-| HARD-01 | Phase 11.1: P1 Review Hardening | Pending (inserted 2026-06-20) |
-| HARD-02 | Phase 11.1: P1 Review Hardening | Pending (inserted 2026-06-20) |
-| HARD-03 | Phase 11.1: P1 Review Hardening | Pending (inserted 2026-06-20) |
+| HARD-01 | Phase 11.1: P1 Review Hardening | Complete |
+| HARD-02 | Phase 11.1: P1 Review Hardening | Complete |
+| HARD-03 | Phase 11.1: P1 Review Hardening | Complete |
 | REL-07 | Phase 12: Release Assets Refresh | Pending (folded in from Phase 8) |
 | REL-08 | Phase 12: Release Assets Refresh | Pending (folded in from Phase 8) |
 
@@ -165,7 +165,7 @@ Post-1.0 backlog (from SPEC.md → Roadmap). Tracked, not in this roadmap.
 - v1.2 build requirements: 3 (UX-03, UX-04, UX-07) — all mapped to Phase 9
 - v1.2 research spike: V2-16 (WooCommerce-first third-party menu compatibility) — pulled forward 2026-06-19, mapped to Phase 10
 - v1.2 follow-up fixes: UX-08 + BUG-06 + BUG-07 — scaffolded 2026-06-19 into Phase 11 (from the bot-review audit + mobile use); Phase 11 needs `/gsd:discuss-phase 11` before planning (UX-08 fix approach is an open decision)
-- v1.2 hardening: HARD-01 + HARD-02 + HARD-03 — inserted 2026-06-20 as Phase 11.1 (P1 residuals from the 2026-06-20 code-review follow-up); lands inside the cut path before the 1.2.0 tag
+- v1.2 hardening: HARD-01 + HARD-02 + HARD-03 — inserted 2026-06-20 as Phase 11.1 (P1 residuals from the 2026-06-20 code-review follow-up); **Complete 2026-06-20** — custom_menu_order gated, config payload bounded, save-race e2e locked in, zero-regression bar held
 - v1.2 release assets: REL-07 + REL-08 — folded in 2026-06-19 (from Phase 8 deferral) as Phase 12; sequenced after Phases 9 + 11 so screenshots reflect the final UI. **1.2.0 release path: Phases 9 → 11 → 11.1 → 12; Phase 10 research does not gate the cut.**
 - Unmapped: 0 ✓
 - UX-05 and UX-06: shipped in v1.1.1 — not included in v1.2 scope
@@ -173,4 +173,4 @@ Post-1.0 backlog (from SPEC.md → Roadmap). Tracked, not in this roadmap.
 
 ---
 *Requirements defined: 2026-06-13*
-*Last updated: 2026-06-19 — V2-16 → Phase 10; V2-17 added; UX-08 + BUG-06/07 → Phase 11; REL-07/08 → Phase 12 (folded into v1.2)*
+*Last updated: 2026-06-20 — HARD-01/02/03 Complete (Phase 11.1 signed off)*
