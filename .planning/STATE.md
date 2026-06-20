@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Editor UX Polish
-status: completed
-stopped_at: Completed 11.1-02-PLAN.md — HARD-02 config payload bounds shipped; Plan 02 green; next = Plan 03 (save-race E2E coverage)
-last_updated: "2026-06-20T16:17:00.448Z"
-last_activity: 2026-06-19 — Phase 9 Plan 06 complete; zero-regression gate signed off; UX-03/04/07 all Complete; full suite JS 53/53, PHP 44/44, integration 29/29, e2e 24/24, phpcs clean, Plugin Check 0 errors
+status: in-progress
+stopped_at: Completed 11.1-03-PLAN.md — HARD-03 save-race E2E spec authored; E2E run deferred to Wave 2 boundary (Plan 04 gate); next = Plan 04 (Wave 2 boundary full e2e gate)
+last_updated: "2026-06-20T16:35:00.000Z"
+last_activity: 2026-06-20 — Phase 11.1 Plan 03 complete; save-race.spec.ts authored covering races (a)/(b)/(c); 2 commits; E2E run deferred to Wave 2 boundary
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 20
-  completed_plans: 17
+  completed_plans: 18
   percent: 90
 ---
 
@@ -67,6 +67,7 @@ Progress: [#########-] 90%
 | Phase 09-editor-ux-polish P06 | ~15m | 2 tasks (gate + traceability) | 3 files |
 | Phase 11.1-p1-review-hardening P01 | 3m | 1 tasks | 2 files |
 | Phase 11.1-p1-review-hardening P02 | 9 | 2 tasks | 3 files |
+| Phase 11.1-p1-review-hardening P03 | 15m | 2 tasks | 1 file |
 
 ## Accumulated Context
 
@@ -99,6 +100,10 @@ Recent decisions affecting current work:
 - [Phase 11.1-p1-review-hardening]: custom_menu_order gate reads config at filter-call time so WP's per-load invocation gets the live stored value; menu_order/reorder_top stays unconditional (harmless when gate is off, no-ops on empty order)
 - [Phase 11.1-p1-review-hardening]: HARD-02: Config::MAX_* constants pattern — all six size caps are named public class constants; tests reference Config::MAX_* never literals; data-URI over-limit dropped to '' (not substr'd — truncated base64 is corrupt)
 - [Phase 11.1-p1-review-hardening]: HARD-02: WP function stubs added to bootstrap-unit.php (not test file) — allows Config::sanitize() pure-unit calls including hidden_roles cap (wp_roles stub returns 60 roles); stubs use if(\!function_exists()) guards
+- [Phase 11.1-p1-review-hardening P03]: HARD-03: Race (a) exit detection via maestro_edit=1 URL presence/absence — avoids coupling test to server-computed D.exitUrl
+- [Phase 11.1-p1-review-hardening P03]: HARD-03: Race (b) uses page.on('request') counter (deterministic) not negative waitForResponse timeout (non-deterministic)
+- [Phase 11.1-p1-review-hardening P03]: HARD-03: Race (c) uses response-order array (responses.push inside waitForResponse callbacks) to assert POST before DELETE without sleeps
+- [Phase 11.1-p1-review-hardening P03]: HARD-03: E2E run deferred to Wave 2 boundary (Plan 04 gate, Docker, sandbox-disabled) — spec authored only; not marked green until boundary run passes
 
 ### Roadmap Evolution
 

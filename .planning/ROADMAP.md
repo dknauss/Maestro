@@ -144,7 +144,7 @@ Full phase details, success criteria, and outcomes are archived in
 **Plans**: 4 plans
   - [ ] 11.1-01-PLAN.md — HARD-01: gate `custom_menu_order` on a stored `top_order` (predicate-gated filter; red-first integration assertions) [HARD-01]
   - [ ] 11.1-02-PLAN.md — HARD-02: bound `Config::sanitize()` payload (title/items/order/roles counts + data-URI bytes as named `MAX_*` constants; red-first unit) [HARD-02]
-  - [ ] 11.1-03-PLAN.md — HARD-03: Playwright e2e for the three save races (slow-save+Exit, pending-rename+Reset All, in-flight+Reset All); test-only [HARD-03]
+  - [x] 11.1-03-PLAN.md — HARD-03: Playwright e2e for the three save races (slow-save+Exit, pending-rename+Reset All, in-flight+Reset All); test-only [HARD-03]
   - [ ] 11.1-04-PLAN.md — zero-regression gate (full suite + PHPStan + Plugin Check 0 errors) + flip HARD-01/02/03 traceability to Complete [HARD-01, HARD-02, HARD-03]
 
 ### Phase 12: Release Assets Refresh
