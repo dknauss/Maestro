@@ -166,4 +166,71 @@ test.describe( 'HARD-03 — save-race regression coverage', () => {
 		await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible( { timeout: 8000 } );
 	} );
 
+	/**
+	 * Race (b): pending rename + Reset All (no POST fires)
+	 *
+	 * State: saveTimer set (debounce queued, 500ms), inFlight null.
+	 *
+	 * Expected: cancelQueuedAutosave() kills the saveTimer before the debounce
+	 * elapses, so NO POST fires. The DELETE fires immediately (inFlight null ->
+	 * (inFlight || Promise.resolve()) resolves immediately), and the page reloads.
+	 * After reload the rename did NOT persist (reset state).
+	 *
+	 * Assertions:
+	 *   - Zero POST requests to /maestro/v1/config observed between the rename
+	 *     and the DELETE (counted via page.on('request') — deterministic, no timeout).
+	 *   - DELETE response is ok.
+	 *   - After reload, the menu item shows its default title, not the typed rename.
+	 */
+	test( 'race (b): Reset All cancels queued autosave — no POST fires, DELETE wins', async ( { page } ) => {
+		// No POST delay needed for this race (saveTimer is killed before it fires).
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
+
+		// Count any POST requests to the config endpoint fired between rename and DELETE.
+		let postCount = 0;
+		page.on( 'request', req => {
+			if ( POST_SAVE( req.url() ) && req.method() === 'POST' ) {
+				postCount++;
+			}
+		} );
+
+		// Select Posts and type into the rename input but do NOT commit (no Enter/blur).
+		// scheduleAutosave() sets saveTimer but does NOT fire a POST yet (500ms debounce).
+		await page.locator( '#menu-posts > a.menu-top' ).click();
+		const panel = page.locator( '.maestro-toolbar .maestro-panel' );
+		await expect( panel ).toBeVisible();
+
+		const rename = panel.locator( '.maestro-rename-input' );
+		await expect( rename ).toBeVisible();
+
+		// Type character-by-character to trigger scheduleAutosave without committing.
+		// page.keyboard.type fires input events on each character, resetting the 500ms timer.
+		await rename.click();
+		await rename.fill( '' );
+		await page.keyboard.type( 'ArticlesRaceB' );
+
+		// Immediately click Reset All BEFORE the 500ms debounce fires.
+		const deleteDone = page.waitForResponse(
+			r => POST_SAVE( r.url() ) && r.request().method() === 'DELETE' && r.ok()
+		);
+		page.once( 'dialog', d => d.accept() );
+		await page.locator( '.maestro-reset-all' ).click();
+
+		// Wait for the DELETE (should arrive quickly — no queued POST to await).
+		await deleteDone;
+
+		// Assert: zero POST requests fired between the rename and the DELETE.
+		// cancelQueuedAutosave() must have cleared the saveTimer.
+		expect( postCount, 'cancelQueuedAutosave() should have prevented any POST' ).toBe( 0 );
+
+		// doResetAll reloads the page on success — wait for the toolbar to confirm reload.
+		await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible( { timeout: 6000 } );
+
+		// After reload, the rename must NOT have persisted — the menu item shows its
+		// default title ("Posts"), not the typed value ("ArticlesRaceB").
+		await expect( page.locator( '#menu-posts .wp-menu-name' ) ).toContainText( 'Posts' );
+		await expect( page.locator( '#menu-posts .wp-menu-name' ) ).not.toContainText( 'ArticlesRaceB' );
+	} );
+
 } );
