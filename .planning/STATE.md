@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Editor UX Polish
 status: planning
-stopped_at: Completed 09-03-PLAN.md — UX-03 first-run pulse on first editable menu item
-last_updated: "2026-06-20T00:45:44.926Z"
+stopped_at: Completed 09-04-PLAN.md — UX-04 rename placeholder + accessible name
+last_updated: "2026-06-20T01:15:06.470Z"
 last_activity: 2026-06-17 — v1.2 roadmap written; v1.1 milestone archived; Phase 9 is the single phase for UX-03, UX-04, UX-07
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 16
-  completed_plans: 12
+  completed_plans: 13
   percent: 90
 ---
 
@@ -62,6 +62,7 @@ Progress: [#########-] 90%
 | Phase 09-editor-ux-polish P01 | 525594m | 2 tasks | 4 files |
 | Phase 09-editor-ux-polish P02 | 21m | 3 tasks | 5 files |
 | Phase 09-editor-ux-polish P03 | 15 | 2 tasks | 3 files |
+| Phase 09-editor-ux-polish P04 | 18 | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,9 @@ Recent decisions affecting current work:
 - [Phase 09-editor-ux-polish]: setStatus uses textContent='' at idle (not hidden attr); live region always present, only content varies
 - [Phase 09-editor-ux-polish]: Dual-path pulse cleanup: animationend (motion) + dismiss() (reduced-motion/early-dismiss) — animationend never fires under prefers-reduced-motion:reduce
 - [Phase 09-editor-ux-polish]: firstRunSeen gate seam now consumed by buildFirstRunCue() — inline try/catch replaced by window.maestroLogic.firstRunSeen()
+- [Phase 09-editor-ux-polish]: renamePlaceholder key + LocalizationTest in same commit — integration never red between commits
+- [Phase 09-editor-ux-polish]: rename key retained in payload as SR label textContent; visually-hidden label provides accessible name; placeholder is NOT an accessible name
+- [Phase 09-editor-ux-polish]: placeholder colour #8c8f94 (WP muted-text token, AA non-text contrast); opacity:1 overrides Firefox default 0.54
 
 ### Pending Todos
 
@@ -94,6 +98,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-20T00:45:44.923Z
-Stopped at: Completed 09-03-PLAN.md — UX-03 first-run pulse on first editable menu item
+Last session: 2026-06-20T01:15:06.468Z
+Stopped at: Completed 09-04-PLAN.md — UX-04 rename placeholder + accessible name
 Resume file: None
