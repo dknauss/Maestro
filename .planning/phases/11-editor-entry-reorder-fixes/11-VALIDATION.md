@@ -1,8 +1,8 @@
 ---
 phase: 11
 slug: editor-entry-reorder-fixes
-status: draft
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-06-21
 ---
@@ -76,11 +76,13 @@ created: 2026-06-21
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references (3 new e2e tests + AdminBarTest confirmation)
-- [ ] No watch-mode flags
-- [ ] Feedback latency < ~5s for JS quick run
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references (3 new e2e tests + AdminBarTest — landed as `tests/integration/AdminBarTest.php`, not unit: `Admin_Bar::node()` needs the WP runtime, and the unit bootstrap is WP-free)
+- [x] No watch-mode flags
+- [x] Feedback latency < ~5s for JS quick run
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved — plan-checker PASS (goal-backward, all 4 requirements covered test-first; line numbers + file-ownership re-verified). Two non-blocking advisories noted in plan text:
+1. 11-04 Task 1 `<automated>` verify is `npm run test:js` only; the full Docker e2e/PHP suite lives in `<action>` (sandbox-disabled at execute time) — executor must not treat the JS verify as the sole gate.
+2. BUG-06 separator fixture is probe-first: Wave 0 test `test.skip()`s (reports SKIPPED, never a vacuous pass) if wp-env has no separators; Wave 2 gate MUST add the mu-plugin fixture and confirm the test actually exercises separator preservation — a skipped BUG-06 test does NOT satisfy the phase.
