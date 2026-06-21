@@ -52,6 +52,15 @@ class Assets {
 	 * @return void
 	 */
 	public function enqueue() {
+		// Always-loaded: keep the editor ENTER/EXIT toggle reachable in the admin bar at <=782px,
+		// regardless of edit mode (the heavy editor assets below stay edit-mode-gated). UX-08a.
+		wp_enqueue_style(
+			'maestro-admin-bar',
+			MAESTRO_URL . 'assets/maestro-admin-bar.css',
+			array( 'dashicons' ),
+			MAESTRO_VERSION
+		);
+
 		if ( ! is_edit_mode() ) {
 			return;
 		}
