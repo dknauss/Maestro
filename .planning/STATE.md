@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Editor UX Polish
 status: executing
-stopped_at: Completed 11-03-PLAN.md
+stopped_at: Phase 11 executed — 4/4 plans complete, zero-regression bar held; pending verify_phase_goal
 last_updated: "2026-06-21T21:31:21.103Z"
-last_activity: 2026-06-20 — Phase 11.1 complete (HARD-01/02/03); full suite green (PHP unit 61/61, JS 53/53, integration 33/33, e2e 28/28, phpcs clean, PHPStan 0, Plugin Check 0); merged to main
+last_activity: 2026-06-21 — Phase 11 (UX-08/BUG-06/BUG-07) executed: 4/4 plans on branch gsd/phase-11-editor-entry-reorder-fixes. Full suite green at Wave 2 gate (JS 53/53, PHP unit 61/61, integration 37/37 incl. AdminBarTest, e2e 31/31 incl. UX-08a/BUG-06/BUG-07, phpcs clean, PHPStan 0). BUG-06 ran against real WP-core separators (not skipped). Deterministic UX-08a mobile PNGs captured via npm run screenshots.
 progress:
   total_phases: 8
   completed_phases: 4
@@ -26,10 +26,10 @@ See: .planning/PROJECT.md (updated 2026-06-14)
 ## Current Position
 
 Milestone: v1.2 Editor UX Polish — in progress
-Phase: Phase 11 (Editor Entry & Reorder Fixes) — needs `/gsd:discuss-phase 11` before planning
-Plan: N/A — Phases 9 + 11.1 complete; Phase 10 is independent research (can run in parallel); Phase 11 is next on the 1.2.0 release path (discuss before planning)
-Status: In progress — Phases 9 + 11.1 done; Phase 11 next (plan → execute), then Phase 12, then tag 1.2.0
-Last activity: 2026-06-20 — Phase 11.1 complete (HARD-01/02/03); full suite green (PHP unit 61/61, JS 53/53, integration 33/33, e2e 28/28, phpcs clean, PHPStan 0, Plugin Check 0); merged to main
+Phase: Phase 11 (Editor Entry & Reorder Fixes) — EXECUTED, 4/4 plans complete; pending phase-goal verification
+Plan: 11-01…11-04 complete on branch gsd/phase-11-editor-entry-reorder-fixes; Phase 12 next, then tag 1.2.0
+Status: In progress — Phase 11 executed & green (UX-08/BUG-06/BUG-07); verify_phase_goal next, then Phase 12, then tag 1.2.0
+Last activity: 2026-06-21 — Phase 11 executed: 4/4 plans, full suite green at Wave 2 gate (JS 53/53, PHP unit 61/61, integration 37/37, e2e 31/31, phpcs clean, PHPStan 0); BUG-06 exercised real separators; UX-08a mobile PNGs captured
 
 Progress: [#########-] 90%
 
