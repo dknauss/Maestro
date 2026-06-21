@@ -286,22 +286,23 @@
 				return;
 			}
 
-			// Physically reorder the DOM nodes to match newOrder.
-			var slugToNode = Object.create( null );
-			if ( m.isSub ) {
-				parentUl.querySelectorAll( 'li.maestro-subitem[data-maestro-slug]' ).forEach( function ( n ) {
-					slugToNode[ n.dataset.maestroSlug ] = n;
-				} );
-			} else {
-				menu.querySelectorAll( 'li.menu-top.maestro-item[data-maestro-slug]' ).forEach( function ( n ) {
-					slugToNode[ n.dataset.maestroSlug ] = n;
-				} );
+			// Physically move ONLY the selected node by one position. All other nodes —
+			// including li.wp-menu-separator and any non-maestro-item children — stay put.
+			var selectedNode = liForSlug( selectedSlug );
+			var maestroChildren = Array.prototype.slice.call(
+				parentUl.querySelectorAll(
+					m.isSub
+						? 'li.maestro-subitem[data-maestro-slug]'
+						: 'li.menu-top.maestro-item[data-maestro-slug]'
+				)
+			);
+			var currentIdx = maestroChildren.indexOf( selectedNode );
+			if ( dir === 'up' && currentIdx > 0 ) {
+				parentUl.insertBefore( selectedNode, maestroChildren[ currentIdx - 1 ] );
+			} else if ( dir === 'down' && currentIdx < maestroChildren.length - 1 ) {
+				var afterNode = maestroChildren[ currentIdx + 1 ];
+				parentUl.insertBefore( selectedNode, afterNode.nextSibling ); // nextSibling null => appendChild semantics
 			}
-
-			newOrder.forEach( function ( slug ) {
-				var node = slugToNode[ slug ];
-				if ( node ) { parentUl.appendChild( node ); }
-			} );
 
 			// CRITICAL: Re-appending nodes detaches them, dropping focus to <body>.
 			// Restore focus to the moved item's anchor so the next Alt+Arrow chains.
