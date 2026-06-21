@@ -24,15 +24,9 @@ Instead of a separate settings screen, Maestro turns the admin menu into somethi
 Maestro's enhancements are only activated for logged-in users with an Administrator role. They can:
 
 * **Rename** any top-level or submenu item — just click the label.
-* **Reorder** items by dragging (top-level items among themselves, submenu items
-  within their parent), or with the keyboard (`Alt`+`Arrow`).
-* **Swap icons** on top-level items. The icon picker offers Dashicons and bundled
-  Bootstrap Icons with search. It accepts any of WordPress's four native icon
-  forms (dashicon, "none", base64 image data-URI, or an image URL).
-* **Hide** items from chosen roles — including administrators. Custom roles
-  registered by other plugins
-  ([User Role Editor](https://wordpress.org/plugins/user-role-editor/),
-  [Members](https://wordpress.org/plugins/members/), etc.) appear automatically.
+* **Reorder** items by dragging (top-level items among themselves, submenu items within their parent), or with the keyboard (`Alt`+`Arrow`).
+* **Swap icons** on top-level items. The icon picker offers Dashicons and bundled Bootstrap Icons with search. It accepts any of WordPress's four native icon forms (dashicon, "none", base64 image data-URI, or an image URL).
+* **Hide** items from chosen roles — including administrators. Custom roles registered by other plugins ([User Role Editor](https://wordpress.org/plugins/user-role-editor/), [Members](https://wordpress.org/plugins/members/), etc.) appear automatically.
 * **Reset** a single item to its WordPress default, or reset everything at once.
 
 Changes are **global** — one configuration applies to everyone. Your custom menu configuration is stored as a sparse delta (just the differences) layered over the menu WordPress builds on each load. Nothing is rebuilt or duplicated, so a reset simply removes the delta, and the original menu returns. 
@@ -54,30 +48,22 @@ Maestro uses the `maestro-menu-editor` text domain and ships a translation templ
 
 == Installation ==
 
-1. In your dashboard go to **Plugins → Add New**, search for "Maestro: The
-   Inline Admin Menu Editor", and click **Install Now**, then **Activate**.
-2. Or upload the plugin zip via **Plugins → Add New → Upload Plugin**, then
-   activate it.
-3. Or, manually: unzip into `wp-content/plugins/maestro-menu-editor` and
-   activate from **Plugins**.
-4. After activating, click **Edit Menu** in the admin bar to start editing the
-   admin menu in place.
+1. In your dashboard, go to **Plugins → Add New**, search for "Maestro: The Inline Admin Menu Editor", and click **Install Now**, then **Activate**.
+2. Or upload the plugin zip via **Plugins → Add New → Upload Plugin**, then activate it.
+3. Or, manually: unzip into `wp-content/plugins/maestro-menu-editor` and activate from **Plugins**.
+4. After activating, click **Edit Menu** in the admin bar to start editing the admin menu in place.
 
 == Frequently Asked Questions ==
 
 = Does hiding a menu item block access to that page or disable its features? =
 
-No — and this is important. Hiding an item is **cosmetic**: it removes the link
-from the admin menu but does not stop anyone from reaching the page by typing or
-bookmarking its URL. Real access is governed by each page's registered
-capability. To truly block all access to a page, use a capability manager such as
-[User Role Editor](https://wordpress.org/plugins/user-role-editor/) or
-[PublishPress Capabilities](https://wordpress.org/plugins/capability-manager-enhanced/).
+No — and this is important. Hiding an item is **cosmetic**: it removes the link from the admin menu but does not stop anyone from reaching the page by typing or
+bookmarking its URL. Real access is governed by each page's registered capability. To truly block all access to a page, use a capability manager such as
+[User Role Editor](https://wordpress.org/plugins/user-role-editor/) or [PublishPress Capabilities](https://wordpress.org/plugins/capability-manager-enhanced/).
 
 = Do my changes affect everyone, or just me? =
 
-Everyone. Maestro stores one global configuration that applies to all users; it
-is not per-user. Per-role *visibility* lets you hide items from specific roles,
+Everyone. Maestro stores one global configuration that applies to all users; it is not per-user. Per-role *visibility* lets you hide items from specific roles,
 but the rename/reorder/icon changes themselves are global.
 
 = Can I hide items from administrators, too? =
@@ -93,21 +79,15 @@ control.
 
 = Is the editor keyboard accessible? =
 
-Yes. You can select, rename, reorder (`Alt`+`Arrow`), open the icon and
-visibility controls, and reset items without a mouse. Saves and moves are
-announced to screen readers.
+Yes. You can select, rename, reorder (`Alt`+`Arrow`), open the icon and visibility controls, and reset items without a mouse. Saves and moves are announced to screen readers.
 
 = What happens when I deactivate or reset the plugin? =
 
-The admin menu returns to exactly what WordPress and your active plugins
-generate. Your customizations live in a single option as a sparse delta;
-**Reset All** deletes that option, and deactivating the plugin stops it from
-being applied.
+The admin menu returns to exactly what WordPress and your active plugins generate. Your customizations live in a single option as a sparse delta; **Reset All** deletes that option, and deactivating the plugin stops it from being applied.
 
 = Can I move an item between a top-level position and a submenu? =
 
-Not yet. Reparenting is deliberately deferred (see "Known limits" below).
-Top-level items reorder among top-level items, and submenu items reorder within
+Not yet. Reparenting is deliberately deferred (see "Known limits" below). Top-level items reorder among top-level items, and submenu items reorder within
 their current parent.
 
 == Screenshots ==
@@ -119,90 +99,53 @@ their current parent.
 
 == Architecture (for developers) ==
 
-* `Config` — reads/writes/sanitizes a single option (`maestro_config`) holding only
-  the deltas. Reset = delete the option; the natural menu returns automatically.
-* `Replay` — on a late `admin_menu` pass, applies rename/icon/visibility to the
-  `$menu`/`$submenu` globals and reorders submenus. Top-level order uses the
-  core `custom_menu_order` + `menu_order` filters. Resilient to missing slugs
-  (orphans are skipped) and new items (appended at the end).
+* `Config` — reads/writes/sanitizes a single option (`maestro_config`) holding only the deltas. Reset = delete the option; the natural menu returns automatically.
+* `Replay` — on a late `admin_menu` pass, applies rename/icon/visibility to the `$menu`/`$submenu` globals and reorders submenus. Top-level order uses the core `custom_menu_order` + `menu_order` filters. Resilient to missing slugs (orphans are skipped) and new items (appended at the end).
 * `Rest` — `maestro/v1/config` (GET/POST/DELETE), capability-gated, `X-WP-Nonce`.
-* The editor JS is driven by a localized model (with DOM ids), not DOM scraping,
-  and diffs against captured pristine defaults so the stored config stays sparse.
-* Localized editor labels are passed from PHP to JavaScript in `maestroData.i18n`;
-  the runtime zip includes the bundled POT template and starter catalogs.
+* The editor JS is driven by a localized model (with DOM ids), not DOM scraping, and diffs against captured pristine defaults so the stored config stays sparse.
+* Localized editor labels are passed from PHP to JavaScript in `maestroData.i18n`; the runtime zip includes the bundled POT template and starter catalogs.
 
 == Known limits / deferred to v2 ==
 
-* **Reparenting** (moving an item between a top-level position and a submenu) is
-  not included. Top-level items reorder among top-level items and submenu items
-  reorder within their current parent. Reparenting needs hand-splicing of the
-  globals plus `parent_file`/`submenu_file` highlighting fixes — a known
-  minefield, parked deliberately.
-* **Separators** are preserved in place but not yet add/move/delete-able; their
-  generated slugs (`separator1`…) have no stable identity to key against.
-* **Renaming** an item drops any core-appended count badge (e.g. pending
-  comments) from that label, since the badge lives inside the title string.
-* Submenu sort relies on items registering by the late `admin_menu` pass; a
-  plugin that registers submenus on an unusually late hook may not be captured.
+* **Reparenting** (moving an item between a top-level position and a submenu) is not included. Top-level items reorder among top-level items, and submenu items reorder within their current parent. Reparenting needs hand-splicing of the globals plus `parent_file`/`submenu_file` highlighting fixes — a known minefield, parked deliberately.
+* **Separators** are preserved in place but not yet add/move/delete-able; their generated slugs (`separator1`…) have no stable identity to key against.
+* **Renaming** an item drops any core-appended count badge (e.g., pending comments) from that label, since the badge lives inside the title string.
+* Submenu sort relies on items registering by the late `admin_menu` pass; a plugin that registers submenus on an unusually late hook may not be captured.
 
 == Credits ==
 
-Bundled [Bootstrap Icons](https://icons.getbootstrap.com/) are © The Bootstrap
-Authors, licensed under the MIT License. They are recoloured to the WordPress
+Bundled [Bootstrap Icons](https://icons.getbootstrap.com/) are © The Bootstrap Authors, licensed under the MIT License. They are recoloured to WordPress
 menu grey and embedded as data-URIs; see `bin/generate-bootstrap-icons.mjs`.
 
 == Support This Plugin ==
 
-If Maestro saves you time or brings you or your clients the joy of a tidy admin menu, you can support its ongoing maintenance through
-[GitHub Sponsors](https://github.com/sponsors/dknauss).
+If Maestro saves you time or brings you or your clients the joy of a tidy admin menu, you can support its ongoing maintenance through [GitHub Sponsors](https://github.com/sponsors/dknauss).
 
 == Changelog ==
 
 = 1.1.1 =
-* Editor: the selected item's name is now screen-reader-only — the visible
-  breadcrumb duplicated the rename field and ate horizontal space, and the
-  controls are self-explanatory. Screen-reader users still get the item /
-  submenu context.
+* Editor: the selected item's name is now screen-reader-only — the visible breadcrumb duplicated the rename field and ate horizontal space, and the controls are self-explanatory. Screen-reader users still get the item/submenu context.
 * Editor: shorter reset button labels — "Reset Item" and "Reset All".
 
 = 1.1.0 =
-* Keyboard reordering: select a menu item then press `Alt+ArrowUp` /
-  `Alt+ArrowDown` to move it. Each move is announced to screen readers (politely
-  for success, assertively when already at the boundary). No mouse required.
-* Modified indicator: changed items show a non-color glyph (•) with screen-
-  reader text "(modified)" in edit mode. The indicator refreshes live on every
-  rename, icon change, visibility change, and reset.
-* Discoverable per-item reset: the **Reset this item** button in the controls
-  panel is now keyboard-reachable (Tab + Enter/Space) and is visually
-  emphasised whenever the selected item has unsaved overrides.
-* Solid bundled icons: the Bootstrap Icons set now uses solid (`*-fill`)
-  variants, so it mixes naturally with WordPress's dashicons in the picker.
-* Edit-mode polish: clearer toolbar grouping, a more scannable icon grid, and a
-  dismissible first-run hint.
-* Native save status: the saving / saved / error states now use WordPress
-  dashicons (a spinner, a check, a warning) instead of emoji glyphs that some
-  platforms recoloured or dropped; the idle state shows no icon.
-* Fixes: the saved status no longer renders a double check mark; the rename
-  field no longer shifts as the title length changes; toolbar controls wrap
-  instead of overlapping on narrow screens.
-* Listing: rewritten description and FAQ, plus a "Try it first" link to a live
-  WordPress Playground demo.
+* Keyboard reordering: select a menu item, then press `Alt+ArrowUp` / `Alt+ArrowDown` to move it. Each move is announced to screen readers (politely for success, assertively when already at the boundary). No mouse required.
+* Modified indicator: changed items show a non-color glyph (•) with screen-reader text "(modified)" in edit mode. The indicator refreshes live on every rename, icon change, visibility change, and reset.
+* Discoverable per-item reset: the **Reset this item** button in the controls panel is now keyboard-reachable (Tab + Enter/Space) and is visually emphasised whenever the selected item has unsaved overrides.
+* Solid bundled icons: the Bootstrap Icons set now uses solid (`*-fill`) variants, so it mixes naturally with WordPress's dashicons in the picker.
+* Edit-mode polish: clearer toolbar grouping, a more scannable icon grid, and a dismissible first-run hint.
+* Native save status: the saving / saved / error states now use WordPress dashicons (a spinner, a check, a warning) instead of emoji glyphs that some platforms recoloured or dropped; the idle state shows no icon.
+* Fixes: the saved status no longer renders a double check mark; the rename field no longer shifts as the title length changes; toolbar controls wrap instead of overlapping on narrow screens.
+* Listing: rewritten description and FAQ, plus a "Try it first" link to a live WordPress Playground demo.
 
 = 1.0.0 =
 * Initial release: rename, reorder, per-role visibility, reset.
-* Icons: accepts all four native WordPress forms (dashicon, none, base64 image
-  data-URI, image URL); picker bundles dashicons + curated Bootstrap Icons with
-  search, keyboard accessibility, and mobile-sized touch targets.
-* Editor: click-to-select with a shared panel, debounced single-flight autosave,
-  and folded-mode neutralization.
+* Icons: accepts all four native WordPress forms (dashicon, none, base64 image data-URI, image URL); picker bundles dashicons + curated Bootstrap Icons with search, keyboard accessibility, and mobile-sized touch targets.
+* Editor: click-to-select with a shared panel, debounced single-flight autosave, and folded-mode neutralization.
 
 == Upgrade Notice ==
 
 = 1.1.1 =
-Minor editor UI tidy: the item-name label is now screen-reader-only and the
-reset buttons are "Reset Item" / "Reset All". No configuration changes.
+Minor editor UI tidy: the item-name label is now screen-reader-only, and the reset buttons are "Reset Item" / "Reset All". No configuration changes.
 
 = 1.1.0 =
-Keyboard-accessible reordering, a live "modified" indicator, solid bundled
-icons, native dashicon save-status, and responsive/edit-mode polish. No
-configuration changes required.
+Keyboard-accessible reordering, a live "modified" indicator, solid bundled icons, native dashicon save-status, and responsive/edit-mode polish. No configuration changes required.
