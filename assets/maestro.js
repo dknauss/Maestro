@@ -99,17 +99,23 @@
 		if ( result.modified ) {
 			li.classList.add( 'maestro-modified' );
 
-			// Only inject the badge/sr-text once per row.
-			if ( ! li.querySelector( '.maestro-modified-badge' ) ) {
+			// Append badge/sr-text to the row label — same target updateMenuLabel()
+			// uses — so on top-level items with a submenu the badge sits beside the
+			// label name rather than after the <ul.wp-submenu>.
+			var labelTarget = m.isSub
+				? li.querySelector( 'a' )
+				: li.querySelector( '.wp-menu-name' );
+
+			if ( labelTarget && ! labelTarget.querySelector( '.maestro-modified-badge' ) ) {
 				var badge = el( 'span', 'maestro-modified-badge' );
 				badge.setAttribute( 'aria-hidden', 'true' );
 				badge.textContent = '•'; // bullet •
-				li.appendChild( badge );
+				labelTarget.appendChild( badge );
 			}
-			if ( ! li.querySelector( '.maestro-modified-sr' ) ) {
+			if ( labelTarget && ! labelTarget.querySelector( '.maestro-modified-sr' ) ) {
 				var srText = el( 'span', 'screen-reader-text maestro-modified-sr' );
 				srText.textContent = I.modified;
-				li.appendChild( srText );
+				labelTarget.appendChild( srText );
 			}
 		} else {
 			li.classList.remove( 'maestro-modified' );
@@ -286,22 +292,23 @@
 				return;
 			}
 
-			// Physically reorder the DOM nodes to match newOrder.
-			var slugToNode = Object.create( null );
-			if ( m.isSub ) {
-				parentUl.querySelectorAll( 'li.maestro-subitem[data-maestro-slug]' ).forEach( function ( n ) {
-					slugToNode[ n.dataset.maestroSlug ] = n;
-				} );
-			} else {
-				menu.querySelectorAll( 'li.menu-top.maestro-item[data-maestro-slug]' ).forEach( function ( n ) {
-					slugToNode[ n.dataset.maestroSlug ] = n;
-				} );
+			// Physically move ONLY the selected node by one position. All other nodes —
+			// including li.wp-menu-separator and any non-maestro-item children — stay put.
+			var selectedNode = liForSlug( selectedSlug );
+			var maestroChildren = Array.prototype.slice.call(
+				parentUl.querySelectorAll(
+					m.isSub
+						? 'li.maestro-subitem[data-maestro-slug]'
+						: 'li.menu-top.maestro-item[data-maestro-slug]'
+				)
+			);
+			var currentIdx = maestroChildren.indexOf( selectedNode );
+			if ( dir === 'up' && currentIdx > 0 ) {
+				parentUl.insertBefore( selectedNode, maestroChildren[ currentIdx - 1 ] );
+			} else if ( dir === 'down' && currentIdx < maestroChildren.length - 1 ) {
+				var afterNode = maestroChildren[ currentIdx + 1 ];
+				parentUl.insertBefore( selectedNode, afterNode.nextSibling ); // nextSibling null => appendChild semantics
 			}
-
-			newOrder.forEach( function ( slug ) {
-				var node = slugToNode[ slug ];
-				if ( node ) { parentUl.appendChild( node ); }
-			} );
 
 			// CRITICAL: Re-appending nodes detaches them, dropping focus to <body>.
 			// Restore focus to the moved item's anchor so the next Alt+Arrow chains.

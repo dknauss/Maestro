@@ -10,5 +10,6 @@
     "verifier": true,
     "nyquist_validation": true,
     "_auto_chain_active": false
-  }
+  },
+  "branching_strategy": "phase"
 }

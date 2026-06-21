@@ -14,6 +14,8 @@
 		"pretest:e2e": "wp-env run tests-cli wp plugin activate maestro-menu-editor/maestro-menu-editor.php",
 		"test:e2e": "playwright test",
 		"test:e2e:headed": "playwright test --headed",
+		"prescreenshots": "wp-env run tests-cli wp plugin activate maestro-menu-editor/maestro-menu-editor.php",
+		"screenshots": "MAESTRO_CAPTURE=1 playwright test tests/e2e/specs/capture-screenshots.spec.ts",
 		"preplayground": "bash bin/build.sh",
 		"playground": "npx @wp-playground/cli@latest server --mount-before-install=./build/maestro-menu-editor:/wordpress/wp-content/plugins/maestro-menu-editor --blueprint=playground/blueprint.json",
 		"assets:banners": "OUT_DIR=.wordpress-org python3 .wordpress-org/source/build_final.py"

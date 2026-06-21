@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Editor UX Polish
 status: executing
-stopped_at: Phase 11 context gathered (UX-08a/b, BUG-06, BUG-07 decided; UX-09 reopened separately)
-last_updated: "2026-06-21T16:33:02.695Z"
-last_activity: 2026-06-20 — Phase 11.1 complete (HARD-01/02/03); full suite green (PHP unit 61/61, JS 53/53, integration 33/33, e2e 28/28, phpcs clean, PHPStan 0, Plugin Check 0); merged to main
+stopped_at: Completed 11-03-PLAN.md
+last_updated: "2026-06-21T22:13:46.577Z"
+last_activity: "2026-06-21 — Phase 11 executed: 4/4 plans, full suite green at Wave 2 gate (JS 53/53, PHP unit 61/61, integration 37/37, e2e 31/31, phpcs clean, PHPStan 0); BUG-06 exercised real separators; UX-08a mobile PNGs captured"
 progress:
   total_phases: 8
-  completed_phases: 4
-  total_plans: 20
-  completed_plans: 19
+  completed_phases: 5
+  total_plans: 24
+  completed_plans: 23
   percent: 90
 ---
 
@@ -21,15 +21,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-14)
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
-**Current focus:** v1.2 "Editor UX polish" — Phases 9 + 11.1 done; Phase 11 next (discuss before planning), then Phase 12, then cut 1.2.0
+**Current focus:** v1.2 "Editor UX polish" — Phases 9, 11, 11.1 done; Phase 12 next, then cut 1.2.0
 
 ## Current Position
 
 Milestone: v1.2 Editor UX Polish — in progress
-Phase: Phase 11 (Editor Entry & Reorder Fixes) — needs `/gsd:discuss-phase 11` before planning
-Plan: N/A — Phases 9 + 11.1 complete; Phase 10 is independent research (can run in parallel); Phase 11 is next on the 1.2.0 release path (discuss before planning)
-Status: In progress — Phases 9 + 11.1 done; Phase 11 next (plan → execute), then Phase 12, then tag 1.2.0
-Last activity: 2026-06-20 — Phase 11.1 complete (HARD-01/02/03); full suite green (PHP unit 61/61, JS 53/53, integration 33/33, e2e 28/28, phpcs clean, PHPStan 0, Plugin Check 0); merged to main
+Phase: Phase 11 (Editor Entry & Reorder Fixes) — COMPLETE & VERIFIED (passed, 5/5 must-haves) on branch gsd/phase-11-editor-entry-reorder-fixes
+Plan: 11-01…11-04 complete (4/4); Phase 11.1 already complete; Phase 12 is the genuine next step on the 1.2.0 release path
+Status: Phase 11 complete & verified — UX-08/BUG-06/BUG-07 delivered; next: Phase 12, then tag 1.2.0 (branch awaits merge to main)
+Last activity: 2026-06-21 — Phase 11 executed: 4/4 plans, full suite green at Wave 2 gate (JS 53/53, PHP unit 61/61, integration 37/37, e2e 31/31, phpcs clean, PHPStan 0); BUG-06 exercised real separators; UX-08a mobile PNGs captured
 
 Progress: [#########-] 90%
 
@@ -69,6 +69,9 @@ Progress: [#########-] 90%
 | Phase 11.1-p1-review-hardening P02 | 9 | 2 tasks | 3 files |
 | Phase 11.1-p1-review-hardening P03 | 15m | 2 tasks | 1 file |
 | Phase 11.1-p1-review-hardening P04 | 8m | 2 tasks | 2 files |
+| Phase 11-editor-entry-reorder-fixes P01 | 9 | 2 tasks | 2 files |
+| Phase 11-editor-entry-reorder-fixes P02 | 721 | 2 tasks | 2 files |
+| Phase 11-editor-entry-reorder-fixes P03 | 8 | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -106,6 +109,12 @@ Recent decisions affecting current work:
 - [Phase 11.1-p1-review-hardening P03]: HARD-03: Race (c) uses response-order array (responses.push inside waitForResponse callbacks) to assert POST before DELETE without sleeps
 - [Phase 11.1-p1-review-hardening P03]: HARD-03: E2E run deferred to Wave 2 boundary (Plan 04 gate, Docker, sandbox-disabled) — spec authored only; not marked green until boundary run passes
 - [Phase 11.1-p1-review-hardening]: Phase 11.1 signed off 2026-06-20: zero-regression bar held (PHP unit 61/61, JS 53/53, integration 33/33, e2e 28/28, phpcs clean, PHPStan 0 errors, Plugin Check 0 errors); HARD-01/02/03 Complete
+- [Phase 11-editor-entry-reorder-fixes]: AdminBarTest.php placed in tests/integration/ not unit: Admin_Bar::node() needs WP runtime; unit bootstrap is WP-free by design
+- [Phase 11-editor-entry-reorder-fixes]: BUG-06 Wave 0 test probes separator count and test.skip()s if none present — never passes vacuously; fixture added in 11-03
+- [Phase 11-editor-entry-reorder-fixes]: UX-08a icon-only assertion uses .ab-icon visible + bounding-width proxy (selector-agnostic) to avoid coupling to label-wrapper class chosen in 11-02
+- [Phase 11-editor-entry-reorder-fixes]: maestro-ab-label wrapper added in class-admin-bar.php so CSS icon-only rule has stable plugin-scoped hook; meta.title is state-conditional (Edit Admin Menu / Exit Editor); display:block override uses specificity (0,2,1) matching WP core whitelist pattern — no \!important
+- [Phase 11-editor-entry-reorder-fixes]: BUG-06: single-node insertBefore keyed off dir and maestroChildren index; no new helper (pure DOM glue, not unit-testable as expect(fn).toBe(out))
+- [Phase 11-editor-entry-reorder-fixes]: BUG-07: removal code stays li.querySelector() — badge is still descendant of <li> after target change; no CSS edit (maestro.css owned by 11-02)
 
 ### Roadmap Evolution
 
@@ -122,6 +131,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-21T16:33:02.691Z
-Stopped at: Phase 11 context gathered (UX-08a/b, BUG-06, BUG-07 decided; UX-09 reopened separately)
-Resume file: .planning/phases/11-editor-entry-reorder-fixes/11-CONTEXT.md
+Last session: 2026-06-21T21:31:21.100Z
+Stopped at: Completed 11-03-PLAN.md
+Resume file: None

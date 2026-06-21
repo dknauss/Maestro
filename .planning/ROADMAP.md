@@ -121,14 +121,18 @@ Full phase details, success criteria, and outcomes are archived in
 **Goal**: The editor is reachable and compact on mobile, keyboard reorder preserves separators, and the modified-state badge sits on the changed row — closing the mobile-access gap and two visual defects surfaced by the 2026-06-19 bot-review audit
 **Depends on**: Phase 9
 **Requirements**: UX-08, BUG-06, BUG-07
-**Scaffolded 2026-06-19** from the Copilot/Codex PR-review audit + hands-on mobile use. **Needs `/gsd:discuss-phase 11` before planning** — the UX-08 fix approach is an open decision (see CONTEXT stub).
+**Scaffolded 2026-06-19** from the Copilot/Codex PR-review audit + hands-on mobile use; **context + research + plans complete 2026-06-21** (UX-08 split into UX-08a mobile visibility + UX-08b compact label; fix approaches locked in CONTEXT/RESEARCH).
 **Success Criteria** (what must be TRUE):
   1. The Maestro edit-mode toggle is reachable at ≤782px (mobile) — it is no longer hidden along with WP core's top-level admin-bar nodes; confirmed on a narrow viewport
   2. The toggle's visible label is compact (parity with single-word peer admin-bar toggles) while retaining a programmatic accessible name (the `meta` title / `aria-label`); icon-only forms still expose text to AT
   3. Keyboard reorder (Alt+Arrow) moves only the selected item by one position and leaves `wp-menu-separator` nodes in place — no menu distortion on a separator-bearing menu; confirmed by e2e on a menu that contains separators (BUG-06)
   4. The modified-state badge renders on the changed row (next to the label/anchor), including top-level items that have submenus, not after the submenu `<ul>` — confirmed by screenshot/e2e (BUG-07)
   5. Behavioral JS changes are red-first node:test where a logic seam exists; the full zero-regression bar holds (PHP unit, integration, e2e green; Plugin Check 0 errors; phpcs clean)
-**Plans**: TBD
+**Plans**: 4 plans across 3 waves (test-first Wave 0; conflict-free file ownership per wave)
+  - [ ] 11-01-PLAN.md — Wave 0: land the 3 new e2e tests (UX-08a/BUG-06/BUG-07) + AdminBarTest (integration) for UX-08b
+  - [ ] 11-02-PLAN.md — Wave 1: UX-08a CSS responsive override + UX-08b compact label strings (class-admin-bar.php, maestro.css)
+  - [ ] 11-03-PLAN.md — Wave 1: BUG-06 single-node insertBefore + BUG-07 badge-on-row (maestro.js)
+  - [ ] 11-04-PLAN.md — Wave 2: zero-regression full-suite gate + UX-08a mobile screenshot checkpoint
 
 ### Phase 11.1: P1 Review Hardening (INSERTED)
 
@@ -177,6 +181,6 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 | 8. Docs & Brand Assets | v1.1 | 4/4 (executable scope; REL-07/08 deferred) | Complete | 2026-06-17 |
 | 9. Editor UX Polish | v1.2 | 6/6 | Complete | 2026-06-19 |
 | 10. Third-Party Menu Compatibility Research | v1.2 | 0/TBD | Not started (research spike) | - |
-| 11. Editor Entry & Reorder Fixes | v1.2 | 0/TBD | Scaffolded (needs discuss) | - |
+| 11. Editor Entry & Reorder Fixes | 4/4 | Complete    | 2026-06-21 | - |
 | 11.1. P1 Review Hardening | 4/4 | Complete    | 2026-06-20 | 2026-06-20 |
 | 12. Release Assets Refresh | v1.2 | 0/TBD | Scaffolded (REL-07/08 folded in) | - |

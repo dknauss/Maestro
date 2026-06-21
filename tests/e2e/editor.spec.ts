@@ -838,6 +838,173 @@ test.describe( 'UX-04 — rename placeholder + accessible name', () => {
 
 } );
 
+test.describe( 'Phase 11 — editor entry & reorder fixes (Wave 0 guards)', () => {
+
+	/**
+	 * UX-08a: The admin-bar maestro-toggle must stay visible and render icon-only
+	 * (dashicon visible, label text hidden) at mobile widths <=782px and <=600px.
+	 *
+	 * WordPress core hides top-level admin-bar nodes at <=782px — this test is
+	 * EXPECTED TO FAIL against current code (no override yet). Wave 0 red guard.
+	 * 11-02 makes it green by adding a scoped CSS override.
+	 *
+	 * NOTE(11-02): The icon-only assertion targets `#wp-admin-bar-maestro-toggle .ab-icon`
+	 * (the dashicon span that core wraps in .ab-icon). The label-wrapper selector
+	 * contract for 11-02 is: keep the full label text inside `.ab-label` (or a maestro
+	 * class of 11-02's choosing) and ensure it is visually hidden at <=782px while the
+	 * `.ab-icon` span remains visible. Asserting `.ab-icon` visible + node bounding width
+	 * is used here as a selector-agnostic proxy for icon-only rendering.
+	 */
+	test( 'UX-08a: edit toggle stays visible and icon-only at <=782px and <=600px', async ( { page } ) => {
+		for ( const width of [ 782, 600 ] ) {
+			await page.setViewportSize( { width, height: 800 } );
+			await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+
+			// The toggle node must remain visible (core hides it at <=782px — override needed).
+			await expect( page.locator( '#wp-admin-bar-maestro-toggle' ) ).toBeVisible();
+
+			// Icon-only: the .ab-icon dashicon inside the node must be visible.
+			await expect( page.locator( '#wp-admin-bar-maestro-toggle .ab-icon' ) ).toBeVisible();
+
+			// The node bounding width should be small (icon-only, no label text expanding it).
+			// 60px is a generous upper bound for a single dashicon node — label text would push
+			// it larger. 11-02 wires the label-wrapper to be hidden; this width proxy is
+			// selector-agnostic.
+			const toggleBox = await page.locator( '#wp-admin-bar-maestro-toggle' ).boundingBox();
+			expect( toggleBox, `#wp-admin-bar-maestro-toggle must be in the DOM at ${ width }px` ).not.toBeNull();
+			expect(
+				toggleBox!.width,
+				`toggle must be icon-only (narrow) at ${ width }px — label text hidden`
+			).toBeLessThanOrEqual( 60 );
+		}
+	} );
+
+	/**
+	 * BUG-06: Alt+Arrow keyboard reorder must leave wp-menu-separator nodes in place.
+	 *
+	 * The current DOM-application step calls parentUl.appendChild() for every
+	 * maestro-item, pushing them all past any wp-menu-separator children. This test
+	 * probes for separators at runtime: if none exist in wp-env it skips (never passes
+	 * vacuously). When separators ARE present, it asserts their child-index positions
+	 * are unchanged after a keyboard reorder across a separator boundary.
+	 *
+	 * EXPECTED TO FAIL (or skip with fixture note) against current code. Wave 0 red guard.
+	 * 11-03 makes it green by switching appendChild to single-node insertBefore.
+	 */
+	test( 'BUG-06: Alt+Arrow keyboard reorder leaves wp-menu-separator nodes in place', async ( { page } ) => {
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
+
+		// Probe: capture separator count BEFORE asserting any fixture is needed.
+		const sepBefore = await page.$$eval(
+			'#adminmenu > li.wp-menu-separator',
+			( els ) => els.map( ( e, i ) => ( { className: ( e as HTMLElement ).className, index: i } ) )
+		);
+		const sepCount = sepBefore.length;
+
+		// Record separator count as a test annotation so CI logs show fixture status.
+		test.info().annotations.push( {
+			type: 'separator-count',
+			description: `wp-menu-separator count in wp-env: ${ sepCount }`,
+		} );
+
+		if ( sepCount === 0 ) {
+			// wp-env has no separators registered — a fixture mu-plugin is needed
+			// to exercise separator preservation. Wave 1 (11-03) adds the fixture.
+			// Skip (not pass) so a vacuous green is never reported.
+			test.skip( true, 'no wp-menu-separator in wp-env — fixture needed; see 11-03 notes' );
+			return;
+		}
+
+		// Capture separator indices among all #adminmenu > li children BEFORE the move.
+		const sepIndicesBefore = await page.$$eval(
+			'#adminmenu > li',
+			( els ) => els
+				.map( ( e, i ) => ( { i, isSep: ( e as HTMLElement ).classList.contains( 'wp-menu-separator' ) } ) )
+				.filter( ( x ) => x.isSep )
+				.map( ( x ) => x.i )
+		);
+
+		// Perform a keyboard reorder: focus Posts, Enter to select, re-focus, Alt+ArrowDown.
+		await page.locator( '#menu-posts > a.menu-top' ).focus();
+		await page.locator( '#menu-posts > a.menu-top' ).press( 'Enter' );
+		await expect( page.locator( '.maestro-toolbar .maestro-panel' ) ).toBeVisible();
+		await page.locator( '#menu-posts > a.menu-top' ).focus();
+
+		const saveResp = page.waitForResponse(
+			( r ) => POST_SAVE( r.url() ) && r.request().method() === 'POST' && r.ok()
+		);
+		await page.keyboard.press( 'Alt+ArrowDown' );
+		await saveResp;
+
+		// Capture separator indices AFTER the move.
+		const sepIndicesAfter = await page.$$eval(
+			'#adminmenu > li',
+			( els ) => els
+				.map( ( e, i ) => ( { i, isSep: ( e as HTMLElement ).classList.contains( 'wp-menu-separator' ) } ) )
+				.filter( ( x ) => x.isSep )
+				.map( ( x ) => x.i )
+		);
+
+		// Separators must be at the same child indices after the reorder.
+		expect( sepIndicesAfter ).toEqual( sepIndicesBefore );
+
+		// Guard: no separator must have been pushed to the very end of #adminmenu.
+		const allItemCount = await page.locator( '#adminmenu > li' ).count();
+		for ( const idx of sepIndicesAfter ) {
+			expect( idx ).toBeLessThan( allItemCount - 1 );
+		}
+
+		// Clean up — reset to baseline.
+		const resetNav = page.waitForNavigation();
+		page.once( 'dialog', ( d ) => d.accept() );
+		await page.locator( '.maestro-reset-all' ).click();
+		await resetNav;
+	} );
+
+	/**
+	 * BUG-07: The modified-state badge must render INSIDE .wp-menu-name (beside the
+	 * label text), not after the submenu <ul> at the end of the <li>.
+	 *
+	 * Current code appends .maestro-modified-badge to the <li>, which for items with
+	 * a submenu puts the badge after <ul class="wp-submenu"> — it renders below the row.
+	 * This test asserts the corrected (target) placement: badge is a descendant of
+	 * `.wp-menu-name`, not just of `<li>`.
+	 *
+	 * EXPECTED TO FAIL against current code. Wave 0 red guard.
+	 * 11-03 makes it green by changing the append target to .wp-menu-name.
+	 */
+	test( 'BUG-07: modified badge renders inside .wp-menu-name for an item with a submenu', async ( { page } ) => {
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+
+		// Select Posts (which has a submenu — it is the prime BUG-07 repro target).
+		await page.locator( '#menu-posts > a.menu-top' ).click();
+		const panel = page.locator( '.maestro-toolbar .maestro-panel' );
+		await expect( panel ).toBeVisible();
+
+		// Rename to 'Articles' and commit to trigger the modified indicator.
+		const rename = panel.locator( '.maestro-rename-input' );
+		const savePosted = page.waitForResponse(
+			( r ) => POST_SAVE( r.url() ) && r.request().method() === 'POST' && r.ok()
+		);
+		await rename.fill( 'Articles' );
+		await rename.press( 'Enter' );
+		await savePosted;
+
+		// The badge must be a DESCENDANT of .wp-menu-name (not just of the <li>).
+		// This is the BUG-07 contract: badge sits beside the label, not after the submenu.
+		await expect( page.locator( '#menu-posts .wp-menu-name .maestro-modified-badge' ) ).toBeVisible();
+		await expect( page.locator( '#menu-posts .wp-menu-name .maestro-modified-sr' ) ).toBeAttached();
+
+		// Clean up: reset-all and await the reload to leave a clean baseline.
+		const resetNav = page.waitForNavigation();
+		page.once( 'dialog', ( d ) => d.accept() );
+		await page.locator( '.maestro-reset-all' ).click();
+		await resetNav;
+	} );
+
+} );
+
 test.describe( 'UX-07 — tap-target floor: every button and rename input >=44px tall at <=782px', () => {
 
 	// At 700px (the tightest viewport the existing e2e suite exercises, below the 782px

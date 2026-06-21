@@ -508,4 +508,15 @@ body.maestro-editing #collapse-menu {
 	}
 	.maestro-icon-tab { padding: 10px 12px; }
 	.maestro-vis-row { padding: 8px 0; }
+
+	/* UX-08a: WP core hides all top-level admin-bar nodes at <=782px via
+	 * #wp-toolbar > ul > li { display:none } and whitelists only built-in nodes.
+	 * Keep our editor entry reachable on mobile. Specificity (0,2,1) matches
+	 * core's own whitelist pattern — no !important needed. */
+	#wpadminbar li#wp-admin-bar-maestro-toggle { display: block; }
+
+	/* Icon-only: hide the label text, keep the dashicon so the tap target
+	 * remains identifiable without eating toolbar width on a phone. The
+	 * accessible name is preserved in the <a title="..."> from meta.title. */
+	#wpadminbar li#wp-admin-bar-maestro-toggle .maestro-ab-label { display: none; }
 }
