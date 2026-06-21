@@ -1,0 +1,9 @@
+/* Maestro admin-bar toggle — always-loaded so the editor ENTER toggle is reachable on mobile.
+ * WP core hides all top-level admin-bar nodes at <=782px (#wp-toolbar > ul > li { display:none })
+ * and whitelists only built-in nodes; keep our entry/exit toggle reachable. Specificity (0,2,1)
+ * matches core's whitelist pattern — no !important. The accessible name stays in the <a title="…">
+ * (meta.title from class-admin-bar.php); .maestro-ab-label hides only the visible text. */
+@media screen and ( max-width: 782px ) {
+	#wpadminbar li#wp-admin-bar-maestro-toggle { display: block; }
+	#wpadminbar li#wp-admin-bar-maestro-toggle .maestro-ab-label { display: none; }
+}
