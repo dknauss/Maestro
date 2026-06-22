@@ -433,10 +433,18 @@ test.describe( 'Admin Menu Maestro — editor', () => {
 
 const SCREENSHOTS_DIR = '.planning/phases/07-visual-polish-icons/screenshots';
 
+// GUARD: these are committed deliverable artifacts, not gate assertions. Only
+// (re)write them when MAESTRO_CAPTURE is set (via `npm run screenshots`), so the
+// normal `test:e2e` / CI run never overwrites the committed PNGs with byte-level
+// churn. The behavioral assertions in these tests run unconditionally.
+const CAPTURE_07 = Boolean( process.env.MAESTRO_CAPTURE );
+
 test.describe( 'Phase 7 — ICON-01 solid grid scanability and side-by-side screenshots', () => {
 
 	test.beforeAll( () => {
-		fs.mkdirSync( SCREENSHOTS_DIR, { recursive: true } );
+		if ( CAPTURE_07 ) {
+			fs.mkdirSync( SCREENSHOTS_DIR, { recursive: true } );
+		}
 	} );
 
 	test( 'Bootstrap tab renders >50 visible cells each with a 20px img, search narrows them', async ( { page } ) => {
@@ -483,26 +491,32 @@ test.describe( 'Phase 7 — ICON-01 solid grid scanability and side-by-side scre
 			.toBeGreaterThan( 50 );
 
 		// Screenshot the Bootstrap (solid) tab as an ICON-01 deliverable.
-		await page.screenshot( {
-			path: `${ SCREENSHOTS_DIR }/icons-bootstrap-tab.png`,
-		} );
+		if ( CAPTURE_07 ) {
+			await page.screenshot( {
+				path: `${ SCREENSHOTS_DIR }/icons-bootstrap-tab.png`,
+			} );
+		}
 
 		// Switch to Dashicons for the comparison screenshot.
 		await picker.getByRole( 'tab', { name: 'Dashicons' } ).click();
 		await expect( picker.locator( '#maestro-panel-bootstrap' ) ).toBeHidden();
 		await expect( picker.locator( '#maestro-panel-dashicons' ) ).toBeVisible();
 
-		await page.screenshot( {
-			path: `${ SCREENSHOTS_DIR }/icons-dashicons-tab.png`,
-		} );
+		if ( CAPTURE_07 ) {
+			await page.screenshot( {
+				path: `${ SCREENSHOTS_DIR }/icons-dashicons-tab.png`,
+			} );
+		}
 
 		// Capture the picker open with Bootstrap tab active as the "side-by-side"
 		// deliverable (shows tab strip and solid grid side by side the tab list).
 		await picker.getByRole( 'tab', { name: 'Bootstrap' } ).click();
 		await expect( picker.locator( '#maestro-panel-bootstrap' ) ).toBeVisible();
-		await page.screenshot( {
-			path: `${ SCREENSHOTS_DIR }/icons-side-by-side.png`,
-		} );
+		if ( CAPTURE_07 ) {
+			await page.screenshot( {
+				path: `${ SCREENSHOTS_DIR }/icons-side-by-side.png`,
+			} );
+		}
 
 		// Clean up by pressing Escape to close the picker.
 		await page.keyboard.press( 'Escape' );
@@ -582,9 +596,11 @@ test.describe( 'Phase 7 — UX-02 no-overlap / no-resize at 1200px and 700px', (
 			}
 
 			// Capture the toolbar deliverable screenshot.
-			await page.screenshot( {
-				path: `${ SCREENSHOTS_DIR }/toolbar-${ viewport.label }.png`,
-			} );
+			if ( CAPTURE_07 ) {
+				await page.screenshot( {
+					path: `${ SCREENSHOTS_DIR }/toolbar-${ viewport.label }.png`,
+				} );
+			}
 		} );
 	}
 
