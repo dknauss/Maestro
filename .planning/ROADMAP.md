@@ -187,6 +187,6 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 | 8. Docs & Brand Assets | v1.1 | 4/4 (executable scope; REL-07/08 deferred) | Complete | 2026-06-17 |
 | 9. Editor UX Polish | v1.2 | 6/6 | Complete | 2026-06-19 |
 | 10. Third-Party Menu Compatibility Research | v1.2 | 0/TBD | Not started (research spike) | - |
-| 11. Editor Entry & Reorder Fixes | 7/8 | In Progress|  | - |
+| 11. Editor Entry & Reorder Fixes | v1.2 | 7/8 | In Progress | - |
 | 11.1. P1 Review Hardening | v1.2 | 4/4 | Complete | 2026-06-20 |
 | 12. Release Assets Refresh | v1.2 | 0/TBD | Scaffolded (REL-07/08 folded in) | - |
