@@ -549,11 +549,17 @@
 
 		var right = el( 'div', 'maestro-toolbar-right' );
 
-		var resetAll = el( 'button', 'button maestro-reset-all', I.resetAll );
+		// Icon-only like the panel controls. Distinct glyphs: image-rotate (restore
+		// everything) for Reset All vs the panel's undo (single-item) Reset Item;
+		// no-alt (×) for Exit. aria-label + title carry the name; Reset All is still
+		// guarded by the confirm dialog in doResetAll().
+		var resetAll = el( 'button', 'button maestro-reset-all' );
 		resetAll.type = 'button';
+		iconButton( resetAll, 'dashicons-image-rotate', I.resetAll );
 		resetAll.addEventListener( 'click', doResetAll );
 
-		var exit = el( 'a', 'button maestro-exit', I.exit );
+		var exit = el( 'a', 'button maestro-exit' );
+		iconButton( exit, 'dashicons-no-alt', I.exit );
 		exit.href = D.exitUrl;
 		exit.addEventListener( 'click', onExit );
 

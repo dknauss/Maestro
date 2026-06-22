@@ -426,6 +426,14 @@ body.maestro-editing #collapse-menu {
 	padding-left: 16px;
 	border-left: 2px solid #3c434a; /* mirrors panel zone separator */
 }
+/* Reset All / Exit are icon-only too (their .maestro-btn-label is hidden by the
+ * rule above). Centre the glyph and hold the WCAG 2.5.5 square tap target. */
+.maestro-toolbar-right .button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 44px;
+}
 
 /* ---------- first-run cue ----------------------------------------------- */
 
