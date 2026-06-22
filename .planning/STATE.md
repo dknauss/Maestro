@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Editor UX Polish
 status: executing
-stopped_at: Completed 11-06-PLAN.md
-last_updated: "2026-06-21T23:41:28.510Z"
-last_activity: "2026-06-21 — Phase 11 gap-closure 11-06: always-loaded maestro-admin-bar.css enqueued before the is_edit_mode() early return — ENTER toggle reachable at <=782px (UX-08a Gap 1 closed); 11-07/11-08 remain"
+stopped_at: Completed 11-07-PLAN.md
+last_updated: "2026-06-22T00:24:31.199Z"
+last_activity: "2026-06-22 — Phase 11 gap-closure 11-07: ▲/▼ panel reorder buttons + icon-only compression at <=600px + badge 15px — Gaps 2/3/4 closed (BUG-06, UX-08b)"
 progress:
   total_phases: 8
   completed_phases: 4
   total_plans: 28
-  completed_plans: 25
-  percent: 89
+  completed_plans: 26
+  percent: 93
 ---
 
 # Project State
@@ -27,11 +27,11 @@ See: .planning/PROJECT.md (updated 2026-06-14)
 
 Milestone: v1.2 Editor UX Polish — in progress
 Phase: Phase 11 (Editor Entry & Reorder Fixes) — gap-closure in progress on branch gsd/phase-11-gap-closure
-Plan: 11-05, 11-06 complete (gap-closure waves 0–1, 2/4); 11-07/11-08 remain
-Status: 11-06 done — always-loaded admin-bar CSS makes the ENTER toggle reachable at <=782px (UX-08a Gap 1 closed); next: 11-07 (panel ▲/▼ move buttons + ≤600px icon-only compression + badge bump), 11-08 (Wave 2 full-suite gate). e2e guards stay RED until 11-07 lands and the 11-08 Docker boundary run goes GREEN.
-Last activity: 2026-06-21 — Phase 11 gap-closure 11-06: always-loaded maestro-admin-bar.css enqueued before the is_edit_mode() early return — ENTER toggle reachable on mobile (UX-08a Gap 1 closed)
+Plan: 11-05, 11-06, 11-07 complete (gap-closure waves 0–1, 2/3/4); 11-08 remains
+Status: 11-07 done — ▲/▼ panel reorder buttons (Gap 3/BUG-06), icon-only compression at <=600px (Gap 2/UX-08b), badge bump to 15px (Gap 4/BUG-07); next: 11-08 (Wave 2 full-suite gate, Docker, sandbox-disabled). 11-05 control-driven reorder guard should now be GREEN; final confirmation at 11-08 Docker run.
+Last activity: 2026-06-22 — Phase 11 gap-closure 11-07: ▲/▼ reorder buttons + icon-only compression + badge bump — Gaps 2/3/4 closed
 
-Progress: [#########-] 90%
+Progress: [█████████░] 93%
 
 ## Performance Metrics
 
@@ -74,6 +74,7 @@ Progress: [#########-] 90%
 | Phase 11-editor-entry-reorder-fixes P03 | 8 | 2 tasks | 1 files |
 | Phase 11-editor-entry-reorder-fixes P05 (gap-closure) | 10m | 2 tasks | 1 file |
 | Phase 11-editor-entry-reorder-fixes P06 | 2 | 2 tasks | 3 files |
+| Phase 11-editor-entry-reorder-fixes P07 | 24 | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -121,6 +122,9 @@ Recent decisions affecting current work:
 - [Phase 11-editor-entry-reorder-fixes 11-05 gap-closure]: Reorder test renamed to control-driven, OS-independent; L373-374 re-focus cheat removed; Alt+ArrowDown replaced by button.maestro-move-down clicks; rename-input focus asserted after selectItem — RED because button absent; 11-07 turns it GREEN
 - [Phase 11-editor-entry-reorder-fixes]: 11-06 removes maestro.css duplicate toggle override; 11-07 adds to the same file in a separate commit in dependency order — no conflict
 - [Phase 11-editor-entry-reorder-fixes]: Always-loaded micro-stylesheet pattern: maestro-admin-bar.css holds only the always-needed admin-bar CSS; heavy editor bundle stays edit-mode-gated
+- [Phase 11-editor-entry-reorder-fixes]: 11-07: moveSelected(dir,opts) shared function: opts.restoreFocusToAnchor for keyboard path; button path omits (not detached by insertBefore)
+- [Phase 11-editor-entry-reorder-fixes]: 11-07: aria-keyshortcuts dropped entirely — Alt+Arrow retained but undiscoverable; ▲/▼ buttons are OS-independent discoverable affordance
+- [Phase 11-editor-entry-reorder-fixes]: 11-07: iconButton() helper routes all five secondary panel buttons through one code path to prevent icon/label drift
 
 ### Roadmap Evolution
 
@@ -138,6 +142,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-06-21T23:41:28.508Z
-Stopped at: Completed 11-06-PLAN.md
+Last session: 2026-06-22T00:24:31.196Z
+Stopped at: Completed 11-07-PLAN.md
 Resume file: None
