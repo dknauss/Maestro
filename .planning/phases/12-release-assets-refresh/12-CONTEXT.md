@@ -17,7 +17,9 @@ Assets-only. No plugin code changes. Out of scope: any editor behavior, the rele
 <sequencing>
 ## Why this phase runs last
 
-REL-08 screenshots must show the **shipped** v1.2 UI — the new "Edit Mode" mode label + first-run pulse + rename placeholder (Phase 9) and the mobile entry point + fixed reorder/badge (Phase 11). Capturing before those land would mean reshooting. So **Phase 12 depends on Phase 9 AND Phase 11**; it's the last gate before the 1.2.0 cut.
+REL-08 screenshots must show the **shipped** v1.2 UI — the new "Edit Mode" mode label + first-run pulse + rename placeholder (Phase 9), the mobile entry point + fixed reorder/badge (Phase 11), **and the icon-only unified toolbar redesign (Phase 11.2 / UX-10) — gray square buttons, semantic colour, flat indicator glyphs, palette icon-picker glyph, back-arrow Exit**. Capturing before those land would mean reshooting. So **Phase 12 depends on Phases 9, 11, AND 11.2** (all now merged to main); it's the last gate before the 1.2.0 cut.
+
+> **Update 2026-06-22:** this context was scaffolded 2026-06-19, before Phase 11.2. The "final v1.2 editor UI" the screenshots must capture now includes the 11.2 toolbar redesign — the editor toolbar looks materially different from any pre-11.2 capture.
 </sequencing>
 
 <decisions>

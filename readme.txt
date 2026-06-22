@@ -92,10 +92,12 @@ their current parent.
 
 == Screenshots ==
 
-1. Editing the admin menu in place — the Posts item selected, with the shared controls panel (rename, icon, visibility, reset) open.
+1. The inline editor — select any admin-menu item to edit it in place using the icon-only unified toolbar and shared controls panel (rename, icon, visibility, reset).
 2. The icon picker: searchable Dashicons and bundled Bootstrap Icons tabs for swapping a top-level admin menu icon.
-3. Per-role visibility — hiding an admin menu item from selected roles (a cosmetic declutter, not access control).
-4. A renamed admin menu item, saved automatically by debounced autosave.
+3. Per-role visibility — open the visibility selector to hide an item from selected roles (cosmetic declutter, not access control).
+4. A renamed item showing the transient "Saved" state — the indicator auto-clears to idle once the autosave settles.
+5. Reordering a top-level menu group by dragging — a live sortable-helper shows the item in motion.
+6. Reordering a submenu item using the ▲/▼ move controls — the OS-independent, keyboard-accessible reorder path.
 
 == Architecture (for developers) ==
 

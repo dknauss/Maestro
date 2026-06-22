@@ -137,7 +137,7 @@ def build_banners():
     tag="Orchestrate your menu in place, inside the dashboard."
     ts=34*S
     ftag=fnt(f"{FD}/Poppins-Light.ttf",ts)
-    while dr.textlength(tag,font=ftag)>maxw and ts>20*S:
+    while dr.textlength(tag,font=ftag)>ww and ts>20*S:
         ts-=1; ftag=fnt(f"{FD}/Poppins-Light.ttf",ts)
     tb=dr.textbbox((0,0),tag,font=ftag); th=tb[3]-tb[1]
 

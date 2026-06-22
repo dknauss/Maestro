@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Editor UX Polish
-status: executing
-stopped_at: Phase 11 merged (PR #49); Phase 11.2 (editor toolbar redesign) complete & recorded
-last_updated: "2026-06-22T17:00:00.000Z"
-last_activity: "2026-06-22 — Phase 11 merged to main via PR #49. Phase 11.2 (icon-only unified toolbar redesign, UX-10) built via interactive design iteration, recorded as 11.2-SUMMARY; e2e 32/0. On branch gsd/editor-toolbar-redesign awaiting its own PR. Next: Phase 12 (release assets) → cut 1.2.0"
+status: verifying
+stopped_at: Completed 12-03-PLAN.md
+last_updated: "2026-06-22T19:49:21.204Z"
+last_activity: "2026-06-22 — Phase 12: 12-01 banner + 12-02 screenshots complete & approved; 12-03 caption sync next"
 progress:
   total_phases: 9
   completed_phases: 7
-  total_plans: 28
-  completed_plans: 28
-  percent: 95
+  total_plans: 31
+  completed_plans: 32
+  percent: 93
 ---
 
 # Project State
@@ -26,10 +26,10 @@ See: .planning/PROJECT.md (updated 2026-06-14)
 ## Current Position
 
 Milestone: v1.2 Editor UX Polish — in progress
-Phase: Phase 11 MERGED to main (PR #49). Phase 11.2 (Editor Toolbar Redesign, UX-10) — COMPLETE & recorded; on branch gsd/editor-toolbar-redesign awaiting its own PR to main.
-Plan: Phase 11 — 11-01…11-08 complete & merged. Phase 11.2 — no plans (retroactive record, 11.2-SUMMARY); 8 commits; e2e 32/0, JS 53/53, PHP integration 37/37.
-Status: Phase 11.2 icon-only unified toolbar redesign complete (one outlined gray button system + semantic colour, flat non-clickable indicators, auto-clearing Saved, disabled Reset Item, control grouping, back-arrow Exit, palette icon-picker glyph, stronger red). Accessibility preserved. Next genuine step: Phase 12 (release-assets refresh) — captures the 11.2 UI — then cut 1.2.0.
-Last activity: 2026-06-22 — Phase 11 merged (#49); Phase 11.2 built + recorded; branch gsd/editor-toolbar-redesign awaiting PR
+Phase: Phase 12 (Release Assets Refresh) — EXECUTING on branch gsd/phase-12-release-assets-refresh. 12-01 + 12-02 complete & human-approved; 12-03 next.
+Plan: 12-01 ✓ REL-07 balanced banner (tagline fit to wordmark width; live banners regenerated, human-approved). 12-02 ✓ REL-08 6 directory screenshots vs post-11.2 UI (overview, icon picker, visibility, rename+saved, group drag, sub-item ▲/▼) — count = 6. 12-03 next: sync readme `== Screenshots ==` to 6 captions + deterministic asset gate + e2e.
+Status: Assets-only; last v1.2 phase. After 12-03 + phase verify, cut 1.2.0 (tag v1.2.0 → wp.org SVN deploy). wp-env is up on :8899 (capture env).
+Last activity: 2026-06-22 — Phase 12: 12-01 banner + 12-02 screenshots complete & approved; 12-03 caption sync next
 
 Progress: [█████████░] 93%
 
@@ -87,6 +87,8 @@ This GSD milestone is explicitly pinned to the release artifact it is meant to s
 | Phase 11-editor-entry-reorder-fixes P05 (gap-closure) | 10m | 2 tasks | 1 file |
 | Phase 11-editor-entry-reorder-fixes P06 | 2 | 2 tasks | 3 files |
 | Phase 11-editor-entry-reorder-fixes P07 | 24 | 3 tasks | 4 files |
+| Phase 12-release-assets-refresh P01 | 20 | 2 tasks | 3 files |
+| Phase 12-release-assets-refresh P03 | 4 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -140,6 +142,9 @@ Recent decisions affecting current work:
 - [Phase 11-editor-entry-reorder-fixes]: 11-07: iconButton() helper routes all five secondary panel buttons through one code path to prevent icon/label drift
 - [Phase 11-editor-entry-reorder-fixes]: 11-08: WP_ENV_TESTS_PORT honored in BOTH playwright.config baseURL AND global-setup login URL — lets e2e run on an alternate tests port when 8889 is taken by another wp-env project (gate ran on 8899)
 - [Phase 11-editor-entry-reorder-fixes]: 11-08: race(b) HARD-03 failure root-caused to e2e click-delivery — 11-07's extra panel buttons enlarged the position:fixed flex-wrap toolbar so the live rename preview reflowed it mid-click; product is correct (genuine Reset-All click cancels the queued autosave, DELETE wins, no persist). Hardened by committing the rename first (settle layout, keep queued autosave) and asserting reset-wins/no-persist; postCount===0 dropped (it only held for a sub-500ms click). No-persist reload assertion retained as anti-masking guard
+- [Phase 12-release-assets-refresh]: Tagline auto-fit loop uses >ww (wordmark width) not >maxw (full column); full tagline string retained — ww constraint produced legible font size without fallback
+- [Phase 12-release-assets-refresh]: E2E regression gate deferred to orchestrator: Docker/wp-env required; deterministic gate (banners + screenshot sizes + caption count) runs fully sandbox-OK
+- [Phase 12-release-assets-refresh]: 12-03 caption copy reflects v1.2 UX changes: auto-clearing Saved state, unified icon-only toolbar, sortable group drag, accessible ▲/▼ sub-item move controls
 
 ### Roadmap Evolution
 
@@ -158,6 +163,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-22T00:24:31.196Z
-Stopped at: Completed 11-07-PLAN.md
+Last session: 2026-06-22T19:35:25.843Z
+Stopped at: Completed 12-03-PLAN.md
 Resume file: None

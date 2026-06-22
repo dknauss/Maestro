@@ -39,8 +39,8 @@ backlog (origin IDs noted).
 
 - [x] **DOC-02**: Rewrite the `readme.txt` copy for clarity and discoverability — short description, full description, FAQ, and tags — via the `wp-readme-optimizer` skill. The current copy is functional but flat; the live page reads dry. — **Drafted in PR #28** (awaiting review/merge; ships with next release, Stable tag unchanged).
 - [x] **DOC-03**: Add the **WordPress Playground demo link** to `readme.txt` (a "Try it first" line in the intro) and the GitHub README, so visitors can trial Maestro before installing. The hosted blueprint already exists (`playground/blueprint-hosted.json`); mirror the Borges pattern (`playground.wordpress.net/?blueprint-url=…`). — **Done in PR #28** (GitHub README already had the link; readme.txt line added).
-- [ ] **REL-07**: New/refreshed **banner graphic** — a stronger design iteration on the brand-first banner, regenerated through the existing REL-06 pipeline (`npm run assets:banners`); replace `.wordpress-org/banner-*.png` after visual review. **Primary design goal (2026-06-17):** get the stacked rows of text — the MAESTRO wordmark, the "THE INLINE ADMIN MENU EDITOR" subtitle, and the tagline — **and the gold underline rule to occupy approximately the same horizontal width** (balanced/justified to a common measure), rather than the current mismatched line widths. **→ Folded into v1.2 2026-06-19: Phase 12 (Release Assets Refresh)** — was deferred from Phase 8.
-- [ ] **REL-08**: **Refreshed screenshots** for the new core-block directory gallery (per the 2026-06-10 meta update) — higher-quality captures with captions that "explain the interface or workflow." Keep the set visually uniform (→ clean grid) or go deliberately mixed (→ masonry); update the `== Screenshots ==` captions to match. **→ Folded into v1.2 2026-06-19: Phase 12**, sequenced after Phases 9 + 11 so captures show the final v1.2 editor UI.
+- [x] **REL-07**: New/refreshed **banner graphic** — a stronger design iteration on the brand-first banner, regenerated through the existing REL-06 pipeline (`npm run assets:banners`); replace `.wordpress-org/banner-*.png` after visual review. **Primary design goal (2026-06-17):** get the stacked rows of text — the MAESTRO wordmark, the "THE INLINE ADMIN MENU EDITOR" subtitle, and the tagline — **and the gold underline rule to occupy approximately the same horizontal width** (balanced/justified to a common measure), rather than the current mismatched line widths. **→ Folded into v1.2 2026-06-19: Phase 12 (Release Assets Refresh)** — was deferred from Phase 8.
+- [x] **REL-08**: **Refreshed screenshots** for the new core-block directory gallery (per the 2026-06-10 meta update) — higher-quality captures with captions that "explain the interface or workflow." Keep the set visually uniform (→ clean grid) or go deliberately mixed (→ masonry); update the `== Screenshots ==` captions to match. **→ Folded into v1.2 2026-06-19: Phase 12**, sequenced after Phases 9 + 11 so captures show the final v1.2 editor UI.
 
 ### Defects (triaged 2026-06-16 — wp-sudo thread screenshots)
 
@@ -160,8 +160,8 @@ Post-1.0 backlog (from SPEC.md → Roadmap). Tracked, not in this roadmap.
 | HARD-02 | Phase 11.1: P1 Review Hardening | Complete |
 | HARD-03 | Phase 11.1: P1 Review Hardening | Complete |
 | UX-10 | Phase 11.2: Editor Toolbar Redesign | Complete |
-| REL-07 | Phase 12: Release Assets Refresh | Pending (folded in from Phase 8) |
-| REL-08 | Phase 12: Release Assets Refresh | Pending (folded in from Phase 8) |
+| REL-07 | Phase 12: Release Assets Refresh | Complete |
+| REL-08 | Phase 12: Release Assets Refresh | Complete |
 
 **Coverage (v1.2):**
 - v1.2 build requirements: 3 (UX-03, UX-04, UX-07) — all mapped to Phase 9
