@@ -38,7 +38,7 @@ See: .planning/PROJECT.md (updated 2026-06-14)
 
 Milestone: v1.2 Editor UX Polish — in progress
 Phase: Phase 11 (Editor Entry & Reorder Fixes) — gap-closure in progress on branch gsd/phase-11-gap-closure
-Plan: 11-05, 11-06, 11-07 complete (gap-closure waves 0–1, 2/3/4); 11-08 remains
+Plan: 11-05, 11-06, 11-07 complete (gap-closure waves 0–1, 2/3/4); 11-08 authored but its Docker gate run is BLOCKED (Docker down) — see Blockers
 Status: 11-07 done — ▲/▼ panel reorder buttons (Gap 3/BUG-06), icon-only compression at <=600px (Gap 2/UX-08b), badge bump to 15px (Gap 4/BUG-07); next: 11-08 (Wave 2 full-suite gate, Docker, sandbox-disabled). 11-05 control-driven reorder guard should now be GREEN; final confirmation at 11-08 Docker run.
 Last activity: 2026-06-22 — Phase 11 gap-closure 11-07: ▲/▼ reorder buttons + icon-only compression + badge bump — Gaps 2/3/4 closed
 
@@ -162,7 +162,7 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
-None.
+- **11-08 Wave 2 gate blocked on Docker (2026-06-22):** Phase 11 gap-closure code is complete (11-05/06/07) and 11-08's capture spec + port-config are authored/committed, but the zero-regression gate itself — `npm run test:php` (wp-env), `npm run test:e2e` (Playwright on wp-env :8889), and `npm run screenshots` (enter-state PNGs) — requires Docker, which is not running in this environment (known [Maestro test-execution sandbox gap]). JS logic suite passes 53/53. To close: start Docker + `wp-env start`, then run the full suite sandbox-disabled and capture the enter-state PNGs; only then mark 11-08 complete and run phase verification.
 
 ## Session Continuity
 
