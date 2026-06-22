@@ -184,7 +184,10 @@ Full phase details, success criteria, and outcomes are archived in
   2. Screenshots are recaptured against the **final v1.2 editor UI** (post Phase 9 + 11), higher quality, with captions that explain the interface/workflow; the `== Screenshots ==` captions are updated to match
   3. The screenshot set is visually consistent (uniform grid or deliberately mixed — decided at plan time)
   4. Assets-only — no code regressions; the build zip and Stable tag are unaffected until the release cut
-**Plans**: TBD (start from the deferred 08-06-PLAN.md)
+**Plans**: 3 plans across 2 waves (REL-07 banner and REL-08 screenshots run in parallel in Wave 1; readme caption sync + final consistency/zero-regression gate in Wave 2). Started from the deferred 08-06-PLAN.md.
+  - [ ] 12-01-PLAN.md — REL-07 banner: constrain the tagline auto-fit to the wordmark width (`maxw`->`ww`) in build_final.py, stage via VARIANT_SUFFIX, visual-review checkpoint, overwrite live banners [REL-07]
+  - [ ] 12-02-PLAN.md — REL-08 screenshots: new MAESTRO_CAPTURE-gated capture-directory-screenshots.spec.ts, recapture against the post-11.2 UI (wp-env), visual-review checkpoint [REL-08]
+  - [ ] 12-03-PLAN.md — sync readme.txt == Screenshots == captions to the recaptured set (count match) + final deterministic asset gate + zero-regression e2e [REL-07, REL-08]
 
 ## Progress
 
