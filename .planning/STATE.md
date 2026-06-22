@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Editor UX Polish
-status: executing
-stopped_at: Completed 12-02-PLAN.md
-last_updated: "2026-06-22T19:30:00.000Z"
-last_activity: "2026-06-22 — Phase 12 executing: 12-01 (balanced banner, REL-07) + 12-02 (6 directory screenshots vs post-11.2 UI, REL-08) complete & human-approved. Next: 12-03 caption sync + asset gate → phase verify → cut 1.2.0"
+status: verifying
+stopped_at: Completed 12-03-PLAN.md
+last_updated: "2026-06-22T19:35:25.847Z"
+last_activity: "2026-06-22 — Phase 12: 12-01 banner + 12-02 screenshots complete & approved; 12-03 caption sync next"
 progress:
   total_phases: 9
-  completed_phases: 6
-  total_plans: 32
-  completed_plans: 31
-  percent: 97
+  completed_phases: 7
+  total_plans: 31
+  completed_plans: 32
+  percent: 93
 ---
 
 # Project State
@@ -88,6 +88,7 @@ This GSD milestone is explicitly pinned to the release artifact it is meant to s
 | Phase 11-editor-entry-reorder-fixes P06 | 2 | 2 tasks | 3 files |
 | Phase 11-editor-entry-reorder-fixes P07 | 24 | 3 tasks | 4 files |
 | Phase 12-release-assets-refresh P01 | 20 | 2 tasks | 3 files |
+| Phase 12-release-assets-refresh P03 | 4 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -142,6 +143,8 @@ Recent decisions affecting current work:
 - [Phase 11-editor-entry-reorder-fixes]: 11-08: WP_ENV_TESTS_PORT honored in BOTH playwright.config baseURL AND global-setup login URL — lets e2e run on an alternate tests port when 8889 is taken by another wp-env project (gate ran on 8899)
 - [Phase 11-editor-entry-reorder-fixes]: 11-08: race(b) HARD-03 failure root-caused to e2e click-delivery — 11-07's extra panel buttons enlarged the position:fixed flex-wrap toolbar so the live rename preview reflowed it mid-click; product is correct (genuine Reset-All click cancels the queued autosave, DELETE wins, no persist). Hardened by committing the rename first (settle layout, keep queued autosave) and asserting reset-wins/no-persist; postCount===0 dropped (it only held for a sub-500ms click). No-persist reload assertion retained as anti-masking guard
 - [Phase 12-release-assets-refresh]: Tagline auto-fit loop uses >ww (wordmark width) not >maxw (full column); full tagline string retained — ww constraint produced legible font size without fallback
+- [Phase 12-release-assets-refresh]: E2E regression gate deferred to orchestrator: Docker/wp-env required; deterministic gate (banners + screenshot sizes + caption count) runs fully sandbox-OK
+- [Phase 12-release-assets-refresh]: 12-03 caption copy reflects v1.2 UX changes: auto-clearing Saved state, unified icon-only toolbar, sortable group drag, accessible ▲/▼ sub-item move controls
 
 ### Roadmap Evolution
 
@@ -160,6 +163,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-22T18:36:30.414Z
-Stopped at: Completed 12-01-PLAN.md
+Last session: 2026-06-22T19:35:25.843Z
+Stopped at: Completed 12-03-PLAN.md
 Resume file: None

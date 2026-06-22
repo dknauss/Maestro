@@ -209,4 +209,4 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 | 11. Editor Entry & Reorder Fixes | v1.2 | 8/8 | Complete | 2026-06-22 |
 | 11.1. P1 Review Hardening | v1.2 | 4/4 | Complete | 2026-06-20 |
 | 11.2. Editor Toolbar Redesign | v1.2 | record | Complete | 2026-06-22 |
-| 12. Release Assets Refresh | 1/3 | In Progress|  | - |
+| 12. Release Assets Refresh | 3/3 | Complete   | 2026-06-22 | - |
