@@ -553,17 +553,20 @@
 
 		var right = el( 'div', 'maestro-toolbar-right' );
 
-		// Icon-only like the panel controls. Distinct glyphs: image-rotate (restore
+		// Icon-only like the panel controls. Distinct glyphs: backup/restore (restore
 		// everything) for Reset All vs the panel's undo (single-item) Reset Item;
-		// no-alt (×) for Exit. aria-label + title carry the name; Reset All is still
-		// guarded by the confirm dialog in doResetAll().
+		// the exit-door glyph for Exit — matching the admin-bar toggle
+		// (class-admin-bar.php) so the same action shares one icon across surfaces,
+		// and so Exit reads distinctly from the toolbar's ▲/▼ move arrows. aria-label
+		// + title carry the name; Reset All is still guarded by the confirm dialog in
+		// doResetAll().
 		var resetAll = el( 'button', 'button maestro-reset-all' );
 		resetAll.type = 'button';
 		iconButton( resetAll, 'dashicons-backup', I.resetAll );
 		resetAll.addEventListener( 'click', doResetAll );
 
 		var exit = el( 'a', 'button maestro-exit' );
-		iconButton( exit, 'dashicons-arrow-left-alt', I.exit );
+		iconButton( exit, 'dashicons-exit', I.exit );
 		exit.href = D.exitUrl;
 		exit.addEventListener( 'click', onExit );
 
