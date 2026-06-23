@@ -125,7 +125,9 @@ Full phase details, success criteria, and outcomes are archived in
   2. The harness provisions at least two users: an admin and at least one lower-privilege role user (e.g. Editor or Shop Manager) — confirmed by `wp user list` in the running environment
   3. A committed schema document defines all six manipulation dimensions (custom positions, conditional/late injection, re-registered menus, count badges in titles, custom separators, direct `$menu`/`$submenu` surgery) and a matrix template with columns for each Maestro operation (rename / reorder / hide / re-icon) and cells for safe/degraded/broken classification — confirmed by the committed file
   4. The schema template is committed before any SURV-xx file is authored, establishing a shared format all surveys will fill in
-**Plans**: TBD
+**Plans**: 2 plans
+  - [ ] 13-01-PLAN.md — compat wp-env harness: six pinned ZIP plugins + Maestro via ../.. + ports 8890/8891 + afterStart admin/Editor/Shop Manager provisioning + VERSIONS.md + compat:* scripts [HARN-01, HARN-02]
+  - [ ] 13-02-PLAN.md — classification-schema template at .planning/compat/SCHEMA.md (6 dimensions + rename/reorder/hide/re-icon × safe/degraded/broken matrix + classified-fix list) [SCHM-01]
 
 ### Phase 14: WooCommerce Survey
 **Goal**: WooCommerce's menu-manipulation behavior is fully characterized using the Phase 13 schema, and the schema is refined against the hardest test case before the remaining five surveys run
