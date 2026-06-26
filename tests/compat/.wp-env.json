@@ -1,0 +1,23 @@
+{
+	"core": "WordPress/WordPress#7.0",
+	"plugins": [
+		"https://downloads.wordpress.org/plugin/woocommerce.10.9.1.zip",
+		"https://downloads.wordpress.org/plugin/jetpack.15.9.1.zip",
+		"https://downloads.wordpress.org/plugin/wordpress-seo.27.9.zip",
+		"https://downloads.wordpress.org/plugin/elementor.4.1.4.zip",
+		"https://downloads.wordpress.org/plugin/wpforms-lite.1.10.2.1.zip",
+		"https://downloads.wordpress.org/plugin/lifterlms.10.0.8.zip"
+	],
+	"mappings": {
+		"wp-content/plugins/maestro-menu-editor": "../.."
+	},
+	"port": 8890,
+	"testsPort": 8891,
+	"config": {
+		"WP_DEBUG": true,
+		"SCRIPT_DEBUG": true
+	},
+	"lifecycleScripts": {
+		"afterStart": "bash -c 'wp user get compat_editor >/dev/null 2>&1 || wp user create compat_editor compat-editor@example.com --role=editor --user_pass=password; if wp role exists shop_manager >/dev/null 2>&1; then wp user get compat_shop_manager >/dev/null 2>&1 || wp user create compat_shop_manager compat-shop@example.com --role=shop_manager --user_pass=password; else echo \"shop_manager role absent \u2014 WooCommerce not active yet\"; fi'"
+	}
+}
