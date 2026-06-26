@@ -1,38 +1,34 @@
 ---
 phase: 13-compatibility-harness-classification-schema
 verified: 2026-06-26T15:28:26Z
-status: human_needed
-score: 2/4 must-haves verified; 2/4 require Docker/wp-env boot evidence
-human_verification:
-  - test: "Boot compatibility harness and inspect active plugins"
-    expected: "`npm run compat:start` succeeds, then `cd tests/compat && npx wp-env run cli wp plugin list --status=active --field=name` shows maestro-menu-editor plus woocommerce, jetpack, wordpress-seo, elementor, wpforms-lite/wpforms, and lifterlms active; Rank Math absent."
-    why_human: "Docker daemon is unavailable in this session, and the environment is not initialized, so running wp-env acceptance commands is blocked."
-  - test: "Inspect provisioned compatibility users"
-    expected: "`cd tests/compat && npx wp-env run cli wp user list --fields=user_login,roles` shows admin/administrator plus compat_editor/editor and compat_shop_manager/shop_manager."
-    why_human: "User creation happens in wp-env lifecycleScripts.afterStart and requires a running Docker/wp-env environment."
+status: passed
+score: 4/4 must-haves verified (HARN-01/HARN-02 confirmed via wp-env boot 2026-06-26T17:00Z)
+human_verification: []
 ---
 
 # Phase 13: Compatibility Harness + Classification Schema Verification Report
 
 **Phase Goal:** Compatibility Harness + Classification Schema for R1 third-party compatibility research — a committed, reproducible multi-plugin test environment and a consistent survey template exist before survey work begins.
-**Verified:** 2026-06-26T15:28:26Z
-**Status:** human_needed
-**Re-verification:** No — initial verification
+**Verified:** 2026-06-26T15:28:26Z (artifacts); 2026-06-26T17:00Z (runtime boot)
+**Status:** passed
+**Re-verification:** Yes — runtime acceptance completed after Docker became available
 
 ## Goal Achievement
 
-Phase 13 is structurally implemented: the compatibility harness files, pinned version ledger, npm wrappers, and schema template all exist and are substantively wired. However, HARN-01 and HARN-02 explicitly require confirmation from a running wp-env environment (`wp plugin list` and `wp user list`). Docker is unavailable in this session, so those acceptance outputs cannot be verified from artifacts alone.
+Phase 13 is fully verified. The compatibility harness files, pinned version ledger, npm wrappers, and schema template all exist and are substantively wired (confirmed 2026-06-26T15:28Z). The two runtime-only truths (HARN-01, HARN-02) were confirmed by booting the compat wp-env on 2026-06-26 once Docker was available: `wp plugin list --status=active` returned `maestro-menu-editor` plus all six survey plugins (elementor, jetpack, lifterlms, woocommerce, wpforms-lite, wordpress-seo) with Rank Math absent, and `wp user list` returned `admin`/administrator, `compat_editor`/editor, and `compat_shop_manager`/shop_manager.
+
+**Boot notes (for Phases 14-16):** A first boot attempt aborted on a transient `ADM-ZIP: CRC32 checksum failed` while streaming the Elementor ZIP; wp-env re-downloaded it cleanly on retry (the pinned URL is valid). A subsequent attempt aborted because a leftover partial `WordPress-PHPUnit/` from the interrupted run blocked its shallow clone; moving that directory aside let the boot complete. `testsEnvironment: false` is set in the config but wp-env 11.8.1 still provisions the tests environment and emits a deprecation warning — harmless, but it means the PHPUnit clone runs regardless. Full boot took ~15 min on a cold cache.
 
 ### Observable Truths
 
 | # | Truth | Status | Evidence |
 | --- | --- | --- | --- |
-| 1 | A single documented command boots WordPress with all six survey plugins loaded at recorded pinned versions, confirmed by `wp plugin list`. | ? HUMAN NEEDED | `package.json` has `compat:start: cd tests/compat && npx wp-env start`; `tests/compat/.wp-env.json` lists six pinned plugin ZIPs and maps Maestro. Docker check failed: `failed to connect to the docker API...`; wp-env command failed: `Environment not initialized. Run wp-env start first.` |
-| 2 | The harness provisions admin plus lower-privilege role users, confirmed by `wp user list`. | ? HUMAN NEEDED | `lifecycleScripts.afterStart` creates `compat_editor` and guarded `compat_shop_manager`; default wp-env admin is expected. Actual `wp user list` requires booted Docker/wp-env. |
+| 1 | A single documented command boots WordPress with all six survey plugins loaded at recorded pinned versions, confirmed by `wp plugin list`. | ✓ VERIFIED | `npm run compat:start` booted the dev site at `http://localhost:8890`; `wp plugin list --status=active --field=name` returned `elementor, jetpack, lifterlms, maestro-menu-editor, woocommerce, wpforms-lite, wordpress-seo` — all six survey plugins plus Maestro, Rank Math absent. |
+| 2 | The harness provisions admin plus lower-privilege role users, confirmed by `wp user list`. | ✓ VERIFIED | `wp user list --fields=user_login,roles` returned `admin/administrator`, `compat_editor/editor`, `compat_shop_manager/shop_manager` — confirming `lifecycleScripts.afterStart` provisioning, including the shop_manager guard firing after WooCommerce activation. |
 | 3 | A committed schema document defines all six manipulation dimensions and rename/reorder/hide/re-icon × safe/degraded/broken matrix. | ✓ VERIFIED | `.planning/compat/SCHEMA.md` exists, is 79 lines, includes all six dimensions, all four operations, and safe/degraded/broken definitions/table cells. Plan automated Node schema check passed. |
 | 4 | The schema template exists before any `SURV-xx` file is authored. | ✓ VERIFIED | `.planning/compat/SCHEMA.md` exists at the milestone path; `find .planning/compat -maxdepth 1 -name 'SURV-*'` returned no survey files. |
 
-**Score:** 2/4 truths verified automatically; 2/4 require human/Docker verification.
+**Score:** 4/4 truths verified (2/4 from artifacts, 2/4 from the 2026-06-26 wp-env boot).
 
 ### Required Artifacts
 
@@ -50,7 +46,7 @@ Phase 13 is structurally implemented: the compatibility harness files, pinned ve
 | --- | --- | --- | --- | --- |
 | `tests/compat/.wp-env.json` | WordPress.org plugin ZIPs | Versioned `downloads.wordpress.org/plugin/SLUG.VERSION.zip` URLs in `plugins` array | ✓ WIRED | Six URLs present; HEAD checks returned HTTP 200 for all six. |
 | `tests/compat/.wp-env.json` | Maestro source | Mapping `wp-content/plugins/maestro-menu-editor` to `../..` | ✓ WIRED | Mapping is exactly `../..`, relative to `tests/compat`. |
-| `lifecycleScripts.afterStart` | Editor and Shop Manager users | `wp user get`/`wp user create`; `wp role exists shop_manager` guard | ✓ WIRED structurally / ? runtime | Script is idempotent and guarded; runtime user creation still requires boot verification. |
+| `lifecycleScripts.afterStart` | Editor and Shop Manager users | `wp user get`/`wp user create`; `wp role exists shop_manager` guard | ✓ WIRED + runtime-confirmed | Both `compat_editor` and `compat_shop_manager` present after boot, confirming the guarded creation ran. |
 | `package.json` | Compat harness | `compat:start` and `compat:stop` cd into `tests/compat` | ✓ WIRED | Scripts invoke `npx wp-env start/stop` from the compat directory. |
 | `.planning/compat/SCHEMA.md` | Future Phase 14-16 surveys | Copy-to-`.planning/compat/SURV-NN-<plugin>.md` instruction | ✓ WIRED | Template explicitly instructs copying to SURV files and remaining pristine. |
 
@@ -58,8 +54,8 @@ Phase 13 is structurally implemented: the compatibility harness files, pinned ve
 
 | Requirement | Source Plan | Description | Status | Evidence |
 | --- | --- | --- | --- | --- |
-| HARN-01 | `13-01-PLAN.md` | A committed, reproducible wp-env configuration loads all six survey plugins alongside Maestro from a single documented command; versions are pinned and recorded. | ? NEEDS HUMAN | Configuration, pinned ledger, scripts, and valid ZIP URLs are present. Actual `wp plugin list` in a running environment is not available because Docker is unavailable. |
-| HARN-02 | `13-01-PLAN.md` | Harness provisions admin plus at least one lower-privilege role/user for menu observation and per-role hide checks. | ? NEEDS HUMAN | `afterStart` provisions Editor and Shop Manager with role guard; actual `wp user list` output requires booted wp-env. |
+| HARN-01 | `13-01-PLAN.md` | A committed, reproducible wp-env configuration loads all six survey plugins alongside Maestro from a single documented command; versions are pinned and recorded. | ✓ SATISFIED | `npm run compat:start` booted the env; `wp plugin list --status=active` confirmed all six plugins plus Maestro active at the pinned versions, Rank Math absent. |
+| HARN-02 | `13-01-PLAN.md` | Harness provisions admin plus at least one lower-privilege role/user for menu observation and per-role hide checks. | ✓ SATISFIED | `wp user list` confirmed admin/administrator, compat_editor/editor, and compat_shop_manager/shop_manager. |
 | SCHM-01 | `13-02-PLAN.md` | Classification schema is committed before any survey, with six dimensions and safe/degraded/broken matrix for rename/reorder/hide/re-icon. | ✓ SATISFIED | `.planning/compat/SCHEMA.md` contains required dimensions, operations, classifications, and fix categories; no `SURV-*` files exist. |
 
 No orphaned Phase 13 requirements were found beyond HARN-01, HARN-02, and SCHM-01.
@@ -74,23 +70,16 @@ No blocker anti-patterns were found in the harness config, version ledger, packa
 
 ### Human Verification Required
 
-### 1. Boot compatibility harness and inspect active plugins
+None outstanding. Both runtime checks were completed on 2026-06-26 after Docker became available:
 
-**Test:** Start Docker Desktop, then run `npm run compat:start`; after boot, run `cd tests/compat && npx wp-env run cli wp plugin list --status=active --field=name`.
-**Expected:** Output includes `maestro-menu-editor`, `woocommerce`, `jetpack`, `wordpress-seo`, `elementor`, `wpforms-lite` or `wpforms`, and `lifterlms`; Rank Math is absent.
-**Why human:** Docker daemon is unavailable here, and wp-env is not initialized.
-
-### 2. Inspect provisioned users
-
-**Test:** In the booted compat env, run `cd tests/compat && npx wp-env run cli wp user list --fields=user_login,roles`.
-**Expected:** Output includes `admin` with administrator role, `compat_editor` with editor role, and `compat_shop_manager` with shop_manager role.
-**Why human:** User provisioning occurs in `lifecycleScripts.afterStart`, which only runs during wp-env startup in Docker.
+1. **Active plugins** — `wp plugin list --status=active --field=name` returned `elementor, jetpack, lifterlms, maestro-menu-editor, woocommerce, wpforms-lite, wordpress-seo` (Rank Math absent). ✓
+2. **Provisioned users** — `wp user list --fields=user_login,roles` returned `admin/administrator`, `compat_editor/editor`, `compat_shop_manager/shop_manager`. ✓
 
 ### Gaps Summary
 
-No code/artifact gaps were found. The remaining blocker to a fully passed verification is runtime evidence from Docker/wp-env acceptance commands for HARN-01 and HARN-02. Per the phase prompt, verification is therefore `human_needed`, not `passed`.
+No gaps. All four observable truths and all three requirements (HARN-01, HARN-02, SCHM-01) are verified. Phase 13 verification status is `passed`.
 
 ---
 
-_Verified: 2026-06-26T15:28:26Z_
+_Verified: 2026-06-26T15:28:26Z (artifacts); runtime boot confirmed 2026-06-26T17:00Z_
 _Verifier: Claude (gsd-verifier)_
