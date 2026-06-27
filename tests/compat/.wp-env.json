@@ -15,9 +15,12 @@
 	"testsPort": 8891,
 	"config": {
 		"WP_DEBUG": true,
-		"SCRIPT_DEBUG": true
+		"SCRIPT_DEBUG": true,
+		"WP_MEMORY_LIMIT": "512M",
+		"WP_MAX_MEMORY_LIMIT": "512M"
 	},
 	"lifecycleScripts": {
-		"afterStart": "bash -c 'wp user get compat_editor >/dev/null 2>&1 || wp user create compat_editor compat-editor@example.com --role=editor --user_pass=password; if wp role exists shop_manager >/dev/null 2>&1; then wp user get compat_shop_manager >/dev/null 2>&1 || wp user create compat_shop_manager compat-shop@example.com --role=shop_manager --user_pass=password; else echo \"shop_manager role absent \u2014 WooCommerce not active yet\"; fi'"
-	}
+		"afterStart": "bash -c 'WP=\"php -d memory_limit=512M /usr/local/bin/wp\"; $WP user get compat_editor >/dev/null 2>&1 || $WP user create compat_editor compat-editor@example.com --role=editor --user_pass=password; if $WP role exists shop_manager >/dev/null 2>&1; then $WP user get compat_shop_manager >/dev/null 2>&1 || $WP user create compat_shop_manager compat-shop@example.com --role=shop_manager --user_pass=password; else echo \"shop_manager role absent \u2014 WooCommerce not active yet\"; fi'"
+	},
+	"testsEnvironment": false
 }
