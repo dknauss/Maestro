@@ -20,7 +20,7 @@ A requirement is **Complete** when its artifact exists, is committed, and contai
 
 ### Classification Schema
 
-- [ ] **SCHM-01**: A consistent classification schema is defined and committed **before any survey** — the manipulation dimensions (custom positions, conditional/late injection, re-registered menus, count badges in titles, custom separators, direct `$menu`/`$submenu` surgery) plus a safe/degraded/broken matrix for each Maestro operation (rename / reorder / hide / re-icon). Every survey fills in this template so DELV-01 synthesis is mechanical.
+- [x] **SCHM-01**: A consistent classification schema is defined and committed **before any survey** — the manipulation dimensions (custom positions, conditional/late injection, re-registered menus, count badges in titles, custom separators, direct `$menu`/`$submenu` surgery) plus a safe/degraded/broken matrix for each Maestro operation (rename / reorder / hide / re-icon). Every survey fills in this template so DELV-01 synthesis is mechanical.
 
 ### Per-Plugin Survey
 
@@ -66,7 +66,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | HARN-01 | Phase 13 | Pending |
 | HARN-02 | Phase 13 | Pending |
-| SCHM-01 | Phase 13 | Pending |
+| SCHM-01 | Phase 13 | Complete |
 | SURV-01 | Phase 14 | Pending |
 | SURV-02 | Phase 15 | Pending |
 | SURV-03 | Phase 15 | Pending |

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Phase 13 context gathered
-last_updated: "2026-06-23T11:31:40.009Z"
-last_activity: 2026-06-22 — R1 roadmap created; 11/11 requirements mapped across Phases 13–16
+stopped_at: Phase 13 Plan 01 Docker boot checkpoint pending
+last_updated: "2026-06-26T15:23:15.437Z"
+last_activity: 2026-06-26 — Phase 13 plans executed; SCHM-01 complete; HARN-01/HARN-02 await Docker wp-env boot checkpoint
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 10
-  completed_plans: 10
-  percent: 0
+  total_plans: 12
+  completed_plans: 11
+  percent: 90
 ---
 
 # Project State
@@ -21,17 +21,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-22)
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
-**Current focus:** R1 — Third-Party Compatibility Research; Phase 13 (Compatibility Harness + Classification Schema) next
+**Current focus:** R1 — Third-Party Compatibility Research; Phase 14 (WooCommerce Survey) next
 
 ## Current Position
 
 Milestone: R1 — Third-Party Compatibility Research
-Phase: 13 of 16 (Compatibility Harness + Classification Schema) — not started
-Plan: —
-Status: Roadmap complete — ready to plan Phase 13
-Last activity: 2026-06-22 — R1 roadmap created; 11/11 requirements mapped across Phases 13–16
+Phase: 13 of 16 (Compatibility Harness + Classification Schema) — checkpoint pending
+Plan: 13-01 Task 3 — boot compat harness and confirm active plugins/users
+Status: Phase 13 executed to checkpoint — HARN-01/HARN-02 await Docker wp-env boot verification before Phase 14
+Last activity: 2026-06-26 — Phase 13 plans executed; SCHM-01 complete; HARN-01/HARN-02 await Docker wp-env boot checkpoint
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█████████░] 90% — all files committed; Docker boot checkpoint pending
 
 ## Release Binding
 
@@ -84,6 +84,7 @@ surfaces will be planned and shipped under a later versioned milestone.
 | Phase 11-editor-entry-reorder-fixes P07 | 24 | 3 tasks | 4 files |
 | Phase 12-release-assets-refresh P01 | 20 | 2 tasks | 3 files |
 | Phase 12-release-assets-refresh P03 | 4 | 2 tasks | 2 files |
+| Phase 13-compatibility-harness-classification-schema P02 | 1m | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -140,6 +141,8 @@ Recent decisions affecting current work:
 - [Phase 12-release-assets-refresh]: Tagline auto-fit loop uses >ww (wordmark width) not >maxw (full column); full tagline string retained — ww constraint produced legible font size without fallback
 - [Phase 12-release-assets-refresh]: E2E regression gate deferred to orchestrator: Docker/wp-env required; deterministic gate (banners + screenshot sizes + caption count) runs fully sandbox-OK
 - [Phase 12-release-assets-refresh]: 12-03 caption copy reflects v1.2 UX changes: auto-clearing Saved state, unified icon-only toolbar, sortable group drag, accessible ▲/▼ sub-item move controls
+- [Phase 13-compatibility-harness-classification-schema]: SCHEMA.md remains pristine; future surveys copy it to SURV-NN files and fill in the copies.
+- [Phase 13-compatibility-harness-classification-schema]: Fix-category labels include the requirement wording and the automated-verification plain-text alias for later admin_menu re-hook.
 
 ### Roadmap Evolution
 
@@ -156,9 +159,10 @@ Recent decisions affecting current work:
 
 - **RESOLVED (2026-06-22) — 11-08 Wave 2 gate:** Ran sandbox-disabled on this project's wp-env. Port 8889 was held by another wp-env project, so this stack was started on **dev 8898 / tests 8899** and the gate run via `WP_ENV_TESTS_PORT=8899` (the alternate-port path the 11-08 config change enables); the other project's stack was left untouched. Gate GREEN: JS 53/53, PHP integration 37/37, e2e 32 pass/0 fail, screenshots 4/4. Tear down with `npx wp-env stop` when done.
 - **Hygiene follow-up (non-blocking):** Phase-07 e2e screenshot specs overwrite committed PNGs on every full e2e run (not `MAESTRO_CAPTURE`-gated like the Phase-11 capture spec). Side-effect changes were reverted during the gate; gate the Phase-07 captures the same way to stop the churn.
+- Phase 13 Plan 01 Task 3 checkpoint: Docker daemon unavailable in executor session; run compat wp-env boot verification when Docker is running.
 
 ## Session Continuity
 
-Last session: 2026-06-23T11:31:39.995Z
-Stopped at: Phase 13 context gathered
-Resume file: .planning/phases/13-compatibility-harness-classification-schema/13-CONTEXT.md
+Last session: 2026-06-26T15:23:15.435Z
+Stopped at: Phase 13 Plan 01 Docker boot checkpoint pending
+Resume file: None

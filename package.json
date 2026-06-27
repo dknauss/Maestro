@@ -1,6 +1,6 @@
 {
 	"name": "maestro",
-	"version": "1.1.1",
+	"version": "1.2.0",
 	"private": true,
 	"description": "Tooling for Maestro: The Inline Admin Menu Editor: wp-env, PHP integration tests, Playwright E2E.",
 	"scripts": {
@@ -9,6 +9,8 @@
 		"audit:npm": "node bin/audit-npm.mjs",
 		"env:start": "wp-env start",
 		"env:stop": "wp-env stop",
+		"compat:start": "cd tests/compat && npx wp-env start",
+		"compat:stop": "cd tests/compat && npx wp-env stop",
 		"env:clean": "wp-env clean all",
 		"test:php": "wp-env run tests-cli --env-cwd=wp-content/plugins/maestro-menu-editor vendor/bin/phpunit -c phpunit-integration.xml.dist",
 		"pretest:e2e": "wp-env run tests-cli wp plugin activate maestro-menu-editor/maestro-menu-editor.php",
