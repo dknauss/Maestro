@@ -5,11 +5,15 @@
  * Maestro's Replay applies top-level order through the `custom_menu_order` +
  * `menu_order` filters at render time, NOT in the admin_menu replay pass — so a
  * raw $menu dump does not reflect it. This probe reproduces the render-time order
- * resolution: it hooks admin_menu @ PHP_INT_MAX (after Maestro's own replay has
- * registered its filters), then applies the SAME core pipeline WP uses
- * (custom_menu_order gate + menu_order filter over the top-level slugs), and
- * prints the resulting effective order. It exits before wp-admin/menu.php's
- * privilege filtering (which wp_die()s under WP-CLI).
+ * resolution: it hooks admin_menu @ PHP_INT_MAX — the SAME priority Maestro's
+ * `Replay::replay()` uses (`includes/class-replay.php:56`). At an identical
+ * priority WordPress fires callbacks in registration order, and Maestro registers
+ * its `admin_menu` hook in its constructor at plugin-load time (long before this
+ * eval-file runs), so this probe's callback is appended AFTER Maestro's and
+ * therefore runs AFTER Maestro's own replay. It then applies the SAME core
+ * pipeline WP uses (custom_menu_order gate + menu_order filter over the top-level
+ * slugs) and prints the resulting effective order. It exits before
+ * wp-admin/menu.php's privilege filtering (which wp_die()s under WP-CLI).
  *
  * Usage (from tests/compat), with maestro_config set to the desired top_order:
  *   npx wp-env run cli -- php -d memory_limit=512M /usr/local/bin/wp \
@@ -44,7 +48,7 @@ add_action(
 		}
 		exit;
 	},
-	PHP_INT_MAX - 1 // Just before nothing else; Maestro registers its filters in its constructor, already active.
+	PHP_INT_MAX // Same priority as Maestro's replay; registered later in the request, so it runs AFTER Maestro's own replay (and after Maestro's order filters are active).
 );
 
 $GLOBALS['pagenow'] = 'index.php';

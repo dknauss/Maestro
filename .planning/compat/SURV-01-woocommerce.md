@@ -112,6 +112,17 @@ top-level Reorder cells from the **effective rendered order** (the admin sidebar
 the `menu_order` filter explicitly in `wp eval`), never from the raw post-replay global. Rename,
 icon, hide, and submenu reorder ARE visible in the raw dump.
 
+The effective-order probe `SURV-01-assets/reorder-probe.php` hooks `admin_menu` at **`PHP_INT_MAX`**
+— the *same* priority as Maestro's `Replay::replay()` (`includes/class-replay.php:56`). Same-priority
+callbacks fire in registration order, and Maestro registers its `admin_menu` hook in its constructor
+at plugin-load time, long before the `eval-file` probe registers its own — so the probe's callback is
+appended *after* Maestro's and runs **after** Maestro's replay (and after Maestro's `custom_menu_order`
+/ `menu_order` filters are active). The probe then reproduces core's render-time decision verbatim:
+gate on `apply_filters('custom_menu_order', false)`, and if claimed, run `apply_filters('menu_order',
+$slugs)`. (An earlier revision hooked at `PHP_INT_MAX - 1`, which would have run *before* Maestro's
+replay, contradicting the probe's intent; corrected to `PHP_INT_MAX` so it observes the post-replay
+state it documents. Re-running the corrected probe reproduced the F4 result identically — see F4.)
+
 ### Per-role observation
 
 Each of the three provisioned users is dumped separately via the `--user=` flag above, because
@@ -340,7 +351,21 @@ Use one row per affected menu item, including both top-level items and submenus.
   Persists across reload. Timing cause: Woo's render-time `menu_order` filter overrides Maestro's
   separator placement → **degraded** for items adjacent to the WooCommerce cluster, **safe** for the
   ordering of the items themselves. (Maestro also `custom_menu_order`-claims only when a `top_order`
-  exists; WC claims it unconditionally — so a reorder is always actually applied.)
+  exists; WC claims it unconditionally — so a reorder is always actually applied. Confirmed: the
+  probe reports `custom_menu_order claimed: YES` even with `maestro_config` deleted.) **Re-verified
+  with the corrected `reorder-probe.php` (`PHP_INT_MAX`, after replay): identical output** — requested
+  `[analytics, marketing, woocommerce]` rendered `analytics → marketing → separator-woocommerce →
+  woocommerce → edit.php?post_type=product → …`, item order honored, only the separator re-clustered.
+  The corrected priority did **not** change any top-level reorder result.
+- **F4a — WooCommerce's `menu_order()` injects a SECOND `edit.php?post_type=product` row into its
+  cluster (degraded, cosmetic duplicate).** Even in the natural state the effective top-level order
+  lists `edit.php?post_type=product` **twice** (once in its native position, once re-clustered
+  immediately after the `woocommerce` item) — WooCommerce hardcodes Products into its cluster
+  sequence in `menu_order()`. When Maestro moves Products via `top_order` (requested
+  `[product, woocommerce]`), the Maestro-honored copy lands at position 0 AND WC's injected duplicate
+  still appears right after `woocommerce`. WordPress's render dedupes top-level slugs by first
+  occurrence, so the Maestro placement wins visually; the duplicate is a pre-existing WC quirk, not a
+  Maestro defect. Persists across reload. Timing cause: WC's render-time `menu_order` filter.
 - **F5 — Setup/feature/role state-dependence.** The Home `remaining-tasks-badge` exists only in
   fresh-activated state (gone once onboarding completes); Marketing exists only while the
   `navigation` feature is off; Analytics only when enabled; `coupons-moved` only for roles with
