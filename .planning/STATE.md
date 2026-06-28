@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-06-22)
 
 Milestone: R1 — Third-Party Compatibility Research
 Phase: 14 of 16 (WooCommerce Survey) — awaiting planning
-Plan: none yet — Phase 14 directory created (`.planning/phases/14-woocommerce-survey/`); CONTEXT.md to be gathered via /gsd:discuss-phase 14
+Plan: none yet — next run `/gsd:discuss-phase 14`, which creates `.planning/phases/14-woocommerce-survey/` and its CONTEXT.md (directory not yet in the tree)
 Status: Phase 13 complete and verified (4/4 must-haves; HARN-01/HARN-02 confirmed via wp-env boot 2026-06-26; PR #58 merged). Harness + schema ready for surveys.
 Last activity: 2026-06-27 — Phase 13 verified passed; Phase 14 (WooCommerce Survey) next
 
