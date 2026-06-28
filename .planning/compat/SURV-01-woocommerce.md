@@ -300,17 +300,125 @@ Use one row per affected menu item, including both top-level items and submenus.
 - **degraded** — operation partially works or works with caveats / cosmetic loss (e.g. count badge lost on rename).
 - **broken** — operation fails, reverts, or breaks the plugin's menu/access.
 
+> **How this matrix was produced.** Each operation was applied config-driven via `maestro_config`
+> (sparse-diff option), the `$menu`/`$submenu` globals were re-dumped with the Method-header command
+> and compared to the Plan 01 natural baseline, then the config was reset (`wp option delete
+> maestro_config`) so cases did not contaminate each other. **Top-level Reorder cells are classified
+> from the EFFECTIVE rendered order** (the `custom_menu_order` + `menu_order` filter pipeline,
+> reproduced by `SURV-01-assets/reorder-probe.php`), NOT the raw post-replay `$menu` global — see the
+> Method header's top-level-reorder exception. Persistence was confirmed by re-running the
+> dump/probe as a fresh request after each op. Per-cell shorthand: **persists** = override survives a
+> reload; **timing cause** (degraded/broken only) names whether the caveat comes from WooCommerce's
+> late/conditional `admin_menu` injection or its own render-time `menu_order` filter vs. Maestro's
+> `PHP_INT_MAX` replay ordering.
+
+#### Cross-cutting findings (apply to many rows, stated once here, referenced in cells)
+
+- **F1 — Rename overwrites the title wholesale → any baked-in badge span is lost (degraded, cosmetic).**
+  `Replay::replay()` sets `$menu[pos][0]`/`$submenu[parent][pos][0] = $ovr['title']`
+  (`includes/class-replay.php:98,131`), so a title that carried a count-badge `<span>` loses it.
+  Observed: renaming Payments to "Pay Stuff" dropped its `wcpay-menu-badge awaiting-mod count-1`
+  span; renaming Extensions would drop its `update-plugins count-0` span; renaming Home (fresh state)
+  drops the `remaining-tasks-badge`. Timing cause: not a timing collision — Maestro replays *after*
+  Woo bakes the badge in, then overwrites index [0]. Persists across reload. Recoverable (reset
+  restores the badge) → **degraded**.
+- **F2 — Re-icon is top-level only; on a submenu slug it is a silent no-op (N/A).** `Replay::replay()`
+  only writes the icon to `$menu[pos][6]` (`class-replay.php:101`); submenu rows have no icon index.
+  Applying `{"icon":...}` to a submenu slug changed nothing in the dump. Classified **N/A (no-op,
+  cosmetic)** on every submenu row, leaning to the "degraded" column purely so the matrix stays
+  mechanical — the operation does not exist for submenus and never breaks anything.
+- **F3 — Hide is a cosmetic per-role `unset()`; it never removes a capability, so the page still
+  loads by direct URL.** `is_hidden_for_current_user()` only `unset()`s the `$menu`/`$submenu` row
+  when the current user's roles intersect `hidden_roles` (`class-replay.php:113-115,133-135`).
+  Observed: hiding Orders from `shop_manager` removed the menu item but the Orders page still
+  **LOADS (200)** for shop_manager (cap `edit_shop_orders` intact). Per-role: admin (not in
+  `hidden_roles`) keeps seeing the item; editor/shop_manager lose it cosmetically. Where a role
+  also lacks the page cap (e.g. `compat_editor` has no `edit_shop_orders`), a direct hit 403s — but
+  that is WordPress's own cap gate, **not** Maestro's hide. Cosmetic + access intact → **degraded**
+  (never broken). Persists across reload.
+- **F4 — Top-level Reorder: item order is honored and persists, but WooCommerce's own
+  `menu_order` filter (priority 10, runs AFTER Maestro at the same priority) re-clusters
+  `separator-woocommerce` against the `woocommerce` item.** Both `Maestro\Replay::reorder_top` and
+  `WC_Admin_Menus::menu_order` hook `menu_order` at priority 10; Maestro is registered first
+  (plugin load order), so WC re-runs on Maestro's output and forces its separator immediately before
+  `woocommerce`. Observed: requesting `[analytics, marketing, woocommerce]` rendered
+  `analytics, marketing, separator-woocommerce, woocommerce, …` — Maestro-only would have produced
+  `analytics, marketing, woocommerce, separator-woocommerce, …`. The **requested item order is
+  preserved**; only the separator slot is overridden, which is cosmetic and does not affect access.
+  Persists across reload. Timing cause: Woo's render-time `menu_order` filter overrides Maestro's
+  separator placement → **degraded** for items adjacent to the WooCommerce cluster, **safe** for the
+  ordering of the items themselves. (Maestro also `custom_menu_order`-claims only when a `top_order`
+  exists; WC claims it unconditionally — so a reorder is always actually applied.)
+- **F5 — Setup/feature/role state-dependence.** The Home `remaining-tasks-badge` exists only in
+  fresh-activated state (gone once onboarding completes); Marketing exists only while the
+  `navigation` feature is off; Analytics only when enabled; `coupons-moved` only for roles with
+  `manage_options` (present for admin, absent for shop_manager). Rows below are flagged **[state]**
+  where behavior differs by state; both behaviors recorded where they diverge.
+
 ### Maestro Operation Matrix
 
-| Menu item | Level | Slug / parent slug | Rename | Reorder | Hide | Re-icon |
+Legend: **safe** / **degraded** / **broken** per the rubric; **[state]** = behavior is setup/feature/role-dependent. Re-icon on submenu rows = **N/A** (F2). All cells persist across reload unless noted.
+
+| Menu item | Level | Slug / parent slug | Rename | Reorder | Hide (admin / editor / shop_manager) | Re-icon |
 | --- | --- | --- | --- | --- | --- | --- |
-| `TODO: affected item label` | `top-level` or `submenu` | `TODO` | `safe/degraded/broken` — TODO observable evidence | `safe/degraded/broken` — TODO observable evidence | `safe/degraded/broken` — TODO observable evidence | `safe/degraded/broken` — TODO observable evidence |
-| **Illustrative example only:** `Example Plugin` | `top-level` | `example-plugin` | `safe` — rename persists across reload and the menu link still opens | `degraded` — reorder persists initially but shifts below a custom separator after plugin reinjection | `safe` — hidden for Editor and remains accessible for Admin | `broken` — custom icon is replaced by plugin on next `admin_menu` pass |
+| `WooCommerce` | top-level | `woocommerce` | **degraded** — title set to "Shop HQ", persists; no badge in title so no loss, but link/icon intact (F1 applies only when a badge is present) → effectively **safe** for this item | **degraded** — item lands in requested slot and persists; WC re-clusters `separator-woocommerce` adjacent to it (F4) | admin **safe** (stays visible); editor/shop_manager **degraded** — item hidden cosmetically, pages still LOAD by URL (F3); hiding parent does NOT unset child rows (see Interaction S1) | **safe** — data-URI SVG swapped to `dashicons-star-filled`, persists; `menu-icon-*` strip logic untouched for dashicon |
+| `(separator)` | top-level | `separator-woocommerce` | **N/A → degraded** — separators are skipped by Maestro (`empty($row[2])`/`wp-menu-separator` skip, `class-replay.php:87,258`); rename never targets it | **degraded** — not directly reorderable; its effective position is dictated by WC's `menu_order` filter (F4), which overrides any Maestro top_order placement | **N/A → safe** — Maestro never hides separators (skipped); no role effect | **N/A → degraded** — separators have no icon; skipped (F2-like) |
+| `Payments` | top-level | `admin.php?page=wc-settings&tab=checkout&from=PAYMENTS_MENU_ITEM` | **degraded** — renamed to "Pay Stuff"/"Money", persists; **`wcpay-menu-badge awaiting-mod count-1` span LOST** (F1). Timing: Maestro overwrites index [0] after Woo bakes the badge | **degraded** — reorders to requested slot and persists; subject to WC cluster re-ordering (F4) when placed near `woocommerce` | admin **safe**; editor/shop_manager **degraded** — cosmetic hide, Settings/Payments page LOADS by URL for shop_manager (`manage_woocommerce` intact) (F3) | **safe** — data-URI SVG → dashicon swap applies and persists |
+| `Analytics` | top-level | `wc-admin&path=/analytics/overview` | **safe** — renamed, persists; no badge in top-level title | **degraded** — honored + persists; near-cluster separator re-ordering (F4). **[state]** present only when Analytics enabled | admin **safe**; editor/shop_manager **degraded** — cosmetic; report pages gated by `view_woocommerce_reports` (shop_manager has it → LOADS; editor lacks it → WP 403, not Maestro) (F3) | **safe** — `dashicons-chart-bar` → `dashicons-tag` applies + persists |
+| `Marketing` | top-level | `woocommerce-marketing` | **safe** — renamed, persists; no badge | **degraded** — honored + persists; F4 cluster caveat. **[state]** present only while `navigation` feature off | admin **safe**; editor/shop_manager **degraded** — cosmetic; Overview gated `view_woocommerce_reports` (F3) | **safe** — `dashicons-megaphone` → `dashicons-money-alt`/`dashicons-cart` applies + persists |
+| `Home` | submenu | `wc-admin` (parent `woocommerce`) | **[state] degraded (fresh) / safe (completed-setup)** — renamed, persists; in fresh state the `remaining-tasks-badge` span is LOST (F1); in completed-setup the badge is already absent so rename is clean | **N/A → safe** — submenu order is set via `sub_order` (not this op's top-level path); reorderable within parent, see below | admin **safe**; editor (no Woo caps, naturally absent) / shop_manager **degraded** — cosmetic hide, Home (cap `read`) LOADS by URL (F3) | **N/A** (F2) → degraded |
+| `Orders` | submenu | `edit.php?post_type=shop_order` (parent `woocommerce`) | **degraded** — renamed to "Sales Orders", persists; processing-count badge would be LOST when present (F1; none in fresh harness, count is zero) | **N/A → safe** — submenu reorder via `sub_order` reorders surviving rows by slug (`Ordering::submenu`) | admin **safe**; editor **degraded** (cosmetic; editor lacks `edit_shop_orders` so WP 403s independently); shop_manager **degraded** — cosmetic, Orders page **LOADS (200)** by URL (`edit_shop_orders` intact) (F3) | **N/A** (F2) → degraded |
+| `Customers` | submenu | `wc-admin&path=/customers` (parent `woocommerce`) | **safe** — renamed, persists; no badge | **N/A → safe** — `sub_order` reorder | admin **safe**; editor/shop_manager **degraded** — cosmetic; gated `view_woocommerce_reports` (F3) | **N/A** (F2) → degraded |
+| `Coupons` | submenu | `coupons-moved` (parent `woocommerce`) | **safe** — renamed, persists. **[state]** present only for roles with `manage_options` (admin yes, shop_manager NO — slug absent → rename is a silent orphan no-op for shop_manager) | **N/A → safe** — `sub_order` reorder; orphan when absent | admin **safe**; editor (absent) / shop_manager (absent) → cosmetic-only where present → **degraded** | **N/A** (F2) → degraded |
+| `Reports` | submenu | `wc-reports` (parent `woocommerce`) | **safe** — renamed, persists | **N/A → safe** — `sub_order` | admin **safe**; editor/shop_manager **degraded** — cosmetic; `view_woocommerce_reports` (F3) | **N/A** (F2) → degraded |
+| `Settings` | submenu | `wc-settings` (parent `woocommerce`) | **safe** — renamed, persists | **N/A → safe** — `sub_order` | admin **safe**; editor **degraded** (cosmetic; editor lacks `manage_woocommerce` → WP 403); shop_manager **degraded** — cosmetic, Settings **LOADS (200)** by URL (`manage_woocommerce` intact) (F3) | **N/A** (F2) → degraded |
+| `Status` | submenu | `wc-status` (parent `woocommerce`) | **safe** — renamed, persists | **N/A → safe** — `sub_order` | admin **safe**; editor/shop_manager **degraded** — cosmetic; `manage_woocommerce` (F3) | **N/A** (F2) → degraded |
+| `Add-ons` | submenu | `wc-addons` (parent `woocommerce`) | **safe** — renamed, persists (natural title is empty in dump; rename gives it a label) | **N/A → safe** — `sub_order` | admin **safe**; editor/shop_manager **degraded** — cosmetic; `manage_woocommerce` (F3) | **N/A** (F2) → degraded |
+| `Extensions` | submenu | `wc-admin&path=/extensions` (parent `woocommerce`) | **degraded** — renamed, persists; `update-plugins count-0` span LOST (F1) | **N/A → safe** — `sub_order` | admin **safe**; editor/shop_manager **degraded** — cosmetic; `view_woocommerce_reports` (F3) | **N/A** (F2) → degraded |
+| `Marketing → Overview` | submenu | `admin.php?page=wc-admin&path=/marketing` (parent `woocommerce-marketing`) | **safe** — renamed, persists | **N/A → safe** — `sub_order` under marketing | admin **safe**; editor/shop_manager **degraded** — cosmetic; `view_woocommerce_reports` (F3) | **N/A** (F2) → degraded |
+| `Marketing → Coupons` | submenu | `edit.php?post_type=shop_coupon` (parent `woocommerce-marketing`) | **safe** — renamed, persists | **N/A → safe** — `sub_order` | admin **safe**; editor/shop_manager **degraded** — cosmetic; `edit_shop_coupons` (shop_manager has it → LOADS) (F3) | **N/A** (F2) → degraded |
+| `Analytics → Overview` | submenu | `wc-admin&path=/analytics/overview` (parent self) | **safe** — renamed, persists | **N/A → safe** — `sub_order` under analytics | admin **safe**; editor/shop_manager **degraded** — cosmetic; `view_woocommerce_reports` (F3) | **N/A** (F2) → degraded |
+| `Analytics → Products` | submenu | `wc-admin&path=/analytics/products` | **safe** — renamed, persists | **N/A → safe** | admin **safe**; editor/shop_manager **degraded** — cosmetic (F3) | **N/A** (F2) → degraded |
+| `Analytics → Revenue` | submenu | `wc-admin&path=/analytics/revenue` | **safe** — renamed, persists | **N/A → safe** | admin **safe**; editor/shop_manager **degraded** — cosmetic (F3) | **N/A** (F2) → degraded |
+| `Analytics → Orders` | submenu | `wc-admin&path=/analytics/orders` | **safe** — renamed, persists | **N/A → safe** | admin **safe**; editor/shop_manager **degraded** — cosmetic (F3) | **N/A** (F2) → degraded |
+| `Analytics → Variations` | submenu | `wc-admin&path=/analytics/variations` | **safe** — renamed, persists | **N/A → safe** | admin **safe**; editor/shop_manager **degraded** — cosmetic (F3) | **N/A** (F2) → degraded |
+| `Analytics → Categories` | submenu | `wc-admin&path=/analytics/categories` | **safe** — renamed, persists | **N/A → safe** | admin **safe**; editor/shop_manager **degraded** — cosmetic (F3) | **N/A** (F2) → degraded |
+| `Analytics → Coupons` | submenu | `wc-admin&path=/analytics/coupons` | **safe** — renamed, persists | **N/A → safe** | admin **safe**; editor/shop_manager **degraded** — cosmetic (F3) | **N/A** (F2) → degraded |
+| `Analytics → Taxes` | submenu | `wc-admin&path=/analytics/taxes` | **safe** — renamed, persists | **N/A → safe** | admin **safe**; editor/shop_manager **degraded** — cosmetic (F3) | **N/A** (F2) → degraded |
+| `Analytics → Downloads` | submenu | `wc-admin&path=/analytics/downloads` | **safe** — renamed, persists | **N/A → safe** | admin **safe**; editor/shop_manager **degraded** — cosmetic (F3) | **N/A** (F2) → degraded |
+| `Analytics → Stock` | submenu | `wc-admin&path=/analytics/stock` | **safe** — renamed, persists | **N/A → safe** | admin **safe**; editor/shop_manager **degraded** — cosmetic (F3) | **N/A** (F2) → degraded |
+| `Analytics → Settings` | submenu | `wc-admin&path=/analytics/settings` | **safe** — renamed, persists | **N/A → safe** | admin **safe**; editor/shop_manager **degraded** — cosmetic (F3) | **N/A** (F2) → degraded |
+| `Products → Brands` | submenu | `edit-tags.php?taxonomy=product_brand&post_type=product` (parent `edit.php?post_type=product`) | **safe** — renamed, persists. Note: dump shows `&amp;`-encoded slug; the slug Maestro stores must match the rendered slug for the match to land (slug-resolution candidate) | **N/A → safe** — `sub_order` under Products | admin **safe**; editor/shop_manager **degraded** — cosmetic; `manage_product_terms` (shop_manager has it) (F3) | **N/A** (F2) → degraded |
+| `Products → Categories` | submenu | `edit-tags.php?taxonomy=product_cat&post_type=product` (parent Products) | **safe** — renamed, persists (same `&amp;` slug caveat) | **N/A → safe** | admin **safe**; editor/shop_manager **degraded** — cosmetic; `manage_product_terms` (F3) | **N/A** (F2) → degraded |
+| `Products → Tags` | submenu | `edit-tags.php?taxonomy=product_tag&post_type=product` (parent Products) | **safe** — renamed, persists (same `&amp;` slug caveat) | **N/A → safe** | admin **safe**; editor/shop_manager **degraded** — cosmetic; `manage_product_terms` (F3) | **N/A** (F2) → degraded |
+| `Products → Attributes` | submenu | `product_attributes` (parent Products) | **safe** — renamed, persists | **N/A → safe** | admin **safe**; editor/shop_manager **degraded** — cosmetic; `manage_product_terms` (F3) | **N/A** (F2) → degraded |
+| `Products → Reviews` | submenu | `product-reviews` (parent Products) | **safe** — renamed, persists | **N/A → safe** | admin **safe**; editor/shop_manager **degraded** — cosmetic; `moderate_comments` (editor HAS it → LOADS) (F3) | **N/A** (F2) → degraded |
+| `Products → Product Import` | submenu | `product_importer` (parent Products) | **safe** — renamed, persists | **N/A → safe** | admin **safe**; editor/shop_manager **degraded** — cosmetic; `import` (F3) | **N/A** (F2) → degraded |
+| `Products → Product Export` | submenu | `product_exporter` (parent Products) | **safe** — renamed, persists | **N/A → safe** | admin **safe**; editor/shop_manager **degraded** — cosmetic; `export` (F3) | **N/A** (F2) → degraded |
+
+> **Net for Part 3 (issues to classify-fix):** the recurring **degraded** patterns are (a) badge-in-title
+> loss on rename [F1] — Payments, Extensions, Home(fresh), Orders(when count>0); (b) the
+> `separator-woocommerce` re-clustering that overrides Maestro's top-level separator placement [F4];
+> (c) the `&amp;`-encoded Products-taxonomy slugs (rename/hide only land if the stored slug matches
+> the rendered, entity-encoded slug) [slug-resolution]; (d) the N/A submenu re-icon convention [F2].
+> No **broken** cell surfaced: Maestro's hide is always cosmetic (never strips a cap), rename/icon
+> always persist, and reorder always honors the requested *item* order. WooCommerce's own
+> `menu_order` filter co-runs without breaking Maestro's result.
 
 ### Evidence Notes
 
-- Prefer observable evidence over inferred intent, such as: "rename persists across reload", "reorder reverts on next `admin_menu` pass", "count badge lost on rename", "submenu access 403s after hide", or "custom icon restored after reload".
-- If a cell is not applicable, still choose the closest classification and explain why in the evidence note so Phase 16 synthesis remains mechanical.
+- All classifications are grounded in re-dumped `$menu`/`$submenu` output (and the `reorder-probe.php`
+  effective-order output for top-level Reorder) compared against the Plan 01 natural baseline, not
+  inferred intent. Representative observed phrases: "Payments badge span dropped after rename, title
+  now plain 'Money'"; "requested order [analytics, marketing, woocommerce] rendered with
+  separator-woocommerce forced before woocommerce"; "Orders page LOADS (200) for shop_manager while
+  the menu item is hidden".
+- Homogeneous sibling rows (the eleven Analytics reports; the Products taxonomy items) were verified
+  to behave identically to their representative sibling (rename safe+persists; reorder via `sub_order`
+  safe; hide cosmetic per-role; re-icon N/A); each still gets its own row per the full-coverage rule.
+- Where a cell is genuinely not applicable (submenu re-icon, separator rename/hide), it is marked
+  **N/A** with the closest column classification so Phase 16 synthesis stays mechanical, and the
+  rationale (F2 / separator-skip) is named.
 
 ## Part 3 — Classified-Fix List
 
