@@ -178,5 +178,5 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 | 14. WooCommerce Survey | R1 | 3/3 | Complete | 2026-06-28 |
 | 15. Remaining Survey Set | R1 | 5/5 | Complete | 2026-06-29 |
 | 16. Synthesis | R1 | 2/2 | Complete | 2026-06-29 |
-| 17. Slug Normalization | 1/3 | In Progress|  | - |
+| 17. Slug Normalization | 2/3 | In Progress|  | - |
 | 18. Release v1.3.0 | v1.3.0 | 0/TBD | Not started | - |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: "Roadmap locked. Phase 17 covers FIX-01/02/03 (single `normalize()` pure function + collision-guard test + zero-regression gate); Phase 18 covers REL-09 (build, Plugin Check, tag v1.3.0, SVN deploy). Out of scope: COMPAT-04 (level-qualified match), COMPAT-07 (badge preservation), COMPAT-10 (subtree-hide), and documented-limitation items COMPAT-05/06/08/09/11/12/13."
-stopped_at: "Completed 17-01-PLAN.md — Maestro\Slug::normalize() pure resolver"
-last_updated: "2026-06-29T21:42:48.682Z"
+stopped_at: Completed 17-02-PLAN.md — Replay normalized-key resolution (Wave 2)
+last_updated: "2026-06-29T22:10:13.464Z"
 last_activity: 2026-06-29 — Roadmap created
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -96,6 +96,7 @@ reserved for shipped plugin releases; v1.3.0 ships production menu-handling code
 | Phase 16-synthesis P01 | 8 | 2 tasks | 1 files |
 | Phase 16-synthesis P02 | 39 | 2 tasks | 2 files |
 | Phase 17-slug-normalization P01 | 11 | 3 tasks | 3 files |
+| Phase 17-slug-normalization P02 | 25 | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -176,6 +177,9 @@ Recent decisions affecting current work:
 - [v1.3.0 roadmap]: Phase 18 is a pure release phase (REL-09 only) following the v1.2 pipeline — build, Plugin Check, full-suite regression gate, tag v1.3.0, SVN deploy
 - [Phase 17-slug-normalization]: wp_parse_url() used over parse_url() for WPCS compliance; stubbed in bootstrap-unit.php; manual explode('&') tokenizer preserves duplicate params without deduplication
 - [Phase 17-slug-normalization]: strrpos('/wp-admin/') boundary detection enables host-move survival without exact admin_base match; TDD gate rule: RED in working tree, test+impl GREEN commit together
+- [Phase 17-slug-normalization]: Single normalized-key code path in Replay (NOT exact-first-then-fallback): always normalize BOTH stored override key and rendered slug via Slug::normalize($key, admin_url(''))
+- [Phase 17-slug-normalization]: Ordering::submenu kept pure/untouched: reorder threading via normalized copies of children with orig_by_norm map to restore raw slugs (non-destructive)
+- [Phase 17-slug-normalization]: Dual-axis collision fail-safe: Axis-1 (two stored keys same normalized key → apply nothing) + Axis-2 (one normalized key matches 2+ distinct rendered items → skip)
 
 ### Roadmap Evolution
 
@@ -197,6 +201,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-29T21:42:48.680Z
-Stopped at: Completed 17-01-PLAN.md — Maestro\Slug::normalize() pure resolver
+Last session: 2026-06-29T22:10:13.461Z
+Stopped at: Completed 17-02-PLAN.md — Replay normalized-key resolution (Wave 2)
 Resume file: None
