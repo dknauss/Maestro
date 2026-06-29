@@ -23,7 +23,7 @@
 		"assets:banners": "OUT_DIR=.wordpress-org python3 .wordpress-org/source/build_final.py"
 	},
 	"devDependencies": {
-		"@playwright/test": "^1.61.0",
+		"@playwright/test": "^1.61.1",
 		"@wordpress/env": "^11.8.1",
 		"bootstrap-icons": "^1.13.1"
 	}
