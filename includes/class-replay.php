@@ -81,18 +81,67 @@ class Replay {
 
 		$items = isset( $cfg['items'] ) ? $cfg['items'] : array();
 
+		// --- Build normalized lookup for stored override keys ------------------
+		// Normalize once per replay() so both the stored key and every rendered
+		// slug are compared in their canonical form (WP-coupled admin_url call
+		// lives here, keeping Slug itself WP-free).
+		$base = function_exists( 'admin_url' ) ? admin_url( '' ) : '';
+
+		// Axis-1 collision guard: two distinct stored keys that normalize to the
+		// same key → mark that normalized key ambiguous; apply nothing for it.
+		$norm_items = array(); // normalized_key => override.
+		$norm_skip  = array(); // normalized_key => true (ambiguous, skip).
+		foreach ( $items as $stored_key => $override ) {
+			$nk = Slug::normalize( (string) $stored_key, $base );
+			if ( '' === $nk ) {
+				continue;
+			}
+			if ( isset( $norm_items[ $nk ] ) ) {
+				// Collision: two stored keys share a normalized key → mark ambiguous.
+				$norm_skip[ $nk ] = true;
+				unset( $norm_items[ $nk ] );
+			} elseif ( ! isset( $norm_skip[ $nk ] ) ) {
+				$norm_items[ $nk ] = $override;
+			}
+		}
+
 		// --- Top-level: rename, icon, visibility -------------------------------
+		// Axis-2 collision guard: track which normalized key matched which distinct
+		// rendered slug. If a normalized key would match 2+ different rendered slugs
+		// in the same pass, apply nothing for that key.
+		$top_rendered_matches = array(); // normalized_key => first rendered slug matched.
+		$top_skip_rendered    = array(); // normalized_key => true (matched 2+ distinct rendered).
+
 		if ( is_array( $menu ) ) {
+			// Pre-scan to detect axis-2 rendered collisions before mutating.
+			foreach ( $menu as $row ) {
+				if ( empty( $row[2] ) ) {
+					continue;
+				}
+				$nk = Slug::normalize( (string) $row[2], $base );
+				if ( '' === $nk || isset( $norm_skip[ $nk ] ) || ! isset( $norm_items[ $nk ] ) ) {
+					continue;
+				}
+				if ( ! isset( $top_rendered_matches[ $nk ] ) ) {
+					$top_rendered_matches[ $nk ] = $row[2];
+				} elseif ( $top_rendered_matches[ $nk ] !== $row[2] ) {
+					$top_skip_rendered[ $nk ] = true;
+				}
+			}
+
 			foreach ( $menu as $pos => $row ) {
 				if ( empty( $row[2] ) ) {
 					continue; // separators and malformed rows.
 				}
-				$slug = $row[2];
 
-				if ( ! isset( $items[ $slug ] ) ) {
+				$nk = Slug::normalize( (string) $row[2], $base );
+				if ( '' === $nk || isset( $norm_skip[ $nk ] ) || isset( $top_skip_rendered[ $nk ] ) ) {
 					continue;
 				}
-				$ovr = $items[ $slug ];
+				if ( ! isset( $norm_items[ $nk ] ) ) {
+					continue;
+				}
+				$ovr = $norm_items[ $nk ];
 
 				if ( isset( $ovr['title'] ) ) {
 					$menu[ $pos ][0] = $ovr['title']; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: mutating $menu via admin_menu hook is the documented WP API for menu customization.
@@ -119,14 +168,35 @@ class Replay {
 		// --- Submenus: rename, visibility, then reorder ------------------------
 		if ( is_array( $submenu ) ) {
 			foreach ( $submenu as $parent => $children ) {
+				// Axis-2 collision guard for this parent's children: pre-scan before mutating.
+				$sub_rendered_matches = array(); // normalized_key => first rendered slug matched.
+				$sub_skip_rendered    = array(); // normalized_key => true (matched 2+ distinct rendered).
+				foreach ( $children as $row ) {
+					if ( empty( $row[2] ) ) {
+						continue;
+					}
+					$nk = Slug::normalize( (string) $row[2], $base );
+					if ( '' === $nk || isset( $norm_skip[ $nk ] ) || ! isset( $norm_items[ $nk ] ) ) {
+						continue;
+					}
+					if ( ! isset( $sub_rendered_matches[ $nk ] ) ) {
+						$sub_rendered_matches[ $nk ] = $row[2];
+					} elseif ( $sub_rendered_matches[ $nk ] !== $row[2] ) {
+						$sub_skip_rendered[ $nk ] = true;
+					}
+				}
+
 				foreach ( $children as $pos => $row ) {
 					if ( empty( $row[2] ) ) {
 						continue;
 					}
-					$slug = $row[2];
 
-					if ( isset( $items[ $slug ] ) ) {
-						$ovr = $items[ $slug ];
+					$nk = Slug::normalize( (string) $row[2], $base );
+					if ( '' === $nk || isset( $norm_skip[ $nk ] ) || isset( $sub_skip_rendered[ $nk ] ) ) {
+						continue;
+					}
+					if ( isset( $norm_items[ $nk ] ) ) {
+						$ovr = $norm_items[ $nk ];
 						if ( isset( $ovr['title'] ) ) {
 							$submenu[ $parent ][ $pos ][0] = $ovr['title']; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: mutating $submenu via admin_menu hook is the documented WP API for submenu customization.
 						}
