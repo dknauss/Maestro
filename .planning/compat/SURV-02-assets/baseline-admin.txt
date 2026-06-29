@@ -1,0 +1,67 @@
+Natural-state $menu / $submenu dump — admin role — Jetpack 15.9.1 (SURV-02)
+Harness: http://localhost:8890 | maestro_config deleted | WP_ADMIN=true
+Command: npx wp-env run cli -- php -d memory_limit=512M /usr/local/bin/wp --exec="define('WP_ADMIN', true);" eval-file wp-content/plugins/maestro-menu-editor/.planning/compat/SURV-02-assets/dump-menu.php --user=admin
+
+=== Jetpack-relevant top-level rows (from 32 total) ===
+
+pos  slug                                         title      icon               css
+3    jetpack                                      Jetpack    data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjIwcHgiIHk9IjIwcHgiIHZpZXdCb3g9Ii00IC01IDQxIDQxIj48cGF0aCBmaWxsPSIjZmZmZmZmIiBkPSJNMTYsMEM3LjIsMCwwLDcuMiwwLDE2czcuMiwxNiwxNiwxNmM4LjgsMCwxNi03LjIsMTYtMTZTMjQuOCwwLDE2LDB6IE0xNS4yLDE4LjdoLThsOC0xNS41VjE4Ljd6IE0xNi44LDI4LjggVjEzLjNoOEwxNi44LDI4Ljh6Ii8+PC9zdmc+    menu-top toplevel_page_jetpack
+
+=== $submenu['jetpack'] — admin ===
+
+PARENT: jetpack
+   pos  slug                                                              title     cap
+   1    jetpack-ai                                                        AI        manage_options
+   2    http://localhost:8890/wp-admin/admin.php?page=jetpack#/settings   Settings  jetpack_admin_page
+
+=== Empty-parent ("") submenus — Jetpack-registered hidden/connection-gated pages ===
+
+PARENT: (empty string)
+   pos  slug                             title            cap
+   0    jetpack-search                   Search           manage_options
+   4    jetpack-debugger                 (empty)          manage_options
+   5    jetpack_modules                  Settings         jetpack_manage_modules
+   6    jetpack_about                    (empty)          jetpack_admin_page
+
+=== Effective top-level order (reorder-probe, natural state, no maestro_config) ===
+
+custom_menu_order claimed: YES  (WooCommerce claims it unconditionally)
+
+EFFECTIVE top-level order (positions 0-32):
+0    index.php
+1    separator1
+2    upload.php
+3    edit-tags.php?taxonomy=link_category
+4    edit-comments.php
+5    edit.php
+6    edit.php?post_type=page
+7    edit.php?post_type=elementor_library
+8    edit.php?post_type=course
+9    edit.php?post_type=llms_membership
+10   edit.php?post_type=llms_engagement
+11   edit.php?post_type=llms_order
+12   edit.php?post_type=product
+13   separator2
+14   themes.php
+15   plugins.php
+16   users.php
+17   tools.php
+18   options-general.php
+19   separator-last
+20   elementor-home
+21   wpseo_dashboard
+22   woocommerce-marketing
+23   wpforms-overview
+24   separator-woocommerce
+25   woocommerce
+26   edit.php?post_type=product   [WC duplicate — WC's menu_order injects Products into its cluster]
+27   llms-separator
+28   lifterlms
+29   admin.php?page=wc-settings&tab=checkout&from=PAYMENTS_MENU_ITEM
+30   wc-admin&path=/analytics/overview
+31   elementor
+32   jetpack
+
+NOTE: jetpack is at $menu position 3 but lands at effective render position 32 — last.
+WooCommerce's menu_order filter places Jetpack at the end of its passthrough list.
+Jetpack itself does NOT hook custom_menu_order or menu_order.

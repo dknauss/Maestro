@@ -1,0 +1,29 @@
+Natural-state $menu / $submenu dump — compat_editor role — Jetpack 15.9.1 (SURV-02)
+Harness: http://localhost:8890 | maestro_config deleted | WP_ADMIN=true
+Command: npx wp-env run cli -- php -d memory_limit=512M /usr/local/bin/wp --exec="define('WP_ADMIN', true);" eval-file wp-content/plugins/maestro-menu-editor/.planning/compat/SURV-02-assets/dump-menu.php --user=compat_editor
+
+=== Top-level count: 31 (Jetpack top-level ABSENT) ===
+
+The `jetpack` top-level item does NOT appear in the editor dump at all.
+Jetpack's top-level requires the `jetpack_admin_page` capability, which is an
+administrator-only custom cap (WordPress.com-connected state grants it to other
+roles but the harness runs disconnected). Editor does not hold `jetpack_admin_page`,
+so WP's render-time cap gate removes it.
+
+=== Jetpack-related items visible in editor dump ===
+
+None. No Jetpack top-level, no Jetpack submenu parent (PARENT: jetpack absent).
+The empty-parent items (jetpack-search, jetpack-debugger, etc.) do not appear
+for editor either because their caps (manage_options, jetpack_manage_modules,
+jetpack_admin_page) require administrator or Jetpack-connected role.
+
+=== Per-role observation (gate analysis) ===
+
+Gate (1) — WP render-time cap gate:
+- `jetpack_admin_page` cap: editor lacks it → Jetpack top-level WP cap-gated away
+- `manage_options` cap: editor lacks it → jetpack-ai submenu WP cap-gated away
+- `jetpack_admin_page` cap (Settings submenu): editor lacks it → also gated
+
+Gate (2) — Maestro cosmetic unset:
+- Since gate (1) already removes Jetpack top-level for editor, Maestro's hide is a
+  moot no-op for this role (nothing to unset).

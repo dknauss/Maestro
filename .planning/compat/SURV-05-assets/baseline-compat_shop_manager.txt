@@ -1,0 +1,116 @@
+===== TOP-LEVEL $menu (count: 29) =====
+pos	slug	title	icon	css
+2	index.php	Dashboard	dashicons-dashboard	menu-top menu-top-first menu-icon-dashboard
+4	separator1			wp-menu-separator
+10	upload.php	Media	dashicons-admin-media	menu-top menu-icon-media
+15	edit-tags.php?taxonomy=link_category	Links	dashicons-admin-links	menu-top menu-icon-links
+25	edit-comments.php	Comments <span class="awaiting-mod count-0"><span class="pending-count" aria-hidden="true">0</span><span class="comments-in-moderation-text screen-reader-text">0 Comments in moderation</span></span>	dashicons-admin-comments	menu-top menu-icon-comments
+5	edit.php	Posts	dashicons-admin-post	menu-top menu-icon-post open-if-no-js
+20	edit.php?post_type=page	Pages	dashicons-admin-page	menu-top menu-icon-page
+26	edit.php?post_type=elementor_library	Templates	dashicons-admin-page	menu-top menu-icon-elementor_library
+52	edit.php?post_type=course	Courses	dashicons-welcome-learn-more	menu-top menu-icon-course
+53	edit.php?post_type=llms_membership	Memberships	dashicons-groups	menu-top menu-icon-llms_membership
+27	edit.php?post_type=product	Products	dashicons-archive	menu-top menu-icon-product
+59	separator2			wp-menu-separator
+60	themes.php	Appearance	dashicons-admin-appearance	menu-top menu-icon-appearance
+65	plugins.php	Plugins 	dashicons-admin-plugins	menu-top menu-icon-plugins
+70	users.php	Users	dashicons-admin-users	menu-top menu-icon-users
+75	tools.php	Tools	dashicons-admin-tools	menu-top menu-icon-tools
+80	options-general.php	Settings	dashicons-admin-settings	menu-top menu-icon-settings
+99	separator-last			wp-menu-separator
+2.40565	elementor-home	Elementor	dashicons-admin-generic	menu-top menu-icon-generic toplevel_page_elementor-home
+99.62926	wpseo_page_academy	Yoast SEO <span class="update-plugins count-0"><span class="plugin-count" aria-hidden="true">0</span><span class="screen-reader-text">0 notifications</span></span>	data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgc3R5bGU9ImZpbGw6IzgyODc4YyIgdmlld0JveD0iMCAwIDUxMiA1MTIiIHJvbGU9ImltZyIgYXJpYS1oaWRkZW49InRydWUiIGZvY3VzYWJsZT0iZmFsc2UiPjxnPjxnPjxnPjxnPjxwYXRoIGQ9Ik0yMDMuNiwzOTVjNi44LTE3LjQsNi44LTM2LjYsMC01NGwtNzkuNC0yMDRoNzAuOWw0Ny43LDE0OS40bDc0LjgtMjA3LjZIMTE2LjRjLTQxLjgsMC03NiwzNC4yLTc2LDc2VjM1N2MwLDQxLjgsMzQuMiw3Niw3Niw3NkgxNzNDMTg5LDQyNC4xLDE5Ny42LDQxMC4zLDIwMy42LDM5NXoiLz48L2c+PGc+PHBhdGggZD0iTTQ3MS42LDE1NC44YzAtNDEuOC0zNC4yLTc2LTc2LTc2aC0zTDI4NS43LDM2NWMtOS42LDI2LjctMTkuNCw0OS4zLTMwLjMsNjhoMjE2LjJWMTU0Ljh6Ii8+PC9nPjwvZz48cGF0aCBzdHJva2Utd2lkdGg9IjIuOTc0IiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIGQ9Ik0zMzgsMS4zbC05My4zLDI1OS4xbC00Mi4xLTEzMS45aC04OS4xbDgzLjgsMjE1LjJjNiwxNS41LDYsMzIuNSwwLDQ4Yy03LjQsMTktMTksMzcuMy01Myw0MS45bC03LjIsMXY3Nmg4LjNjODEuNywwLDExOC45LTU3LjIsMTQ5LjYtMTQyLjlMNDMxLjYsMS4zSDMzOHogTTI3OS40LDM2MmMtMzIuOSw5Mi02Ny42LDEyOC43LTEyNS43LDEzMS44di00NWMzNy41LTcuNSw1MS4zLTMxLDU5LjEtNTEuMWM3LjUtMTkuMyw3LjUtNDAuNywwLTYwbC03NS0xOTIuN2g1Mi44bDUzLjMsMTY2LjhsMTA1LjktMjk0aDU4LjFMMjc5LjQsMzYyeiIvPjwvZz48L2c+PC9zdmc+	menu-top toplevel_page_wpseo_page_academy
+58	woocommerce-marketing	Marketing	dashicons-megaphone	menu-top toplevel_page_woocommerce-marketing
+58.9	wpforms-overview	WPForms	data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTc5MiIgaGVpZ2h0PSIxNzkyIiB2aWV3Qm94PSIwIDAgMTc5MiAxNzkyIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGZpbGw9IiM5ZWEzYTgiIGQ9Ik02NDMgOTExdjEyOGgtMjUydi0xMjhoMjUyem0wLTI1NXYxMjdoLTI1MnYtMTI3aDI1MnptNzU4IDUxMXYxMjhoLTM0MXYtMTI4aDM0MXptMC0yNTZ2MTI4aC02NzJ2LTEyOGg2NzJ6bTAtMjU1djEyN2gtNjcydi0xMjdoNjcyem0xMzUgODYwdi0xMjQwcTAtOC02LTE0dC0xNC02aC0zMmwtMzc4IDI1Ni0yMTAtMTcxLTIxMCAxNzEtMzc4LTI1NmgtMzJxLTggMC0xNCA2dC02IDE0djEyNDBxMCA4IDYgMTR0MTQgNmgxMjQwcTggMCAxNC02dDYtMTR6bS04NTUtMTExMGwxODUtMTUwaC00MDZ6bTQzMCAwbDIyMS0xNTBoLTQwNnptNTUzLTEzMHYxMjQwcTAgNjItNDMgMTA1dC0xMDUgNDNoLTEyNDBxLTYyIDAtMTA1LTQzdC00My0xMDV2LTEyNDBxMC02MiA0My0xMDV0MTA1LTQzaDEyNDBxNjIgMCAxMDUgNDN0NDMgMTA1eiIvPjwvc3ZnPg==	menu-top toplevel_page_wpforms-overview
+100	separator-woocommerce			wp-menu-separator woocommerce
+55.5	woocommerce	WooCommerce	data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDg1LjkgNDcuNiI+CjxwYXRoIGZpbGw9IiNhMmFhYjIiIGQ9Ik03Ny40LDAuMWMtNC4zLDAtNy4xLDEuNC05LjYsNi4xTDU2LjQsMjcuN1Y4LjZjMC01LjctMi43LTguNS03LjctOC41cy03LjEsMS43LTkuNiw2LjVMMjguMywyNy43VjguOAoJYzAtNi4xLTIuNS04LjctOC42LTguN0g3LjNDMi42LDAuMSwwLDIuMywwLDYuM3MyLjUsNi40LDcuMSw2LjRoNS4xdjI0LjFjMCw2LjgsNC42LDEwLjgsMTEuMiwxMC44UzMzLDQ1LDM2LjMsMzguOWw3LjItMTMuNXYxMS40CgljMCw2LjcsNC40LDEwLjgsMTEuMSwxMC44czkuMi0yLjMsMTMtOC43bDE2LjYtMjhjMy42LTYuMSwxLjEtMTAuOC02LjktMTAuOEM3Ny4zLDAuMSw3Ny4zLDAuMSw3Ny40LDAuMXoiLz4KPC9zdmc+Cg==	menu-top toplevel_page_woocommerce
+51	llms-separator			wp-menu-separator
+51.30541	lifterlms	LifterLMS	data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjAgMCAyMzguMTcgMjU2IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLjI1IDAgMCAxLjI1IC00MS45MDQgLTMyLjYwNykiIGZpbGw9IiNhN2FhYWQiPgo8cGF0aCBkPSJtODkuMzEyIDE1NC4yOC02Ljg4My0zLjkzLTE4LjQ4NSAzMS44NTJjLTE2LjcxMi0yMy4yMDEtMjAuMDU2LTU0LjQ2OC03LjA3OC04MS40MDhsMC4xOTUtMC4xOTdjMC43ODgtMS43NjkgMS43NzEtMy4zNDQgMi41NTYtNC45MTUgMTMuMTc2LTIyLjgxNCAzNi4xODUtMzYuNzc1IDYwLjU2OC0zOS4zMyA0LjMyNy01Ljg5OCA5LjA0Ny0xMS4wMTMgMTQuMzU2LTE1LjkyOC0zNC44MDctMS45NjYtNjkuNjE1IDE1LjMzNi04OC4yOTUgNDcuNTg5LTIzLjk5MSA0MS42ODctMTIuOTc3IDkzLjk5MyAyMy45OTEgMTIyLjcxbDE4LjQ4NC01NC44NjZjMC4xOTktMC4zOTEgMC4zOTYtMC45ODMgMC41OTEtMS41NzNtMTEyLjQ4LTUwLjkzMmM5LjgzMyAyMi42MTcgOS4yNDMgNDkuMzU4LTMuOTMzIDcyLjE3MS0wLjc4NiAxLjU3NC0xLjc2OSAzLjE0Mi0yLjc1MiA0LjcxOWwtMC4xOTggMC4xOTljLTE2LjkxIDI0Ljc3Ni00NS42MiAzNy41NTYtNzQuMTM0IDM0LjYwNmwxOC40ODYtMzEuODU3LTYuODg0LTMuOTM0Yy0wLjM5MyAwLjM5OC0wLjc4NiAwLjc4OS0xLjE4IDEuMTg1bC0zOC4xNDkgNDMuNDU4YzQzLjI2MyAxNy42OTkgOTQuMTkzIDAuOTgzIDExOC4xOC00MC43MDkgMTguNjgzLTMyLjI0NSAxNi4zMjQtNzAuOTg3LTIuOTQ3LTEwMC4wOS0xLjU3NCA2Ljg4LTMuNTQxIDEzLjc2My02LjQ5MSAyMC4yNTEiLz4KPHBhdGggdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzMuNTIzIDI2LjA4NykiIGQ9Im0xNTQuNTcgMC4wMDM5MDYyYy0wLjQxMjYgMC4wMTUzMy0wLjgzMDU1IDAuMDcxNTQ3LTEuMjQ4IDAuMTY5OTItNC41MjQgMS4xODItOS4wNDUzIDIuNzUzNC0xMy41NyA0LjUyMzQtMTguNjggNy40NzItMzQuNjA4IDE5Ljg1OS00NS44MTYgMzYuNTc0LTcuMDggMTAuNjItMTEuOTk3IDIyLjAyNS0xNC45NDcgMzQuMDIxbC0zOS4xMjkgMS4zNzVjLTIuNzU2IDAtNS4xMTUxIDEuOTY2Ny01LjcwNTEgNC43MjA3LTAuNzg2IDIuNzUyIDAuMzk1MjIgNS4zMDg5IDIuOTQ5MiA2Ljg4MDlsMzguNTQzIDIyLjIyM2MtMy4zNDIgNy40NzMtMi4xNjQgMTUuOTI2IDEuMzc3IDIzLjU5OCAxLjE4IDIuMzYgMy41Mzk3IDMuNzM4MSA2LjA5NTcgMy41MzkxIDguNDU0LTAuNzg1IDE2LjMyLTQuMTI5MSAyMS4yMzgtMTAuNjIxbDM4LjU0MyAyMi4yMjNjMi4zNTggMS4zNzggNS4zMDg0IDEuMTgwOCA3LjI3NTQtMC43ODUxNiAyLjE2Mi0xLjk2NyAyLjU1NzctNC45MTg2IDEuMTc5Ny03LjQ3NDZsLTE4LjI4OS0zNC40MTRjOC44NDgtOC42NSAxNi41MTgtMTguNDgyIDIyLjAyNS0yOS44ODkgOC42NS0xOC4wOTEgMTEuNjAxLTM4LjE0NyA4Ljg0NzctNTguMjA3LTAuNzg1LTQuNzE3LTEuNzcwNS05LjQzOC0zLjE0NjUtMTMuOTU3LTAuNjg5NTEtMi43NTQ1LTMuMzM0NS00LjYwNzMtNi4yMjI3LTQuNXptLTI2LjkzNCA0Mi45OWMxLjk4MjcgMC4wNDk3OCAzLjk3OTIgMC41NzYwOSA1LjgyMjMgMS42MjExIDUuODk5IDMuNTM5IDcuODY1NCAxMS4wMTIgNC41MjM0IDE2LjkxLTMuMzQzIDUuOS0xMS4wMDkgNy44Njc0LTE2LjkxIDQuNTIzNC01Ljg5OS0zLjM0NC03Ljg2NjQtMTEuMDEzLTQuNTI1NC0xNi45MTIgMi40MzQ0LTQuMDU1NiA2LjcyNzktNi4yNTIxIDExLjA5LTYuMTQyNnoiLz4KPHBhdGggZD0ibTgwLjI2NiAyMTkuNzYgNDEuNjg5LTQ3LjM5MmMtMS41NzIgMC4xOTctMy4xNDYgMC4zOTMtNC43MiAwLjU5LTYuMjkzIDAuMzk0LTEyLjE5Mi0yLjk1MS0xNC45NDItOC44NDctMC43ODktMS4zNzctMS4zNzktMi43NTUtMS45NjgtNC4zMjh6Ii8+CjwvZz4KPC9zdmc+Cg==	menu-top toplevel_page_lifterlms
+56	admin.php?page=wc-settings&tab=checkout&from=PAYMENTS_MENU_ITEM	Payments <span class="wcpay-menu-badge awaiting-mod count-1"><span class="plugin-count">1</span></span>	data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4NTIiIGhlaWdodD0iNjg0Ij48cGF0aCBmaWxsPSIjYTJhYWIyIiBkPSJNODIgODZ2NTEyaDY4NFY4NlptMCA1OThjLTQ4IDAtODQtMzgtODQtODZWODZDLTIgMzggMzQgMCA4MiAwaDY4NGM0OCAwIDg0IDM4IDg0IDg2djUxMmMwIDQ4LTM2IDg2LTg0IDg2em0zODQtNTU2djQ0aDg2djg0SDM4MnY0NGgxMjhjMjQgMCA0MiAxOCA0MiA0MnYxMjhjMCAyNC0xOCA0Mi00MiA0MmgtNDR2NDRoLTg0di00NGgtODZ2LTg0aDE3MHYtNDRIMzM4Yy0yNCAwLTQyLTE4LTQyLTQyVjIxNGMwLTI0IDE4LTQyIDQyLTQyaDQ0di00NHoiLz48L3N2Zz4=	menu-top toplevel_page_admin?page=wc-settings&tab=checkout&from=PAYMENTS_MENU_ITEM
+57	wc-admin&path=/analytics/overview	Analytics	dashicons-chart-bar	menu-top toplevel_page_wc-admin&path=/analytics/overview
+58.5	elementor	Elementor	dashicons-admin-generic	menu-top menu-icon-generic toplevel_page_elementor
+
+===== $submenu (parent => children) =====
+PARENT: index.php
+   0	index.php	Home	read
+PARENT: upload.php
+   5	upload.php	Library	upload_files
+   10	media-new.php	Add Media File	upload_files
+PARENT: edit-comments.php
+   0	edit-comments.php	All Comments	edit_posts
+PARENT: edit.php
+   5	edit.php	All Posts	edit_posts
+   10	post-new.php	Add Post	edit_posts
+   15	edit-tags.php?taxonomy=category	Categories	manage_categories
+   16	edit-tags.php?taxonomy=post_tag	Tags	manage_post_tags
+PARENT: edit.php?post_type=page
+   5	edit.php?post_type=page	All Pages	edit_pages
+   10	post-new.php?post_type=page	Add Page	edit_pages
+PARENT: edit.php?post_type=elementor_library
+   5	edit.php?post_type=elementor_library	All Templates	edit_posts
+   10	post-new.php?post_type=elementor_library	Add New Template	edit_posts
+   15	edit-tags.php?taxonomy=elementor_library_category&amp;post_type=elementor_library	Categories	manage_categories
+PARENT: edit.php?post_type=product
+   5	edit.php?post_type=product	All Products	edit_products
+   10	post-new.php?post_type=product	Add new product	edit_products
+   15	edit-tags.php?taxonomy=product_brand&amp;post_type=product	Brands	manage_product_terms
+   16	edit-tags.php?taxonomy=product_cat&amp;post_type=product	Categories	manage_product_terms
+   17	edit-tags.php?taxonomy=product_tag&amp;post_type=product	Tags	manage_product_terms
+   18	product_attributes	Attributes	manage_product_terms
+   19	product-reviews	Reviews	moderate_comments
+   20	product_importer	Product Import	import
+   21	product_exporter	Product Export	export
+PARENT: themes.php
+   5	themes.php	Themes 	edit_theme_options
+   6	site-editor.php	Editor	edit_theme_options
+   9	font-library.php	Fonts	edit_theme_options
+   10	nav-menus.php	Menus	edit_theme_options
+   11	widgets.php	Widgets	edit_theme_options
+PARENT: users.php
+   5	users.php	All Users	list_users
+   15	profile.php	Profile	read
+PARENT: tools.php
+   5	tools.php	Available Tools	edit_posts
+   10	import.php	Import	import
+   15	export.php	Export	export
+   31	wpseo_redirects_tools	Yoast Redirects	edit_others_posts
+PARENT: edit-tags.php?taxonomy=link_category
+   15	edit-tags.php?taxonomy=link_category	Link Categories	manage_categories
+PARENT: wpseo_page_academy
+   0	wpseo_page_academy	Academy	edit_posts
+   1	wpseo_workouts	Workouts <span class="yoast-badge yoast-premium-badge"></span>	edit_others_posts
+   2	wpseo_redirects	Redirects <span class="yoast-badge yoast-premium-badge"></span>	edit_others_posts
+   3	wpseo_upgrade_sidebar	<span class="yst-root"><span class="yst-button yst-w-full yst-whitespace-nowrap yst-button--upsell yst-button--small">Upgrade </span></span>	edit_posts
+   4	wpseo_brand_insights	<span class="yoast-brand-insights-gradient-border"><span class="yoast-brand-insights-content">AI Brand Insights<span class="yst-external-link-icon"></span></span></span>	edit_posts
+PARENT: woocommerce-marketing
+   0	admin.php?page=wc-admin&path=/marketing	Overview	view_woocommerce_reports
+   1	edit.php?post_type=shop_coupon	Coupons	edit_shop_coupons
+PARENT: elementor-home
+   0	elementor	Editor	edit_posts
+   1	post-new.php?post_type=elementor_library	Add New Template	edit_posts
+   2	edit-tags.php?taxonomy=elementor_library_category&amp;post_type=elementor_library	Categories	manage_categories
+PARENT: woocommerce
+   0	wc-admin	Home	read
+   1	edit.php?post_type=shop_order	Orders	edit_shop_orders
+   2	wc-admin&path=/customers	Customers	view_woocommerce_reports
+   3	wc-reports	Reports	view_woocommerce_reports
+   4	wc-settings	Settings	manage_woocommerce
+   5	wc-status	Status	manage_woocommerce
+   6	wc-addons		manage_woocommerce
+   7	wc-admin&path=/extensions	Extensions <span class="update-plugins count-0"><span class="update-count">0</span></span>	view_woocommerce_reports
+PARENT: wc-admin&path=/analytics/overview
+   0	wc-admin&path=/analytics/overview	Overview	view_woocommerce_reports
+   1	wc-admin&path=/analytics/products	Products	view_woocommerce_reports
+   2	wc-admin&path=/analytics/revenue	Revenue	view_woocommerce_reports
+   3	wc-admin&path=/analytics/orders	Orders	view_woocommerce_reports
+   4	wc-admin&path=/analytics/variations	Variations	view_woocommerce_reports
+   5	wc-admin&path=/analytics/categories	Categories	view_woocommerce_reports
+   6	wc-admin&path=/analytics/coupons	Coupons	view_woocommerce_reports
+   7	wc-admin&path=/analytics/taxes	Taxes	view_woocommerce_reports
+   8	wc-admin&path=/analytics/downloads	Downloads	view_woocommerce_reports
+   9	wc-admin&path=/analytics/stock	Stock	view_woocommerce_reports
+   10	wc-admin&path=/analytics/settings	Settings	view_woocommerce_reports
+PARENT: 
+   0	wc-admin&path=/setup-wizard	Setup Wizard	view_woocommerce_reports
+PARENT: elementor
+   0	elementor	Elementor	edit_posts

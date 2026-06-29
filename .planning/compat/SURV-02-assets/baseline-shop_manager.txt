@@ -1,0 +1,34 @@
+Natural-state $menu / $submenu dump — compat_shop_manager role — Jetpack 15.9.1 (SURV-02)
+Harness: http://localhost:8890 | maestro_config deleted | WP_ADMIN=true
+Command: npx wp-env run cli -- php -d memory_limit=512M /usr/local/bin/wp --exec="define('WP_ADMIN', true);" eval-file wp-content/plugins/maestro-menu-editor/.planning/compat/SURV-02-assets/dump-menu.php --user=compat_shop_manager
+
+=== Top-level count: 29 (Jetpack top-level ABSENT) ===
+
+Same situation as editor: `jetpack` top-level requires `jetpack_admin_page` which
+`shop_manager` does not hold in disconnected state. Absent from dump.
+
+=== Jetpack-related items visible in shop_manager dump ===
+
+None. No Jetpack top-level, no Jetpack submenu parent (PARENT: jetpack absent).
+shop_manager does not hold `jetpack_admin_page`, `manage_options` (the Jetpack
+AI submenu cap), or `jetpack_manage_modules` — all Jetpack menu caps require
+either admin or a WordPress.com-connected state.
+
+=== Per-role observation (gate analysis) ===
+
+Gate (1) — WP render-time cap gate:
+- `jetpack_admin_page` cap: shop_manager lacks it → Jetpack top-level WP cap-gated away
+- `manage_options` cap: shop_manager lacks it → jetpack-ai submenu also gated
+- All Jetpack-owned submenus cap-gated away for shop_manager
+
+Gate (2) — Maestro cosmetic unset:
+- Since gate (1) removes all Jetpack items for shop_manager, Maestro's hide is a
+  moot no-op for this role on all Jetpack items.
+
+=== NOTE on Jetpack's roles ===
+
+Jetpack does not ship a custom role of its own (like WooCommerce's shop_manager).
+The three provisioned roles (admin/compat_editor/compat_shop_manager) suffice.
+In the disconnected/offline state (harness default), Jetpack grants capabilities
+only to administrator. WordPress.com connection is required to grant Jetpack caps
+to non-admin roles — not attempted per survey scope (DISCONNECTED only).

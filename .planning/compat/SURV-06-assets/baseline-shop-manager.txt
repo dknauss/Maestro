@@ -1,0 +1,22 @@
+===== TOP-LEVEL $menu (count: 29) — user: compat_shop_manager, maestro_config: deleted =====
+NOTE: These are Maestro REPLAY STATE dumps (before WP cap filtering). shop_manager
+lacks manage_lifterlms, so lifterlms submenus are cap-gated away at render.
+The lifterlms top-level (cap: read) IS visible in replay state.
+
+pos	slug	title	icon
+51	llms-separator			wp-menu-separator
+51.30541	lifterlms	LifterLMS	data:image/svg+xml;base64,...	menu-top toplevel_page_lifterlms
+52	edit.php?post_type=course	Courses	dashicons-welcome-learn-more
+53	edit.php?post_type=llms_membership	Memberships	dashicons-groups
+(Engagements and Orders NOT present in shop_manager dump — shop_manager lacks caps)
+
+===== LifterLMS-owned $submenu — shop_manager =====
+
+PARENT: lifterlms — NOT PRESENT in shop_manager dump
+  (shop_manager lacks manage_lifterlms; all lifterlms submenus cap-gated)
+
+===== Per-role rendered sidebar notes =====
+lifterlms top-level: shop_manager CAN see it at render (cap read satisfied)
+lifterlms submenus: ALL cap-gated away (manage_lifterlms not in shop_manager role)
+Courses top-level: shop_manager cannot render it (lacks edit_courses)
+Memberships top-level: shop_manager cannot render it (lacks edit_memberships)

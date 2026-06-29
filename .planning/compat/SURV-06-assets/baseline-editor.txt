@@ -1,0 +1,35 @@
+===== TOP-LEVEL $menu (count: 31) — user: compat_editor, maestro_config: deleted =====
+NOTE: These are Maestro REPLAY STATE dumps (before WP cap filtering). Editor lacks
+manage_lifterlms so lifterlms top-level and all lifterlms submenus are cap-gated
+away at render. The lifterlms top-level (cap: read) IS in replay state since
+add_menu_page cap was 'read'; however the individual submenus require manage_lifterlms.
+
+pos	slug	title	icon
+51	llms-separator			wp-menu-separator
+51.30541	lifterlms	LifterLMS	data:image/svg+xml;base64,...	menu-top toplevel_page_lifterlms
+52	edit.php?post_type=course	Courses	dashicons-welcome-learn-more
+53	edit.php?post_type=llms_membership	Memberships	dashicons-groups
+(Engagements, Orders top-level NOT present for editor — editor lacks edit_posts for those CPTs)
+
+===== LifterLMS-owned $submenu — editor =====
+
+PARENT: lifterlms — NOT PRESENT in editor dump
+  (editor lacks manage_lifterlms and view_lifterlms_reports; WP cap-gates entire subtree away at render)
+
+PARENT: edit.php?post_type=course — NOT PRESENT in editor dump
+  (editor lacks edit_courses cap)
+
+PARENT: edit.php?post_type=llms_membership — NOT PRESENT in editor dump
+  (editor lacks edit_memberships cap)
+
+===== Per-role rendered sidebar (post-cap-filter check, admin_menu @ PHP_INT_MAX) =====
+LifterLMS top-level: lifterlms is in replay state (cap: read, so all roles can see in dump),
+BUT submenus all require manage_lifterlms — editor gets no submenu entries.
+WP render gate: editor DOES see lifterlms top-level (cap read satisfied), but with no
+usable submenus. Courses and Memberships CPT items appear in dump but are cap-gated
+at render (editor lacks edit_courses, edit_memberships).
+
+IMPORTANT: The lifterlms top-level uses cap 'read' — so editor and shop_manager DO
+render it (unlike the woocommerce top-level which required a higher cap). The lifterlms
+submenus however ALL require manage_lifterlms or view_lifterlms_reports, which editor
+and shop_manager lack — making the submenus moot no-op for those roles.

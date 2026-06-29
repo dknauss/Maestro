@@ -1,0 +1,88 @@
+===== TOP-LEVEL $menu (count: 32) — user: admin, maestro_config: deleted =====
+pos	slug	title	icon	css
+2	index.php	Dashboard	dashicons-dashboard	menu-top menu-top-first menu-icon-dashboard
+4	separator1			wp-menu-separator
+5	edit.php	Posts	dashicons-admin-post	menu-top menu-icon-post open-if-no-js
+10	upload.php	Media	dashicons-admin-media	menu-top menu-icon-media
+15	edit-tags.php?taxonomy=link_category	Links	dashicons-admin-links	menu-top menu-icon-links
+20	edit.php?post_type=page	Pages	dashicons-admin-page	menu-top menu-icon-page
+25	edit-comments.php	Comments <span class="awaiting-mod count-0">...</span>	dashicons-admin-comments	menu-top menu-icon-comments
+26	edit.php?post_type=elementor_library	Templates	dashicons-admin-page	menu-top menu-icon-elementor_library
+27	edit.php?post_type=product	Products	dashicons-archive	menu-top menu-icon-product
+51	llms-separator			wp-menu-separator
+51.30541	lifterlms	LifterLMS	data:image/svg+xml;base64,...	menu-top toplevel_page_lifterlms
+52	edit.php?post_type=course	Courses	dashicons-welcome-learn-more	menu-top menu-icon-course
+53	edit.php?post_type=llms_membership	Memberships	dashicons-groups	menu-top menu-icon-llms_membership
+54	edit.php?post_type=llms_engagement	Engagements	dashicons-awards	menu-top menu-icon-llms_engagement
+55	edit.php?post_type=llms_order	Orders	dashicons-cart	menu-top menu-icon-llms_order
+55.5	woocommerce	WooCommerce	data:image/svg+xml;base64,...	menu-top toplevel_page_woocommerce
+56	admin.php?page=wc-settings&tab=checkout&from=PAYMENTS_MENU_ITEM	Payments <span class="wcpay-menu-badge ...">	data:image/svg+xml;base64,...	menu-top toplevel_page_admin?page=wc-settings...
+57	wc-admin&path=/analytics/overview	Analytics	dashicons-chart-bar	menu-top toplevel_page_wc-admin&path=/analytics/overview
+58	woocommerce-marketing	Marketing	dashicons-megaphone	menu-top toplevel_page_woocommerce-marketing
+58.5	elementor	Elementor	dashicons-admin-generic	menu-top menu-icon-generic toplevel_page_elementor
+58.9	wpforms-overview	WPForms	data:image/svg+xml;base64,...	menu-top toplevel_page_wpforms-overview
+59	separator2			wp-menu-separator
+60	themes.php	Appearance	dashicons-admin-appearance	menu-top menu-icon-appearance
+65	plugins.php	Plugins <span class="update-plugins count-0">...</span>	dashicons-admin-plugins	menu-top menu-icon-plugins
+70	users.php	Users	dashicons-admin-users	menu-top menu-icon-users
+75	tools.php	Tools	dashicons-admin-tools	menu-top menu-icon-tools
+80	options-general.php	Settings	dashicons-admin-settings	menu-top menu-icon-settings
+99	separator-last			wp-menu-separator
+100	separator-woocommerce			wp-menu-separator woocommerce
+2.40565	elementor-home	Elementor	dashicons-admin-generic	menu-top menu-icon-generic toplevel_page_elementor-home
+3	jetpack	Jetpack	data:image/svg+xml;base64,...	menu-top toplevel_page_jetpack
+99.63782	wpseo_dashboard	Yoast SEO <span ...>	data:image/svg+xml;base64,...	menu-top toplevel_page_wpseo_dashboard
+
+===== LifterLMS-owned $submenu rows =====
+
+PARENT: lifterlms
+   0	edit.php?post_type=llms_form	Forms	manage_lifterlms
+   1	llms-dashboard	Dashboard	manage_lifterlms
+   2	llms-settings	Settings	manage_lifterlms
+   3	llms-reporting	Reporting	view_lifterlms_reports
+   4	llms-import	Import	manage_lifterlms
+   5	llms-status	Status	manage_lifterlms
+   6	llms-resources	Resources	manage_lifterlms
+   7	llms-add-ons	Add-ons & more	manage_lifterlms
+
+PARENT: edit.php?post_type=course
+   5	edit.php?post_type=course	Courses	edit_courses
+   10	post-new.php?post_type=course	Add New Course	create_courses
+   15	edit-tags.php?taxonomy=course_cat&amp;post_type=course	Categories	manage_course_cats
+   16	edit-tags.php?taxonomy=course_difficulty&amp;post_type=course	Difficulties	manage_course_difficulties
+   17	edit-tags.php?taxonomy=course_tag&amp;post_type=course	Tags	manage_course_tags
+   18	edit-tags.php?taxonomy=course_track&amp;post_type=course	Tracks	manage_course_tracks
+   19	edit.php?post_type=lesson	Lessons	edit_lessons
+   20	edit.php?post_type=llms_review	Reviews	edit_posts
+
+PARENT: edit.php?post_type=llms_membership
+   5	edit.php?post_type=llms_membership	Memberships	edit_memberships
+   10	post-new.php?post_type=llms_membership	Add New Membership	create_memberships
+   15	edit-tags.php?taxonomy=membership_cat&amp;post_type=llms_membership	Categories	manage_membership_cats
+   16	edit-tags.php?taxonomy=membership_tag&amp;post_type=llms_membership	Tags	manage_membership_tags
+
+PARENT: edit.php?post_type=llms_engagement
+   5	edit.php?post_type=llms_engagement	Engagements	edit_posts
+   10	post-new.php?post_type=llms_engagement	Add New Engagement	edit_posts
+   11	edit.php?post_type=llms_achievement	Achievements	edit_posts
+   12	edit.php?post_type=llms_my_achievement	Awarded Achievements	manage_earned_engagement
+   13	edit.php?post_type=llms_certificate	Certificates	edit_posts
+   14	edit.php?post_type=llms_my_certificate	Awarded Certificates	manage_earned_engagement
+   15	edit.php?post_type=llms_email	Emails	edit_posts
+
+PARENT: edit.php?post_type=llms_order
+   5	edit.php?post_type=llms_order	Orders	edit_posts
+   11	edit.php?post_type=llms_coupon	Coupons	edit_posts
+   12	edit.php?post_type=llms_voucher	Vouchers	edit_posts
+
+===== PARENT: '' (empty-parent hidden pages) =====
+   1	llms-course-builder	Course Builder	edit_courses
+
+===== REORDER PROBE (natural state, no maestro_config) =====
+custom_menu_order claimed: YES
+EFFECTIVE top-level order (LifterLMS cluster excerpt):
+...
+27	llms-separator
+28	lifterlms
+...
+(Full effective order — 33 items; WooCommerce's menu_order filter also active, placing separator-woocommerce before woocommerce)

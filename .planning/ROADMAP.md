@@ -111,7 +111,7 @@ Full phase details, success criteria, and outcomes are archived in
 
 - [x] **Phase 13: Compatibility Harness + Classification Schema** — Committed multi-plugin wp-env config loading all six survey plugins at pinned versions, provisioned with admin and a lower-privilege user; plus the classification schema and safe/degraded/broken matrix template committed before any survey runs (completed 2026-06-26)
 - [x] **Phase 14: WooCommerce Survey** — Survey WooCommerce (locked first priority, heaviest manipulator) using the Phase 13 schema; stress-test and refine the schema against the hardest case (completed 2026-06-28)
-- [ ] **Phase 15: Remaining Survey Set** — Apply the proven schema to survey Jetpack, Yoast SEO / Rank Math, Elementor, WPForms, and LifterLMS
+- [x] **Phase 15: Remaining Survey Set** — Apply the proven schema to survey Jetpack, Yoast SEO / Rank Math, Elementor, WPForms, and LifterLMS (completed 2026-06-29)
 - [ ] **Phase 16: Synthesis** — Consolidated compatibility note presenting all six findings under one schema plus the safe/degraded/broken matrix; prioritized fix/limitation backlog with forward IDs seeded for a later versioned milestone
 
 ## Phase Details (R1)
@@ -152,7 +152,12 @@ Full phase details, success criteria, and outcomes are archived in
   2. Every Maestro operation against each plugin's menu items is classified as safe, degraded, or broken with observable evidence
   3. Every identified issue across all five surveys carries a classified fix (slug-resolution tweak / later `admin_menu` re-hook / special-casing / documented limitation)
   4. All five surveys use identical schema structure, making mechanical synthesis in Phase 16 possible
-**Plans**: TBD
+**Plans**: 5 plans
+  - [ ] 15-01-PLAN.md — Survey Jetpack (SURV-02): disconnected-state menu, classify ops, classified fixes
+  - [ ] 15-02-PLAN.md — Survey Yoast SEO (SURV-03): SEO menu, classify ops, classified fixes (Rank Math out-of-scope)
+  - [ ] 15-03-PLAN.md — Survey Elementor (SURV-04): own Elementor + Templates top-levels, classify ops, classified fixes
+  - [ ] 15-04-PLAN.md — Survey WPForms Lite (SURV-05): WPForms menu, classify ops, classified fixes
+  - [ ] 15-05-PLAN.md — Survey LifterLMS (SURV-06): own top-level + submenus + llms-separator, classify ops, classified fixes
 
 ### Phase 16: Synthesis
 **Goal**: All six per-plugin findings are merged into a single authoritative compatibility note and a ranked, classified fix/limitation backlog ready to seed a future versioned milestone
@@ -188,5 +193,5 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 | 12. Release Assets Refresh | v1.2 | 3/3 | Complete (shipped 2026-06-22) | 2026-06-22 |
 | 13. Compatibility Harness + Classification Schema | R1 | 2/2 | Complete | 2026-06-26 |
 | 14. WooCommerce Survey | R1 | 3/3 | Complete | 2026-06-28 |
-| 15. Remaining Survey Set | R1 | 0/TBD | Not started | - |
+| 15. Remaining Survey Set | 5/5 | Complete    | 2026-06-29 | - |
 | 16. Synthesis | R1 | 0/TBD | Not started | - |
