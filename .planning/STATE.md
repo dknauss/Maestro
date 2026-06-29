@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: "Roadmap locked. Phase 17 covers FIX-01/02/03 (single `normalize()` pure function + collision-guard test + zero-regression gate); Phase 18 covers REL-09 (build, Plugin Check, tag v1.3.0, SVN deploy). Out of scope: COMPAT-04 (level-qualified match), COMPAT-07 (badge preservation), COMPAT-10 (subtree-hide), and documented-limitation items COMPAT-05/06/08/09/11/12/13."
-stopped_at: Completed 17-02-PLAN.md — Replay normalized-key resolution (Wave 2)
-last_updated: "2026-06-29T22:10:13.464Z"
+stopped_at: Completed 17-03-PLAN.md — zero-regression gate + v1.3.0 changelog note (Phase 17 complete)
+last_updated: "2026-06-29T22:26:37.225Z"
 last_activity: 2026-06-29 — Roadmap created
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -97,6 +97,7 @@ reserved for shipped plugin releases; v1.3.0 ships production menu-handling code
 | Phase 16-synthesis P02 | 39 | 2 tasks | 2 files |
 | Phase 17-slug-normalization P01 | 11 | 3 tasks | 3 files |
 | Phase 17-slug-normalization P02 | 25 | 3 tasks | 2 files |
+| Phase 17-slug-normalization P03 | 30 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -180,6 +181,9 @@ Recent decisions affecting current work:
 - [Phase 17-slug-normalization]: Single normalized-key code path in Replay (NOT exact-first-then-fallback): always normalize BOTH stored override key and rendered slug via Slug::normalize($key, admin_url(''))
 - [Phase 17-slug-normalization]: Ordering::submenu kept pure/untouched: reorder threading via normalized copies of children with orig_by_norm map to restore raw slugs (non-destructive)
 - [Phase 17-slug-normalization]: Dual-axis collision fail-safe: Axis-1 (two stored keys same normalized key → apply nothing) + Axis-2 (one normalized key matches 2+ distinct rendered items → skip)
+- [Phase 17-03]: Bug found in gate: class-slug.php missing from require_once list in maestro-menu-editor.php — fixed as Rule 1 (all 16 integration normalization tests failed with 'Class Maestro\Slug not found'); committed as fix(17-03)
+- [Phase 17-03]: Plugin Check run with --exclude-directories excluding tests,bin,docs,build,vendor,node_modules,playground,.planning,.claude,.github,test-results — shippable-source gate invocation for this project's dev-tree mapping pattern
+- [Phase 17-03]: wp-env started on alternate ports 8890/8899 (dev/tests) — 8888 and 8889 both held by other projects; established port-contention pattern (STATE.md note)
 
 ### Roadmap Evolution
 
@@ -201,6 +205,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-29T22:10:13.461Z
-Stopped at: Completed 17-02-PLAN.md — Replay normalized-key resolution (Wave 2)
+Last session: 2026-06-29T22:26:37.223Z
+Stopped at: Completed 17-03-PLAN.md — zero-regression gate + v1.3.0 changelog note (Phase 17 complete)
 Resume file: None
