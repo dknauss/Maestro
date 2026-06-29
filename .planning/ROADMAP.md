@@ -168,7 +168,9 @@ Full phase details, success criteria, and outcomes are archived in
   2. A committed prioritized backlog lists every surfaced issue ranked by severity/frequency, each classified as slug-resolution tweak / later `admin_menu` re-hook / special-casing / documented limitation
   3. Every backlog item carries a forward ID (e.g. COMPAT-01, COMPAT-02) ready to be referenced and scoped in a later versioned milestone without renaming
   4. The backlog contains no orphaned issues — every finding from SURV-01 through SURV-06 that requires action appears in the backlog or is explicitly marked as a documented limitation
-**Plans**: TBD
+**Plans**: 2 plans
+  - [ ] 16-01-PLAN.md — consolidated compatibility note (DELV-01): six per-plugin findings under one schema + summary safe/degraded/broken matrix (plugin × operation)
+  - [ ] 16-02-PLAN.md — ranked, classified COMPAT-xx fix/limitation backlog (DELV-02) with full SURV-NN traceability + FIX-xx seed link
 
 ## Progress
 
