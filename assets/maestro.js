@@ -1264,11 +1264,20 @@
 		var firstItem = document.querySelector( '#adminmenu > li.menu-top.maestro-item' );
 		if ( firstItem ) {
 			firstItem.classList.add( 'maestro-firstrun-pulse' );
+			var clearPulse = function () {
+				firstItem.classList.remove( 'maestro-firstrun-pulse' );
+			};
 			// Motion case: remove the class once the one-shot animation completes.
 			firstItem.addEventListener( 'animationend', function onEnd() {
-				firstItem.classList.remove( 'maestro-firstrun-pulse' );
+				clearPulse();
 				firstItem.removeEventListener( 'animationend', onEnd );
 			} );
+			// Reduced-motion / missed-event fallback: under prefers-reduced-motion the
+			// CSS sets animation:none, so animationend NEVER fires — without this the
+			// attention outline would persist on the first menu item until the user
+			// happens to dismiss the cue (and re-appear every load, since the seen flag
+			// is only set on dismiss). Guarantee the one-shot cue is actually one-shot.
+			window.setTimeout( clearPulse, 1800 );
 		}
 
 		function dismiss() {
