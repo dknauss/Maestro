@@ -17,7 +17,7 @@ Rename, reorder, change icons, and hide WordPress admin menu items per user role
 
 Instead of a separate settings screen, Maestro turns the admin menu into something you edit *in place* — right where it lives. Toggle **Edit Menu** from the admin bar, and the menu becomes editable. Click a menu item to rename it, hide it from selected user roles, or change its icon. Drag submenu items and whole menu groups to reorder them. 
 
-**Try Maestro right here.** Launch a disposable demo in [WordPress Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/main/playground/blueprint-hosted.json) — it boots a site with Maestro active, User Switching, and test users (editor, author, contributor, subscriber; password `password`) so you can try per-role visibility by switching to another user's account.
+**Try Maestro right here.** Launch a demo in [WordPress Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/main/playground/blueprint-hosted.json) — it boots a throwaway site with the plugin active in edit mode, plus User Switching and test users (editor, author, contributor, subscriber; password `password`) so you can try per-role visibility by switching to another user's account.
 
 = What you can do — as a site administrator =
 
@@ -128,6 +128,7 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 = 1.3.0 =
 * Saved overrides now keep applying even when your site moves to a new host, when a plugin updates and changes a version number in its menu URL, when UTM tracking parameters drift on external-tool links, and when a taxonomy slug is stored with `&amp;` encoding instead of `&` (or vice versa) — no manual re-save needed.
 * Edit-mode toolbar: the Exit and Reset All controls now use clearer, more consistent icons (Exit matches the admin-bar toggle).
+* Fix: the one-time first-run highlight on the first menu item is now reliably momentary — it no longer stays outlined for people who use the "reduce motion" accessibility setting.
 
 = 1.2.0 =
 * Redesigned edit-mode toolbar: every control is now a compact icon button in one consistent system, with colour signalling meaning — green for editing/saved, amber for unsaved changes, red for Reset All. Fully accessible: each control keeps its name for screen readers and shows a tooltip on hover.

@@ -48,6 +48,7 @@ Same code area or backlog, intentionally not in v1.3.0 (per scope decision):
 - **COMPAT-04** — level-qualified (parent vs submenu) match keys so shared-slug renames/hides don't hit both. Same resolve path, but changes match semantics more invasively; revisit after FIX-01/02/03 land.
 - **COMPAT-07** — preserve badge/HTML-in-title on rename (4/6 plugins). Feature-sized, separate code path (`Replay::replay()` title write).
 - **COMPAT-10** — optional subtree-hide (cascade parent-hide to children). Feature-sized, distinct from slug resolution.
+- **DEMO-01** — slug-resolution showcase demo (Playground). Demonstrates FIX-01/02/03 via a pre-seeded `maestro_config` whose keys differ in slug form from the rendered menu (host-move / `ver=` / `&amp;` / UTM), against a busy menu. Prefer a lightweight fixture mu-plugin over heavy real plugins; optional WooCommerce-only opt-in blueprint for name recognition. Demo/marketing enhancement, not menu-handling code — its own small phase in a future milestone. See PROJECT.md backlog.
 
 ## Out of Scope
 
