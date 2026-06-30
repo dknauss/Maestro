@@ -75,6 +75,18 @@ class LocalizationTest extends WP_UnitTestCase {
 			'drag',
 			'moveUp',
 			'moveDown',
+			'tourHelp',
+			'tourTitle',
+			'tourNext',
+			'tourBack',
+			'tourDone',
+			'tourSkip',
+			'tourProgress',
+			'tourStep1',
+			'tourStep2',
+			'tourStep3',
+			'tourStep4',
+			'tourStep5',
 		);
 	}
 

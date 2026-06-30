@@ -48,10 +48,38 @@ function resetMaestroConfig(): void {
  * Specs must import { test, expect } from './fixtures' (not '@playwright/test')
  * to get this isolation.
  */
-export const test = base.extend< { maestroCleanConfig: void } >( {
+export const test = base.extend< {
+	maestroCleanConfig: void;
+	suppressFirstRunTour: boolean;
+	maestroSuppressTour: void;
+} >( {
 	maestroCleanConfig: [
 		async ( {}, use ) => {
 			resetMaestroConfig();
+			await use();
+		},
+		{ auto: true },
+	],
+
+	// Opt-out knob: a spec that exercises the first-run tour sets this false via
+	// test.use({ suppressFirstRunTour: false }).
+	suppressFirstRunTour: [ true, { option: true } ],
+
+	// Suppress the auto-launching first-run guided tour so its (focus-trapping,
+	// aria-modal) tooltip doesn't intercept clicks/focus in editor specs. The
+	// seen-flag must be set BEFORE the editor script runs, so use addInitScript
+	// (runs on every navigation), not a post-load evaluate.
+	maestroSuppressTour: [
+		async ( { page, suppressFirstRunTour }, use ) => {
+			if ( suppressFirstRunTour ) {
+				await page.addInitScript( () => {
+					try {
+						window.localStorage.setItem( 'maestroFirstRunDone', '1' );
+					} catch ( e ) {
+						// Private browsing / blocked storage — the tour simply may show.
+					}
+				} );
+			}
 			await use();
 		},
 		{ auto: true },

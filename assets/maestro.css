@@ -507,75 +507,60 @@ body.maestro-editing #collapse-menu {
 }
 /* (Reset All / Exit share the unified control box near the top of this file.) */
 
-/* ---------- first-run cue ----------------------------------------------- */
+/* ---------- guided tour (coachmarks) ----------------------------------- */
 
-/* A small inline notice placed above the toolbar, telling a first-time user
- * how to begin. Shown once (localStorage-gated), dismissible by keyboard.
- * Native admin colours; does not cover the menu being explained. */
-.maestro-firstrun {
+/* UX-11: an anchored, stepped tooltip dialog (role=dialog) that teaches the
+ * editor. Positioned by JS via inline top/left; these rules own the box,
+ * typography, and controls. Sits above the toolbar (99999) and popovers
+ * (100000). No entrance animation, so it is inherently reduced-motion-safe. */
+.maestro-tour {
 	position: fixed;
-	bottom: 53px; /* sits just above the toolbar (which is ~53px tall at default font) */
-	left: 160px; /* aligns with the admin menu right edge, same as the toolbar */
-	right: 0;
-	z-index: 99998; /* below popover (100000) and toolbar (99999), above WP content */
+	z-index: 100001;
+	width: 280px;
+	max-width: calc( 100vw - 16px );
+	box-sizing: border-box;
+	padding: 14px 16px 12px;
+	background: #fff;
+	color: #1d2327;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	box-shadow: 0 4px 16px rgba( 0, 0, 0, 0.18 );
+	font-size: 13px;
+	line-height: 1.5;
+}
+.maestro-tour-progress {
+	display: block;
+	margin-bottom: 4px;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: #646970;
+}
+.maestro-tour-text {
+	margin: 0 0 12px;
+}
+.maestro-tour-controls {
 	display: flex;
 	align-items: center;
-	gap: 10px;
-	padding: 8px 16px;
-	background: #f0f6fc; /* light tint — distinct from the dark toolbar, native admin */
-	border-top: 1px solid #c3c4c7;
-	border-bottom: 1px solid #c3c4c7;
-	font-size: 13px;
-	color: #1d2327;
+	gap: 8px;
 }
-.maestro-firstrun-text {
-	flex: 1;
+.maestro-tour-skip {
+	margin-right: auto; /* push Back / Next to the trailing edge */
+	color: #646970;
 }
-.maestro-firstrun-dismiss {
-	flex-shrink: 0;
-	background: transparent;
-	border: 1px solid #8c8f94;
-	border-radius: 3px;
-	padding: 3px 10px;
-	font-size: 12px;
-	color: #50575e;
-	cursor: pointer;
-	line-height: 1.4;
+.maestro-tour .maestro-tour-back[disabled] {
+	opacity: 0.5;
+	cursor: default;
 }
-.maestro-firstrun-dismiss:hover {
-	border-color: #2271b1;
-	color: #2271b1;
-}
-.maestro-firstrun-dismiss:focus-visible {
+.maestro-tour button:focus-visible {
 	outline: 2px solid #2271b1;
-	outline-offset: 2px;
-}
-
-/* One-shot attention cue on the first editable menu item during first run.
- * Teaches the "click an item to edit" gesture by drawing the eye to the menu.
- * Single animation (iteration-count 1), then stops. Never loops (WCAG 2.3.3 spirit).
- * Removed by animationend (motion path) OR by dismiss() (reduced-motion / early path). */
-@keyframes maestro-pulse-item {
-	0%   { outline: 2px solid transparent; outline-offset: 2px; }
-	40%  { outline: 2px solid #2271b1;     outline-offset: 2px; }
-	60%  { outline: 2px solid #2271b1;     outline-offset: 2px; }
-	100% { outline: 2px solid transparent; outline-offset: 2px; }
-}
-#adminmenu li.maestro-firstrun-pulse {
-	animation: maestro-pulse-item 1.5s ease-in-out 1 forwards;
-}
-@media ( prefers-reduced-motion: reduce ) {
-	#adminmenu li.maestro-firstrun-pulse {
-		animation: none;
-		outline: 2px solid #2271b1;
-		outline-offset: 2px;
-	}
+	outline-offset: 1px;
 }
 
 /* Inherit the WP admin column collapse breakpoint. */
 @media screen and ( max-width: 782px ) {
 	.maestro-toolbar { left: 0; }
-	.maestro-firstrun { left: 0; } /* matches toolbar at collapsed width */
 	.maestro-panel-label { max-width: 120px; }
 	.maestro-rename-input { width: 120px; }
 

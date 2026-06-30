@@ -201,9 +201,11 @@
 		} );
 
 		buildToolbar();
-		buildFirstRunCue();
 		bindMenuSelection();
 		initSortables();
+		// First-run guided tour — after the toolbar/panel and selection wiring
+		// exist, since the tour anchors to them and selects an item.
+		maybeFirstRunTour();
 
 		// Refresh indicators for any pre-existing (already-saved) overrides so
 		// they show the modified badge immediately on page load, not just after
@@ -570,6 +572,15 @@
 		exit.href = D.exitUrl;
 		exit.addEventListener( 'click', onExit );
 
+		// Replay the guided tour (UX-11). The "?" glyph is the conventional help
+		// affordance; it sits ahead of Reset All / Exit so destructive controls
+		// stay at the trailing edge.
+		var help = el( 'button', 'button maestro-tour-help' );
+		help.type = 'button';
+		iconButton( help, 'dashicons-editor-help', I.tourHelp );
+		help.addEventListener( 'click', startTour );
+
+		right.appendChild( help );
 		right.appendChild( resetAll );
 		right.appendChild( exit );
 		bar.appendChild( right );
@@ -1228,89 +1239,240 @@
 		}
 	}
 
-	/* ---------- first-run cue --------------------------------------------- */
+	/* ---------- guided tour (coachmarks) ---------------------------------- */
 
-	/**
-	 * Show a one-time inline hint ("Click a menu item to start editing.") above
-	 * the toolbar, gated on a localStorage flag. Dismissible by click or keyboard
-	 * (Enter/Space). Does not steal focus. Safe in private-browsing mode.
-	 *
-	 * Uses i18n strings I.firstRun / I.firstRunDismiss from the localized payload.
-	 */
-	function buildFirstRunCue() {
-		// Gate on the Plan-01 seam. Access window.localStorage INSIDE try/catch:
-		// in blocked/partitioned-storage browsers the getter itself throws a
-		// SecurityError (before firstRunSeen's own guard can run), which would
-		// otherwise escape and abort edit-mode init. Treat any throw as "seen" so
-		// the cue is simply skipped for those users.
-		var firstRunCueSeen;
+	// UX-11: a stepped, anchored coachmark tour replaces the old one-shot pulse
+	// (an ambient flash that conveyed no instruction). Hand-rolled, accessible
+	// (role=dialog, focus-managed, Esc/Tab-trapped, wp.a11y.speak announcements,
+	// reduced-motion-safe via CSS). Auto-launches once on first run; replayable
+	// anytime via the toolbar "?" button.
+	var tour = { active: false, idx: 0, lastFocus: null, root: null, steps: null, rendering: false };
+
+	function firstMenuItem() {
+		return document.querySelector( '#adminmenu > li.menu-top.maestro-item' );
+	}
+
+	function tourSelectFirst() {
+		var li = firstMenuItem();
+		if ( li && li.dataset.maestroSlug && model[ li.dataset.maestroSlug ] ) {
+			selectItem( li );
+		}
+	}
+
+	function tourSteps() {
+		// Steps 2–4 reference the controls panel / move buttons, which only exist
+		// once an item is selected — so those steps select the first item first.
+		return [
+			{ text: I.tourStep1, placement: 'right', anchor: firstMenuItem },
+			{ text: I.tourStep2, placement: 'top', before: tourSelectFirst, anchor: function () { return panel.rename; } },
+			{ text: I.tourStep3, placement: 'top', before: tourSelectFirst, anchor: function () { return document.querySelector( '.maestro-move-up' ); } },
+			{ text: I.tourStep4, placement: 'top', anchor: function () { return document.querySelector( '.maestro-reset-all' ); } },
+			{ text: I.tourStep5, placement: 'top', anchor: function () { return document.querySelector( '.maestro-exit' ); } },
+		];
+	}
+
+	function startTour() {
+		if ( tour.active ) { return; }
+		tour.steps = tourSteps();
+		tour.active = true;
+		tour.idx = 0;
+		tour.lastFocus = document.activeElement;
+		// Focus containment: the tooltip is aria-modal, so keep focus inside it.
+		// The Tab handler only cycles WITHIN the tour buttons; this catches focus
+		// escaping any other way (a click on the still-visible page behind it, the
+		// rename input gaining focus on selection) and pulls it back in.
+		document.addEventListener( 'focusin', onTourFocusIn, true );
+		renderTourStep();
+	}
+
+	function endTour() {
+		tour.active = false;
+		if ( tour.root ) { tour.root.remove(); tour.root = null; }
+		document.removeEventListener( 'keydown', onTourKeydown, true );
+		document.removeEventListener( 'focusin', onTourFocusIn, true );
+		// Mark seen so the first-run auto-launch never fires again. Replay stays
+		// available via the toolbar "?" button. Storage may throw — ignore.
 		try {
-			firstRunCueSeen = window.maestroLogic.firstRunSeen( window.localStorage );
-		} catch ( storageErr ) {
-			firstRunCueSeen = true;
-		}
-		if ( firstRunCueSeen ) { return; }
-
-		var cue = el( 'div', 'maestro-firstrun' );
-		cue.setAttribute( 'role', 'note' );
-		cue.setAttribute( 'aria-label', I.firstRun );
-
-		var text = el( 'span', 'maestro-firstrun-text', I.firstRun );
-		var dismissBtn = el( 'button', 'maestro-firstrun-dismiss', I.firstRunDismiss );
-		dismissBtn.type = 'button';
-
-		// Pulse the first editable top-level menu item to teach the core gesture.
-		// querySelector is called after init() has stamped .maestro-item on all items.
-		var firstItem = document.querySelector( '#adminmenu > li.menu-top.maestro-item' );
-		if ( firstItem ) {
-			firstItem.classList.add( 'maestro-firstrun-pulse' );
-			var clearPulse = function () {
-				firstItem.classList.remove( 'maestro-firstrun-pulse' );
-			};
-			// Motion case: remove the class once the one-shot animation completes.
-			firstItem.addEventListener( 'animationend', function onEnd() {
-				clearPulse();
-				firstItem.removeEventListener( 'animationend', onEnd );
-			} );
-			// Reduced-motion / missed-event fallback: under prefers-reduced-motion the
-			// CSS sets animation:none, so animationend NEVER fires — without this the
-			// attention outline would persist on the first menu item until the user
-			// happens to dismiss the cue (and re-appear every load, since the seen flag
-			// is only set on dismiss). Guarantee the one-shot cue is actually one-shot.
-			window.setTimeout( clearPulse, 1800 );
-		}
-
-		function dismiss() {
+			window.localStorage.setItem( 'maestroFirstRunDone', '1' );
+		} catch ( storageErr ) {} // eslint-disable-line no-empty
+		var f = tour.lastFocus;
+		tour.lastFocus = null;
+		if ( f && typeof f.focus === 'function' ) {
 			try {
-				window.localStorage.setItem( 'maestroFirstRunDone', '1' );
-			} catch ( storageErr ) {
-				// Storage unavailable — still remove the element; just won't persist.
+				f.focus( { preventScroll: true } );
+			} catch ( focusErr ) {
+				f.focus();
 			}
-			cue.remove();
-			// CRITICAL: under prefers-reduced-motion, animationend never fires, so
-			// the pulse class must also be removed here (Pitfall 1 / Plan-03 spec).
-			if ( firstItem ) { firstItem.classList.remove( 'maestro-firstrun-pulse' ); }
+		}
+	}
+
+	// Pull focus back into the modal coachmark if it escapes to the page behind it.
+	function onTourFocusIn( e ) {
+		if ( ! tour.active || tour.rendering || ! tour.root ) { return; }
+		if ( tour.root.contains( e.target ) ) { return; }
+		var btn = tour.root.querySelector( '.maestro-tour-next' ) || tour.root.querySelector( 'button' );
+		if ( btn ) {
+			try {
+				btn.focus( { preventScroll: true } );
+			} catch ( focusErr ) {
+				btn.focus();
+			}
+		}
+	}
+
+	function onTourKeydown( e ) {
+		if ( ! tour.active || ! tour.root ) { return; }
+		if ( e.key === 'Escape' || e.key === 'Esc' ) {
+			e.preventDefault();
+			endTour();
+			return;
+		}
+		if ( e.key === 'Tab' ) {
+			var btns = tour.root.querySelectorAll( 'button:not([disabled])' );
+			if ( ! btns.length ) { return; }
+			var first = btns[ 0 ];
+			var last = btns[ btns.length - 1 ];
+			if ( e.shiftKey && document.activeElement === first ) {
+				e.preventDefault();
+				last.focus();
+			} else if ( ! e.shiftKey && document.activeElement === last ) {
+				e.preventDefault();
+				first.focus();
+			}
+		}
+	}
+
+	function renderTourStep() {
+		// Suppress the focus-containment redirect while we tear down/rebuild the
+		// tooltip and run step.before() (which may select an item / move focus).
+		tour.rendering = true;
+		var step = tour.steps[ tour.idx ];
+		if ( step.before ) { step.before(); }
+
+		var anchor = step.anchor();
+		// A missing anchor (unusual menu / hidden control) — skip ahead gracefully
+		// rather than dead-ending the tour.
+		if ( ! anchor ) {
+			if ( tour.idx < tour.steps.length - 1 ) {
+				tour.idx++;
+				renderTourStep();
+			} else {
+				endTour();
+			}
+			return;
 		}
 
-		dismissBtn.addEventListener( 'click', dismiss );
-		dismissBtn.addEventListener( 'keydown', function ( e ) {
-			if ( e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar' ) {
-				e.preventDefault();
-				dismiss();
+		if ( tour.root ) { tour.root.remove(); }
+
+		var box = el( 'div', 'maestro-tour' );
+		box.setAttribute( 'role', 'dialog' );
+		box.setAttribute( 'aria-modal', 'true' );
+		box.setAttribute( 'aria-label', I.tourTitle );
+
+		var progress = el(
+			'span',
+			'maestro-tour-progress',
+			I.tourProgress.replace( '%1$d', tour.idx + 1 ).replace( '%2$d', tour.steps.length )
+		);
+		var body = el( 'p', 'maestro-tour-text', step.text );
+
+		var isLast = tour.idx === tour.steps.length - 1;
+		var controls = el( 'div', 'maestro-tour-controls' );
+
+		var skip = el( 'button', 'button-link maestro-tour-skip', I.tourSkip );
+		skip.type = 'button';
+		skip.addEventListener( 'click', endTour );
+
+		var back = el( 'button', 'button maestro-tour-back', I.tourBack );
+		back.type = 'button';
+		back.disabled = tour.idx === 0;
+		back.addEventListener( 'click', function () {
+			if ( tour.idx > 0 ) {
+				tour.idx--;
+				renderTourStep();
 			}
 		} );
 
-		cue.appendChild( text );
-		cue.appendChild( dismissBtn );
+		var next = el( 'button', 'button button-primary maestro-tour-next', isLast ? I.tourDone : I.tourNext );
+		next.type = 'button';
+		next.addEventListener( 'click', function () {
+			if ( isLast ) {
+				endTour();
+			} else {
+				tour.idx++;
+				renderTourStep();
+			}
+		} );
 
-		// Sit the cue flush above the toolbar regardless of the toolbar's height.
-		// UX-07's 44px tap targets make the ≤782px toolbar taller than the CSS
-		// default offset (and it can wrap), so measure the real height rather than
-		// trusting a fixed value — keeps the cue from being covered by the toolbar.
-		var toolbarEl = document.querySelector( '.maestro-toolbar' );
-		if ( toolbarEl ) { cue.style.bottom = toolbarEl.offsetHeight + 'px'; }
+		controls.appendChild( skip );
+		controls.appendChild( back );
+		controls.appendChild( next );
+		box.appendChild( progress );
+		box.appendChild( body );
+		box.appendChild( controls );
+		document.body.appendChild( box );
+		tour.root = box;
 
-		document.body.appendChild( cue );
+		positionTour( box, anchor, step.placement );
+
+		document.addEventListener( 'keydown', onTourKeydown, true );
+		try {
+			next.focus( { preventScroll: true } );
+		} catch ( focusErr ) {
+			next.focus();
+		}
+		tour.rendering = false;
+		if ( window.wp && window.wp.a11y && window.wp.a11y.speak ) {
+			window.wp.a11y.speak( step.text );
+		}
+	}
+
+	function positionTour( box, anchor, placement ) {
+		var r = anchor.getBoundingClientRect();
+		var w = box.offsetWidth;
+		var h = box.offsetHeight;
+		var pad = 12;
+		var vw = window.innerWidth;
+		var vh = window.innerHeight;
+		var top;
+		var left;
+		if ( placement === 'right' ) {
+			left = r.right + pad;
+			top = r.top;
+			if ( left + w > vw - 8 ) {
+				// No room to the right — drop below the anchor instead.
+				left = r.left;
+				top = r.bottom + pad;
+			}
+		} else {
+			// 'top' — sit above the anchor (toolbar controls live at the bottom).
+			left = r.left;
+			top = r.top - h - pad;
+			if ( top < 8 ) {
+				top = r.bottom + pad;
+			}
+		}
+		left = Math.max( 8, Math.min( left, vw - w - 8 ) );
+		top = Math.max( 8, Math.min( top, vh - h - 8 ) );
+		box.style.left = left + 'px';
+		box.style.top = top + 'px';
+	}
+
+	/**
+	 * First-run: auto-launch the guided tour once (replaces the old pulse). Gated
+	 * on the localStorage seen-flag via the maestroLogic.firstRunSeen seam; storage
+	 * access is wrapped because blocked/partitioned storage throws on the getter
+	 * itself. Treat any throw as "seen" so init never aborts.
+	 */
+	function maybeFirstRunTour() {
+		var seen;
+		try {
+			seen = window.maestroLogic.firstRunSeen( window.localStorage );
+		} catch ( storageErr ) {
+			seen = true;
+		}
+		if ( seen ) { return; }
+		startTour();
 	}
 
 	/* ---------- go --------------------------------------------------------- */

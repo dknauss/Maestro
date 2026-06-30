@@ -138,6 +138,21 @@ class Assets {
 					'firstRun'          => __( 'Click a menu item to start editing.', 'maestro-menu-editor' ),
 					/* translators: Label for the button that dismisses the first-run hint. */
 					'firstRunDismiss'   => __( 'Got it', 'maestro-menu-editor' ),
+					/* translators: Accessible label / tooltip for the toolbar button that replays the guided tour. */
+					'tourHelp'          => __( 'Show me around', 'maestro-menu-editor' ),
+					/* translators: Title of the guided-tour tooltip dialog. */
+					'tourTitle'         => __( 'Editing the menu', 'maestro-menu-editor' ),
+					'tourNext'          => __( 'Next', 'maestro-menu-editor' ),
+					'tourBack'          => __( 'Back', 'maestro-menu-editor' ),
+					'tourDone'          => __( 'Done', 'maestro-menu-editor' ),
+					'tourSkip'          => __( 'Skip', 'maestro-menu-editor' ),
+					/* translators: 1: current step number, 2: total steps. e.g. "2 of 5". */
+					'tourProgress'      => esc_html__( '%1$d of %2$d', 'maestro-menu-editor' ),
+					'tourStep1'         => __( 'Click any menu item to edit it right here on the menu.', 'maestro-menu-editor' ),
+					'tourStep2'         => __( 'Rename it, change its icon, or hide it from roles using these controls.', 'maestro-menu-editor' ),
+					'tourStep3'         => __( 'Reorder items by dragging — or use the up and down arrows.', 'maestro-menu-editor' ),
+					'tourStep4'         => __( 'Your changes save automatically. Reset one item, or Reset All to start over.', 'maestro-menu-editor' ),
+					'tourStep5'         => __( 'Click Exit when you are done. Your changes stay live for everyone.', 'maestro-menu-editor' ),
 				),
 			)
 		);

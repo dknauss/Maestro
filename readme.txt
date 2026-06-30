@@ -128,7 +128,7 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 = 1.3.0 =
 * Saved overrides now keep applying even when your site moves to a new host, when a plugin updates and changes a version number in its menu URL, when UTM tracking parameters drift on external-tool links, and when a taxonomy slug is stored with `&amp;` encoding instead of `&` (or vice versa) — no manual re-save needed.
 * Edit-mode toolbar: the Exit and Reset All controls now use clearer, more consistent icons (Exit matches the admin-bar toggle).
-* Fix: the one-time first-run highlight on the first menu item is now reliably momentary — it no longer stays outlined for people who use the "reduce motion" accessibility setting.
+* New: a first-run guided tour walks you through editing the menu — selecting an item, the rename/icon/visibility controls, reordering, autosave, and exit. A "?" button in the edit-mode toolbar replays it anytime. (It replaces the previous one-time menu highlight.)
 * Fix: while editing, the menu's group separators no longer show as a stray dark band between sections (most noticeable above the Posts group); they collapse so items sit flush. The normal menu is unchanged.
 
 = 1.2.0 =
@@ -162,7 +162,7 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 == Upgrade Notice ==
 
 = 1.3.0 =
-Reliability fix: your saved menu overrides keep applying after a site moves hosts, a plugin update changes a menu URL's version number, tracking parameters drift, or a slug's `&` is stored as `&amp;`. No configuration changes required.
+Reliability fix: your saved menu overrides keep applying after a site moves hosts, a plugin update changes a menu URL's version number, tracking parameters drift, or a slug's `&` is stored as `&amp;`. Adds a first-run guided tour for the editor (replay it with the toolbar "?"). No configuration changes required.
 
 = 1.2.0 =
 A redesigned, compact icon-only edit-mode toolbar; the editor is now reachable and touch-friendly on mobile; clearer "Edit Mode" and save states; separator-safe reordering; and internal hardening (scoped menu-order, bounded config, race-safe saves). No configuration changes required.
