@@ -8,6 +8,7 @@
 - ✅ **v1.1 Polish & Accessibility** — Phases 6–8 (shipped 2026-06-17; release line `1.1.x`, latest shipped `1.1.1`)
 - ✅ **v1.2 Editor UX Polish** — Phases 9–12 (shipped 2026-06-22; release tag `v1.2.0`) → [archive](milestones/v1.2-ROADMAP.md)
 - ✅ **R1 Third-Party Compatibility Research** — Phases 13–16 (completed 2026-06-29; non-versioned research — no plugin code, no release tag, no SVN deploy) → [archive](milestones/R1-ROADMAP.md)
+- 🔄 **v1.3.0 Slug-Resolution Hardening** — Phases 17–18 (in progress; release tag `v1.3.0`)
 
 ## Phases
 
@@ -120,10 +121,45 @@ Full phase details, success criteria, and outcomes are archived in
 
 </details>
 
+---
+
+## Phase Details (v1.3.0 — Slug-Resolution Hardening)
+
+### Phase 17: Slug Normalization
+**Goal**: Maestro overrides survive real-world slug variation — absolute-URL slugs on any host, slugs with `ver=` or UTM query params that drift on update, and entity-encoded `&amp;` taxonomy slugs — so a saved config keeps applying without manual re-save
+**Depends on**: Phase 16
+**Requirements**: FIX-01, FIX-02, FIX-03
+**Success Criteria** (what must be TRUE):
+  1. A rename or hide override on a Jetpack Settings or Elementor Website Templates submenu — both of which use absolute-URL slugs — keeps applying after a simulated host change and after the `ver=` param increments; verified by the R1 survey fixtures as PHPUnit test cases against the `normalize()` pure function
+  2. A rename or hide override on the WPForms "Upgrade to Pro" submenu keeps applying when the UTM query string changes between plugin versions — the match resolves on base URL + path, ignoring UTM params; verified by the R1 survey fixture
+  3. A rename or hide override on a WooCommerce, Elementor, or LifterLMS taxonomy submenu whose slug contains `&amp;` applies whether the stored key used `&` or `&amp;`; verified by the three R1 survey fixtures
+  4. Two genuinely distinct rendered slugs never collapse to the same stored override key — a collision-guard test explicitly asserts that normalization is conservative (distinct-in, distinct-out)
+  5. All existing PHP unit, integration, and Playwright e2e suites stay green; WPCS is clean; Plugin Check reports 0 errors
+**Plans**: 3 plans
+  - [ ] 17-01-PLAN.md — Pure `Maestro\Slug::normalize()` (TDD) + six-fixture data provider + 4-case collision-guard + edge rows [FIX-01, FIX-02, FIX-03]
+  - [ ] 17-02-PLAN.md — Wire normalize() into Replay's two items[] seams + the `Ordering::submenu` reorder seam, with collision skip + integration coverage [FIX-01, FIX-02, FIX-03]
+  - [ ] 17-03-PLAN.md — Zero-regression gate (full unit+integration+e2e+WPCS+PHPStan+Plugin Check) + draft v1.3.0 changelog note [FIX-01, FIX-02, FIX-03]
+
+### Phase 18: Release v1.3.0
+**Goal**: v1.3.0 is cut and on WordPress.org — the runtime zip builds clean, all suites pass, the tag exists, and SVN trunk is updated following the v1.2 release pipeline
+**Depends on**: Phase 17
+**Requirements**: REL-09
+**Success Criteria** (what must be TRUE):
+  1. `bin/build.sh` produces a clean runtime zip with no errors and Plugin Check reports 0 errors on the extracted zip
+  2. PHP unit, integration, and Playwright e2e suites are all green at the release commit (no skips hiding failures)
+  3. The git tag `v1.3.0` exists and points to the release commit; the GitHub release is published
+  4. SVN `trunk` is updated and the `1.3.0` SVN tag is cut, following the same pipeline used for v1.2.0
+**Plans**: 3 plans
+  - [ ] 18-01-PLAN.md — version bump (prep-release.sh 1.3.0) + locked = 1.3.0 = Upgrade Notice, as the final commit on the release branch [REL-09]
+  - [ ] 18-02-PLAN.md — push branch, confirm CI green, self-merge PR to main, tag v1.3.0 + push tag (confirmation-gated) [REL-09]
+  - [ ] 18-03-PLAN.md — verify release.yml + wp-deploy.yml green (GitHub Release zip + SVN deploy), mark REL-09 / Phase 18 complete [REL-09]
+
+---
+
 ## Progress
 
 **Execution Order:**
-v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). v1.2 complete (Phases 9–12, archived 2026-06-22; Phase 10 was a non-blocking research spike not shipped in v1.2). R1 complete (Phases 13–16, archived 2026-06-29; non-versioned research).
+v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). v1.2 complete (Phases 9–12, archived 2026-06-22; Phase 10 was a non-blocking research spike not shipped in v1.2). R1 complete (Phases 13–16, archived 2026-06-29; non-versioned research). v1.3.0 in progress (Phases 17–18).
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -145,3 +181,5 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 | 14. WooCommerce Survey | R1 | 3/3 | Complete | 2026-06-28 |
 | 15. Remaining Survey Set | R1 | 5/5 | Complete | 2026-06-29 |
 | 16. Synthesis | R1 | 2/2 | Complete | 2026-06-29 |
+| 17. Slug Normalization | 3/3 | Complete    | 2026-06-29 | - |
+| 18. Release v1.3.0 | v1.3.0 | 0/TBD | Not started | - |

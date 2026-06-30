@@ -15,7 +15,7 @@
 			"pluginData": {
 				"resource": "git:directory",
 				"url": "https://github.com/dknauss/Maestro",
-				"ref": "v1.2.0",
+				"ref": "v1.3.0",
 				"refType": "tag",
 				"path": "/"
 			},

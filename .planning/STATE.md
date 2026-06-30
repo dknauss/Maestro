@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: R1
-milestone_name: Third-Party Compatibility Research
-status: complete
-stopped_at: R1 milestone complete and archived (audit passed 11/11)
-last_updated: "2026-06-29T18:00:00.000Z"
-last_activity: 2026-06-29 — R1 complete, audited (11/11), and archived to milestones/
+milestone: v1.0
+milestone_name: milestone
+status: "Roadmap locked. Phase 17 covers FIX-01/02/03 (single `normalize()` pure function + collision-guard test + zero-regression gate); Phase 18 covers REL-09 (build, Plugin Check, tag v1.3.0, SVN deploy). Out of scope: COMPAT-04 (level-qualified match), COMPAT-07 (badge preservation), COMPAT-10 (subtree-hide), and documented-limitation items COMPAT-05/06/08/09/11/12/13."
+stopped_at: Phase 18 context gathered
+last_updated: "2026-06-30T00:51:19.549Z"
+last_activity: 2026-06-29 — Roadmap created
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 12
-  completed_plans: 12
-  percent: 100
+  total_phases: 5
+  completed_phases: 1
+  total_plans: 3
+  completed_plans: 3
+  percent: 0
 ---
 
 # Project State
@@ -21,24 +21,24 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-29)
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
-**Current focus:** No active milestone. R1 complete and archived. Next: `/gsd:new-milestone` — natural candidate is a versioned milestone scoping FIX-xx from the COMPAT-xx backlog (COMPAT-01/02/03 slug-resolution tweaks first).
+**Current focus:** Milestone v1.3.0 — Slug-Resolution Hardening. Roadmap complete; ready to plan Phase 17 (Slug Normalization).
 
 ## Current Position
 
-Milestone: R1 — Third-Party Compatibility Research — **COMPLETE 2026-06-29** (audit passed 11/11)
-Phase: all 4 of 4 complete (13, 14, 15, 16) and archived to `.planning/milestones/R1-*`
-Plan: none pending — milestone closed
-Status: R1 delivered all five artifact classes (harness, schema, six surveys, compatibility note, COMPAT-xx backlog). Headline: 0 broken cells across six plugins × four operations; worst case cosmetic "degraded". 42 survey issues → 13 ranked COMPAT-xx items (COMPAT-01..03 actionable slug-resolution; rest documented limitations), 0 orphans. R1 boundary held: fixes classified and ranked, never implemented. Forward production fixes tracked as FIX-xx for a later versioned milestone. Phase 16 work squash-merged to `main`; feature branches deleted. Compat harness may still be RUNNING (http://localhost:8890) — stop with `npm run compat:stop` (docker needs sandbox-disabled).
-Last activity: 2026-06-29 — R1 complete, audited, and archived
+Milestone: v1.3.0 — Slug-Resolution Hardening — **ROADMAPPED 2026-06-29**
+Phase: 17 — Slug Normalization (not started)
+Plan: —
+Status: Roadmap locked. Phase 17 covers FIX-01/02/03 (single `normalize()` pure function + collision-guard test + zero-regression gate); Phase 18 covers REL-09 (build, Plugin Check, tag v1.3.0, SVN deploy). Out of scope: COMPAT-04 (level-qualified match), COMPAT-07 (badge preservation), COMPAT-10 (subtree-hide), and documented-limitation items COMPAT-05/06/08/09/11/12/13.
+Last activity: 2026-06-29 — Roadmap created
 
-Progress: [██████████] 100% (R1: 4 of 4 phases complete — Phases 13–16 done and archived)
+Progress: [░░░░░░░░░░] 0% (v1.3.0: 0/2 phases complete)
 
 ## Release Binding
 
-**None.** R1 is a **research-only, non-versioned** milestone — it ships no plugin
-code and cuts no release. There is intentionally no target version, tag, or SVN
-deploy. `vX.Y` numbering stays reserved for shipped plugin releases; the fixes R1
-surfaces will be planned and shipped under a later versioned milestone.
+**Versioned minor release.** Target version `1.3.0`, tag `v1.3.0`, SVN deploy to
+WordPress.org `trunk` following the v1.2 release pipeline. `vX.Y` numbering is
+reserved for shipped plugin releases; v1.3.0 ships production menu-handling code
+(the slug-resolution normalization), unlike the research-only R1.
 
 ## Performance Metrics
 
@@ -95,6 +95,9 @@ surfaces will be planned and shipped under a later versioned milestone.
 | Phase 15-remaining-survey-set P05 | 90 | 2 tasks | 6 files |
 | Phase 16-synthesis P01 | 8 | 2 tasks | 1 files |
 | Phase 16-synthesis P02 | 39 | 2 tasks | 2 files |
+| Phase 17-slug-normalization P01 | 11 | 3 tasks | 3 files |
+| Phase 17-slug-normalization P02 | 25 | 3 tasks | 2 files |
+| Phase 17-slug-normalization P03 | 30 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -171,12 +174,23 @@ Recent decisions affecting current work:
 - [Phase 16-synthesis]: COMPATIBILITY-NOTE.md cross-plugin cross-cut section names recurring patterns (badge-in-title loss, slug-resolution, render-time filter override, cosmetic hide, submenu N/A re-icon) without assigning COMPAT-xx IDs — those belong in DELV-02 (Plan 16-02)
 - [Phase 16-synthesis]: COMPAT-01..03 are actionable slug-resolution tweaks (highest FIX-xx priority); COMPAT-04..13 are documented limitations; 42 survey issues collapse to 13 COMPAT-xx items with 0 orphans
 - [Phase 16-synthesis]: FIX-xx in REQUIREMENTS.md now links BACKLOG.md (COMPAT-xx backlog) as its seed without renaming; COMPAT-07 (badge-loss) and COMPAT-10 (parent-hide non-cascading) carry forward candidacy notes for special-casing in a later milestone
+- [v1.3.0 roadmap]: FIX-01/02/03 grouped into ONE implementation phase (Phase 17) — all three are normalization rules on the same `normalize()` pure function applied at the same two resolve seams in class-replay.php; splitting into three thin phases would create artificial boundaries around a single coherent unit of work
+- [v1.3.0 roadmap]: Phase 18 is a pure release phase (REL-09 only) following the v1.2 pipeline — build, Plugin Check, full-suite regression gate, tag v1.3.0, SVN deploy
+- [Phase 17-slug-normalization]: wp_parse_url() used over parse_url() for WPCS compliance; stubbed in bootstrap-unit.php; manual explode('&') tokenizer preserves duplicate params without deduplication
+- [Phase 17-slug-normalization]: strrpos('/wp-admin/') boundary detection enables host-move survival without exact admin_base match; TDD gate rule: RED in working tree, test+impl GREEN commit together
+- [Phase 17-slug-normalization]: Single normalized-key code path in Replay (NOT exact-first-then-fallback): always normalize BOTH stored override key and rendered slug via Slug::normalize($key, admin_url(''))
+- [Phase 17-slug-normalization]: Ordering::submenu kept pure/untouched: reorder threading via normalized copies of children with orig_by_norm map to restore raw slugs (non-destructive)
+- [Phase 17-slug-normalization]: Dual-axis collision fail-safe: Axis-1 (two stored keys same normalized key → apply nothing) + Axis-2 (one normalized key matches 2+ distinct rendered items → skip)
+- [Phase 17-03]: Bug found in gate: class-slug.php missing from require_once list in maestro-menu-editor.php — fixed as Rule 1 (all 16 integration normalization tests failed with 'Class Maestro\Slug not found'); committed as fix(17-03)
+- [Phase 17-03]: Plugin Check run with --exclude-directories excluding tests,bin,docs,build,vendor,node_modules,playground,.planning,.claude,.github,test-results — shippable-source gate invocation for this project's dev-tree mapping pattern
+- [Phase 17-03]: wp-env started on alternate ports 8890/8899 (dev/tests) — 8888 and 8889 both held by other projects; established port-contention pattern (STATE.md note)
 
 ### Roadmap Evolution
 
 - GSD milestone release binding added to STATE.md: v1.2 now carries explicit target release `1.2.0`, tag `v1.2.0`, cut condition, pipeline, and release checklist.
 - Phase 11.1 inserted after Phase 11: P1 review hardening — scope `custom_menu_order`, bound config payload, save-race E2E coverage (from the 2026-06-20 code-review follow-up). Lands inside the 9 → 11 → 12 cut path, before the 1.2.0 tag.
 - R1 roadmap created 2026-06-22: 4 phases (13–16), 11 requirements mapped; non-versioned research track, no release.
+- v1.3.0 roadmap created 2026-06-29: 2 phases (17–18), 4 requirements mapped; FIX-01/02/03 in Phase 17, REL-09 in Phase 18.
 
 ### Pending Todos
 
@@ -191,6 +205,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-29T16:48:15.092Z
-Stopped at: Completed 16-02-PLAN.md
-Resume file: None
+Last session: 2026-06-30T00:51:19.546Z
+Stopped at: Phase 18 context gathered
+Resume file: .planning/phases/18-release-v1.3.0/18-CONTEXT.md

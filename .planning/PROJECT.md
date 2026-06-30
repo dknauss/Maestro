@@ -15,14 +15,36 @@ Editing the admin menu happens directly on the menu, with zero ceremony and zero
 risk to access — changes are cosmetic deltas, never a rebuilt menu, and never a
 security boundary.
 
-## Current State
+## Current Milestone: v1.3.0 Slug-Resolution Hardening
 
-**No active milestone.** The last completed milestone, **R1 — Third-Party
-Compatibility Research**, finished 2026-06-29 (non-versioned research; audit
-passed 11/11). Next step: start the next milestone via `/gsd:new-milestone` —
-the natural candidate is a versioned milestone that scopes **FIX-xx** from the
-`COMPAT-xx` backlog (COMPAT-01/02/03 slug-resolution tweaks are the highest
-priority).
+**Goal:** Maestro overrides survive real-world plugin slugs — absolute-URL
+slugs, `ver=` version params, UTM query strings, and entity-encoded `&amp;`
+ampersands — so a saved config keeps applying across environments and plugin
+updates instead of silently no-op'ing.
+
+**Target features (FIX-01/02/03, seeded by COMPAT-01/02/03):**
+- **FIX-01** — absolute-URL slug normalization (Jetpack Settings, Elementor
+  Website Templates): strip scheme+host; strip/wildcard the `ver=` param
+- **FIX-02** — external-URL slug normalization (WPForms "Upgrade to Pro"):
+  match on base URL+path, ignore UTM query params
+- **FIX-03** — entity-encoded `&amp;` taxonomy slugs (WooCommerce, Elementor,
+  LifterLMS): `html_entity_decode()` both sides before compare
+
+**Approach:** a single normalization seam applied to both the stored override
+key and the rendered slug, replacing the exact-match `isset( $items[ $slug ] )`
+lookups at `includes/class-replay.php:92` (top-level) and `:128` (submenu).
+Resolve-time, non-destructive (stored configs untouched). TDD-driven —
+`normalize()` is pure, with the six R1 survey fixtures as the test corpus, plus
+a collision-guard test so distinct slugs never collapse.
+
+**Release binding:** versioned minor release. Target `1.3.0`, tag `v1.3.0`, SVN
+deploy following the v1.2 pipeline.
+
+## Previous Milestone (R1)
+
+**R1 — Third-Party Compatibility Research** finished 2026-06-29 (non-versioned
+research; audit passed 11/11). It produced the `COMPAT-xx` backlog this
+milestone draws from; FIX-01/02/03 cite COMPAT-01/02/03 without renumbering.
 
 **R1 outcome (research only — no plugin code, no release tag, no SVN deploy):**
 Characterized how Maestro's sparse-delta replay behaves against the six
@@ -79,6 +101,14 @@ and `.planning/milestones/` for records.
 - ✓ DELV-01 — consolidated compatibility note (6×4 matrix, 0 broken cells) — R1 (research)
 - ✓ DELV-02 — ranked COMPAT-xx fix/limitation backlog (42 issues → 13 items) — R1 (research)
 
+### Active (v1.3.0 — Slug-Resolution Hardening)
+
+<!-- Current scope. Building toward these. Full detail in REQUIREMENTS.md. -->
+
+- [ ] **FIX-01** — absolute-URL slug normalization (host + `ver=` stripping) — seeds COMPAT-01
+- [ ] **FIX-02** — external-URL slug normalization (ignore UTM params) — seeds COMPAT-02
+- [ ] **FIX-03** — entity-encoded `&amp;` taxonomy slug normalization — seeds COMPAT-03
+
 ### Backlog (carry-forward to next milestone)
 
 - [ ] UX-09 — pin the toolbar “Edit Mode” zone to the admin-menu column width (distinct from shipped UX-10)
@@ -134,4 +164,4 @@ and `.planning/milestones/` for records.
 | Forward COMPAT-xx IDs with a no-renumber stability contract | Lets a later versioned milestone cite backlog items by number without churn | ✓ Good |
 
 ---
-*Last updated: 2026-06-29 — milestone R1 (Third-Party Compatibility Research) complete and archived*
+*Last updated: 2026-06-29 — milestone v1.3.0 (Slug-Resolution Hardening) started*

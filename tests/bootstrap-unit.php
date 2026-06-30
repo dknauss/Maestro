@@ -104,8 +104,22 @@ if ( ! function_exists( 'esc_url_raw' ) ) {
 	}
 }
 
+if ( ! function_exists( 'wp_parse_url' ) ) {
+	/**
+	 * Stub: thin wrapper around parse_url() for WP-free unit context.
+	 *
+	 * @param string   $url       URL to parse.
+	 * @param int      $component PHP_URL_* constant or -1 for all components.
+	 * @return mixed Parsed URL array, specific component, null, or false.
+	 */
+	function wp_parse_url( $url, $component = -1 ) {
+		return parse_url( (string) $url, $component );
+	}
+}
+
 /* -------------------------------------------------------------------------- */
 
 $amm_inc = dirname( __DIR__ ) . '/includes/';
 require_once $amm_inc . 'class-ordering.php';
+require_once $amm_inc . 'class-slug.php';
 require_once $amm_inc . 'class-config.php';
