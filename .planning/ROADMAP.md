@@ -149,7 +149,10 @@ Full phase details, success criteria, and outcomes are archived in
   2. PHP unit, integration, and Playwright e2e suites are all green at the release commit (no skips hiding failures)
   3. The git tag `v1.3.0` exists and points to the release commit; the GitHub release is published
   4. SVN `trunk` is updated and the `1.3.0` SVN tag is cut, following the same pipeline used for v1.2.0
-**Plans**: TBD
+**Plans**: 3 plans
+  - [ ] 18-01-PLAN.md — version bump (prep-release.sh 1.3.0) + locked = 1.3.0 = Upgrade Notice, as the final commit on the release branch [REL-09]
+  - [ ] 18-02-PLAN.md — push branch, confirm CI green, self-merge PR to main, tag v1.3.0 + push tag (confirmation-gated) [REL-09]
+  - [ ] 18-03-PLAN.md — verify release.yml + wp-deploy.yml green (GitHub Release zip + SVN deploy), mark REL-09 / Phase 18 complete [REL-09]
 
 ---
 
