@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 /**
  * HARD-03 — Playwright E2E regression coverage for the autosave/reset/exit
