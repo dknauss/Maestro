@@ -17,7 +17,7 @@ Rename, reorder, change icons, and hide WordPress admin menu items per user role
 
 Instead of a separate settings screen, Maestro turns the admin menu into something you edit *in place* — right where it lives. Toggle **Edit Menu** from the admin bar, and the menu becomes editable. Click a menu item to rename it, hide it from selected user roles, or change its icon. Drag submenu items and whole menu groups to reorder them. 
 
-**Try Maestro right here.** Launch a disposable demo in [WordPress Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/main/playground/blueprint-hosted.json) — it boots a site with Maestro active, User Switching, and test users (editor, author, contributor, subscriber; password `password`) so you can try per-role visibility by switching to another user's account.
+**Try Maestro right here.** Launch a demo in [WordPress Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/main/playground/blueprint-hosted.json) — it boots a throwaway site with the plugin active in edit mode, plus User Switching and test users (editor, author, contributor, subscriber; password `password`) so you can try per-role visibility by switching to another user's account.
 
 = What you can do — as a site administrator =
 
