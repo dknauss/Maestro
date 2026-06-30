@@ -6,6 +6,19 @@ status: "Roadmap locked. Phase 17 covers FIX-01/02/03 (single `normalize()` pure
 stopped_at: Phase 18 context gathered
 last_updated: "2026-06-30T00:51:19.549Z"
 last_activity: 2026-06-29 — Roadmap created
+release_target: "1.3.0"
+release_tag: "v1.3.0"
+release_cut_after: "Phase 17 (FIX-01/02/03) + Phase 18 (REL-09) complete; PR #65 CI green and merged to main"
+release_pipeline: "prep-release.sh bump -> tag on main -> release.yml (GitHub Release + zip) -> wp-deploy.yml (10up -> wp.org SVN trunk + tag + assets)"
+release_checklist:
+  - "Zero-regression gate green (CI on the release PR: unit/JS/WPCS/PHPStan/audits + integration+e2e+Plugin Check)"
+  - "Version strings bumped via prep-release.sh (header Version, MAESTRO_VERSION, Stable tag, blueprint ref)"
+  - "Changelog covers ALL user-facing changes since the last tag (diff vLAST..main for user-facing commits/PRs; each represented)"
+  - "Upgrade Notice has an entry for this version"
+  - "Directory assets (screenshots/banner) reflect the shipping UI, OR the staleness is explicitly deferred with justification"
+  - "Tag points at a main commit containing all shipped code AND the final readme"
+  - "Tag + GitHub Release published; wp-deploy SVN trunk + version tag + assets confirmed"
+release_checklist_owner: "Phase 18 release plans + /gsd:complete-milestone / milestone audit verify this before the milestone is shipped"
 progress:
   total_phases: 5
   completed_phases: 1
@@ -39,6 +52,29 @@ Progress: [░░░░░░░░░░] 0% (v1.3.0: 0/2 phases complete)
 WordPress.org `trunk` following the v1.2 release pipeline. `vX.Y` numbering is
 reserved for shipped plugin releases; v1.3.0 ships production menu-handling code
 (the slug-resolution normalization), unlike the research-only R1.
+
+### Release Checklist (v1.3.0)
+
+The milestone is the system of record for its release (see the
+`release_checklist` frontmatter). Items 3 and 5 are content-completeness checks
+reinstated after they were dropped when the v1.3.0 milestone STATE was written —
+v1.2 got them via its dedicated "Phase 12 release-assets refresh" item; v1.3.0
+(Phase 17 fix → Phase 18 release) had no equivalent, so they must be explicit.
+
+| # | Item | Status |
+|---|------|--------|
+| 1 | Zero-regression gate green (CI on the release PR) | ✅ PR #65 — 13/13 green |
+| 2 | Version strings bumped via `prep-release.sh` | ✅ 18-01 (commit `1f7155e`) |
+| 3 | **Changelog covers ALL user-facing changes since last tag** (diff `v1.2.0..main`) | ✅ slug-resolution + #55 toolbar-icon line (via PR #66) |
+| 4 | Upgrade Notice entry for 1.3.0 | ✅ 18-01 |
+| 5 | **Directory assets reflect shipping UI**, or deferral justified | ⚠️ DEFERRED — #55 changed 2 toolbar glyphs after the v1.2 screenshot refresh; recapture tracked as a follow-up task; not REL-09-blocking |
+| 6 | Tag points at a `main` commit with all code + final readme | ⏸ after PR #66 merges |
+| 7 | Tag + GitHub Release published; SVN trunk/tag/assets confirmed | ○ 18-02 / 18-03 |
+
+**Standing lesson for future milestones:** before any release tag, diff
+`vLAST..main` for user-facing commits and confirm (a) every user-facing change
+is in the changelog and (b) the directory assets still match the shipping UI —
+don't rely on a per-milestone assets phase to surface these.
 
 ## Performance Metrics
 
