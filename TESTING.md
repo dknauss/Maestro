@@ -68,13 +68,40 @@ Targets the wp-env **tests** instance at `http://localhost:8889`
 (default login `admin` / `password`). [`global-setup.ts`](tests/e2e/global-setup.ts) authenticates once and
 stores the session.
 
+### Test isolation and why the suite runs serially
+
+The plugin keeps its entire state in **one** WordPress option (`maestro_config`)
+on a single wp-env instance — there is no per-test database. So
+[`fixtures.ts`](tests/e2e/fixtures.ts) wipes that option before **every** test
+(an `auto` fixture that runs `wp option delete maestro_config`), giving each test
+the natural WordPress menu regardless of what a prior spec left behind. Specs
+must import `test`/`expect` from `./fixtures`, not `@playwright/test`, to get
+this reset. Without it, the save-race specs — which deliberately race an
+autosave against a Reset-All — could leave `Posts` renamed and fail unrelated
+specs that assert the default label.
+
+That per-test reset is a destructive delete, so the suite is pinned to
+`workers: 1` in [`playwright.config.ts`](playwright.config.ts). `fullyParallel:
+false` only serializes *within* a file; separate spec files would still run on
+separate workers against the one shared backend, where a `beforeEach` delete in
+one file could land mid-test in another and create a fresh race. Serializing is
+what makes the shared-option reset race-free — it is the precondition for the
+isolation, not a flake mask.
+
+> **Trade-off:** serializing roughly doubles wall-clock (~2 min per full run on
+> a typical dev machine vs. parallel). That is the correct call for a
+> single-shared-backend suite where correctness depends on serialization. If
+> suite runtime becomes a concern later, the real fix is giving each worker its
+> own isolated WordPress instance (e.g. one wp-env/database per worker) so the
+> per-test reset no longer needs to be global — then `workers: 1` can be lifted.
+
 ## What each layer is good for
 
 | Layer        | Speed | Needs Docker | Catches |
 |--------------|-------|--------------|---------|
 | Unit         | ⚡ ms  | no           | ordering edge cases, icon validation regressions |
 | Integration  | ~10s  | yes          | replay against real globals, sanitization, REST auth + round-trip |
-| E2E          | ~30s  | yes          | the DOM-join + sortable + save/reset flow that no PHP test can reach |
+| E2E          | ~2 min | yes         | the DOM-join + sortable + save/reset flow that no PHP test can reach |
 
 The DOM-join (locating submenu items by index within `.wp-submenu`) is only
 exercised by the E2E layer — that is the layer to watch when testing against a
