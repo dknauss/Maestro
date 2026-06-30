@@ -217,19 +217,33 @@ class Replay {
 					// Build normalized-slug copies of children for Ordering::submenu
 					// matching, and maintain a map from normalized slug → original row
 					// (first occurrence) so we can restore original rows afterwards.
+					//
+					// Collision guard: if two live children normalize to the same key
+					// (they differ only by data normalize() removes, e.g. ver= or utm_*),
+					// Ordering::submenu indexes/emits each slug once and would DROP the
+					// later live row. Skip the reorder for this parent entirely and leave
+					// the children in natural order — consistent with the rename/visibility
+					// collision guards: when resolution is ambiguous, apply nothing.
 					$norm_children = array();
 					$orig_by_norm  = array(); // normalized_child_slug => original row.
+					$collision     = false;
 					foreach ( $submenu[ $parent ] as $cr ) {
-						if ( ! empty( $cr[2] ) ) {
-							$cnk = Slug::normalize( (string) $cr[2], $base );
-							if ( ! isset( $orig_by_norm[ $cnk ] ) ) {
-								$orig_by_norm[ $cnk ] = $cr;
-							}
-							$cr[2]           = $cnk; // Temporarily normalize for Ordering.
+						if ( empty( $cr[2] ) ) {
 							$norm_children[] = $cr;
-						} else {
-							$norm_children[] = $cr;
+							continue;
 						}
+						$cnk = Slug::normalize( (string) $cr[2], $base );
+						if ( isset( $orig_by_norm[ $cnk ] ) ) {
+							$collision = true;
+							break;
+						}
+						$orig_by_norm[ $cnk ] = $cr;
+						$cr[2]                = $cnk; // Temporarily normalize for Ordering.
+						$norm_children[]      = $cr;
+					}
+
+					if ( $collision ) {
+						continue; // Ambiguous child slugs — skip reorder so no live row is dropped.
 					}
 
 					// Let Ordering::submenu sort the normalized copies (its resilience

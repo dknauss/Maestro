@@ -503,6 +503,41 @@ class ReplayTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Reorder collision safety: when two live submenu children normalize to the
+	 * same key (here they differ only by a volatile ver= param), a saved sub_order
+	 * must NOT drop either row. Ordering::submenu emits a slug once, so feeding it
+	 * two identically-normalized rows would collapse them — the reorder is skipped
+	 * and natural order preserved instead.
+	 */
+	public function test_sub_order_reorder_preserves_rows_on_normalized_collision() {
+		global $submenu;
+
+		$submenu['parent'] = array(
+			5  => array( 'Templates A', 'manage_options', 'admin.php?page=tpl&ver=1.0', '' ),
+			10 => array( 'Templates B', 'manage_options', 'admin.php?page=tpl&ver=2.0', '' ),
+			15 => array( 'Other', 'manage_options', 'admin.php?page=other', '' ),
+		);
+		// The two 'tpl' rows both normalize to admin.php?page=tpl (ver= dropped).
+
+		( new Config() )->save(
+			array(
+				'sub_order' => array(
+					'parent' => array( 'admin.php?page=other', 'admin.php?page=tpl' ),
+				),
+			)
+		);
+
+		$this->run_replay();
+
+		$slugs = wp_list_pluck( array_values( $submenu['parent'] ), 2 );
+
+		$this->assertCount( 3, $slugs, 'No child row may be dropped on a normalized collision.' );
+		$this->assertContains( 'admin.php?page=tpl&ver=1.0', $slugs );
+		$this->assertContains( 'admin.php?page=tpl&ver=2.0', $slugs );
+		$this->assertContains( 'admin.php?page=other', $slugs );
+	}
+
+	/**
 	 * Editor model resolves hidden_roles via the SAME normalization replay() uses.
 	 * When the stored override key only matches the rendered slug after
 	 * normalization (here a host move), get_menu_model() must still report the
