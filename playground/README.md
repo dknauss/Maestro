@@ -21,30 +21,21 @@ Installs the plugin via a `git:directory` resource pointing at the `main`
 branch. Every time this demo loads it pulls the latest commit on `main`, so it
 reflects unreleased changes. Use this to preview work in progress.
 
-### [`blueprint-stable.json`](blueprint-stable.json) — hosted, pinned to release tag
+### [`blueprint-stable.json`](blueprint-stable.json) — hosted, latest WordPress.org release
 
 Playground URL:
 `https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/main/playground/blueprint-stable.json`
 
-Installs the plugin via a `git:directory` resource pinned to the latest release
-tag (e.g. `v1.1.0`). This matches the version users install from WordPress.org
-and is the primary "Try it live" demo linked from the README.
-
-Note: the blueprint *file itself* is always served from `main` (stable URL),
-but the install step's `"ref"` inside the file is pinned to the release tag.
+Installs the plugin from the **WordPress.org plugin directory** (via the
+`"plugins": [ ..., "maestro-menu-editor" ]` shorthand). This is byte-identical
+to what users actually install, boots off the Playground CDN (fast and
+reliable), and always tracks the current Stable tag — so it needs no
+per-release maintenance. This is the primary "Try it live" demo linked from the
+README.
 
 ## Release rule
 
-**`blueprint-stable.json`'s `"ref"` is bumped to the new tag during release
-prep by running `bin/prep-release.sh <version>`** (e.g. `bin/prep-release.sh
-1.2.0`). This script is run in the version-bump PR — the human-reviewed PR that
-updates version strings before the tag is created.
-
-### Why not a post-tag automation?
-
-Branch protection blocks the release workflow's `GITHUB_TOKEN` from pushing
-commits directly to the protected `main` branch. A post-tag CI job that bumped
-the blueprint ref would fail at push time. By including the bump in the
-release-prep PR instead, the change goes through normal review and lands on
-`main` before the tag is created, keeping the stable demo URL correct from the
-moment the release publishes.
+Nothing to do for the stable demo. It installs from WordPress.org, which serves
+the current Stable tag automatically, so `blueprint-stable.json` never needs a
+per-release edit. (`bin/prep-release.sh` bumps the version strings in the plugin
+header and `readme.txt`; it no longer touches any blueprint.)

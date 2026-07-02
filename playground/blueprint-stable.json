@@ -3,25 +3,13 @@
 	"meta": {
 		"title": "Maestro — latest stable release demo",
 		"author": "dknauss",
-		"description": "In-place admin menu editor, with User Switching and test users (editor, author, contributor, subscriber) for trying per-role menu visibility. (pinned to the latest released version)."
+		"description": "In-place admin menu editor, with User Switching and test users (editor, author, contributor, subscriber) for trying per-role menu visibility. (installed from WordPress.org — the latest released version)."
 	},
 	"landingPage": "/wp-admin/index.php?maestro_edit=1",
 	"preferredVersions": { "php": "8.3", "wp": "latest" },
 	"login": true,
-	"plugins": [ "user-switching" ],
+	"plugins": [ "user-switching", "maestro-menu-editor" ],
 	"steps": [
-		{
-			"step": "installPlugin",
-			"pluginData": {
-				"resource": "git:directory",
-				"url": "https://github.com/dknauss/Maestro",
-				"ref": "v1.3.0",
-				"refType": "tag",
-				"path": "/"
-			},
-			"options": { "activate": true },
-			"progress": { "caption": "Installing Maestro" }
-		},
 		{
 			"step": "wp-cli",
 			"command": "wp user create editor editor@example.com --role=editor --user_pass=password"

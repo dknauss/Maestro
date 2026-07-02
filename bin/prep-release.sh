@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Release-prep helper — bumps version strings and the stable-demo blueprint ref.
+# Release-prep helper — bumps version strings across the plugin.
 #
 # Usage: bin/prep-release.sh <VERSION>
 #   VERSION  Semantic version without leading v, e.g. 1.1.1
@@ -8,7 +8,10 @@
 # What it updates:
 #   - maestro-menu-editor.php   * Version: header + MAESTRO_VERSION constant
 #   - readme.txt                Stable tag:
-#   - playground/blueprint-stable.json   installPlugin step "ref"
+#
+# The stable Playground demo (playground/blueprint-stable.json) installs the
+# plugin from the WordPress.org directory, which always serves the current
+# Stable tag — so there is no per-release blueprint ref to bump here.
 #
 # Run this in the version-bump PR before the release tag is created.
 #
@@ -25,7 +28,6 @@ fi
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PLUGIN_FILE="$ROOT/maestro-menu-editor.php"
 README_TXT="$ROOT/readme.txt"
-BLUEPRINT_STABLE="$ROOT/playground/blueprint-stable.json"
 
 # ---------------------------------------------------------------------------
 # maestro-menu-editor.php — plugin header Version: and MAESTRO_VERSION define
@@ -37,12 +39,6 @@ perl -pi -e "s/(define\( 'MAESTRO_VERSION', ')[0-9]+\.[0-9]+\.[0-9]+(')/\${1}$VE
 # readme.txt — Stable tag:
 # ---------------------------------------------------------------------------
 perl -pi -e "s/(Stable tag:\s+)[0-9]+\.[0-9]+\.[0-9]+/\${1}$VERSION/" "$README_TXT"
-
-# ---------------------------------------------------------------------------
-# playground/blueprint-stable.json — installPlugin step "ref"
-# Target only the "ref": "v..." line (refType stays "tag")
-# ---------------------------------------------------------------------------
-perl -pi -e 's/("ref":\s*)"v[0-9]+\.[0-9]+\.[0-9]+"/$1"v'"$VERSION"'"/' "$BLUEPRINT_STABLE"
 
 # ---------------------------------------------------------------------------
 # Sanity: the plugin file must still parse after the bump (guards against a
@@ -62,7 +58,6 @@ echo ""
 echo "Version bumped to v$VERSION in:"
 echo "  $PLUGIN_FILE"
 echo "  $README_TXT"
-echo "  $BLUEPRINT_STABLE"
 echo ""
 echo "Next steps:"
 echo "  1. Update readme.txt changelog + Upgrade Notice for v$VERSION."
