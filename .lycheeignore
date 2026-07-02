@@ -1,0 +1,6 @@
+# Hosts/URLs excluded from the docs link check (.github/workflows/docs-links.yml).
+# One regex per line, matched against each URL.
+
+# gnu.org is frequently slow and times out in CI even when the URL is valid.
+# The GPL license link is stable and well-known; skip it to avoid flaky failures.
+https://www\.gnu\.org/licenses/
