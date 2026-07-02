@@ -17,9 +17,17 @@ Not suited for hosted demos — it requires a local build.
 Playground URL:
 `https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/main/playground/blueprint-hosted.json`
 
-Installs the plugin via a `git:directory` resource pointing at the `main`
-branch. Every time this demo loads it pulls the latest commit on `main`, so it
-reflects unreleased changes. Use this to preview work in progress.
+Installs the plugin from a **clean rolling ZIP built from `main`** — the
+`playground-demo` prerelease asset published by
+[`.github/workflows/playground-demo.yml`](../.github/workflows/playground-demo.yml)
+on every push to `main`, fetched through the CORS proxy:
+`…/releases/download/playground-demo/maestro-menu-editor.zip`. So it tracks the
+latest `main` build (byte-identical to the runtime package), for previewing
+unreleased work.
+
+> `git:directory` is **not** used: it fails in the hosted browser Playground
+> (`createHash is not a function`). Both hosted demos install a CORS-proxied
+> `.zip` instead.
 
 ### [`blueprint-stable.json`](blueprint-stable.json) — hosted, latest release
 

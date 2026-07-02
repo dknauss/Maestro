@@ -14,7 +14,7 @@
 			"step": "installPlugin",
 			"pluginData": {
 				"resource": "url",
-				"url": "https://wordpress-playground-cors-proxy.net/?https://github.com/dknauss/Maestro/archive/refs/heads/main.zip"
+				"url": "https://wordpress-playground-cors-proxy.net/?https://github.com/dknauss/Maestro/releases/download/playground-demo/maestro-menu-editor.zip"
 			},
 			"options": { "activate": true, "targetFolderName": "maestro-menu-editor" },
 			"progress": { "caption": "Installing Maestro" }
