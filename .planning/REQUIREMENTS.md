@@ -70,22 +70,22 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DEMO-01 | — | Pending |
-| COMPAT-04 | — | Pending |
-| COMPAT-07 | — | Pending |
-| COMPAT-10 | — | Pending |
-| ROLE-01 | — | Pending |
-| ROLE-02 | — | Pending |
-| UX-09 | — | Pending |
-| UX-12 | — | Pending |
-| BUG-08 | — | Pending |
-| REL-10 | — | Pending |
+| DEMO-01 | Phase 22 | Pending |
+| COMPAT-04 | Phase 20 | Pending |
+| COMPAT-07 | Phase 20 | Pending |
+| COMPAT-10 | Phase 20 | Pending |
+| ROLE-01 | Phase 19 | Pending |
+| ROLE-02 | Phase 21 (conditional on Phase 19) | Pending |
+| UX-09 | Phase 23 | Pending |
+| UX-12 | Phase 23 | Pending |
+| BUG-08 | Phase 23 | Pending |
+| REL-10 | Phase 24 | Pending |
 
 **Coverage:**
 - v1.4 requirements: 10 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 10 ⚠️ (filled by roadmapper)
+- Mapped to phases: 10 (roadmap created)
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-07-03*
-*Last updated: 2026-07-03 — milestone v1.4 requirements drafted*
+*Last updated: 2026-07-03 — roadmap created, all 10 requirements mapped to Phases 19–24 (0 unmapped)*

@@ -9,6 +9,7 @@
 - ✅ **v1.2 Editor UX Polish** — Phases 9–12 (shipped 2026-06-22; release tag `v1.2.0`) → [archive](milestones/v1.2-ROADMAP.md)
 - ✅ **R1 Third-Party Compatibility Research** — Phases 13–16 (completed 2026-06-29; non-versioned research — no plugin code, no release tag, no SVN deploy) → [archive](milestones/R1-ROADMAP.md)
 - ✅ **v1.3.0 Slug-Resolution Hardening** — Phases 17–18 (shipped 2026-06-30; release tag `v1.3.0`) → [archive](milestones/v1.3.0-ROADMAP.md)
+- 🚧 **v1.4 Compatibility, Roles & Showcase** — Phases 19–24 (in progress; release tag `v1.4.0`)
 
 ## Phases
 
@@ -139,10 +140,89 @@ Full phase details, success criteria, and outcomes are archived in
 
 ---
 
+## Phase Details (v1.4 — Compatibility, Roles & Showcase)
+
+- [ ] **Phase 19: Cosmetic Hiding Feasibility** — feasibility note determining whether per-user/cloned-role menu hiding can stay strictly cosmetic; gates Phase 21
+- [ ] **Phase 20: Third-Party Compatibility Fixes** — level-qualified match keys, badge/HTML-in-title preservation on rename, optional subtree-hide cascade (R1 backlog)
+- [ ] **Phase 21: Cosmetic Per-User / Cloned-Role Hiding** — conditional on Phase 19 clearing the cosmetic-only bar
+- [ ] **Phase 22: Slug-Resolution Showcase Demo** — Playground demo that visibly demonstrates the v1.3.0 slug-normalization fixes
+- [ ] **Phase 23: Editor UX Polish** — toolbar column-width pin, semantic-colour border refinement, first-run banner centering
+- [ ] **Phase 24: Release v1.4.0** — cut and ship to WordPress.org; recapture editor screenshots for the UX-11 coachmark
+
+### Phase 19: Cosmetic Hiding Feasibility
+**Goal**: It is known, before any implementation, whether per-user and/or cloned-role menu hiding can be delivered without touching capabilities — and if so, how it should be stored and resolved
+**Depends on**: Phase 18
+**Requirements**: ROLE-01
+**Success Criteria** (what must be TRUE):
+  1. A written feasibility note states a clear go/no-go verdict on whether per-user/cloned-role hiding can stay strictly cosmetic (no capability grant/removal) within WordPress's role/user model
+  2. If the verdict is go, the note specifies the storage shape (e.g. per-user override keyed by user ID vs. a cloned-role approach) and the resolution seam where it plugs into Replay
+  3. If the verdict is no-go (cannot stay cosmetic), the note explains why and Phase 21 is marked deferred rather than attempted
+  4. The note is reviewed and signed off before Phase 21 planning begins — Phase 21 cannot start without an explicit go verdict from this phase
+**Plans**: TBD
+
+### Phase 20: Third-Party Compatibility Fixes
+**Goal**: Maestro's rename/hide overrides behave correctly against the remaining R1-identified compatibility gaps — same-slug top-level/submenu collisions, badge/HTML-bearing titles, and parent-hide cascade — without weakening the cosmetic-only guarantee
+**Depends on**: Phase 18
+**Requirements**: COMPAT-04, COMPAT-07, COMPAT-10
+**Success Criteria** (what must be TRUE):
+  1. A rename or hide override targeted at a top-level slug does not also apply to a submenu item that happens to render the same slug, and vice versa — verified against the R1 shared-slug fixtures as test cases
+  2. Renaming a menu item that carries a trailing badge or HTML fragment in its title (update-count bubble, "NEW"/count span) preserves that badge/HTML instead of stripping it, verified against the 4/6 R1 plugins that use them
+  3. An admin can enable an optional "cascade hide to children" setting on a parent item; with it off (default), hiding a parent leaves children visible; with it on, children are cosmetically hidden too, with no change to their underlying capabilities
+  4. Existing PHP unit, integration, and Playwright e2e suites stay green; WPCS clean; PHPStan clean; Plugin Check 0 errors
+**Plans**: TBD
+
+### Phase 21: Cosmetic Per-User / Cloned-Role Hiding
+**Goal**: An admin can hide menu items for a specific user or a cloned role, purely cosmetically, without ever changing what that user is actually permitted to do — conditional on Phase 19's feasibility verdict
+**Depends on**: Phase 19 (deferred entirely if Phase 19 verdict is no-go)
+**Requirements**: ROLE-02
+**Success Criteria** (what must be TRUE):
+  1. An admin can scope a menu-hiding rule to a specific user (or a cloned role) using the storage shape specified by Phase 19's feasibility note
+  2. The hidden items for that user are computed by intersecting the hiding rule against the user's live roles/capabilities — no capability is granted or removed by applying the rule
+  3. A page hidden for a user by this feature still loads successfully by direct URL if that user independently holds the capability for it — hiding is proven to be visibility-only, not access control
+  4. An explicit automated test asserts the cosmetic-only guardrail: applying/removing a ROLE-02 rule does not change `current_user_can()` results for any capability
+  5. Existing PHP unit, integration, and Playwright e2e suites stay green; WPCS clean; PHPStan clean; Plugin Check 0 errors
+**Plans**: TBD
+
+### Phase 22: Slug-Resolution Showcase Demo
+**Goal**: A visitor to the Playground demo can see, concretely, that Maestro's v1.3.0 slug-normalization fixes work — not just a busier menu, but a saved override that visibly still applies despite a slug-form mismatch
+**Depends on**: Phase 20
+**Requirements**: DEMO-01
+**Success Criteria** (what must be TRUE):
+  1. The Playground demo pre-seeds a `maestro_config` whose override keys use a different slug form than the rendered menu (host-moved absolute URL, `ver=`-stamped, UTM-stamped, and `&amp;`-encoded variants), sourced from a lightweight demo-only fixture mu-plugin that registers items with the R1 survey slug shapes
+  2. A visitor opens the demo and immediately observes the pre-seeded renames/hides landing correctly on the mismatched-slug items, with no manual re-save required
+  3. Demo boot cost stays low (fixture mu-plugin, not a full third-party plugin install) and boots deterministically
+  4. An optional "Try it with WooCommerce" opt-in blueprint is available (wizard suppressed, version pinned) without being required for the core demo story
+**Plans**: TBD
+
+### Phase 23: Editor UX Polish
+**Goal**: The editor toolbar aligns visually with the menu it edits, its semantic-colour signaling is clearer and accessible, and the first-run banner reads cleanly — closing out the small polish items carried from v1.2/v1.3
+**Depends on**: Phase 18
+**Requirements**: UX-09, UX-12, BUG-08
+**Success Criteria** (what must be TRUE):
+  1. The toolbar "Edit Mode" zone is pinned to the admin-menu column width, so it visually aligns with the menu it edits at standard and mobile-density viewports — confirmed by before/after screenshot
+  2. The toolbar's semantic-colour borders (green/amber/red) are refined to a clearer or more legible signal, with the colour mapping remaining non-colour-only accessible (icon/label/aria-label carries the same information) — confirmed by before/after screenshot and an accessibility check
+  3. The first-run banner's text and button are vertically centered instead of visually off-center — confirmed by before/after screenshot
+  4. Existing PHP unit, integration, and Playwright e2e suites stay green; Plugin Check 0 errors
+**Plans**: TBD
+
+### Phase 24: Release v1.4.0
+**Goal**: v1.4 is cut and live on WordPress.org — the runtime zip builds clean, all suites pass, the tag exists, SVN trunk is updated, and the directory/editor screenshots reflect the shipped UX-11 coachmark plus any v1.4 UX changes
+**Depends on**: Phase 19, Phase 20, Phase 21, Phase 22, Phase 23
+**Requirements**: REL-10
+**Success Criteria** (what must be TRUE):
+  1. `bin/build.sh` produces a clean runtime zip with no errors and Plugin Check reports 0 errors on the extracted zip
+  2. PHP unit, integration, and Playwright e2e suites are all green at the release commit, including the ROLE-02 cosmetic-only guardrail test (or documented absence if Phase 19 deferred it)
+  3. Directory and editor screenshots are recaptured to show the shipped UX-11 coachmark "?" control and any v1.4 UX changes (Phase 23), replacing stale v1.2/v1.3 captures
+  4. The git tag `v1.4.0` exists and points to the release commit; the GitHub release is published
+  5. SVN `trunk` is updated and the `1.4.0` SVN tag is cut, following the same pipeline used for v1.2.0/v1.3.0
+**Plans**: TBD
+
+---
+
 ## Progress
 
 **Execution Order:**
-v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). v1.2 complete (Phases 9–12, archived 2026-06-22; Phase 10 was a non-blocking research spike not shipped in v1.2). R1 complete (Phases 13–16, archived 2026-06-29; non-versioned research). v1.3.0 complete (Phases 17–18, shipped 2026-06-30; release tag `v1.3.0`, archived).
+v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). v1.2 complete (Phases 9–12, archived 2026-06-22; Phase 10 was a non-blocking research spike not shipped in v1.2). R1 complete (Phases 13–16, archived 2026-06-29; non-versioned research). v1.3.0 complete (Phases 17–18, shipped 2026-06-30; release tag `v1.3.0`, archived). v1.4 in progress (Phases 19–24; release tag `v1.4.0`).
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -166,3 +246,9 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 | 16. Synthesis | R1 | 2/2 | Complete | 2026-06-29 |
 | 17. Slug Normalization | v1.3.0 | 3/3 | Complete (shipped 2026-06-30) | 2026-06-29 |
 | 18. Release v1.3.0 | v1.3.0 | 3/3 | Complete (shipped 2026-06-30) | 2026-06-30 |
+| 19. Cosmetic Hiding Feasibility | v1.4 | 0/TBD | Not started | - |
+| 20. Third-Party Compatibility Fixes | v1.4 | 0/TBD | Not started | - |
+| 21. Cosmetic Per-User / Cloned-Role Hiding | v1.4 | 0/TBD | Not started (conditional on Phase 19) | - |
+| 22. Slug-Resolution Showcase Demo | v1.4 | 0/TBD | Not started | - |
+| 23. Editor UX Polish | v1.4 | 0/TBD | Not started | - |
+| 24. Release v1.4.0 | v1.4 | 0/TBD | Not started | - |

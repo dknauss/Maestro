@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Compatibility, Roles & Showcase
-status: "Milestone v1.4 started — defining requirements. Scope: DEMO-01 (Playground slug-resolution showcase), COMPAT-04/07/10 (R1 backlog fixes), ROLE-01/02 (feasibility-gated cosmetic per-user/cloned-role hiding), UX-09/UX-12/BUG-08 + coachmark screenshot recapture, REL-10 (v1.4 release). Research skipped; V2-15 gated by a ROLE-01 feasibility phase. Phases continue from 18 → v1.4 starts at Phase 19."
-stopped_at: v1.4 requirements being defined
-last_updated: "2026-07-03T02:00:00.000Z"
-last_activity: 2026-07-03 — Milestone v1.4 started
+status: "Milestone v1.4 roadmap created — 6 phases (19-24), 10/10 requirements mapped. Phase 19 (ROLE-01 feasibility) is the gating first phase; Phase 21 (ROLE-02) is conditional on its go verdict. Next: /gsd:plan-phase 19."
+stopped_at: v1.4 roadmap created, ready for Phase 19 planning
+last_updated: "2026-07-03T03:00:00.000Z"
+last_activity: 2026-07-03 — v1.4 roadmap created (Phases 19-24)
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,42 +21,41 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-03)
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
-**Current focus:** Milestone v1.4 — Compatibility, Roles & Showcase. Defining requirements → roadmap. Next after roadmap: `/gsd:discuss-phase 19` (ROLE-01 feasibility likely leads).
+**Current focus:** Milestone v1.4 — Compatibility, Roles & Showcase. Roadmap created (Phases 19-24, 10/10 requirements mapped). Next: `/gsd:plan-phase 19` (ROLE-01 feasibility gate leads).
 
 ## Current Position
 
-Milestone: v1.4 — Compatibility, Roles & Showcase — **STARTED 2026-07-03**
-Phase: Not started (defining requirements)
+Milestone: v1.4 — Compatibility, Roles & Showcase — **ROADMAP CREATED 2026-07-03**
+Phase: Phase 19 (Cosmetic Hiding Feasibility) — not started
 Plan: —
-Status: Defining requirements. Scope: DEMO-01, COMPAT-04/07/10, ROLE-01/02 (feasibility-gated), UX-09/UX-12/BUG-08, REL-10. Research skipped. Phases continue from 18 (v1.4 starts at Phase 19).
-Last activity: 2026-07-03 — Milestone v1.4 started
+Status: Roadmap created — 6 phases (19: Cosmetic Hiding Feasibility [ROLE-01] → 20: Third-Party Compatibility Fixes [COMPAT-04/07/10] → 21: Cosmetic Per-User/Cloned-Role Hiding [ROLE-02, conditional on Phase 19] → 22: Slug-Resolution Showcase Demo [DEMO-01] → 23: Editor UX Polish [UX-09/UX-12/BUG-08] → 24: Release v1.4.0 [REL-10]). 10/10 requirements mapped, 0 unmapped. Next: `/gsd:plan-phase 19`.
+Last activity: 2026-07-03 — v1.4 roadmap created (Phases 19-24)
 
-Progress: [░░░░░░░░░░] 0% (v1.4: requirements being defined)
+Progress: [░░░░░░░░░░] 0% (v1.4: 0/6 phases complete)
 
 ## Release Binding
 
-**Versioned minor release.** Target version `1.3.0`, tag `v1.3.0`, SVN deploy to
-WordPress.org `trunk` following the v1.2 release pipeline. `vX.Y` numbering is
-reserved for shipped plugin releases; v1.3.0 ships production menu-handling code
-(the slug-resolution normalization), unlike the research-only R1.
+**Versioned minor release.** Target version `1.4.0`, tag `v1.4.0`, SVN deploy to
+WordPress.org `trunk` following the v1.2/v1.3 release pipeline. `vX.Y` numbering
+is reserved for shipped plugin releases. ROLE-02 (Phase 21) ships only if
+Phase 19's feasibility verdict clears the cosmetic-only bar; otherwise it defers
+and REL-10 ships without it.
 
-### Release Checklist (v1.3.0)
+### Release Checklist (v1.4.0)
 
 The milestone is the system of record for its release (see the
-`release_checklist` frontmatter). Items 3 and 5 are content-completeness checks
-reinstated after they were dropped when the v1.3.0 milestone STATE was written —
-v1.2 got them via its dedicated "Phase 12 release-assets refresh" item; v1.3.0
-(Phase 17 fix → Phase 18 release) had no equivalent, so they must be explicit.
+`release_checklist` frontmatter). Carrying forward the standing lesson below —
+diff `vLAST..main` for user-facing commits before tagging.
 
 | # | Item | Status |
 |---|------|--------|
-| 1 | Zero-regression gate green (CI on the release PR) | ✅ PR #65 — 13/13 green |
-| 2 | Version strings bumped via `prep-release.sh` | ✅ 18-01 (commit `1f7155e`) |
-| 3 | **Changelog covers ALL user-facing changes since last tag** (diff `v1.2.0..main`) | ✅ slug-resolution + #55 toolbar-icon line (via PR #66) |
-| 4 | Upgrade Notice entry for 1.3.0 | ✅ 18-01 |
-| 5 | **Directory assets reflect shipping UI**, or deferral justified | ✅ screenshots refreshed via PR #72 (`chore/v1.3.0-screenshot-refresh`) before tagging |
-| 6 | Tag points at a `main` commit with all code + final readme | ✅ `v1.3.0` → `884c6df` (PR #72 merge — code + changelog + assets) |
-| 7 | Tag + GitHub Release published; SVN trunk/tag/assets confirmed | ✅ release.yml `28431793092` + wp-deploy.yml `28432154051` (18-03) |
+| 1 | Zero-regression gate green (CI on the release PR) | Pending |
+| 2 | Version strings bumped via `prep-release.sh` | Pending |
+| 3 | **Changelog covers ALL user-facing changes since last tag** (diff `v1.3.0..main`) | Pending |
+| 4 | Upgrade Notice entry for 1.4.0 | Pending |
+| 5 | **Directory + editor screenshots reflect shipping UI** (recapture for UX-11 coachmark + Phase 23 UX changes) | Pending |
+| 6 | Tag points at a `main` commit with all code + final readme | Pending |
+| 7 | Tag + GitHub Release published; SVN trunk/tag/assets confirmed | Pending |
 
 **Standing lesson for future milestones:** before any release tag, diff
 `vLAST..main` for user-facing commits and confirm (a) every user-facing change
@@ -161,11 +160,12 @@ Recent decisions affecting current work:
 - Phase 11.1 inserted after Phase 11: P1 review hardening — scope `custom_menu_order`, bound config payload, save-race E2E coverage (from the 2026-06-20 code-review follow-up). Lands inside the 9 → 11 → 12 cut path, before the 1.2.0 tag.
 - R1 roadmap created 2026-06-22: 4 phases (13–16), 11 requirements mapped; non-versioned research track, no release.
 - v1.3.0 roadmap created 2026-06-29: 2 phases (17–18), 4 requirements mapped; FIX-01/02/03 in Phase 17, REL-09 in Phase 18.
+- v1.4 roadmap created 2026-07-03: 6 phases (19–24), 10 requirements mapped. Phase 19 (ROLE-01 feasibility gate) precedes Phase 21 (ROLE-02, conditional). Phase 20 groups the three R1 COMPAT-xx fixes (COMPAT-04/07/10). Phase 22 (DEMO-01) depends on Phase 20 so the showcased fixes actually exist. Phase 23 groups the three small UX/BUG polish items (UX-09, UX-12, BUG-08). Phase 24 (REL-10) depends on all five feature phases.
 
 ### Pending Todos
 
-- **V2-15 (backlog)** — role cloning for per-user menu hiding: feasibility note before any build
-- **Deferred to a future milestone** — COMPAT-04 (level-qualified match keys), COMPAT-07 (badge/HTML-in-title preservation on rename), COMPAT-10 (subtree-hide cascade), DEMO-01 (Playground slug-resolution showcase)
+- **V2-15 (backlog)** — role cloning for per-user menu hiding: superseded by ROLE-01/ROLE-02 in the v1.4 roadmap (Phases 19/21); no longer separately deferred
+- **COMPAT-04, COMPAT-07, COMPAT-10, DEMO-01** — no longer deferred; mapped to v1.4 Phases 20 and 22
 
 <!-- REL-07/REL-08 removed 2026-07-02: completed in v1.2 Phase 12 (Release Assets Refresh), not deferred — verified in milestones/v1.2-MILESTONE-AUDIT.md. -->
 
@@ -181,6 +181,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-07-02
-Stopped at: v1.3.0 shipped; milestone audit passed (Phase 18 artifacts backfilled)
-Resume file: .planning/v1.3.0-MILESTONE-AUDIT.md — next action /gsd:complete-milestone v1.3.0
+Last session: 2026-07-03
+Stopped at: v1.4 roadmap created (Phases 19-24, 10/10 requirements mapped, 0 unmapped)
+Resume file: .planning/ROADMAP.md — next action /gsd:plan-phase 19
