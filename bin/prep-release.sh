@@ -8,6 +8,7 @@
 # What it updates:
 #   - maestro-menu-editor.php   * Version: header + MAESTRO_VERSION constant
 #   - readme.txt                Stable tag:
+#   - package.json + lock       root "version" (dev-harness; kept in sync via npm)
 #
 # The Playground demos need no per-release edit: the stable demo installs from
 # /releases/latest/download/ (refreshed by the release workflow) and the main
@@ -41,6 +42,17 @@ perl -pi -e "s/(define\( 'MAESTRO_VERSION', ')[0-9]+\.[0-9]+\.[0-9]+(')/\${1}$VE
 perl -pi -e "s/(Stable tag:\s+)[0-9]+\.[0-9]+\.[0-9]+/\${1}$VERSION/" "$README_TXT"
 
 # ---------------------------------------------------------------------------
+# package.json + package-lock.json — keep the dev-harness version in sync with
+# the shipped plugin version. `npm version` updates only the root "version" in
+# both files (never dependency versions), unlike a blanket sed/perl.
+# ---------------------------------------------------------------------------
+if command -v npm >/dev/null 2>&1; then
+	( cd "$ROOT" && npm version "$VERSION" --no-git-tag-version --allow-same-version >/dev/null )
+else
+	echo "Warning: npm not found — package.json/lock version not bumped; sync manually." >&2
+fi
+
+# ---------------------------------------------------------------------------
 # Sanity: the plugin file must still parse after the bump (guards against a
 # regex that corrupts the header or the MAESTRO_VERSION define).
 # ---------------------------------------------------------------------------
@@ -58,6 +70,7 @@ echo ""
 echo "Version bumped to v$VERSION in:"
 echo "  $PLUGIN_FILE"
 echo "  $README_TXT"
+echo "  $ROOT/package.json (+ package-lock.json)"
 echo ""
 echo "Next steps:"
 echo "  1. Update readme.txt changelog + Upgrade Notice for v$VERSION."
