@@ -28,7 +28,7 @@ non-destructive (stored configs are never rewritten).
 
 ### Release (REL)
 
-- [ ] **REL-09**: v1.3.0 is cut and shipped — runtime zip builds clean, Plugin Check reports 0 errors, full PHP/JS/e2e suites green, tagged `v1.3.0`, and deployed to WordPress.org SVN `trunk` following the v1.2 release pipeline.
+- [x] **REL-09**: v1.3.0 is cut and shipped — runtime zip builds clean, Plugin Check reports 0 errors, full PHP/JS/e2e suites green, tagged `v1.3.0`, and deployed to WordPress.org SVN `trunk` following the v1.2 release pipeline. *(shipped 2026-06-30: GitHub Release v1.3.0 + wp.org SVN trunk/tags 1.3.0; verified in v1.3.0-MILESTONE-AUDIT.md)*
 
 ### Cross-cutting (non-functional — applies to FIX-01/02/03)
 
@@ -76,7 +76,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | FIX-01 | Phase 17 | Complete |
 | FIX-02 | Phase 17 | Complete |
 | FIX-03 | Phase 17 | Complete |
-| REL-09 | Phase 18 | Pending |
+| REL-09 | Phase 18 | Complete |
 
 **Coverage:**
 - v1.3.0 requirements: 4 total (FIX-01, FIX-02, FIX-03, REL-09)
