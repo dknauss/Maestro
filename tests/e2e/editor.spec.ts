@@ -427,11 +427,12 @@ test.describe( 'Admin Menu Maestro — editor', () => {
  *   2. UX-02: no text-overlap, no control-resize at 1200px and 700px breakpoints
  *   3. First-run cue: shown once per session, suppressed after dismissal
  *
- * Screenshots are written to .planning/phases/07-visual-polish-icons/screenshots/
- * as deliverable PNGs for human review (not pixel-diff baselines).
+ * Screenshots are written to tests/e2e/screenshots/editor/ as deliverable PNGs
+ * for human review (not pixel-diff baselines). NOT an archived phase dir —
+ * writing under .planning/phases/ resurrected archived milestone dirs on capture.
  */
 
-const SCREENSHOTS_DIR = '.planning/phases/07-visual-polish-icons/screenshots';
+const SCREENSHOTS_DIR = 'tests/e2e/screenshots/editor';
 
 // GUARD: these are committed deliverable artifacts, not gate assertions. Only
 // (re)write them when MAESTRO_CAPTURE is set (via `npm run screenshots`), so the

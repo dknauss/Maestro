@@ -18,12 +18,15 @@ import * as path from 'path';
 
 const CAPTURE = Boolean( process.env.MAESTRO_CAPTURE );
 
+// Durable capture location — NOT an archived phase dir. Writing under
+// .planning/phases/ resurrected already-archived milestone dirs on every
+// `npm run screenshots`; keep generated PNGs beside the spec instead.
 const SCREENSHOT_DIR = path.join(
 	process.cwd(),
-	'.planning',
-	'phases',
-	'11-editor-entry-reorder-fixes',
-	'screenshots'
+	'tests',
+	'e2e',
+	'screenshots',
+	'mobile-entry'
 );
 
 test.describe( 'UX-08a — mobile editor-entry toggle capture (artifact only)', () => {
