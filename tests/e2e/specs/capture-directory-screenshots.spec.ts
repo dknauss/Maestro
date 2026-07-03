@@ -17,17 +17,19 @@ import * as path from 'path';
  * `test:e2e` / CI run never regenerates the committed PNGs. Gate is at the describe level.
  *
  * Auth: inherits the shared storageState admin session from playwright.config.ts.
- * Each screenshot is written to both the planning review dir and the wp.org publish target.
+ * Each screenshot is written to both a durable review dir and the wp.org publish target.
  */
 
 const CAPTURE = Boolean( process.env.MAESTRO_CAPTURE );
 
+// Durable review location — NOT an archived phase dir (writing under
+// .planning/phases/ resurrected already-archived milestone dirs on capture).
 const SCREENSHOTS_DIR = path.join(
 	process.cwd(),
-	'.planning',
-	'phases',
-	'12-release-assets-refresh',
-	'screenshots'
+	'tests',
+	'e2e',
+	'screenshots',
+	'directory'
 );
 const WP_ORG_DIR = path.join( process.cwd(), '.wordpress-org' );
 

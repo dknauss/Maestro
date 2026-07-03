@@ -15,7 +15,9 @@ Editing the admin menu happens directly on the menu, with zero ceremony and zero
 risk to access — changes are cosmetic deltas, never a rebuilt menu, and never a
 security boundary.
 
-## Current Milestone: v1.3.0 Slug-Resolution Hardening
+## Most Recent Milestone: v1.3.0 Slug-Resolution Hardening — ✅ SHIPPED 2026-06-30
+
+**Status:** Shipped to WordPress.org (tag `v1.3.0`, commit `884c6df`; GitHub Release + SVN trunk/`tags/1.3.0`). Milestone audit passed 4/4; archived to `milestones/v1.3.0-*`. **No active milestone** — next is `/gsd:new-milestone`.
 
 **Goal:** Maestro overrides survive real-world plugin slugs — absolute-URL
 slugs, `ver=` version params, UTM query strings, and entity-encoded `&amp;`
@@ -100,14 +102,16 @@ and `.planning/milestones/` for records.
 - ✓ SURV-01..06 — six per-plugin admin-menu manipulation surveys (Rank Math deferred) — R1 (research)
 - ✓ DELV-01 — consolidated compatibility note (6×4 matrix, 0 broken cells) — R1 (research)
 - ✓ DELV-02 — ranked COMPAT-xx fix/limitation backlog (42 issues → 13 items) — R1 (research)
+- ✓ FIX-01 — absolute-URL slug normalization (host + `ver=` stripping) — v1.3.0 (seeds COMPAT-01)
+- ✓ FIX-02 — external-URL slug normalization (ignore UTM params) — v1.3.0 (seeds COMPAT-02)
+- ✓ FIX-03 — entity-encoded `&amp;` taxonomy slug normalization — v1.3.0 (seeds COMPAT-03)
+- ✓ REL-09 — v1.3.0 cut and shipped to WordPress.org (tag + GitHub Release + SVN deploy) — v1.3.0
 
-### Active (v1.3.0 — Slug-Resolution Hardening)
+### Active
 
-<!-- Current scope. Building toward these. Full detail in REQUIREMENTS.md. -->
+<!-- No active milestone. v1.3.0 shipped & archived; next scope defined via /gsd:new-milestone. -->
 
-- [ ] **FIX-01** — absolute-URL slug normalization (host + `ver=` stripping) — seeds COMPAT-01
-- [ ] **FIX-02** — external-URL slug normalization (ignore UTM params) — seeds COMPAT-02
-- [ ] **FIX-03** — entity-encoded `&amp;` taxonomy slug normalization — seeds COMPAT-03
+- (none — awaiting `/gsd:new-milestone`)
 
 ### Backlog (carry-forward to next milestone)
 
@@ -167,4 +171,4 @@ and `.planning/milestones/` for records.
 | Forward COMPAT-xx IDs with a no-renumber stability contract | Lets a later versioned milestone cite backlog items by number without churn | ✓ Good |
 
 ---
-*Last updated: 2026-06-29 — milestone v1.3.0 (Slug-Resolution Hardening) started*
+*Last updated: 2026-07-03 — after v1.3.0 (Slug-Resolution Hardening) shipped & archived*

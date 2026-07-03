@@ -1,30 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: "Roadmap locked. Phase 17 covers FIX-01/02/03 (single `normalize()` pure function + collision-guard test + zero-regression gate); Phase 18 covers REL-09 (build, Plugin Check, tag v1.3.0, SVN deploy). Out of scope: COMPAT-04 (level-qualified match), COMPAT-07 (badge preservation), COMPAT-10 (subtree-hide), and documented-limitation items COMPAT-05/06/08/09/11/12/13."
-stopped_at: Phase 18 context gathered
-last_updated: "2026-06-30T00:51:19.549Z"
-last_activity: 2026-06-29 — Roadmap created
-release_target: "1.3.0"
-release_tag: "v1.3.0"
-release_cut_after: "Phase 17 (FIX-01/02/03) + Phase 18 (REL-09) complete; PR #65 CI green and merged to main"
-release_pipeline: "prep-release.sh bump -> tag on main -> release.yml (GitHub Release + zip) -> wp-deploy.yml (10up -> wp.org SVN trunk + tag + assets)"
-release_checklist:
-  - "Zero-regression gate green (CI on the release PR: unit/JS/WPCS/PHPStan/audits + integration+e2e+Plugin Check)"
-  - "Version strings bumped via prep-release.sh (header Version, MAESTRO_VERSION, Stable tag, blueprint ref)"
-  - "Changelog covers ALL user-facing changes since the last tag (diff vLAST..main for user-facing commits/PRs; each represented)"
-  - "Upgrade Notice has an entry for this version"
-  - "Directory assets (screenshots/banner) reflect the shipping UI, OR the staleness is explicitly deferred with justification"
-  - "Tag points at a main commit containing all shipped code AND the final readme"
-  - "Tag + GitHub Release published; wp-deploy SVN trunk + version tag + assets confirmed"
-release_checklist_owner: "Phase 18 release plans + /gsd:complete-milestone / milestone audit verify this before the milestone is shipped"
+milestone: v1.3.0
+milestone_name: Slug-Resolution Hardening
+status: "SHIPPED & ARCHIVED. v1.3.0 complete (Phases 17–18), audit passed 4/4, milestone archived to milestones/. No active milestone — next action is /gsd:new-milestone. NOTE: gsd-tools init re-derives milestone_version from ROADMAP's 🚧 in-progress marker; with none present it falls back to v1.0 — expected between milestones (see the 🔄/🚧 marker bug in the audit)."
+stopped_at: v1.3.0 milestone completed and archived
+last_updated: "2026-07-03T01:49:06.786Z"
+last_activity: 2026-07-03 — v1.3.0 milestone completed and archived
 progress:
-  total_phases: 5
-  completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
-  percent: 0
+  total_phases: 2
+  completed_phases: 2
+  total_plans: 6
+  completed_plans: 6
+  percent: 100
 ---
 
 # Project State
@@ -34,17 +21,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-29)
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
-**Current focus:** Milestone v1.3.0 — Slug-Resolution Hardening. Roadmap complete; ready to plan Phase 17 (Slug Normalization).
+**Current focus:** No active milestone — v1.3.0 shipped & archived. Next: `/gsd:new-milestone` (questioning → research → requirements → roadmap). Deferred backlog candidates: COMPAT-04/07/10, DEMO-01, V2-15.
 
 ## Current Position
 
-Milestone: v1.3.0 — Slug-Resolution Hardening — **ROADMAPPED 2026-06-29**
-Phase: 17 — Slug Normalization (not started)
+Milestone: v1.3.0 — Slug-Resolution Hardening — **SHIPPED 2026-06-30 · AUDIT PASSED 2026-07-02 · ARCHIVED 2026-07-03**
+Phase: — (Phases 17–18 archived to milestones/v1.3.0-phases/)
 Plan: —
-Status: Roadmap locked. Phase 17 covers FIX-01/02/03 (single `normalize()` pure function + collision-guard test + zero-regression gate); Phase 18 covers REL-09 (build, Plugin Check, tag v1.3.0, SVN deploy). Out of scope: COMPAT-04 (level-qualified match), COMPAT-07 (badge preservation), COMPAT-10 (subtree-hide), and documented-limitation items COMPAT-05/06/08/09/11/12/13.
-Last activity: 2026-06-29 — Roadmap created
+Status: v1.3.0 complete and archived. Live on WordPress.org (GitHub Release + SVN trunk/tags 1.3.0); FIX-01/02/03 + REL-09 verified; audit 4/4. Awaiting next milestone. Deferred: COMPAT-04, COMPAT-07, COMPAT-10, DEMO-01; documented-limitation items COMPAT-05/06/08/09/11/12/13; V2-15 (role cloning).
+Last activity: 2026-07-03 — v1.3.0 milestone completed and archived
 
-Progress: [░░░░░░░░░░] 0% (v1.3.0: 0/2 phases complete)
+Progress: [██████████] 100% (v1.3.0 shipped & archived; no active milestone)
 
 ## Release Binding
 
@@ -67,9 +54,9 @@ v1.2 got them via its dedicated "Phase 12 release-assets refresh" item; v1.3.0
 | 2 | Version strings bumped via `prep-release.sh` | ✅ 18-01 (commit `1f7155e`) |
 | 3 | **Changelog covers ALL user-facing changes since last tag** (diff `v1.2.0..main`) | ✅ slug-resolution + #55 toolbar-icon line (via PR #66) |
 | 4 | Upgrade Notice entry for 1.3.0 | ✅ 18-01 |
-| 5 | **Directory assets reflect shipping UI**, or deferral justified | ⚠️ DEFERRED — #55 changed 2 toolbar glyphs after the v1.2 screenshot refresh; recapture tracked as a follow-up task; not REL-09-blocking |
-| 6 | Tag points at a `main` commit with all code + final readme | ⏸ after PR #66 merges |
-| 7 | Tag + GitHub Release published; SVN trunk/tag/assets confirmed | ○ 18-02 / 18-03 |
+| 5 | **Directory assets reflect shipping UI**, or deferral justified | ✅ screenshots refreshed via PR #72 (`chore/v1.3.0-screenshot-refresh`) before tagging |
+| 6 | Tag points at a `main` commit with all code + final readme | ✅ `v1.3.0` → `884c6df` (PR #72 merge — code + changelog + assets) |
+| 7 | Tag + GitHub Release published; SVN trunk/tag/assets confirmed | ✅ release.yml `28431793092` + wp-deploy.yml `28432154051` (18-03) |
 
 **Standing lesson for future milestones:** before any release tag, diff
 `vLAST..main` for user-facing commits and confirm (a) every user-facing change
@@ -78,62 +65,9 @@ don't rely on a per-milestone assets phase to surface these.
 
 ## Performance Metrics
 
-**Velocity:**
-- Total plans completed: 15 (v1.0: 10, v1.1: 11 executable, some overlap in count)
-- Average duration: —
-- Total execution time: 0 hours
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| Security Review | 2 | TBD | — |
-| Accessibility Audit | 1 | TBD | — |
-| Verification | 2 | TBD | — |
-| Release Assets | 4 | TBD | — |
-| Submit | 1 | TBD | — |
-| Phase 06-accessibility-interaction | 3 | TBD | — |
-| Phase 07-visual-polish-icons | 4 | TBD | — |
-| Phase 08-docs-brand-assets | 4 | TBD | — |
-| Phase 09-editor-ux-polish | TBD | TBD | — |
-
-**Recent Trend:**
-- Last 5 plans: —
-- Trend: —
-
-*Updated after each plan completion*
-| Phase 09-editor-ux-polish P01 | 525594m | 2 tasks | 4 files |
-| Phase 09-editor-ux-polish P02 | 21m | 3 tasks | 5 files |
-| Phase 09-editor-ux-polish P03 | 15 | 2 tasks | 3 files |
-| Phase 09-editor-ux-polish P04 | 18 | 3 tasks | 5 files |
-| Phase 09-editor-ux-polish P05 | ~60m | 3 tasks (2 auto + 1 checkpoint) + regression fixes | 2 files |
-| Phase 09-editor-ux-polish P06 | ~15m | 2 tasks (gate + traceability) | 3 files |
-| Phase 11.1-p1-review-hardening P01 | 3m | 1 tasks | 2 files |
-| Phase 11.1-p1-review-hardening P02 | 9 | 2 tasks | 3 files |
-| Phase 11.1-p1-review-hardening P03 | 15m | 2 tasks | 1 file |
-| Phase 11.1-p1-review-hardening P04 | 8m | 2 tasks | 2 files |
-| Phase 11-editor-entry-reorder-fixes P01 | 9 | 2 tasks | 2 files |
-| Phase 11-editor-entry-reorder-fixes P02 | 721 | 2 tasks | 2 files |
-| Phase 11-editor-entry-reorder-fixes P03 | 8 | 2 tasks | 1 files |
-| Phase 11-editor-entry-reorder-fixes P05 (gap-closure) | 10m | 2 tasks | 1 file |
-| Phase 11-editor-entry-reorder-fixes P06 | 2 | 2 tasks | 3 files |
-| Phase 11-editor-entry-reorder-fixes P07 | 24 | 3 tasks | 4 files |
-| Phase 12-release-assets-refresh P01 | 20 | 2 tasks | 3 files |
-| Phase 12-release-assets-refresh P03 | 4 | 2 tasks | 2 files |
-| Phase 13-compatibility-harness-classification-schema P02 | 1m | 1 tasks | 1 files |
-| Phase 14-woocommerce-survey P01 | 50m | 2 tasks | 6 files |
-| Phase 14-woocommerce-survey P02 | 40m | 2 tasks | 2 files |
-| Phase 14-woocommerce-survey P03 | 12m | 2 tasks | 2 files |
-| Phase 15-remaining-survey-set P01 | 12m | 2 tasks | 6 files |
-| Phase 15-remaining-survey-set P02 | 55 | 2 tasks | 6 files |
-| Phase 15-remaining-survey-set P03 | 90 | 2 tasks | 6 files |
-| Phase 15-remaining-survey-set P04 | 45 | 2 tasks | 6 files |
-| Phase 15-remaining-survey-set P05 | 90 | 2 tasks | 6 files |
-| Phase 16-synthesis P01 | 8 | 2 tasks | 1 files |
-| Phase 16-synthesis P02 | 39 | 2 tasks | 2 files |
-| Phase 17-slug-normalization P01 | 11 | 3 tasks | 3 files |
-| Phase 17-slug-normalization P02 | 25 | 3 tasks | 2 files |
-| Phase 17-slug-normalization P03 | 30 | 2 tasks | 2 files |
+Automated velocity capture was never reliable for this project; the prior table
+held placeholder/garbage values (removed 2026-07-02). Per-plan task/file counts
+live in each phase's SUMMARY.md if needed.
 
 ## Accumulated Context
 
@@ -230,17 +164,23 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-- **REL-07/REL-08 (deferred)** — refreshed banner + gallery-optimized screenshots; image work; no blocking dependency on v1.2
 - **V2-15 (backlog)** — role cloning for per-user menu hiding: feasibility note before any build
+- **Deferred to a future milestone** — COMPAT-04 (level-qualified match keys), COMPAT-07 (badge/HTML-in-title preservation on rename), COMPAT-10 (subtree-hide cascade), DEMO-01 (Playground slug-resolution showcase)
+
+<!-- REL-07/REL-08 removed 2026-07-02: completed in v1.2 Phase 12 (Release Assets Refresh), not deferred — verified in milestones/v1.2-MILESTONE-AUDIT.md. -->
+
+### Follow-ups (non-blocking)
+
+- **Capture-spec output paths point at archived phase dirs** — `capture-screenshots.spec.ts` → `phases/11/…`, `capture-directory-screenshots.spec.ts` → `phases/12/…`, `editor.spec.ts` → `phases/07/…`. All three are `MAESTRO_CAPTURE`-gated so they no longer churn on normal e2e runs, but a deliberate `npm run screenshots` still resurrects those archived phase dirs. Durable fix: repoint the specs to a non-archived location (e.g. a dedicated captures dir or `.wordpress-org/` staging).
 
 ### Blockers/Concerns
 
 - **RESOLVED (2026-06-22) — 11-08 Wave 2 gate:** Ran sandbox-disabled on this project's wp-env. Port 8889 was held by another wp-env project, so this stack was started on **dev 8898 / tests 8899** and the gate run via `WP_ENV_TESTS_PORT=8899` (the alternate-port path the 11-08 config change enables); the other project's stack was left untouched. Gate GREEN: JS 53/53, PHP integration 37/37, e2e 32 pass/0 fail, screenshots 4/4. Tear down with `npx wp-env stop` when done.
-- **Hygiene follow-up (non-blocking):** Phase-07 e2e screenshot specs overwrite committed PNGs on every full e2e run (not `MAESTRO_CAPTURE`-gated like the Phase-11 capture spec). Side-effect changes were reverted during the gate; gate the Phase-07 captures the same way to stop the churn.
+- **RESOLVED (2026-07-02) — Phase-07 screenshot churn:** the Phase-07 captures (`editor.spec.ts`) are now `MAESTRO_CAPTURE`-gated like the Phase-11/12 capture specs, so a normal e2e run no longer overwrites committed PNGs. Remaining follow-up is only the output-path relocation (see Follow-ups above).
 - **RESOLVED (2026-06-26) — Phase 13 Docker boot checkpoint:** compat wp-env booted once Docker was available; `wp plugin list` confirmed all six survey plugins + Maestro active (Rank Math absent) and `wp user list` confirmed admin/`compat_editor`/`compat_shop_manager`. Phase 13 verified 4/4. **Boot notes for Phases 14-16:** cold boot ~15 min; a transient Elementor ZIP CRC error self-heals on wp-env retry; a leftover partial `WordPress-PHPUnit/` from an interrupted run can block the shallow clone (move it aside); `testsEnvironment: false` is set but wp-env 11.8.1 still provisions the tests env (harmless deprecation warning).
 
 ## Session Continuity
 
-Last session: 2026-06-30T00:51:19.546Z
-Stopped at: Phase 18 context gathered
-Resume file: .planning/phases/18-release-v1.3.0/18-CONTEXT.md
+Last session: 2026-07-02
+Stopped at: v1.3.0 shipped; milestone audit passed (Phase 18 artifacts backfilled)
+Resume file: .planning/v1.3.0-MILESTONE-AUDIT.md — next action /gsd:complete-milestone v1.3.0
