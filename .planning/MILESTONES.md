@@ -1,5 +1,20 @@
 # Milestones: Maestro
 
+## v1.3.0 Slug-Resolution Hardening (Shipped: 2026-06-30)
+
+**Phases completed:** 2 phases (17–18), 6 plans. **Release tag:** `v1.3.0` (commit `884c6df`) · GitHub Release + WordPress.org SVN `trunk`/`tags/1.3.0`.
+
+**Delivered:** Maestro's saved overrides now survive real-world slug variation, so a stored config keeps applying without a manual re-save. The payload is a single resolve-time normalization seam (FIX-01/02/03) drawn from the R1 compatibility research.
+
+**Key accomplishments:**
+- Pure `Maestro\Slug::normalize()` (TDD, six R1 survey fixtures + 4-case collision guard) — host-move survival via `/wp-admin/` boundary detection, `ver=`/UTM query stripping, and `html_entity_decode()` of `&amp;` taxonomy slugs (FIX-01/02/03)
+- Wired normalization into Replay's two `items[]` seams and the `Ordering::submenu` reorder seam, non-destructively (stored configs never rewritten), with a dual-axis collision fail-safe
+- Zero-regression gate held: 88/88 unit green, integration + Playwright e2e green, WPCS clean, Plugin Check 0 errors
+- Cut and shipped v1.3.0 end-to-end on the v1.2 pipeline (tag → GitHub Release + zip → SVN deploy)
+- Milestone audit passed 4/4 (see [v1.3.0-MILESTONE-AUDIT.md](milestones/v1.3.0-MILESTONE-AUDIT.md))
+
+---
+
 A historical record of shipped versions. Full details for each milestone live in
 `.planning/milestones/v[X.Y]-ROADMAP.md` and `…-REQUIREMENTS.md`.
 

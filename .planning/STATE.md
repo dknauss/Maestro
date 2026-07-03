@@ -2,23 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.3.0
 milestone_name: Slug-Resolution Hardening
-status: "SHIPPED. v1.3.0 is live on WordPress.org — Phase 17 (FIX-01/02/03 slug normalization) + Phase 18 (REL-09 release) both complete and verified. GitHub Release v1.3.0 + wp.org SVN trunk/tags 1.3.0. Milestone audit passed 2026-07-02 (4/4 requirements, .planning/v1.3.0-MILESTONE-AUDIT.md). Ready for /gsd:complete-milestone. Out of scope (deferred): COMPAT-04 (level-qualified match), COMPAT-07 (badge preservation), COMPAT-10 (subtree-hide), DEMO-01 (Playground showcase), and documented-limitation items COMPAT-05/06/08/09/11/12/13."
-stopped_at: v1.3.0 shipped; milestone audit passed 2026-07-02
-last_updated: "2026-07-02T00:00:00.000Z"
-last_activity: 2026-07-02 — v1.3.0 milestone audit passed (shipped); Phase 18 artifacts backfilled
-release_target: "1.3.0"
-release_tag: "v1.3.0"
-release_cut_after: "Phase 17 (FIX-01/02/03) + Phase 18 (REL-09) complete; PR #65 CI green and merged to main"
-release_pipeline: "prep-release.sh bump -> tag on main -> release.yml (GitHub Release + zip) -> wp-deploy.yml (10up -> wp.org SVN trunk + tag + assets)"
-release_checklist:
-  - "Zero-regression gate green (CI on the release PR: unit/JS/WPCS/PHPStan/audits + integration+e2e+Plugin Check)"
-  - "Version strings bumped via prep-release.sh (header Version, MAESTRO_VERSION, Stable tag, blueprint ref)"
-  - "Changelog covers ALL user-facing changes since the last tag (diff vLAST..main for user-facing commits/PRs; each represented)"
-  - "Upgrade Notice has an entry for this version"
-  - "Directory assets (screenshots/banner) reflect the shipping UI, OR the staleness is explicitly deferred with justification"
-  - "Tag points at a main commit containing all shipped code AND the final readme"
-  - "Tag + GitHub Release published; wp-deploy SVN trunk + version tag + assets confirmed"
-release_checklist_owner: "Phase 18 release plans + /gsd:complete-milestone / milestone audit verify this before the milestone is shipped"
+status: "SHIPPED & ARCHIVED. v1.3.0 complete (Phases 17–18), audit passed 4/4, milestone archived to milestones/. No active milestone — next action is /gsd:new-milestone. NOTE: gsd-tools init re-derives milestone_version from ROADMAP's 🚧 in-progress marker; with none present it falls back to v1.0 — expected between milestones (see the 🔄/🚧 marker bug in the audit)."
+stopped_at: v1.3.0 milestone completed and archived
+last_updated: "2026-07-03T01:49:06.786Z"
+last_activity: 2026-07-03 — v1.3.0 milestone completed and archived
 progress:
   total_phases: 2
   completed_phases: 2
@@ -34,17 +21,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-29)
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
-**Current focus:** Milestone v1.3.0 — Slug-Resolution Hardening — **SHIPPED**. Live on WordPress.org; milestone audit passed. Next: `/gsd:complete-milestone v1.3.0` (archive + roll to next milestone).
+**Current focus:** No active milestone — v1.3.0 shipped & archived. Next: `/gsd:new-milestone` (questioning → research → requirements → roadmap). Deferred backlog candidates: COMPAT-04/07/10, DEMO-01, V2-15.
 
 ## Current Position
 
-Milestone: v1.3.0 — Slug-Resolution Hardening — **SHIPPED 2026-06-30 · AUDIT PASSED 2026-07-02**
-Phase: 18 — Release v1.3.0 (complete) — both milestone phases done
-Plan: — (all 6 plans across Phases 17–18 complete)
-Status: v1.3.0 live on WordPress.org (GitHub Release + SVN trunk/tags 1.3.0). FIX-01/02/03 + REL-09 verified; audit 4/4 (.planning/v1.3.0-MILESTONE-AUDIT.md). Phase 18 SUMMARY/VERIFICATION artifacts backfilled during the audit. Out of scope (deferred): COMPAT-04, COMPAT-07, COMPAT-10, DEMO-01, and documented-limitation items COMPAT-05/06/08/09/11/12/13.
-Last activity: 2026-07-02 — Milestone audit passed; Phase 18 artifacts backfilled
+Milestone: v1.3.0 — Slug-Resolution Hardening — **SHIPPED 2026-06-30 · AUDIT PASSED 2026-07-02 · ARCHIVED 2026-07-03**
+Phase: — (Phases 17–18 archived to milestones/v1.3.0-phases/)
+Plan: —
+Status: v1.3.0 complete and archived. Live on WordPress.org (GitHub Release + SVN trunk/tags 1.3.0); FIX-01/02/03 + REL-09 verified; audit 4/4. Awaiting next milestone. Deferred: COMPAT-04, COMPAT-07, COMPAT-10, DEMO-01; documented-limitation items COMPAT-05/06/08/09/11/12/13; V2-15 (role cloning).
+Last activity: 2026-07-03 — v1.3.0 milestone completed and archived
 
-Progress: [██████████] 100% (v1.3.0: 2/2 phases complete)
+Progress: [██████████] 100% (v1.3.0 shipped & archived; no active milestone)
 
 ## Release Binding
 

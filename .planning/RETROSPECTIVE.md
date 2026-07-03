@@ -117,6 +117,27 @@ A committed reproducible six-plugin wp-env harness, a shared classification sche
 - Lock the schema against the hardest case early; everything downstream becomes mechanical and synthesis stays contradiction-free.
 - Treat SUMMARY `requirements_completed` frontmatter as a first-class audit input — empty fields turn an automated 3-source cross-reference into manual verification.
 
+## Milestone: v1.3.0 — Slug-Resolution Hardening
+
+**Shipped:** 2026-06-30
+**Phases:** 2 (17–18) | **Plans:** 6
+
+### What Was Built
+A single resolve-time `Maestro\Slug::normalize()` seam (TDD, six R1 fixtures + collision guard) wired non-destructively into Replay's `items[]` and `Ordering::submenu` seams, so saved overrides survive host moves, `ver=`/UTM query drift, and `&amp;`-encoded taxonomy slugs (FIX-01/02/03). Cut and shipped as v1.3.0 on the v1.2 pipeline (REL-09).
+
+### What Worked
+- R1's survey fixtures became the ready-made TDD corpus — the fix phase was mostly mechanical because the hard cases were already characterized.
+- Resolve-time, non-destructive normalization kept stored configs untouched, so the change carried zero migration risk.
+- Dual-axis collision fail-safe (two keys → one normalized; one key → two rendered) made "conservative normalization" a testable property, not a hope.
+
+### What Was Inefficient
+- The release phase (18) shipped but its SUMMARY/VERIFICATION artifacts were never written back — the milestone read as "0% / not started" for two days until an audit reconstructed them from GitHub/SVN evidence. Release phases need the same write-back discipline as code phases.
+- ROADMAP used a `🔄` in-progress marker while the tooling's milestone detector only recognizes `🚧`, so `gsd-tools` mis-detected the milestone as `v1.0` throughout.
+
+### Key Lessons
+- A release phase isn't done when the deploy is green — it's done when the SUMMARY/VERIFICATION are committed. Verify against live artifacts (Release + SVN) if they weren't.
+- Standardize the in-progress milestone marker on `🚧` (or teach the detector to accept `🔄`) so milestone detection stops silently falling back.
+
 ## Cross-Milestone Trends
 
 | Milestone | Phases | Plans | Shipped | Test posture at close |
@@ -125,5 +146,6 @@ A committed reproducible six-plugin wp-env harness, a shared classification sche
 | v1.1 | 3 | 11 | 2026-06-17 | unit 44/44 · integration 29/29 · e2e 9/9 · Plugin Check clean |
 | v1.2 | 6 (+2 inserted) | 31 | 2026-06-22 | PHP unit 61/61 · PHP integration 37/37 · e2e 32/32 · phpcs + PHPStan + Plugin Check clean |
 | R1 | 4 | 12 | 2026-06-29 (research) | N/A — research milestone (planning artifacts + harness); verification via phase VERIFICATIONs (4+4+4+9 must-haves) + audit 11/11 |
+| v1.3.0 | 2 | 6 | 2026-06-30 | unit 88/88 · integration + e2e green · WPCS + PHPStan + Plugin Check clean · audit 4/4 |
 
 *Trends accumulate as milestones complete.*
