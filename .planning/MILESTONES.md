@@ -13,6 +13,12 @@
 - Cut and shipped v1.3.0 end-to-end on the v1.2 pipeline (tag → GitHub Release + zip → SVN deploy)
 - Milestone audit passed 4/4 (see [v1.3.0-MILESTONE-AUDIT.md](milestones/v1.3.0-MILESTONE-AUDIT.md))
 
+**Also shipped in v1.3.0 (untracked scope — not in the milestone requirements):**
+- **UX-11** — first-run guided **coachmark** (accessible 5-step anchored walkthrough; role=dialog, focus-trapped, ESC/skip/back/next, `wp.a11y.speak`, reduced-motion-safe, replayable via a persistent toolbar "?" control), replacing the old one-shot pulse/cue. In shipped code (`assets/maestro.js`, `assets/maestro.css`, `includes/class-assets.php`).
+- **UX-12** — the icon-only toolbar's semantic-colour borders shipped as-is (flagged for a later discuss-and-refine pass).
+
+These landed in the v1.3.0 release commits but were never captured as v1.3.0 requirements/roadmap phases (the milestone was scoped to FIX-01/02/03 + REL-09). Recorded here for traceability; follow-up: recapture editor screenshots showing the new toolbar "?" button.
+
 ---
 
 A historical record of shipped versions. Full details for each milestone live in
