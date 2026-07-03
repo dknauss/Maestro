@@ -1,37 +1,37 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.3.0
-milestone_name: Slug-Resolution Hardening
-status: "SHIPPED & ARCHIVED. v1.3.0 complete (Phases 17–18), audit passed 4/4, milestone archived to milestones/. No active milestone — next action is /gsd:new-milestone. NOTE: gsd-tools init re-derives milestone_version from ROADMAP's 🚧 in-progress marker; with none present it falls back to v1.0 — expected between milestones (see the 🔄/🚧 marker bug in the audit)."
-stopped_at: v1.3.0 milestone completed and archived
-last_updated: "2026-07-03T01:49:06.786Z"
-last_activity: 2026-07-03 — v1.3.0 milestone completed and archived
+milestone: v1.4
+milestone_name: Compatibility, Roles & Showcase
+status: "Milestone v1.4 started — defining requirements. Scope: DEMO-01 (Playground slug-resolution showcase), COMPAT-04/07/10 (R1 backlog fixes), ROLE-01/02 (feasibility-gated cosmetic per-user/cloned-role hiding), UX-09/UX-12/BUG-08 + coachmark screenshot recapture, REL-10 (v1.4 release). Research skipped; V2-15 gated by a ROLE-01 feasibility phase. Phases continue from 18 → v1.4 starts at Phase 19."
+stopped_at: v1.4 requirements being defined
+last_updated: "2026-07-03T02:00:00.000Z"
+last_activity: 2026-07-03 — Milestone v1.4 started
 progress:
-  total_phases: 2
-  completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-29)
+See: .planning/PROJECT.md (updated 2026-07-03)
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
-**Current focus:** No active milestone — v1.3.0 shipped & archived. Next: `/gsd:new-milestone` (questioning → research → requirements → roadmap). Deferred backlog candidates: COMPAT-04/07/10, DEMO-01, V2-15.
+**Current focus:** Milestone v1.4 — Compatibility, Roles & Showcase. Defining requirements → roadmap. Next after roadmap: `/gsd:discuss-phase 19` (ROLE-01 feasibility likely leads).
 
 ## Current Position
 
-Milestone: v1.3.0 — Slug-Resolution Hardening — **SHIPPED 2026-06-30 · AUDIT PASSED 2026-07-02 · ARCHIVED 2026-07-03**
-Phase: — (Phases 17–18 archived to milestones/v1.3.0-phases/)
+Milestone: v1.4 — Compatibility, Roles & Showcase — **STARTED 2026-07-03**
+Phase: Not started (defining requirements)
 Plan: —
-Status: v1.3.0 complete and archived. Live on WordPress.org (GitHub Release + SVN trunk/tags 1.3.0); FIX-01/02/03 + REL-09 verified; audit 4/4. Awaiting next milestone. Deferred: COMPAT-04, COMPAT-07, COMPAT-10, DEMO-01; documented-limitation items COMPAT-05/06/08/09/11/12/13; V2-15 (role cloning).
-Last activity: 2026-07-03 — v1.3.0 milestone completed and archived
+Status: Defining requirements. Scope: DEMO-01, COMPAT-04/07/10, ROLE-01/02 (feasibility-gated), UX-09/UX-12/BUG-08, REL-10. Research skipped. Phases continue from 18 (v1.4 starts at Phase 19).
+Last activity: 2026-07-03 — Milestone v1.4 started
 
-Progress: [██████████] 100% (v1.3.0 shipped & archived; no active milestone)
+Progress: [░░░░░░░░░░] 0% (v1.4: requirements being defined)
 
 ## Release Binding
 

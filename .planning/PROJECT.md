@@ -15,6 +15,24 @@ Editing the admin menu happens directly on the menu, with zero ceremony and zero
 risk to access — changes are cosmetic deltas, never a rebuilt menu, and never a
 security boundary.
 
+## Current Milestone: v1.4 Compatibility, Roles & Showcase
+
+**Goal:** Broaden Maestro's real-world reach — finish the actionable third-party
+compatibility fixes from R1, add cosmetic per-user/cloned-role menu hiding
+(feasibility-gated, never access control), ship a Playground demo that actually
+shows the v1.3.0 slug fixes working, and polish the editor surfaces shipped in
+v1.2/v1.3.
+
+**Target features (Phases 19+):**
+- **DEMO-01** — Playground showcase of the v1.3.0 slug-resolution fixes (pre-seeded config whose keys differ in slug form from the rendered menu; lightweight fixture mu-plugin; optional WooCommerce opt-in blueprint)
+- **COMPAT-04/07/10** — level-qualified parent-vs-submenu match keys; badge/HTML-in-title preservation on rename; optional subtree-hide cascade (from the R1 backlog)
+- **ROLE-01/02** — per-user / cloned-role cosmetic menu hiding, **feasibility-gated first** and strictly cosmetic (intersected against live roles; never grants or removes capabilities)
+- **UX-09/UX-12, BUG-08** — pin the Edit Mode zone to the menu-column width; refine the toolbar semantic-colour borders (discuss-and-refine); first-run banner centering; recapture editor screenshots for the shipped UX-11 coachmark
+
+**Release binding:** versioned minor release. Target `1.4.0`, tag `v1.4.0`, SVN
+deploy following the v1.2/v1.3 pipeline. ROLE-02 ships only if ROLE-01
+feasibility clears the cosmetic-only bar; otherwise it defers.
+
 ## Most Recent Milestone: v1.3.0 Slug-Resolution Hardening — ✅ SHIPPED 2026-06-30
 
 **Status:** Shipped to WordPress.org (tag `v1.3.0`, commit `884c6df`; GitHub Release + SVN trunk/`tags/1.3.0`). Milestone audit passed 4/4; archived to `milestones/v1.3.0-*`. **No active milestone** — next is `/gsd:new-milestone`.
@@ -107,11 +125,20 @@ and `.planning/milestones/` for records.
 - ✓ FIX-03 — entity-encoded `&amp;` taxonomy slug normalization — v1.3.0 (seeds COMPAT-03)
 - ✓ REL-09 — v1.3.0 cut and shipped to WordPress.org (tag + GitHub Release + SVN deploy) — v1.3.0
 
-### Active
+### Active (v1.4 — Compatibility, Roles & Showcase)
 
-<!-- No active milestone. v1.3.0 shipped & archived; next scope defined via /gsd:new-milestone. -->
+<!-- Current scope. Full detail + REQ-IDs in REQUIREMENTS.md. -->
 
-- (none — awaiting `/gsd:new-milestone`)
+- [ ] **DEMO-01** — Playground demo that demonstrates the v1.3.0 slug-resolution fixes
+- [ ] **COMPAT-04** — level-qualified (parent vs submenu) match keys
+- [ ] **COMPAT-07** — preserve badge / HTML-in-title on rename
+- [ ] **COMPAT-10** — optional subtree-hide cascade (off by default)
+- [ ] **ROLE-01** — feasibility note: can per-user/cloned-role hiding stay cosmetic? (gates ROLE-02)
+- [ ] **ROLE-02** — cosmetic per-user / cloned-role menu hiding (intersected against live roles)
+- [ ] **UX-09** — pin the toolbar "Edit Mode" zone to the admin-menu column width
+- [ ] **UX-12** — refine the toolbar semantic-colour borders (discuss-and-refine)
+- [ ] **BUG-08** — first-run banner text/button vertical centering
+- [ ] **REL-10** — v1.4 cut and shipped to WordPress.org; editor screenshots recaptured for the UX-11 coachmark
 
 ### Backlog (carry-forward to next milestone)
 
@@ -171,4 +198,4 @@ and `.planning/milestones/` for records.
 | Forward COMPAT-xx IDs with a no-renumber stability contract | Lets a later versioned milestone cite backlog items by number without churn | ✓ Good |
 
 ---
-*Last updated: 2026-07-03 — after v1.3.0 (Slug-Resolution Hardening) shipped & archived*
+*Last updated: 2026-07-03 — milestone v1.4 (Compatibility, Roles & Showcase) started*
