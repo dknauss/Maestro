@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 /**
- * npm audit wrapper with a narrow, documented dev-tooling exception.
+ * npm audit wrapper with a narrow, documented dev-tooling allowlist.
  *
- * @wordpress/env currently depends on js-yaml 3.x and npm reports
- * GHSA-h67p-54hq-rp68. This repository uses @wordpress/env only in local/CI
- * development to start disposable WordPress test containers; it is never shipped
- * in the runtime plugin zip. Keep this allowlist small and remove it as soon as
- * upstream publishes a non-vulnerable dependency path.
+ * The allowlist is currently empty: the sole former exception
+ * (GHSA-h67p-54hq-rp68, js-yaml 3.x via @wordpress/env) was closed by pinning
+ * js-yaml >= 3.15.0 in the lockfile. Keep any future entry small, dev-scope
+ * only (never a runtime-shipped dependency), and remove it as soon as upstream
+ * publishes a non-vulnerable dependency path.
  */
 import { spawnSync } from 'node:child_process';
 
-const allowed = new Set( [ 'GHSA-h67p-54hq-rp68' ] );
+const allowed = new Set();
 const result = spawnSync( 'npm', [ 'audit', '--json' ], { encoding: 'utf8' } );
 const stdout = result.stdout || '{}';
 let report;
