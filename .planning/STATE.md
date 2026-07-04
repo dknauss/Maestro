@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Compatibility, Roles & Showcase
-status: "Milestone v1.4 roadmap created — 6 phases (19-24), 10/10 requirements mapped. Phase 19 (ROLE-01 feasibility) is the gating first phase; Phase 21 (ROLE-02) is conditional on its go verdict. Next: /gsd:plan-phase 19."
-stopped_at: v1.4 roadmap created, ready for Phase 19 planning
-last_updated: "2026-07-03T03:00:00.000Z"
-last_activity: 2026-07-03 — v1.4 roadmap created (Phases 19-24)
+status: "Roadmap created — 6 phases (19: Cosmetic Hiding Feasibility [ROLE-01] → 20: Third-Party Compatibility Fixes [COMPAT-04/07/10] → 21: Cosmetic Per-User/Cloned-Role Hiding [ROLE-02, conditional on Phase 19] → 22: Slug-Resolution Showcase Demo [DEMO-01] → 23: Editor UX Polish [UX-09/UX-12/UX-13/BUG-08, widened 2026-07-03, executes next] → 24: Release v1.4.0 [REL-10]). 11/11 requirements mapped, 0 unmapped. Next: `/gsd:plan-phase 23`."
+stopped_at: Phase 23 context gathered
+last_updated: "2026-07-04T03:19:39.512Z"
+last_activity: 2026-07-03 — Phase 23 context gathered (UX-13 added; phase widened + pulled forward)
 progress:
   total_phases: 6
   completed_phases: 0
@@ -21,15 +21,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-03)
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
-**Current focus:** Milestone v1.4 — Compatibility, Roles & Showcase. Roadmap created (Phases 19-24, 10/10 requirements mapped). Next: `/gsd:plan-phase 19` (ROLE-01 feasibility gate leads).
+**Current focus:** Milestone v1.4 — Compatibility, Roles & Showcase. Roadmap created (Phases 19-24, 11/11 requirements mapped). Phase 23 widened (UX-13 native wp-admin restyle) and pulled forward. Next: `/gsd:plan-phase 23`.
 
 ## Current Position
 
 Milestone: v1.4 — Compatibility, Roles & Showcase — **ROADMAP CREATED 2026-07-03**
-Phase: Phase 19 (Cosmetic Hiding Feasibility) — not started
+Phase: Phase 23 (Editor UX Polish) — context gathered, executes next (user decision 2026-07-03); Phases 19-22 follow
 Plan: —
-Status: Roadmap created — 6 phases (19: Cosmetic Hiding Feasibility [ROLE-01] → 20: Third-Party Compatibility Fixes [COMPAT-04/07/10] → 21: Cosmetic Per-User/Cloned-Role Hiding [ROLE-02, conditional on Phase 19] → 22: Slug-Resolution Showcase Demo [DEMO-01] → 23: Editor UX Polish [UX-09/UX-12/BUG-08] → 24: Release v1.4.0 [REL-10]). 10/10 requirements mapped, 0 unmapped. Next: `/gsd:plan-phase 19`.
-Last activity: 2026-07-03 — v1.4 roadmap created (Phases 19-24)
+Status: Roadmap created — 6 phases; Phase 23 [UX-09/UX-12/UX-13/BUG-08] widened to the native wp-admin restyle and pulled forward (depends only on Phase 18). 11/11 requirements mapped, 0 unmapped. Next: `/gsd:plan-phase 23`.
+Last activity: 2026-07-03 — Phase 23 context gathered (UX-13 added; phase widened + pulled forward)
 
 Progress: [░░░░░░░░░░] 0% (v1.4: 0/6 phases complete)
 
@@ -161,9 +161,12 @@ Recent decisions affecting current work:
 - R1 roadmap created 2026-06-22: 4 phases (13–16), 11 requirements mapped; non-versioned research track, no release.
 - v1.3.0 roadmap created 2026-06-29: 2 phases (17–18), 4 requirements mapped; FIX-01/02/03 in Phase 17, REL-09 in Phase 18.
 - v1.4 roadmap created 2026-07-03: 6 phases (19–24), 10 requirements mapped. Phase 19 (ROLE-01 feasibility gate) precedes Phase 21 (ROLE-02, conditional). Phase 20 groups the three R1 COMPAT-xx fixes (COMPAT-04/07/10). Phase 22 (DEMO-01) depends on Phase 20 so the showcased fixes actually exist. Phase 23 groups the three small UX/BUG polish items (UX-09, UX-12, BUG-08). Phase 24 (REL-10) depends on all five feature phases.
+- Phase 23 widened + pulled forward 2026-07-03 (`/gsd:discuss-phase 23`): UX-13 added (native wp-admin restyle of all edit-mode surfaces; requirements now 11); UX-12 discuss-and-refine resolved to remove the semantic-colour borders; Phase 23 executes next (depends only on Phase 18). Decisions in `phases/23-editor-ux-polish/23-CONTEXT.md`.
 
 ### Pending Todos
 
+- **Named config presets + JSON export/import** — v1.5 candidate; supersedes/extends V2-06 (SPEC.md Roadmap item 6). Research captured in `todos/pending/2026-07-03-config-presets-export-import.md`
+- **Declutter switch (non-core menu items → bottom section)** — v1.5 candidate; needs discuss/feasibility pass (top_order precedence, CPT handling). Research captured in `todos/pending/2026-07-03-declutter-switch-non-core-menu-items.md`
 - **V2-15 (backlog)** — role cloning for per-user menu hiding: superseded by ROLE-01/ROLE-02 in the v1.4 roadmap (Phases 19/21); no longer separately deferred
 - **COMPAT-04, COMPAT-07, COMPAT-10, DEMO-01** — no longer deferred; mapped to v1.4 Phases 20 and 22
 
@@ -181,6 +184,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-07-03
-Stopped at: v1.4 roadmap created (Phases 19-24, 10/10 requirements mapped, 0 unmapped)
-Resume file: .planning/ROADMAP.md — next action /gsd:plan-phase 19
+Last session: 2026-07-04T03:19:39.502Z
+Stopped at: Phase 23 context gathered
+Resume file: .planning/phases/23-editor-ux-polish/23-CONTEXT.md
