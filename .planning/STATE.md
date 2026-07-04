@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Compatibility, Roles & Showcase
-status: "Roadmap created — 6 phases (19: Cosmetic Hiding Feasibility [ROLE-01] → 20: Third-Party Compatibility Fixes [COMPAT-04/07/10] → 21: Cosmetic Per-User/Cloned-Role Hiding [ROLE-02, conditional on Phase 19] → 22: Slug-Resolution Showcase Demo [DEMO-01] → 23: Editor UX Polish [UX-09/UX-12/BUG-08] → 24: Release v1.4.0 [REL-10]). 10/10 requirements mapped, 0 unmapped. Next: `/gsd:plan-phase 19`."
+status: "Roadmap created — 6 phases (19: Cosmetic Hiding Feasibility [ROLE-01] → 20: Third-Party Compatibility Fixes [COMPAT-04/07/10] → 21: Cosmetic Per-User/Cloned-Role Hiding [ROLE-02, conditional on Phase 19] → 22: Slug-Resolution Showcase Demo [DEMO-01] → 23: Editor UX Polish [UX-09/UX-12/UX-13/BUG-08, widened 2026-07-03, executes next] → 24: Release v1.4.0 [REL-10]). 11/11 requirements mapped, 0 unmapped. Next: `/gsd:plan-phase 23`."
 stopped_at: Phase 23 context gathered
 last_updated: "2026-07-04T03:19:39.512Z"
-last_activity: 2026-07-03 — v1.4 roadmap created (Phases 19-24)
+last_activity: 2026-07-03 — Phase 23 context gathered (UX-13 added; phase widened + pulled forward)
 progress:
   total_phases: 6
   completed_phases: 0
@@ -21,15 +21,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-03)
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
-**Current focus:** Milestone v1.4 — Compatibility, Roles & Showcase. Roadmap created (Phases 19-24, 10/10 requirements mapped). Next: `/gsd:plan-phase 19` (ROLE-01 feasibility gate leads).
+**Current focus:** Milestone v1.4 — Compatibility, Roles & Showcase. Roadmap created (Phases 19-24, 11/11 requirements mapped). Phase 23 widened (UX-13 native wp-admin restyle) and pulled forward. Next: `/gsd:plan-phase 23`.
 
 ## Current Position
 
 Milestone: v1.4 — Compatibility, Roles & Showcase — **ROADMAP CREATED 2026-07-03**
-Phase: Phase 19 (Cosmetic Hiding Feasibility) — not started
+Phase: Phase 23 (Editor UX Polish) — context gathered, executes next (user decision 2026-07-03); Phases 19-22 follow
 Plan: —
-Status: Roadmap created — 6 phases (19: Cosmetic Hiding Feasibility [ROLE-01] → 20: Third-Party Compatibility Fixes [COMPAT-04/07/10] → 21: Cosmetic Per-User/Cloned-Role Hiding [ROLE-02, conditional on Phase 19] → 22: Slug-Resolution Showcase Demo [DEMO-01] → 23: Editor UX Polish [UX-09/UX-12/BUG-08] → 24: Release v1.4.0 [REL-10]). 10/10 requirements mapped, 0 unmapped. Next: `/gsd:plan-phase 19`.
-Last activity: 2026-07-03 — v1.4 roadmap created (Phases 19-24)
+Status: Roadmap created — 6 phases; Phase 23 [UX-09/UX-12/UX-13/BUG-08] widened to the native wp-admin restyle and pulled forward (depends only on Phase 18). 11/11 requirements mapped, 0 unmapped. Next: `/gsd:plan-phase 23`.
+Last activity: 2026-07-03 — Phase 23 context gathered (UX-13 added; phase widened + pulled forward)
 
 Progress: [░░░░░░░░░░] 0% (v1.4: 0/6 phases complete)
 
