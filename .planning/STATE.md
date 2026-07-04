@@ -174,7 +174,10 @@ Recent decisions affecting current work:
 
 ### Follow-ups (non-blocking)
 
-- **Capture-spec output paths point at archived phase dirs** — `capture-screenshots.spec.ts` → `phases/11/…`, `capture-directory-screenshots.spec.ts` → `phases/12/…`, `editor.spec.ts` → `phases/07/…`. All three are `MAESTRO_CAPTURE`-gated so they no longer churn on normal e2e runs, but a deliberate `npm run screenshots` still resurrects those archived phase dirs. Durable fix: repoint the specs to a non-archived location (e.g. a dedicated captures dir or `.wordpress-org/` staging).
+- (none currently)
+
+<!-- Capture-spec output-path follow-up removed 2026-07-04: resolved in 7abe7d1 — all three capture specs (capture-screenshots, capture-directory-screenshots, editor) now write to tests/e2e/screenshots/… instead of archived phase dirs; MAESTRO_CAPTURE gating unchanged. -->
+<!-- Dependabot alert #14 (js-yaml < 3.15.0, GHSA-h67p-54hq-rp68, dev-only via @wordpress/env) resolved 2026-07-04: in-range lockfile bump to 3.15.0. -->
 
 ### Blockers/Concerns
 
