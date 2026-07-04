@@ -146,7 +146,7 @@ Full phase details, success criteria, and outcomes are archived in
 - [ ] **Phase 20: Third-Party Compatibility Fixes** — level-qualified match keys, badge/HTML-in-title preservation on rename, optional subtree-hide cascade (R1 backlog)
 - [ ] **Phase 21: Cosmetic Per-User / Cloned-Role Hiding** — conditional on Phase 19 clearing the cosmetic-only bar
 - [ ] **Phase 22: Slug-Resolution Showcase Demo** — Playground demo that visibly demonstrates the v1.3.0 slug-normalization fixes
-- [ ] **Phase 23: Editor UX Polish** — toolbar column-width pin, semantic-colour border refinement, first-run banner centering
+- [ ] **Phase 23: Editor UX Polish** — native wp-admin restyle of all edit-mode surfaces (UX-13, added 2026-07-03), toolbar column-width pin, semantic-colour borders removed (UX-12 verdict), first-run banner centering — **executes next by user decision (depends only on Phase 18)**
 - [ ] **Phase 24: Release v1.4.0** — cut and ship to WordPress.org; recapture editor screenshots for the UX-11 coachmark
 
 ### Phase 19: Cosmetic Hiding Feasibility
@@ -195,14 +195,16 @@ Full phase details, success criteria, and outcomes are archived in
 **Plans**: TBD
 
 ### Phase 23: Editor UX Polish
-**Goal**: The editor toolbar aligns visually with the menu it edits, its semantic-colour signaling is clearer and accessible, and the first-run banner reads cleanly — closing out the small polish items carried from v1.2/v1.3
+**Goal**: The entire edit-mode UI reads as native wp-admin — quiet menu-native controls, muted Gutenberg-style status, colour reserved for errors and destructive actions — with the Edit Mode zone pinned to the menu column and the first-run banner reading cleanly
+**Scope widened 2026-07-03** (user decision, `/gsd:discuss-phase 23`): UX-13 added — full native-wp-admin pass over all edit-mode surfaces; UX-12's discuss-and-refine resolved to *remove* the semantic-colour borders. Decisions locked in [23-CONTEXT.md](phases/23-editor-ux-polish/23-CONTEXT.md). Phase 23 executes next (it depends only on Phase 18).
 **Depends on**: Phase 18
-**Requirements**: UX-09, UX-12, BUG-08
+**Requirements**: UX-09, UX-12, UX-13, BUG-08
 **Success Criteria** (what must be TRUE):
-  1. The toolbar "Edit Mode" zone is pinned to the admin-menu column width, so it visually aligns with the menu it edits at standard and mobile-density viewports — confirmed by before/after screenshot
-  2. The toolbar's semantic-colour borders (green/amber/red) are refined to a clearer or more legible signal, with the colour mapping remaining non-colour-only accessible (icon/label/aria-label carries the same information) — confirmed by before/after screenshot and an accessibility check
-  3. The first-run banner's text and button are vertically centered instead of visually off-center — confirmed by before/after screenshot
-  4. Existing PHP unit, integration, and Playwright e2e suites stay green; Plugin Check 0 errors
+  1. The toolbar "Edit Mode" zone (mode + save status) is pinned to the admin-menu column width at the bottom of the menu column, seamless with the menu, and rejoins the bottom toolbar below 782px — confirmed by before/after screenshot
+  2. The semantic-colour border system is removed: controls are quiet menu-native icon buttons, save status is Gutenberg-style muted (spinner / grey "Saved" / red "Save failed"), modified state is a non-colour dot + enabled Reset, and red appears only for errors and destructive Reset All — confirmed by before/after screenshot and an accessibility check (non-colour signals carry all state)
+  3. All edit-mode surfaces (shared panel, icon/visibility popovers, first-run banner, coachmark, in-menu selection/badges) adopt core idioms per 23-CONTEXT.md, spot-checked on Default + Modern + Midnight admin colour schemes — confirmed by per-surface before/after screenshots
+  4. The first-run banner's text and button are vertically centered instead of visually off-center — confirmed by before/after screenshot
+  5. Existing PHP unit, integration, JS, and Playwright e2e suites stay green (e2e selector/colour assertions updated deliberately in-plan); Plugin Check 0 errors
 **Plans**: TBD
 
 ### Phase 24: Release v1.4.0
