@@ -84,19 +84,20 @@ body.maestro-editing #collapse-menu {
 
 /* ---------- modified-state indicator ------------------------------------ */
 
-/* Non-color-only: a filled bullet glyph (•) visible at ≥ 3:1 contrast against
- * the dark admin-menu background (#1d2327), PLUS a .screen-reader-text sibling
- * exposing "(modified)" to AT. The glyph is the graphical object (WCAG 1.4.11);
- * the screen-reader-text carries the semantic meaning so color is never the
- * sole signal (WCAG 1.4.1).
+/* Non-colour dot marker (Gutenberg unsaved-changes idiom): a filled bullet
+ * glyph (•) on the modified row, PLUS a .screen-reader-text sibling exposing
+ * "(modified)" to AT. The glyph itself is the graphical object (WCAG 1.4.11)
+ * and its SHAPE (not colour) is the signal; the screen-reader-text carries
+ * the semantic meaning so colour is never the sole signal (WCAG 1.4.1).
  *
- * Amber #dba617 on #1d2327 gives contrast ratio ≈ 5.5:1 (well above the 3:1
- * threshold for graphical objects required by WCAG 1.4.11). */
+ * Neutral #c3c4c7 (the toolbar's own default text colour, ≈ 8.6:1 on
+ * #1d2327 — well above the 3:1 graphical-object floor) replaces the former
+ * amber — UX-12/UX-13: colour is reserved for errors + destructive actions. */
 .maestro-editing #adminmenu .maestro-modified > a {
 	position: relative;
 }
 .maestro-editing #adminmenu .maestro-modified-badge {
-	color: #dba617;
+	color: #c3c4c7;
 	font-size: 15px; /* Gap 4 / BUG-07: bumped from 10px — bullet reads at a glance */
 	line-height: 1;
 	margin-left: 4px;
@@ -105,18 +106,14 @@ body.maestro-editing #collapse-menu {
 	user-select: none;
 }
 
-/* ---- Unified toolbar control system -------------------------------------
- * Every interactive control (panel buttons, Reset All, Exit) AND the two
- * indicator tiles (mode, active save-status) share one outlined box. Colour is
- * the ONLY thing that varies, and it carries meaning rather than zone:
- *   grey  = ordinary, safe controls (move / icon / visibility / exit)
- *   green = active edit-mode + "saved"
- *   amber = in-progress saving + "this item is modified" (Reset Item)
- *   red   = error + destructive Reset All
- * border:currentColor means a single `color` recolours both glyph and outline. */
-.maestro-toolbar .button,
-.maestro-mode-label,
-.maestro-status:not( .maestro-status-idle ) {
+/* ---- Quiet menu-native controls (core Collapse-menu idiom) --------------
+ * UX-12/UX-13: the unified outlined-box system is removed outright. Colour is
+ * reserved for exactly two meanings — errors and destructive actions (both
+ * red) — everything else is a borderless, transparent-background control in
+ * the toolbar's own neutral text colour. Item-op buttons (▲▼, icon,
+ * visibility, reset item) share this quiet-control treatment; Reset All gets
+ * its own destructive-text-link rule below. */
+.maestro-toolbar .button {
 	box-sizing: border-box;
 	display: inline-flex;
 	align-items: center;
@@ -125,18 +122,17 @@ body.maestro-editing #collapse-menu {
 	min-width: 40px;
 	min-height: 36px;
 	padding: 4px 8px;
-	border: 1px solid currentColor;
-	border-radius: 0; /* sharp corners */
-	background: #2c3338; /* gray fill (subtle; the coloured 1px border carries the boundary) */
-	color: #c3c4c7; /* neutral default; role rules below recolour glyph + outline */
+	border: 0;
+	border-radius: 2px;
+	background: transparent;
+	color: #c3c4c7; /* neutral toolbar text colour; inherits via currentColor */
 	box-shadow: none;
 	text-decoration: none; /* Exit is an <a class="button"> */
 }
-/* The mode + status are INDICATORS, not buttons — strip the button box so they
- * read as flat glyphs (no border/fill, not clickable). They keep the 20px glyph
- * and midline centring; the colour still carries state. */
+/* The mode + persistent status indicators are not clickable buttons — flat,
+ * borderless glyph + text, no hover/focus affordance. */
 .maestro-mode-label,
-.maestro-status:not( .maestro-status-idle ) {
+.maestro-status {
 	cursor: default;
 	border: 0;
 	background: transparent;
@@ -145,42 +141,62 @@ body.maestro-editing #collapse-menu {
 	padding: 0 2px;
 }
 .maestro-toolbar .button:hover {
-	background: #50575e; /* lighter gray on hover; glyph keeps its role colour */
+	background: rgba( 255, 255, 255, 0.08 ); /* quiet hover-lighten, no colour change */
 }
 .maestro-toolbar .button:focus-visible {
 	outline: 2px solid #2271b1;
 	outline-offset: 1px;
 }
 /* A control with nothing to do (Reset Item on an unmodified item) is dimmed and
- * non-interactive, so its enabled/amber state means "you have changes to undo". */
+ * non-interactive — enabled-vs-dimmed is the whole signal now (no amber). */
 .maestro-toolbar .button:disabled {
 	opacity: 0.4;
 	cursor: not-allowed;
 }
-.maestro-toolbar .button:disabled:hover { background: #2c3338; }
+.maestro-toolbar .button:disabled:hover { background: transparent; }
 /* Group the controls: a touch more space before the item-attribute group
  * (Icon / Visibility / Reset Item) sets it apart from the ▲/▼ reorder pair. */
 .maestro-toolbar .maestro-icon-btn { margin-left: 8px; }
-/* Semantic role colours (recolour glyph + outline via currentColor). Scoped
- * under .maestro-toolbar (0,2,0) so they out-specify the unified base above. */
-.maestro-toolbar .maestro-reset-all { color: #ff5c5c; } /* stronger, more saturated destructive red */
 
-/* Hide the visible text label of any toolbar control that carries one — the
- * five panel buttons and the persistent mode indicator. aria-label + title
- * supply the accessible name and a sighted-user hover hint. (Reset All / Exit
- * are plain text buttons without a .maestro-btn-label, so they keep their text.) */
-.maestro-toolbar .maestro-btn-label { display: none; }
+/* Reset All — core's destructive text-link idiom (.button-link-delete
+ * pattern): red text, no box, no border. Still targeted by e2e/save-race
+ * specs via .maestro-reset-all; confirm step in doResetAll() is unchanged. */
+.maestro-toolbar .maestro-reset-all.button-link-delete {
+	min-width: 0;
+	min-height: 36px;
+	padding: 4px 8px;
+	background: transparent;
+	color: #d63638; /* core danger red */
+	text-decoration: underline;
+}
+.maestro-toolbar .maestro-reset-all.button-link-delete:hover {
+	background: transparent;
+	color: #d63638;
+	text-decoration: none;
+}
+
+/* Reset All + Exit keep their visible text label (Label mix preserved,
+ * CONTEXT §WP-native styling) — only the five icon-only panel buttons and the
+ * persistent mode indicator hide their .maestro-btn-label text span.
+ * aria-label + title supply the accessible name and hover hint for those. */
+.maestro-toolbar .maestro-move-up .maestro-btn-label,
+.maestro-toolbar .maestro-move-down .maestro-btn-label,
+.maestro-toolbar .maestro-icon-btn .maestro-btn-label,
+.maestro-toolbar .maestro-vis-btn .maestro-btn-label,
+.maestro-toolbar .maestro-reset-item .maestro-btn-label,
+.maestro-toolbar .maestro-tour-help .maestro-btn-label,
+.maestro-mode-label .maestro-btn-label {
+	display: none;
+}
 
 /* Per-item reset button: focus-visible outline so keyboard users can see focus */
 .maestro-reset-item:focus-visible {
 	outline: 2px solid #2271b1;
 	outline-offset: 2px;
 }
-/* Caution colour when the selected item is modified — amber glyph + outline
- * (consistent with the outlined control system; no solid fill). */
-.maestro-reset-item.is-modified {
-	color: #dba617; /* glyph stays amber on the gray hover */
-}
+/* Modified state is enabled-vs-dimmed only (no amber) — the :disabled/opacity
+ * rules above already carry the whole signal. .is-modified stays as a JS hook
+ * (toggled in updateResetButton) but no longer recolours anything. */
 
 /* ---------- per-item DOM: selection only -------------------------------- */
 
@@ -358,13 +374,11 @@ body.maestro-editing #collapse-menu {
 	height: 20px;
 	line-height: 1;
 }
-/* WP core's `.wp-core-ui .button .dashicons` (0,3,0) forces a tall line-height
- * that pushed the in-button glyph off-centre; reclaim 1/20px at equal specificity. */
-.maestro-toolbar .button .dashicons { line-height: 1; }
+/* (The former `.wp-core-ui .button .dashicons` specificity-fight rule is gone —
+ * it only existed to fight the `.button` box, which is now transparent/borderless.) */
 
-/* (Mode + active save-status tiles are styled by the unified control system
- * near the top of this file — same outlined box as the buttons; colour follows
- * the indicator colour via currentColor.) */
+/* (Mode + status indicators are flat, borderless glyph+text — see the quiet-
+ * control rules near the top of this file.) */
 
 /* Status zone — sits to the left, never overlapped by the panel label. */
 .maestro-status {
@@ -380,13 +394,14 @@ body.maestro-editing #collapse-menu {
 /* Persistent mode indicator — always visible, text never changes (UX-03).
  * Idle icon is a real aria-hidden <span class="dashicons dashicons-edit"> child
  * of .maestro-mode-label (NOT a ::before pseudo-element on .maestro-status).
- * This avoids BUG-04 (idle glyph reading as a fake interactive control) while
- * still providing a non-colour shape cue beside the green label (WCAG 1.4.1). */
+ * This avoids BUG-04 (idle glyph reading as a fake interactive control).
+ * UX-12/UX-13: neutral toolbar text colour — no green. The toolbar/zone's
+ * presence is the mode signal; the label just names it (pencil + "Edit Mode"). */
 .maestro-mode-label {
 	display: inline-flex;
 	align-items: center;
 	gap: 5px;
-	color: #6bc187; /* same green as .maestro-status-saved — signals active/success state */
+	color: #c3c4c7; /* neutral toolbar text colour */
 	font-size: 13px;
 	font-weight: 600;
 	white-space: nowrap;
@@ -409,7 +424,16 @@ body.maestro-editing #collapse-menu {
  *
  * The idle state has no ::before glyph on .maestro-status — the persistent
  * .maestro-mode-label element above carries the edit icon. The ::before
- * pseudo-element is used only for saving/saved/error save-state feedback. */
+ * pseudo-element is used only for saving/saved/error save-state feedback.
+ *
+ * UX-12/UX-13 Gutenberg-muted save status: the rotating dashicons-update
+ * glyph IS the "saving" signal (no colour needed) — this reuses core's own
+ * `.spinner` LOOK (a rotating glyph) via the dashicons font already loaded as
+ * a declared style dependency, rather than enqueuing wp-admin's separate
+ * spinner.gif/spinner-2x.gif background-image asset just for this one control
+ * (payload-budget tradeoff; see SUMMARY). "Saved" is muted grey, matching
+ * core's transient success text; only "Save failed" stays red — colour is
+ * reserved for errors + destructive actions. */
 .maestro-status::before {
 	font-family: dashicons;
 	font-size: 20px;
@@ -443,10 +467,16 @@ body.maestro-editing #collapse-menu {
 	opacity: 1;
 }
 
-/* 0,2,0 so the state colour beats the unified base's neutral default. */
-.maestro-status.maestro-status-saving { color: #f0b849; }
-.maestro-status.maestro-status-saved  { color: #6bc187; }
-.maestro-status.maestro-status-error  { color: #ff5c5c; } /* matches the destructive red */
+/* 0,2,0 so the state colour beats the unified base's neutral default.
+ * Saving is neutral (the spinner shape is the whole signal); Saved is muted
+ * grey (core's transient-success tone); only Error is red — the sole
+ * non-destructive use of colour left in the toolbar (UX-12/UX-13). A brief
+ * fade on the transient "Saved" tile is allowed under core-minimal motion
+ * policy; the fade itself is deferred to live-iteration polish (CONTEXT
+ * §Motion) rather than invented here. */
+.maestro-status.maestro-status-saving { color: #c3c4c7; }
+.maestro-status.maestro-status-saved  { color: #646970; }
+.maestro-status.maestro-status-error  { color: #d63638; } /* core danger red */
 
 .maestro-panel {
 	display: flex;

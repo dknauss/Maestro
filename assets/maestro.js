@@ -84,7 +84,8 @@
 	 * When the item matches its pristine default: removes everything.
 	 *
 	 * WCAG 1.4.1 (color alone): the glyph provides a perceivable non-color signal.
-	 * WCAG 1.4.11 (graphical objects): amber #dba617 on #1d2327 ≈ 5.5:1 contrast.
+	 * WCAG 1.4.11 (graphical objects): neutral #c3c4c7 on #1d2327 ≈ 8.6:1 contrast
+	 * (UX-12/UX-13: no amber — colour is reserved for errors + destructive actions).
 	 * AT users hear "(modified)" via the screen-reader-text span.
 	 */
 	function refreshModifiedIndicator( slug ) {
@@ -427,9 +428,10 @@
 		var bar = el( 'div', 'maestro-toolbar' );
 
 		// Persistent mode indicator — NOT a live region, text never changes (UX-03).
-		// Icon-only (green pencil) to reclaim toolbar width; the accessible name is
-		// carried by aria-label and a hidden .maestro-btn-label span, with a title
-		// tooltip for sighted users. The green pencil is the non-colour shape cue.
+		// Icon-only (neutral pencil dashicon) to reclaim toolbar width; the
+		// accessible name is carried by aria-label and a hidden .maestro-btn-label
+		// span, with a title tooltip for sighted users. UX-12/UX-13: no green — the
+		// pencil is a non-colour shape cue in the toolbar's own neutral text colour.
 		var modeEl = el( 'div', 'maestro-mode-label' );
 		modeEl.setAttribute( 'aria-label', I.modeLabel );
 		modeEl.setAttribute( 'title', I.modeLabel );
@@ -555,14 +557,17 @@
 
 		var right = el( 'div', 'maestro-toolbar-right' );
 
-		// Icon-only like the panel controls. Distinct glyphs: backup/restore (restore
-		// everything) for Reset All vs the panel's undo (single-item) Reset Item;
-		// the exit-door glyph for Exit — matching the admin-bar toggle
-		// (class-admin-bar.php) so the same action shares one icon across surfaces,
-		// and so Exit reads distinctly from the toolbar's ▲/▼ move arrows. aria-label
-		// + title carry the name; Reset All is still guarded by the confirm dialog in
-		// doResetAll().
-		var resetAll = el( 'button', 'button maestro-reset-all' );
+		// Reset All + Exit keep their visible text label (Label mix preserved,
+		// CONTEXT §WP-native styling) — unlike the five icon-only panel buttons,
+		// the CSS does not hide their .maestro-btn-label span. Distinct glyphs:
+		// backup/restore (restore everything) for Reset All vs the panel's undo
+		// (single-item) Reset Item; the exit-door glyph for Exit — matching the
+		// admin-bar toggle (class-admin-bar.php) so the same action shares one
+		// icon across surfaces. aria-label + title still carry the accessible
+		// name/hover hint; Reset All is still guarded by the confirm dialog in
+		// doResetAll(). Reset All additionally carries button-link-delete —
+		// core's destructive text-link idiom (red text, no box).
+		var resetAll = el( 'button', 'button maestro-reset-all button-link-delete' );
 		resetAll.type = 'button';
 		iconButton( resetAll, 'dashicons-backup', I.resetAll );
 		resetAll.addEventListener( 'click', doResetAll );
@@ -603,14 +608,14 @@
 		// Icon picker is top-level only; submenu items have no icon column.
 		panel.iconBtn.style.display = m.isSub ? 'none' : '';
 
-		// Reflect modified state on the reset button: amber + enabled when modified,
-		// dimmed + disabled when there is nothing to reset.
+		// Reflect modified state on the reset button: enabled when modified,
+		// dimmed + disabled when there is nothing to reset (no amber — UX-12/UX-13).
 		var def = m.isSub ? pristineSub( slug ) : pristineTop( slug );
 		updateResetButton( slug, window.maestroLogic.diffItem( m, def ).modified );
 	}
 
 	// Sync the per-item Reset button to the selected item's modified state so its
-	// enabled/amber state means "you have changes to undo".
+	// enabled/dimmed state means "you have changes to undo".
 	function updateResetButton( slug, isModified ) {
 		if ( ! panel.resetBtn || slug !== selectedSlug ) { return; }
 		panel.resetBtn.classList.toggle( 'is-modified', isModified );
