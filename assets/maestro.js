@@ -1369,6 +1369,20 @@
 		box.setAttribute( 'aria-modal', 'true' );
 		box.setAttribute( 'aria-label', I.tourTitle );
 
+		/* wp-pointer look, replicated locally: a directional arrow drawn as a
+		 * rotated square that overlaps the card edge (see .maestro-tour-arrow in
+		 * maestro.css). aria-hidden — purely decorative; the card is the dialog.
+		 * positionTour sets data-pointer-edge to the resolved edge so CSS draws
+		 * the arrow on the correct side. No effect on steps/copy/anchors/trap. */
+		var arrow = el( 'span', 'maestro-tour-arrow' );
+		arrow.setAttribute( 'aria-hidden', 'true' );
+
+		/* The card body holds the pointer content (progress + text); controls
+		 * live in a footer band below, mirroring wp-pointer-content /
+		 * wp-pointer-buttons. Grouping is presentational only — the same
+		 * progress/text/Skip/Back/Next nodes and classes as before. */
+		var content = el( 'div', 'maestro-tour-content' );
+
 		var progress = el(
 			'span',
 			'maestro-tour-progress',
@@ -1407,8 +1421,10 @@
 		controls.appendChild( skip );
 		controls.appendChild( back );
 		controls.appendChild( next );
-		box.appendChild( progress );
-		box.appendChild( body );
+		content.appendChild( progress );
+		content.appendChild( body );
+		box.appendChild( arrow );
+		box.appendChild( content );
 		box.appendChild( controls );
 		document.body.appendChild( box );
 		tour.root = box;
@@ -1436,26 +1452,53 @@
 		var vh = window.innerHeight;
 		var top;
 		var left;
+		// The card edge the arrow sits on (points back at the anchor). Mirrors
+		// the wp-pointer .wp-pointer-{top,bottom,left,right} edge classes.
+		var edge;
 		if ( placement === 'right' ) {
 			left = r.right + pad;
 			top = r.top;
+			edge = 'left'; // card is to the right → arrow on the card's left edge
 			if ( left + w > vw - 8 ) {
 				// No room to the right — drop below the anchor instead.
 				left = r.left;
 				top = r.bottom + pad;
+				edge = 'top';
 			}
 		} else {
 			// 'top' — sit above the anchor (toolbar controls live at the bottom).
 			left = r.left;
 			top = r.top - h - pad;
+			edge = 'bottom'; // card is above → arrow on the card's bottom edge
 			if ( top < 8 ) {
 				top = r.bottom + pad;
+				edge = 'top';
 			}
 		}
 		left = Math.max( 8, Math.min( left, vw - w - 8 ) );
 		top = Math.max( 8, Math.min( top, vh - h - 8 ) );
 		box.style.left = left + 'px';
 		box.style.top = top + 'px';
+
+		/* Point the arrow at the anchor's centre along the shared edge, clamped
+		 * so it stays within the card's rounded corners. Presentational only —
+		 * the anchor, placement source, and step logic are unchanged. */
+		box.setAttribute( 'data-pointer-edge', edge );
+		var arrow = box.querySelector( '.maestro-tour-arrow' );
+		if ( arrow ) {
+			var inset = 16; // keep the arrow clear of the 4px-radius corners
+			if ( edge === 'left' || edge === 'right' ) {
+				var anchorCy = r.top + r.height / 2;
+				var offY = Math.max( inset, Math.min( anchorCy - top, h - inset ) );
+				arrow.style.top = offY + 'px';
+				arrow.style.left = '';
+			} else {
+				var anchorCx = r.left + r.width / 2;
+				var offX = Math.max( inset, Math.min( anchorCx - left, w - inset ) );
+				arrow.style.left = offX + 'px';
+				arrow.style.top = '';
+			}
+		}
 	}
 
 	/**

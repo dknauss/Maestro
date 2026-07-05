@@ -577,24 +577,40 @@ body.maestro-editing.auto-fold #wpfooter {
 
 /* ---------- guided tour (coachmarks) ----------------------------------- */
 
-/* UX-11: an anchored, stepped tooltip dialog (role=dialog) that teaches the
- * editor. Positioned by JS via inline top/left; these rules own the box,
+/* UX-11 / UX-13: an anchored, stepped tooltip dialog (role=dialog) that teaches
+ * the editor. Positioned by JS via inline top/left; these rules own the box,
  * typography, and controls. Sits above the toolbar (99999) and popovers
- * (100000). No entrance animation, so it is inherently reduced-motion-safe. */
+ * (100000). No entrance animation, so it is inherently reduced-motion-safe.
+ *
+ * wp-pointer look, REPLICATED LOCALLY (CONTEXT §Claude's Discretion, locked
+ * default): the card, footer buttons band, and directional arrow mimic core's
+ * .wp-pointer / .wp-pointer-content / .wp-pointer-buttons / .wp-pointer-arrow
+ * idiom (a legacy-stable component). We keep our own .maestro-tour* DOM and
+ * classes — behaviour, focus trap, 5 steps, and copy are frozen — rather than
+ * enqueue core's stylesheet and reshape the DOM to .wp-pointer* structure
+ * (that would risk the frozen a11y/trap; BUG-04 class of regression). Payload
+ * cost of replicating is trivial; drift risk is low on a stable component. */
 .maestro-tour {
 	position: fixed;
 	z-index: 100001;
 	width: 280px;
 	max-width: calc( 100vw - 16px );
 	box-sizing: border-box;
-	padding: 14px 16px 12px;
+	/* No box padding: the content area and the buttons band own their own
+	 * padding so the footer band can span edge-to-edge like wp-pointer. */
+	padding: 0;
 	background: #fff;
 	color: #1d2327;
+	/* Core wp-pointer card: 1px #c3c4c7 border + a soft drop shadow. */
 	border: 1px solid #c3c4c7;
 	border-radius: 4px;
-	box-shadow: 0 4px 16px rgba( 0, 0, 0, 0.18 );
+	box-shadow: 0 3px 6px rgba( 0, 0, 0, 0.12 );
 	font-size: 13px;
 	line-height: 1.5;
+}
+/* .wp-pointer-content analogue: the card body (progress eyebrow + step text). */
+.maestro-tour-content {
+	padding: 14px 16px 12px;
 }
 .maestro-tour-progress {
 	display: block;
@@ -606,12 +622,21 @@ body.maestro-editing.auto-fold #wpfooter {
 	color: #646970;
 }
 .maestro-tour-text {
-	margin: 0 0 12px;
+	margin: 0;
 }
+/* .wp-pointer-buttons analogue: a distinct footer band (light fill + top
+ * border) holding Skip / Back / Next. BUG-08: align-items:center vertically
+ * centres the controls within the band, and the band's own symmetric padding
+ * keeps them balanced — no off-centre row. Skip stays left; Back/Next trail
+ * right (matching wp-pointer's right-aligned buttons) via margin-left:auto. */
 .maestro-tour-controls {
 	display: flex;
 	align-items: center;
 	gap: 8px;
+	padding: 8px 12px;
+	background: #f6f7f7;
+	border-top: 1px solid #dcdcde;
+	border-radius: 0 0 4px 4px;
 }
 .maestro-tour-skip {
 	margin-right: auto; /* push Back / Next to the trailing edge */
@@ -624,6 +649,48 @@ body.maestro-editing.auto-fold #wpfooter {
 .maestro-tour button:focus-visible {
 	outline: 2px solid #2271b1;
 	outline-offset: 1px;
+}
+
+/* Directional arrow — a rotated square that overlaps the card edge so a
+ * clean triangular point shows outside it, replicating .wp-pointer-arrow /
+ * .wp-pointer-arrow-inner. JS sets data-pointer-edge to the resolved edge and
+ * positions the arrow's inline top/left to point at the anchor's centre. The
+ * card's own box-shadow reads under the arrow; the arrow carries the matching
+ * top+left border segment so the seam looks continuous. */
+.maestro-tour-arrow {
+	position: absolute;
+	width: 14px;
+	height: 14px;
+	background: #fff;
+	transform: rotate( 45deg );
+	pointer-events: none;
+}
+.maestro-tour[data-pointer-edge='left'] .maestro-tour-arrow {
+	left: -8px;
+	margin-top: -7px; /* JS sets top; centre the 14px box on it */
+	border-left: 1px solid #c3c4c7;
+	border-bottom: 1px solid #c3c4c7;
+}
+.maestro-tour[data-pointer-edge='right'] .maestro-tour-arrow {
+	right: -8px;
+	margin-top: -7px;
+	border-right: 1px solid #c3c4c7;
+	border-top: 1px solid #c3c4c7;
+}
+.maestro-tour[data-pointer-edge='top'] .maestro-tour-arrow {
+	top: -8px;
+	margin-left: -7px; /* JS sets left; centre the 14px box on it */
+	border-left: 1px solid #c3c4c7;
+	border-top: 1px solid #c3c4c7;
+}
+.maestro-tour[data-pointer-edge='bottom'] .maestro-tour-arrow {
+	/* The arrow sits on the buttons band's bottom edge, so tint it to match
+	 * the band fill for a seamless point. */
+	bottom: -8px;
+	margin-left: -7px;
+	background: #f6f7f7;
+	border-right: 1px solid #dcdcde;
+	border-bottom: 1px solid #dcdcde;
 }
 
 /* Inherit the WP admin column collapse breakpoint. */
