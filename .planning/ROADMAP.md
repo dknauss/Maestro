@@ -158,7 +158,8 @@ Full phase details, success criteria, and outcomes are archived in
   2. If the verdict is go, the note specifies the storage shape (e.g. per-user override keyed by user ID vs. a cloned-role approach) and the resolution seam where it plugs into Replay
   3. If the verdict is no-go (cannot stay cosmetic), the note explains why and Phase 21 is marked deferred rather than attempted
   4. The note is reviewed and signed off before Phase 21 planning begins — Phase 21 cannot start without an explicit go verdict from this phase
-**Plans**: TBD
+**Plans**: 1 plan
+  - [ ] 19-01-PLAN.md — Write the ROLE-01 feasibility note (go/no-go verdict + storage/seam recommendation + guardrail test sketch) and gate it on human sign-off
 
 ### Phase 20: Third-Party Compatibility Fixes
 **Goal**: Maestro's rename/hide overrides behave correctly against the remaining R1-identified compatibility gaps — same-slug top-level/submenu collisions, badge/HTML-bearing titles, and parent-hide cascade — without weakening the cosmetic-only guarantee
