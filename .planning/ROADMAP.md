@@ -209,7 +209,7 @@ Full phase details, success criteria, and outcomes are archived in
 **Plans**: 5 plans
 Plans:
 - [x] 23-01-PLAN.md — Remove semantic-colour borders; convert the bottom toolbar to native quiet controls + muted save status (UX-12, UX-13)
-- [ ] 23-02-PLAN.md — Pin the Edit-Mode zone (mode + status) to the admin-menu column; 782px relocation gate; live-iteration proportions (UX-09, UX-13)
+- [x] 23-02-PLAN.md — REVISED 2026-07-05 (live iteration): the pinned menu-column zone was built, viewed against the running site, and scrapped as out-of-sync; the bottom-toolbar Exit was then removed as redundant with the WP Toolbar admin-bar toggle, which is now the single entry/exit relabelled "Exit Menu Editor" with a re-homed save-flush-on-exit intercept, plus a Reset All underline fix (UX-09, UX-13)
 - [ ] 23-03-PLAN.md — Align the shared panel + icon/visibility popovers to core popover/postbox tokens (UX-13)
 - [ ] 23-04-PLAN.md — First-run banner centering (BUG-08); wp-pointer coachmark restyle; in-menu selection/dot-badge token pass (BUG-08, UX-13)
 - [ ] 23-05-PLAN.md — e2e selector/colour reconciliation + before/after screenshots (Default/Modern/Midnight) + full-suite gate (UX-13)
@@ -259,5 +259,5 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 | 20. Third-Party Compatibility Fixes | v1.4 | 0/TBD | Not started | - |
 | 21. Cosmetic Per-User / Cloned-Role Hiding | v1.4 | 0/TBD | Not started (conditional on Phase 19) | - |
 | 22. Slug-Resolution Showcase Demo | v1.4 | 0/TBD | Not started | - |
-| 23. Editor UX Polish | v1.4 | 1/5 | In Progress | - |
+| 23. Editor UX Polish | 2/5 | In Progress|  | - |
 | 24. Release v1.4.0 | v1.4 | 0/TBD | Not started | - |

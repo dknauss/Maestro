@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Compatibility, Roles & Showcase
-status: "Ordering decision 2026-07-04 — plan Phase 19 (ROLE-01 feasibility, unblocks the Phase 21 gate) next, THEN execute the already-planned Phase 23 (5 plans, native wp-admin restyle). 11/11 requirements mapped, 0 unmapped. Phase 23 execution underway: Plan 01/5 complete; Plan 02 Tasks 1-2 complete (modeZonePlacement 782px seam + zone relocation into the menu column), PAUSED at the Task 3 human-verify checkpoint (pinned-zone proportions + Collapse-menu coexistence live check). Next: user verifies the live > 782px / < 782px read on Default/Modern/Midnight, then a continuation agent records the outcome + writes 23-02-SUMMARY."
-stopped_at: Paused at 23-02-PLAN.md Task 3 (human-verify checkpoint)
-last_updated: "2026-07-05T05:35:34.851Z"
-last_activity: 2026-07-05 — Phase 23 Plan 02 Tasks 1-2 executed (modeZonePlacement 782px seam, node:test green; mode/status zone relocated into #adminmenuwrap Collapse slot with reversible Collapse hide); paused at Task 3 human-verify checkpoint
+status: "Phase 23 execution underway. Plan 02 (both tasks) complete: the pinned menu-column zone was built, live-iterated, and scrapped; the bottom-toolbar Exit was removed as redundant with the WP Toolbar admin-bar toggle, now the single entry/exit relabelled 'Exit Menu Editor' with a save-flush-on-exit click intercept; Reset All underline bug fixed. Next: plan 23-03 (panel/popover token alignment)."
+stopped_at: Completed 23-02-PLAN.md
+last_updated: "2026-07-05T07:16:07.087Z"
+last_activity: "2026-07-05 — Phase 23 Plan 02 Task 2 executed: removed the redundant bottom-toolbar Exit control, relabelled the admin-bar toggle to 'Exit Menu Editor' (single entry/exit + mode indicator), re-homed the save-flush-on-exit guarantee onto a click intercept on the admin-bar toggle (live-verified edit-exit-persist), and fixed the Reset All underline bug. npm run test:js 53/53, PHP unit 90/90, PHP integration 47/47, e2e save-race 3/3 green."
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 6
-  completed_plans: 1
-  percent: 17
+  completed_plans: 2
+  percent: 33
 ---
 
 # Project State
@@ -21,17 +21,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-03)
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
-**Current focus:** Milestone v1.4 — Compatibility, Roles & Showcase. Roadmap created (Phases 19-24, 11/11 requirements mapped). Phase 23 widened (UX-13 native wp-admin restyle) and pulled forward. Next: `/gsd:plan-phase 23`.
+**Current focus:** Milestone v1.4 — Compatibility, Roles & Showcase. Roadmap created (Phases 19-24, 11/11 requirements mapped). Phase 23 widened (UX-13 native wp-admin restyle) and pulled forward. Next: plan 23-03 (panel/popover token alignment).
 
 ## Current Position
 
 Milestone: v1.4 — Compatibility, Roles & Showcase — **ROADMAP CREATED 2026-07-03**
 Phase: Phase 23 (Editor UX Polish) — executing (5 plans); Phase 19 (Cosmetic Hiding Feasibility) context gathered, planning still pending
-Plan: 23-02 Tasks 1-2 complete (782px seam + zone relocation) — PAUSED at Task 3 human-verify checkpoint
-Status: Phase 23 execution underway per the 2026-07-04 ordering decision (Phase 23 first, Phase 19 planning follows). 11/11 requirements mapped, 0 unmapped. Plan 02 awaiting live visual sign-off (Task 3). Next: user verifies the docked zone on Default/Modern/Midnight at > 782px and the toolbar rejoin + Collapse restore at < 782px, then a continuation agent records the outcome and writes 23-02-SUMMARY.
-Last activity: 2026-07-05 — Phase 23 Plan 02 Tasks 1-2 executed (modeZonePlacement 782px seam, node:test 59/59 green; mode/status zone relocated into the menu column, reversible Collapse hide), paused at Task 3 human-verify checkpoint
+Plan: 23-02 COMPLETE (both tasks). The pinned menu-column mode/status zone (Task 1) was built, live-iterated against the running site, and rejected/scrapped per two 2026-07-05 user decisions recorded in 23-CONTEXT.md — the WP Toolbar admin-bar toggle is now the single entry/exit AND mode indicator (Task 2), relabelled "Exit Menu Editor" while editing, with the save-flush-on-exit guarantee re-homed onto a click intercept on that toggle (live-verified: edit -> exit via Toolbar -> reload -> change persisted). Reset All's underline bug also fixed to match core's `.button-link-delete` idiom exactly.
+Status: Phase 23 execution underway per the 2026-07-04 ordering decision (Phase 23 first, Phase 19 planning follows). 11/11 requirements mapped, 0 unmapped. Plan 02 done; e2e drift in `editor.spec.ts` from the removed pencil mode chip (Task 1) is deliberately deferred to plan 23-05 (its own reconciliation plan), not silently left. Next: plan 23-03.
+Last activity: 2026-07-05 — Phase 23 Plan 02 Task 2 executed: removed the redundant bottom-toolbar Exit control, relabelled the admin-bar toggle to "Exit Menu Editor," re-homed the save-flush-on-exit intercept, fixed the Reset All underline bug. All suites green (JS 53/53, PHP unit 90/90, PHP integration 47/47, e2e save-race 3/3); live-verified on wp-env.
 
-Progress: [██░░░░░░░░] 17% (v1.4: 1/6 plans complete across the milestone's phases)
+Progress: [███░░░░░░░] 33% (v1.4: 2/6 plans complete across the milestone's phases)
 
 ## Release Binding
 
@@ -156,6 +156,7 @@ Recent decisions affecting current work:
 - [Phase 23-editor-ux-polish]: 23-01: modeStatusLabel copy already matched CONTEXT's locked Gutenberg-muted wording — no i18n reword needed; Task 1 verification-only, no commit
 - [Phase 23-editor-ux-polish]: 23-01: kept dashicons-update spin (font-based, zero added payload) over core .spinner (background-image asset) for the saving-state glyph
 - [Phase 23-editor-ux-polish]: 23-01: kept the existing bullet-dot modified-row badge, only recoloured amber to neutral #c3c4c7 — already matched the Gutenberg unsaved-changes idiom, no new glyph needed
+- [Phase 23-editor-ux-polish]: 23-02 Task 2: admin-bar toggle relabelled 'Exit Menu Editor' is the single entry/exit; save-flush-on-exit re-homed onto its click intercept (bindAdminBarExit); Reset All underline bug fixed to match core .button-link-delete exactly (no underline at rest or hover)
 
 ### Roadmap Evolution
 
@@ -192,6 +193,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-07-05T05:35:34.845Z
-Stopped at: Completed 23-01-PLAN.md
+Last session: 2026-07-05T07:16:07.087Z
+Stopped at: Completed 23-02-PLAN.md
 Resume file: None
