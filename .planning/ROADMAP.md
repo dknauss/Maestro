@@ -207,7 +207,7 @@ Full phase details, success criteria, and outcomes are archived in
   5. Existing PHP unit, integration, JS, and Playwright e2e suites stay green (e2e selector/colour assertions updated deliberately in-plan); Plugin Check 0 errors
 **Plans**: 5 plans
 Plans:
-- [x] 23-01-PLAN.md — Remove semantic-colour borders; convert the bottom toolbar to native quiet controls + muted save status (UX-12, UX-13)
+- [ ] 23-01-PLAN.md — Remove semantic-colour borders; convert the bottom toolbar to native quiet controls + muted save status (UX-12, UX-13)
 - [ ] 23-02-PLAN.md — Pin the Edit-Mode zone (mode + status) to the admin-menu column; 782px relocation gate; live-iteration proportions (UX-09, UX-13)
 - [ ] 23-03-PLAN.md — Align the shared panel + icon/visibility popovers to core popover/postbox tokens (UX-13)
 - [ ] 23-04-PLAN.md — First-run banner centering (BUG-08); wp-pointer coachmark restyle; in-menu selection/dot-badge token pass (BUG-08, UX-13)
