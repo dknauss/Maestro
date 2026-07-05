@@ -208,7 +208,7 @@ Full phase details, success criteria, and outcomes are archived in
   5. Existing PHP unit, integration, JS, and Playwright e2e suites stay green (e2e selector/colour assertions updated deliberately in-plan); Plugin Check 0 errors
 **Plans**: 5 plans
 Plans:
-- [ ] 23-01-PLAN.md — Remove semantic-colour borders; convert the bottom toolbar to native quiet controls + muted save status (UX-12, UX-13)
+- [x] 23-01-PLAN.md — Remove semantic-colour borders; convert the bottom toolbar to native quiet controls + muted save status (UX-12, UX-13)
 - [ ] 23-02-PLAN.md — Pin the Edit-Mode zone (mode + status) to the admin-menu column; 782px relocation gate; live-iteration proportions (UX-09, UX-13)
 - [ ] 23-03-PLAN.md — Align the shared panel + icon/visibility popovers to core popover/postbox tokens (UX-13)
 - [ ] 23-04-PLAN.md — First-run banner centering (BUG-08); wp-pointer coachmark restyle; in-menu selection/dot-badge token pass (BUG-08, UX-13)
@@ -259,5 +259,5 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 | 20. Third-Party Compatibility Fixes | v1.4 | 0/TBD | Not started | - |
 | 21. Cosmetic Per-User / Cloned-Role Hiding | v1.4 | 0/TBD | Not started (conditional on Phase 19) | - |
 | 22. Slug-Resolution Showcase Demo | v1.4 | 0/TBD | Not started | - |
-| 23. Editor UX Polish | v1.4 | 0/TBD | Not started | - |
+| 23. Editor UX Polish | v1.4 | 1/5 | In Progress | - |
 | 24. Release v1.4.0 | v1.4 | 0/TBD | Not started | - |
