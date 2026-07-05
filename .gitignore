@@ -10,6 +10,10 @@
 /test-results/
 /playwright-report/
 
+# Directory-screenshot capture mirror — the capture spec dual-writes here and to
+# .wordpress-org/ (the committed, canonical listing images). Keep this copy local.
+/tests/e2e/screenshots/directory/
+
 # PHPUnit run cache
 .phpunit.result.cache
 
