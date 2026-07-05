@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Compatibility, Roles & Showcase
-status: planning
-stopped_at: Phase 23 (Editor UX Polish) complete — 23-05 signed off; Phase 19 planning resumes next
-last_updated: "2026-07-05T09:30:00.000Z"
-last_activity: "2026-07-05 — Phase 23 Plan 05 signed off and finalized: e2e reconciliation + save-flush-on-exit test + per-surface/per-scheme screenshot capture (Tasks 1-2) and the Task 3 full-suite gate (JS/e2e/PHP unit/PHP integration/WPCS/PHPStan all green; Plugin Check pre-existing dev-tree findings deferred to Phase 24; accessibility WCAG 1.4.1 confirmed) approved by the orchestrator on the user's behalf. Phase 23 complete (5/5 plans); UX-13 fully delivered."
+status: "Phases 19 + 23 COMPLETE and merged to main 2026-07-05 (local, not pushed). Phase 19 (ROLE-01): feasibility verdict **partial-go** — per-user + cloned-role both clear the cosmetic-only bar; Phase 21 unblocked, per-user first. Phase 23 (Editor UX Polish): UX-09/UX-12/UX-13/BUG-08 delivered (native wp-admin restyle; 5/5 plans; full-suite gate green). Next: Phase 20 (COMPAT-04/07/10), Phase 21 (ROLE-02), Phase 22 (DEMO-01), then 24 (release). `/gsd:progress`."
+stopped_at: Phases 19 + 23 complete and merged to main
+last_updated: "2026-07-05T09:47:24.304Z"
+last_activity: 2026-07-05 — merged Phase 23 (fast-forward) + Phase 19 (3-way, tracking-file conflicts resolved) into main; both phases complete
 progress:
   total_phases: 6
-  completed_phases: 1
-  total_plans: 5
-  completed_plans: 5
-  percent: 100
+  completed_phases: 2
+  total_plans: 6
+  completed_plans: 6
+  percent: 33
 ---
 
 # Project State
@@ -21,17 +21,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-03)
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
-**Current focus:** Milestone v1.4 — Compatibility, Roles & Showcase. Roadmap created (Phases 19-24, 11/11 requirements mapped). Phase 23 widened (UX-13 native wp-admin restyle) and pulled forward — now complete (5/5 plans). Next: Phase 19 planning resumes (ROLE-01 feasibility note).
+**Current focus:** Milestone v1.4 — Compatibility, Roles & Showcase. Phases 19 (ROLE-01 feasibility) and 23 (Editor UX Polish) are **complete and merged to main** (local, not pushed). Remaining: Phase 20 (COMPAT-04/07/10), Phase 21 (ROLE-02, now unblocked), Phase 22 (DEMO-01), Phase 24 (release).
 
 ## Current Position
 
-Milestone: v1.4 — Compatibility, Roles & Showcase — **ROADMAP CREATED 2026-07-03**
-Phase: Phase 23 (Editor UX Polish) — **COMPLETE (5/5 plans)**; Phase 19 (Cosmetic Hiding Feasibility) context gathered, planning next
-Plan: 23-05 COMPLETE (all 3 tasks). Task 1 (fdb647a, df7e207) reconciled editor.spec.ts to the plan-02 Exit-consolidation: deleted the removed `.maestro-mode-label` pencil-chip assertions, asserted the mode/exit indicator against the WP Toolbar admin-bar toggle ("Exit Menu Editor"), and added the save-flush-on-exit behaviour test (edit → click Toolbar exit → change persisted after reload). tour.spec.ts required no changes (already matched 23-04's classes). Task 2 (71b0f8e) extended capture-screenshots.spec.ts with 18 new MAESTRO_CAPTURE-gated tests capturing 7 surfaces (toolbar, admin-bar toggle, panel, icon popover, visibility popover, coachmark, in-menu selection+dot) across Default/Modern/Midnight (21 PNGs committed to tests/e2e/screenshots/surfaces/). Task 3 gate run: npm test:js 53/53, Playwright e2e 31 passed/28 skipped (capture-gated)/0 failed, PHP unit 90/90, PHP integration 47/47, WPCS clean, PHPStan 0 errors, accessibility (WCAG 1.4.1) confirmed — every edit-mode state carries a non-colour signal. Plugin Check flagged 4 errors/6 warnings, all pre-existing dev-tree root files (.wp-env.json, phpunit-*.xml.dist, phpcs.xml.dist, phpstan.neon.dist, dev markdown files, readme.txt upgrade-notice length) untouched by any Phase 23 plan — logged to phases/23-editor-ux-polish/deferred-items.md, recommended for Phase 24's build-then-check pipeline. Gate approved by the orchestrator on the user's behalf ("proceed through 23 without stopping"); SUMMARY finalized.
-Status: Phase 23 complete per the 2026-07-04 ordering decision (Phase 23 first, Phase 19 planning follows). 11/11 requirements mapped, 0 unmapped; UX-09/UX-12/UX-13/BUG-08 all delivered. Next: Phase 19 planning resumes (ROLE-01 feasibility note).
-Last activity: 2026-07-05 — Phase 23 Plan 05 signed off and finalized: e2e reconciliation + save-flush-on-exit test + per-surface/per-scheme screenshot capture (Tasks 1-2), and the Task 3 full-suite gate (JS/e2e/PHP unit/PHP integration/WPCS/PHPStan all green; Plugin Check pre-existing dev-tree findings deferred to Phase 24; accessibility WCAG 1.4.1 confirmed) approved. Phase 23 complete (5/5 plans); UX-13 fully delivered.
+Milestone: v1.4 — Compatibility, Roles & Showcase
+Phase: Phase 19 (Cosmetic Hiding Feasibility) ✅ COMPLETE and Phase 23 (Editor UX Polish) ✅ COMPLETE — both merged to main 2026-07-05 (local; not pushed to remote).
+Plan: —
+Status: Phase 19 ROLE-01 signed off — **partial-go** (per-user go + ship first; cloned-role go as an additive `profiles` registry compiling to the same inline `is_hidden_for_current_user()` seam); Phase 21 unblocked. Phase 23 delivered UX-09/UX-12/UX-13/BUG-08 (native wp-admin restyle; 5/5 plans; full-suite gate green — JS 53/53, e2e 31 pass, PHP unit 90/90, integration 47/47, WPCS/PHPStan clean, WCAG 1.4.1 confirmed). **NOTE for Phase 24:** Plugin Check flagged 4 errors/6 warnings, all pre-existing dev-tree root files untouched by Phase 23 — logged to `phases/23-editor-ux-polish/deferred-items.md` for the Phase 24 build-then-check pipeline.
+Last activity: 2026-07-05 — Phase 23 + Phase 19 merged to main; both complete
 
-Progress: [████████░░] 83% (v1.4: 5/6 plans complete across the milestone's phases so far — Phase 19's plan count still TBD/1 planned)
+Progress: [███░░░░░░░] 33% (v1.4: 2/6 phases complete — 19, 23)
 
 ## Release Binding
 
