@@ -47,25 +47,20 @@ actual built release ZIP (per `bin/build.sh` / the v1.2/v1.3 release pipeline)
 before tagging v1.4.0, rather than against the dev-tree checkout, to get an
 accurate 0-error shippable-source result.
 
-## i18n: new "Exit Menu Editor" string not yet in translation catalogs (PR #87, Codex P2)
+## i18n: "Exit Menu Editor" catalog regen — ✅ RESOLVED in v1.3.1 (was PR #87 Codex P2)
 
 Phase 23 introduced the admin-bar label `Exit Menu Editor` (in
-`includes/class-admin-bar.php`, correctly wrapped in `esc_html__()` /
-`esc_attr__()`, so it is translation-*ready*). It has not yet been extracted
-into the POT or the six bundled locale PO/MO catalogs (`languages/`), which
-still carry the older `Exit` / `Exit Editor` msgids. On a non-English locale
-the new label therefore falls back to English.
+`includes/class-admin-bar.php`, `esc_html__()` / `esc_attr__()`), which the POT
+and the six PO/MO catalogs did not yet carry.
 
-**Deferred to Phase 24 (REL-10), not fixed on PR #87**, because catalog
-regeneration is release-cut work, not editor-UX-polish work:
-- The string is already correctly localised in code (proper i18n wrappers +
-  `maestro-menu-editor` text domain); only the extracted catalogs lag.
-- Regenerating the POT and refreshing all six PO/MO files is part of the
-  standard release pipeline (the v1.2/v1.3 cuts regenerated catalogs at tag
-  time); doing it mid-PR would churn seven catalog files outside this branch's
-  scope.
+**Originally deferred to the v1.4.0 release cut on PR #87 — but the release cut
+arrived early as v1.3.1**, and Codex re-flagged it as a P2 on the v1.3.1 release
+PR (#88). Since v1.3.1 is the release shipping this string, the catalogs were
+regenerated there rather than deferred further:
+- `wp i18n make-pot` (scoped to the plugin dir, `--skip-js`) → POT bumped to
+  1.3.1, `Exit Menu Editor` added, `Exit` / `Exit Editor` removed (51 → 50).
+- `msgmerge --no-fuzzy-matching` across all six locale POs (new string lands
+  untranslated → English fallback until Polyglots fill it), PO headers bumped to
+  1.3.1, MOs recompiled with `msgfmt`.
 
-**Phase 24 action:** regenerate `languages/maestro-menu-editor.pot` and update
-the `es_ES / de_DE / ja / fr_FR / pt_BR / it_IT` PO/MO files so `Exit Menu
-Editor` (and any other v1.4 string add/removes — e.g. the dropped `Exit` key)
-are extracted before tagging v1.4.0.
+No i18n catalog work remains for Phase 24.
