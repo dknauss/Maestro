@@ -149,14 +149,37 @@ function firstRunSeen( storage ) {
 	}
 }
 
+/**
+ * Pure relocation gate: map a viewport width to the mode/status zone's home.
+ *
+ * The 782px boundary is WP core's admin-menu collapse breakpoint (the same one
+ * the editor's @media (max-width:782px) rule uses):
+ *   - width > 782  -> 'menu'    (column visible; dock the zone in the menu column)
+ *   - width <= 782 -> 'toolbar' (column off-canvas; zone rejoins the bottom bar)
+ *
+ * The boundary belongs to 'toolbar' (<= 782 -> 'toolbar') so CSS and JS agree
+ * on which side 782 lands. Non-finite / non-numeric widths fall back to
+ * 'toolbar' (the always-safe full-width home) and never throw. Pure: no DOM,
+ * no matchMedia inside the seam.
+ *
+ * @param {number} viewportWidth Current viewport width in CSS pixels.
+ * @return {'menu'|'toolbar'} Where the mode/status zone should live.
+ */
+function modeZonePlacement( viewportWidth ) {
+	return ( typeof viewportWidth === 'number' &&
+		isFinite( viewportWidth ) &&
+		viewportWidth > 782 ) ? 'menu' : 'toolbar';
+}
+
 /* ---------- dual-export guard ----------------------------------------- */
 
 var api = {
-	reorderMove:     reorderMove,
-	diffItem:        diffItem,
-	resetItem:       resetItem,
-	modeStatusLabel: modeStatusLabel,
-	firstRunSeen:    firstRunSeen,
+	reorderMove:       reorderMove,
+	diffItem:          diffItem,
+	resetItem:         resetItem,
+	modeStatusLabel:   modeStatusLabel,
+	firstRunSeen:      firstRunSeen,
+	modeZonePlacement: modeZonePlacement,
 };
 
 if ( typeof module !== 'undefined' && module.exports ) {
