@@ -92,7 +92,7 @@ their current parent.
 
 == Screenshots ==
 
-1. The inline editor — select any admin-menu item to edit it in place using the icon-only unified toolbar and shared controls panel (rename, icon, visibility, reset).
+1. The inline editor — select any admin-menu item to edit it in place using the quiet, wp-admin-native toolbar and shared controls panel (rename, icon, visibility, reset). Enter and exit edit mode from the "Exit Menu Editor" toggle in the admin bar.
 2. The icon picker: searchable Dashicons and bundled Bootstrap Icons tabs for swapping a top-level admin menu icon.
 3. Per-role visibility — open the visibility selector to hide an item from selected roles (cosmetic declutter, not access control).
 4. A renamed item showing the transient "Saved" state — the indicator auto-clears to idle once the autosave settles.
