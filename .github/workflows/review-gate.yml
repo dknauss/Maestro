@@ -1,0 +1,48 @@
+name: Review gate
+
+# Blocks a PR while an automated reviewer (Codex, Copilot, …) has a P1/P2 finding
+# that hasn't been addressed — including review-BODY summaries that are not inline
+# threads and therefore slip past "require conversation resolution" (this is how a
+# Codex P2 merged past on PR #89). Re-evaluates whenever a review is filed, a
+# comment is posted, or the PR is updated, and publishes a commit status under the
+# fixed context "Review gate (P1/P2 addressed)" so it can be a required check.
+#
+# Clear the gate by either resolving the inline thread, replying on the PR, or
+# re-running the reviewer until its summary is clean. See .github/scripts/review-gate.js.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+  pull_request_review:
+    types: [submitted, edited, dismissed]
+  issue_comment:
+    types: [created, edited, deleted]
+
+permissions:
+  contents: read
+  pull-requests: read
+  statuses: write
+
+# One in-flight run per PR; a newer trigger supersedes an older one.
+concurrency:
+  group: review-gate-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    # issue_comment fires on plain issues too — only act on PRs.
+    if: ${{ github.event_name != 'issue_comment' || github.event.issue.pull_request }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out review-gate script
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts/review-gate.js
+          sparse-checkout-cone-mode: false
+
+      - name: Evaluate unaddressed P1/P2 review findings
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const gate = require('./.github/scripts/review-gate.js');
+            await gate({ github, context, core });
