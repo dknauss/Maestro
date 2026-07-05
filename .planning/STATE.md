@@ -64,7 +64,7 @@ diff `vLAST..main` for user-facing commits before tagging.
 |---|------|--------|
 | 1 | Zero-regression gate green (CI on the release PR) | Pending |
 | 2 | Version strings bumped via `prep-release.sh` | Pending |
-| 3 | **Changelog covers ALL user-facing changes since last tag** (diff `v1.3.0..main`) | Pending |
+| 3 | **Changelog covers ALL user-facing changes since last tag** (diff `v1.3.1..main`) | Pending |
 | 4 | Upgrade Notice entry for 1.4.0 | Pending |
 | 5 | **Directory + editor screenshots reflect shipping UI** (recapture for UX-11 coachmark + Phase 23 UX changes) | Pending |
 | 6 | Tag points at a `main` commit with all code + final readme | Pending |
