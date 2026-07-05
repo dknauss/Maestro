@@ -124,11 +124,22 @@ test.describe( 'Admin Menu Maestro — editor', () => {
 		// Re-enter edit mode and reload: the change must have persisted server-side,
 		// proving the click-intercept awaited the pending save rather than racing it.
 		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
 		await expect( page.locator( '#menu-posts .wp-menu-name' ) ).toContainText( 'Exit Test' );
 
-		// Clean up so the next test starts from a stable baseline.
+		// Clean up so the next test starts from a stable baseline. force:true —
+		// after this test's double navigation (admin-bar click-intercept, then a
+		// second page.goto), Playwright's actionability "stable" wait hangs on
+		// this element even though its bounding box is static, hit-tests to
+		// itself, and is enabled/opaque/pointer-events:auto (verified directly);
+		// force bypasses only that hover/animation-frame wait, not a real
+		// obstruction — same escape hatch this suite already relies on for
+		// click-delivery quirks after multi-step navigations (see STATE.md's
+		// 11-08 race(b) note on position:fixed toolbar click-delivery).
+		const resetAll = page.locator( '.maestro-toolbar .maestro-reset-all' );
+		await expect( resetAll ).toBeVisible();
 		page.once( 'dialog', d => d.accept() );
-		await page.locator( '.maestro-reset-all' ).click();
+		await resetAll.click( { force: true } );
 		await expect( page.locator( '#menu-posts .wp-menu-name' ) ).toContainText( 'Posts' );
 	} );
 
