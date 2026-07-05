@@ -69,7 +69,6 @@ class LocalizationTest extends WP_UnitTestCase {
 			'visibility',
 			'resetItem',
 			'resetAll',
-			'exit',
 			'hideFrom',
 			'confirmAll',
 			'drag',

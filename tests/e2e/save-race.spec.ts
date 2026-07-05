@@ -6,7 +6,11 @@ import { test, expect } from './fixtures';
  * doResetAll awaiting in-flight saves and checking response.ok).
  *
  * Three races are covered:
- *   (a) Slow save + Exit: onExit() defers navigation until POST settles.
+ *   (a) Slow save + Exit: the admin-bar "Exit Menu Editor" toggle's click
+ *       intercept (bindAdminBarExit, assets/maestro.js) defers navigation
+ *       until the POST settles. Re-homed here from the removed bottom-toolbar
+ *       .maestro-exit control (UX-09, Phase 23 plan 23-02) — the WP Toolbar
+ *       admin-bar toggle is now the single entry/exit.
  *   (b) Pending rename + Reset All: cancelQueuedAutosave() kills the queued
  *       autosave so no POST fires; DELETE wins. (Added in Task 2.)
  *   (c) In-flight save + Reset All: doResetAll() awaits the in-flight POST
@@ -43,13 +47,14 @@ async function installPostDelay( page: Parameters<typeof test>[1]['page'] ) {
 test.describe( 'HARD-03 — save-race regression coverage', () => {
 
 	/**
-	 * Race (a): slow save + Exit
+	 * Race (a): slow save + Exit (via the admin-bar "Exit Menu Editor" toggle)
 	 *
 	 * State: saveTimer fired / inFlight set (POST in flight, delayed by route).
 	 *
-	 * Expected: onExit() calls e.preventDefault() + waitForSaveIdle(), so clicking Exit
-	 * while a POST is in flight does NOT immediately navigate. After the POST settles,
-	 * waitForSaveIdle().then(…) fires and navigates to D.exitUrl.
+	 * Expected: bindAdminBarExit()'s click handler calls e.preventDefault() +
+	 * waitForSaveIdle(), so clicking the Toolbar exit while a POST is in flight
+	 * does NOT immediately navigate. After the POST settles, the handler
+	 * navigates to the toggle's href (remove_query_arg( 'maestro_edit' )).
 	 *
 	 * Assertions:
 	 *   - While POST is in flight: URL still contains 'maestro_edit=1' (page did not leave).
@@ -80,17 +85,18 @@ test.describe( 'HARD-03 — save-race regression coverage', () => {
 
 		await rename.press( 'Enter' );
 
-		// Click Exit immediately — the POST is now in flight (delayed 2s by route).
-		await page.locator( '.maestro-exit' ).click();
+		// Click the admin-bar "Exit Menu Editor" toggle immediately — the POST
+		// is now in flight (delayed 2s by route).
+		await page.locator( '#wp-admin-bar-maestro-toggle > .ab-item' ).click();
 
 		// While the slow POST is in flight, the URL must still contain maestro_edit=1.
-		// onExit() called e.preventDefault() and is waiting for waitForSaveIdle().
+		// bindAdminBarExit's handler called e.preventDefault() and is waiting for waitForSaveIdle().
 		await expect( page ).toHaveURL( /maestro_edit=1/ );
 
 		// Wait for the delayed POST to settle (up to 6s: 2s delay + WP round-trip).
 		await postResponse;
 
-		// After the POST settles, waitForSaveIdle().then() fires -> window.location.href = D.exitUrl.
+		// After the POST settles, waitForSaveIdle().then() fires -> window.location.href = toggle href.
 		// The exit URL does NOT contain maestro_edit=1.
 		await expect( page ).not.toHaveURL( /maestro_edit=1/, { timeout: 6000 } );
 	} );

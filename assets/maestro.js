@@ -543,29 +543,22 @@
 
 		var right = el( 'div', 'maestro-toolbar-right' );
 
-		// Reset All + Exit keep their visible text label (Label mix preserved,
-		// CONTEXT §WP-native styling) — unlike the five icon-only panel buttons,
-		// the CSS does not hide their .maestro-btn-label span. Distinct glyphs:
-		// backup/restore (restore everything) for Reset All vs the panel's undo
-		// (single-item) Reset Item; the exit-door glyph for Exit — matching the
-		// admin-bar toggle (class-admin-bar.php) so the same action shares one
-		// icon across surfaces. aria-label + title still carry the accessible
-		// name/hover hint; Reset All is still guarded by the confirm dialog in
-		// doResetAll(). Reset All additionally carries button-link-delete —
-		// core's destructive text-link idiom (red text, no box).
+		// Reset All keeps its visible text label (Label mix preserved, CONTEXT
+		// §WP-native styling) — unlike the five icon-only panel buttons, the CSS
+		// does not hide its .maestro-btn-label span. aria-label + title still
+		// carry the accessible name/hover hint; Reset All is still guarded by
+		// the confirm dialog in doResetAll(). Reset All additionally carries
+		// button-link-delete — core's destructive text-link idiom (red text,
+		// no box). The single entry/exit lives on the admin-bar (WP Toolbar)
+		// toggle now (class-admin-bar.php) — no bottom-toolbar Exit control.
 		var resetAll = el( 'button', 'button maestro-reset-all button-link-delete' );
 		resetAll.type = 'button';
 		iconButton( resetAll, 'dashicons-backup', I.resetAll );
 		resetAll.addEventListener( 'click', doResetAll );
 
-		var exit = el( 'a', 'button maestro-exit' );
-		iconButton( exit, 'dashicons-exit', I.exit );
-		exit.href = D.exitUrl;
-		exit.addEventListener( 'click', onExit );
-
 		// Replay the guided tour (UX-11). The "?" glyph is the conventional help
-		// affordance; it sits ahead of Reset All / Exit so destructive controls
-		// stay at the trailing edge.
+		// affordance; it sits ahead of Reset All so the destructive control
+		// stays at the trailing edge.
 		var help = el( 'button', 'button maestro-tour-help' );
 		help.type = 'button';
 		iconButton( help, 'dashicons-editor-help', I.tourHelp );
@@ -573,10 +566,31 @@
 
 		right.appendChild( help );
 		right.appendChild( resetAll );
-		right.appendChild( exit );
 		bar.appendChild( right );
 
 		document.body.appendChild( bar );
+
+		bindAdminBarExit();
+	}
+
+	// UX-09: the WP Toolbar (admin-bar) "Exit Menu Editor" toggle is the single
+	// entry/exit — it replaces the removed bottom-toolbar Exit control. The
+	// admin-bar node is a plain navigation link, so its click is intercepted
+	// (while editing) to flush any pending/in-flight save first — the same
+	// save-flush guarantee the removed Exit control provided via onExit — then
+	// navigate to the link's href. The href itself (remove_query_arg) is left
+	// entirely to class-admin-bar.php; this only defers the navigation.
+	function bindAdminBarExit() {
+		var toggle = document.querySelector( '#wp-admin-bar-maestro-toggle > .ab-item' );
+		if ( ! toggle ) { return; }
+		toggle.addEventListener( 'click', function ( e ) {
+			if ( ! saveTimer && ! inFlight ) { return; }
+			e.preventDefault();
+			var href = toggle.href;
+			waitForSaveIdle().then( function () {
+				window.location.href = href;
+			} );
+		} );
 	}
 
 	function populatePanel( slug ) {
@@ -1124,7 +1138,7 @@
 	// pending flag and fire exactly one more save when the current one settles —
 	// that trailing POST carries the latest buildConfig(). The returned promise
 	// resolves only after the whole chain (including the trailing save) is done,
-	// so onExit can safely await it.
+	// so bindAdminBarExit's click intercept can safely await it.
 	function doAutosave() {
 		saveTimer = null;
 
@@ -1220,16 +1234,6 @@
 			} );
 	}
 
-	function onExit( e ) {
-		// If there's pending or active work, flush/wait before navigating so nothing is lost.
-		if ( saveTimer || inFlight ) {
-			e.preventDefault();
-			waitForSaveIdle().then( function () {
-				window.location.href = D.exitUrl;
-			} );
-		}
-	}
-
 	/* ---------- guided tour (coachmarks) ---------------------------------- */
 
 	// UX-11: a stepped, anchored coachmark tour replaces the old one-shot pulse
@@ -1258,7 +1262,12 @@
 			{ text: I.tourStep2, placement: 'top', before: tourSelectFirst, anchor: function () { return panel.rename; } },
 			{ text: I.tourStep3, placement: 'top', before: tourSelectFirst, anchor: function () { return document.querySelector( '.maestro-move-up' ); } },
 			{ text: I.tourStep4, placement: 'top', anchor: function () { return document.querySelector( '.maestro-reset-all' ); } },
-			{ text: I.tourStep5, placement: 'top', anchor: function () { return document.querySelector( '.maestro-exit' ); } },
+			// Step 5 anchors to the WP Toolbar (admin-bar) "Exit Menu Editor"
+			// toggle — the single entry/exit (UX-09) — not a bottom-toolbar
+			// control. positionTour's 'top' placement falls back to below the
+			// anchor when there's no room above, which is always the case this
+			// near the top of the viewport.
+			{ text: I.tourStep5, placement: 'top', anchor: function () { return document.getElementById( 'wp-admin-bar-maestro-toggle' ); } },
 		];
 	}
 

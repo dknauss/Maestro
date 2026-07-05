@@ -116,7 +116,6 @@ class Assets {
 					'visibility'        => __( 'Visibility', 'maestro-menu-editor' ),
 					'resetItem'         => __( 'Reset Item', 'maestro-menu-editor' ),
 					'resetAll'          => __( 'Reset All', 'maestro-menu-editor' ),
-					'exit'              => __( 'Exit', 'maestro-menu-editor' ),
 					'hideFrom'          => __( 'Hide from these roles:', 'maestro-menu-editor' ),
 					'confirmAll'        => __( 'Reset ALL menu customizations to WordPress defaults? This cannot be undone.', 'maestro-menu-editor' ),
 					'drag'              => __( 'Drag to reorder', 'maestro-menu-editor' ),

@@ -123,7 +123,7 @@ body.maestro-editing.auto-fold #wpfooter {
 	background: transparent;
 	color: #c3c4c7; /* neutral toolbar text colour; inherits via currentColor */
 	box-shadow: none;
-	text-decoration: none; /* Exit is an <a class="button"> */
+	text-decoration: none; /* toolbar buttons are plain <button> elements — no link underline to strip */
 }
 /* The persistent status indicator is not a clickable button — flat,
  * borderless glyph + text, no hover/focus affordance. */
@@ -154,26 +154,39 @@ body.maestro-editing.auto-fold #wpfooter {
 .maestro-toolbar .maestro-icon-btn { margin-left: 8px; }
 
 /* Reset All — core's destructive text-link idiom (.button-link-delete
- * pattern): red text, no box, no border. Still targeted by e2e/save-race
- * specs via .maestro-reset-all; confirm step in doResetAll() is unchanged. */
+ * pattern): red text, no box, no border, no underline by default (core's
+ * .button-link-delete is not underlined at rest or on hover). Still targeted
+ * by e2e/save-race specs via .maestro-reset-all; confirm step in
+ * doResetAll() is unchanged.
+ *
+ * Bug fix: the prior rule underlined by default and removed the underline on
+ * hover (backwards from core, and — because .maestro-btn-label wraps both
+ * the icon's aria-hidden dashicon glyph and the text in one inline-flex
+ * button — the underline rendered under the dashicon glyph too, reading as a
+ * stray line under the icon). Explicitly never-underline the icon and keep
+ * the text link underline-free at rest and on hover, matching core exactly. */
 .maestro-toolbar .maestro-reset-all.button-link-delete {
 	min-width: 0;
 	min-height: 36px;
 	padding: 4px 8px;
 	background: transparent;
 	color: #d63638; /* core danger red */
-	text-decoration: underline;
+	text-decoration: none;
 }
 .maestro-toolbar .maestro-reset-all.button-link-delete:hover {
 	background: transparent;
 	color: #d63638;
 	text-decoration: none;
 }
+.maestro-toolbar .maestro-reset-all.button-link-delete .dashicons {
+	text-decoration: none; /* the icon glyph must never be underlined */
+}
 
-/* Reset All + Exit keep their visible text label (Label mix preserved,
- * CONTEXT §WP-native styling) — only the five icon-only panel buttons hide
- * their .maestro-btn-label text span. aria-label + title supply the
- * accessible name and hover hint for those. */
+/* Reset All keeps its visible text label (Label mix preserved, CONTEXT
+ * §WP-native styling) — only the five icon-only panel buttons hide their
+ * .maestro-btn-label text span. aria-label + title supply the accessible
+ * name and hover hint for those. (Exit no longer lives in the bottom toolbar
+ * — the WP Toolbar admin-bar toggle is the single entry/exit, UX-09.) */
 .maestro-toolbar .maestro-move-up .maestro-btn-label,
 .maestro-toolbar .maestro-move-down .maestro-btn-label,
 .maestro-toolbar .maestro-icon-btn .maestro-btn-label,
@@ -357,7 +370,7 @@ body.maestro-editing.auto-fold #wpfooter {
 .maestro-toolbar .button { margin: 0; }
 
 /* Uniform glyph size across the whole toolbar so every icon reads as one set
- * (panel controls, Reset All / Exit, and the mode/status tiles). Flex-centre the
+ * (panel controls, Reset All, and the mode/status tiles). Flex-centre the
  * glyph so it sits dead-centre regardless of its line box. */
 .maestro-toolbar .dashicons {
 	display: inline-flex;
@@ -501,11 +514,12 @@ body.maestro-editing.auto-fold #wpfooter {
 	display: flex;
 	gap: 8px;
 	margin-left: auto;
-	flex-shrink: 0; /* keeps reset-all/exit reachable; never squeezed */
+	flex-shrink: 0; /* keeps help/reset-all reachable; never squeezed */
 	padding-left: 12px;
 	border-left: 1px solid #3c434a; /* subtle zone divider (mirrors panel separator) */
 }
-/* (Reset All / Exit share the unified control box near the top of this file.) */
+/* (Reset All shares the unified control box near the top of this file. Exit
+ * lives on the WP Toolbar admin-bar toggle, not this right-side group — UX-09.) */
 
 /* ---------- guided tour (coachmarks) ----------------------------------- */
 
