@@ -196,7 +196,7 @@ Full phase details, success criteria, and outcomes are archived in
 **Plans**: TBD
 
 ### Phase 23: Editor UX Polish — COMPLETE 2026-07-05
-**Goal**: The entire edit-mode UI reads as native wp-admin — quiet menu-native controls, muted Gutenberg-style status, colour reserved for errors and destructive actions — with the Edit Mode zone pinned to the menu column and the first-run banner reading cleanly
+**Goal**: The entire edit-mode UI reads as native wp-admin — quiet menu-native controls, muted Gutenberg-style status, colour reserved for errors and destructive actions — with the edit mode named by the WP Toolbar "Exit Menu Editor" toggle (the menu-column pin was tried and scrapped in live iteration, 2026-07-05) and the first-run coachmark reading cleanly
 **Scope widened 2026-07-03** (user decision, `/gsd:discuss-phase 23`): UX-13 added — full native-wp-admin pass over all edit-mode surfaces; UX-12's discuss-and-refine resolved to *remove* the semantic-colour borders. Decisions locked in [23-CONTEXT.md](phases/23-editor-ux-polish/23-CONTEXT.md).
 **Depends on**: Phase 18
 **Requirements**: UX-09, UX-12, UX-13, BUG-08 — all delivered
