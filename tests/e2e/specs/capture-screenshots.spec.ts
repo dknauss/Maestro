@@ -42,6 +42,16 @@ function setAdminColorScheme( scheme: string ): void {
 	);
 }
 
+function getAdminColorScheme(): string {
+	const out = execFileSync(
+		'npx',
+		[ 'wp-env', 'run', 'tests-cli', '--', 'wp', 'user', 'meta', 'get', 'admin', 'admin_color' ],
+		{ encoding: 'utf8' }
+	).trim();
+	// Empty user meta → WordPress renders the 'fresh' default scheme.
+	return out || 'fresh';
+}
+
 const SURFACES_DIR = path.join( process.cwd(), 'tests', 'e2e', 'screenshots', 'surfaces' );
 
 // Durable capture location — NOT an archived phase dir. Writing under
@@ -153,16 +163,21 @@ test.describe( 'Phase 23 plan 05 — per-surface captures on Default/Modern/Midn
 		'Set MAESTRO_CAPTURE=1 (npm run screenshots) to regenerate the committed Phase 23 surface PNGs.'
 	);
 
+	// Captured in beforeAll so afterAll restores the admin account's REAL
+	// pre-existing scheme rather than assuming 'modern' — this spec mutates the
+	// shared wp-env admin account and must leave it exactly as it found it.
+	let originalAdminColor = 'fresh';
+
 	test.beforeAll( () => {
 		fs.mkdirSync( SURFACES_DIR, { recursive: true } );
+		originalAdminColor = getAdminColorScheme();
 	} );
 
-	// Restore the scheme the rest of the suite/session expects ('modern', per
-	// the admin user's pre-existing meta value) once every scheme has run, so
+	// Restore the admin account's original scheme once every scheme has run, so
 	// this spec never leaves the shared wp-env admin account on a scheme other
 	// specs did not opt into.
 	test.afterAll( () => {
-		setAdminColorScheme( 'modern' );
+		setAdminColorScheme( originalAdminColor );
 	} );
 
 	for ( const scheme of ADMIN_COLOR_SCHEMES ) {

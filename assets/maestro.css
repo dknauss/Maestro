@@ -179,12 +179,12 @@ body.maestro-editing.auto-fold #wpfooter {
 	min-height: 36px;
 	padding: 4px 8px;
 	background: transparent;
-	color: #d63638; /* core danger red */
+	color: #f86368; /* WP $red-40 — lightened danger red for the dark toolbar (>=4.5:1 on #1d2327; core #d63638 only clears contrast on light surfaces) */
 	text-decoration: none;
 }
 .maestro-toolbar .maestro-reset-all.button-link-delete:hover {
 	background: transparent;
-	color: #d63638;
+	color: #f86368;
 	text-decoration: none;
 }
 .maestro-toolbar .maestro-reset-all.button-link-delete .dashicons {
@@ -495,8 +495,8 @@ body.maestro-editing.auto-fold #wpfooter {
  * policy; the fade itself is deferred to live-iteration polish (CONTEXT
  * §Motion) rather than invented here. */
 .maestro-status.maestro-status-saving { color: #c3c4c7; }
-.maestro-status.maestro-status-saved  { color: #646970; }
-.maestro-status.maestro-status-error  { color: #d63638; } /* core danger red */
+.maestro-status.maestro-status-saved  { color: #8c8f94; } /* WP muted-text token — >=3:1 on the dark toolbar (was #646970, ~2.87:1) */
+.maestro-status.maestro-status-error  { color: #f86368; } /* WP $red-40 — lightened danger red for the dark toolbar (>=4.5:1; core #d63638 ~3.36:1 here) */
 
 /* Panel stays DARK — part of the menu-column/toolbar surface (quiet-control
  * treatment from plan 01), never a light card. Colour-scheme inheritance
