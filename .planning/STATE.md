@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Compatibility, Roles & Showcase
-status: "Phases 19 + 23 merged to `main` (PR #87). **v1.3.1 patch release in progress** (PR #88) — ships the Phase 23 editor UX restyle early as a patch; the v1.4.0 milestone continues for the full feature set. Phase 19 (ROLE-01): partial-go verdict — Phase 21 unblocked, per-user first. Remaining v1.4: Phase 20 (COMPAT-04/07/10), Phase 21 (ROLE-02), Phase 22 (DEMO-01), then 24 (release). `/gsd:progress`."
-stopped_at: v1.3.1 release prep — PR #88 open (version bump + changelog + recaptured screenshots); awaiting merge + tag
+status: "**v1.3.1 SHIPPED 2026-07-05** (PR #88) — Phase 23 editor UX restyle live on WordPress.org (tag `v1.3.1`, GitHub Release + SVN deploy). Phases 19 + 23 merged to `main` (PR #87). Phase 19 (ROLE-01): partial-go verdict — Phase 21 unblocked, per-user first. v1.4.0 milestone continues: remaining Phase 20 (COMPAT-04/07/10), Phase 21 (ROLE-02), Phase 22 (DEMO-01), then 24 (v1.4.0 release). `/gsd:progress`."
+stopped_at: v1.3.1 shipped to WordPress.org; back to v1.4 (Phase 21 unblocked, or Phase 20/22)
 last_updated: "2026-07-05T09:47:24.304Z"
-last_activity: 2026-07-05 — merged Phases 19 + 23 to main (PR #87); opened v1.3.1 release PR #88 (Phase 23 UX ships as a patch; v1.4.0 milestone preserved)
+last_activity: 2026-07-05 — shipped v1.3.1 to WordPress.org (Phase 23 UX restyle; tag `v1.3.1` + GitHub Release + SVN deploy); v1.4.0 milestone unchanged
 progress:
   total_phases: 6
   completed_phases: 2
@@ -21,27 +21,32 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-03)
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
-**Current focus:** Cutting **v1.3.1** (patch) to ship the Phase 23 editor UX restyle early — release PR #88 open. Milestone v1.4 (Compatibility, Roles & Showcase) continues: Phases 19 + 23 merged; remaining Phase 20 (COMPAT-04/07/10), Phase 21 (ROLE-02, now unblocked), Phase 22 (DEMO-01), Phase 24 (v1.4.0 release).
+**Current focus:** **v1.3.1 shipped** (Phase 23 editor UX restyle, live on WordPress.org). Back to milestone v1.4 (Compatibility, Roles & Showcase): Phases 19 + 23 done; remaining Phase 20 (COMPAT-04/07/10), Phase 21 (ROLE-02, now unblocked), Phase 22 (DEMO-01), Phase 24 (v1.4.0 release).
 
 ## Current Position
 
-Milestone: v1.4 — Compatibility, Roles & Showcase (interim v1.3.1 patch in flight)
-Phase: Phase 19 (Cosmetic Hiding Feasibility) ✅ COMPLETE and Phase 23 (Editor UX Polish) ✅ COMPLETE — both merged to `main` via PR #87 (2026-07-05).
-Plan: v1.3.1 release — PR #88 (version bump + changelog + recaptured wp.org screenshots). Merge → push `v1.3.1` tag → `release.yml` (GitHub Release) → `wp-deploy.yml` (WordPress.org SVN). Tag push is the go-live gate.
-Status: Phase 19 ROLE-01 signed off — **partial-go** (per-user go + ship first; cloned-role go as an additive `profiles` registry compiling to the same inline `is_hidden_for_current_user()` seam); Phase 21 unblocked. Phase 23 delivered UX-09/UX-12/UX-13/BUG-08 (native wp-admin restyle; 5/5 plans; full-suite gate green — JS 53/53, e2e 31 pass, PHP unit 90/90, integration 47/47, WPCS/PHPStan clean, WCAG 1.4.1 confirmed). **NOTE for Phase 24:** Plugin Check flagged 4 errors/6 warnings, all pre-existing dev-tree root files untouched by Phase 23 — logged to `phases/23-editor-ux-polish/deferred-items.md` for the Phase 24 build-then-check pipeline.
-Last activity: 2026-07-05 — merged Phases 19 + 23 to main (PR #87); opened v1.3.1 release PR #88
+Milestone: v1.4 — Compatibility, Roles & Showcase (interim v1.3.1 patch shipped 2026-07-05)
+Phase: Phase 19 (Cosmetic Hiding Feasibility) ✅ COMPLETE and Phase 23 (Editor UX Polish) ✅ COMPLETE — merged via PR #87; Phase 23's UX shipped as v1.3.1 (PR #88).
+Plan: — (next: pick up v1.4 — Phase 21 ROLE-02 is unblocked, or Phase 20 / Phase 22)
+Status: Phase 19 ROLE-01 signed off — **partial-go** (per-user go + ship first; cloned-role go as an additive `profiles` registry compiling to the same inline `is_hidden_for_current_user()` seam); Phase 21 unblocked. Phase 23 delivered UX-09/UX-12/UX-13/BUG-08 (native wp-admin restyle; 5/5 plans; full-suite gate green — JS 53/53, e2e 31 pass, PHP unit 90/90, integration 47/47, WPCS/PHPStan clean, WCAG 1.4.1 confirmed) and shipped in v1.3.1. **NOTE for Phase 24:** Plugin Check flagged 4 errors/6 warnings, all pre-existing dev-tree root files — logged to `phases/23-editor-ux-polish/deferred-items.md` for the Phase 24 build-then-check pipeline.
+Last activity: 2026-07-05 — shipped v1.3.1 to WordPress.org (tag + GitHub Release + SVN deploy)
 
-Progress: [███░░░░░░░] 33% (v1.4: 2/6 phases complete — 19, 23; Phase 23's UX shipping early as v1.3.1)
+Progress: [███░░░░░░░] 33% (v1.4: 2/6 phases complete — 19, 23; Phase 23's UX shipped as v1.3.1)
 
 ## Release Binding
 
-**Interim patch — v1.3.1 (in flight, PR #88).** Phase 23's editor UX restyle is
-shipping early as a `1.3.1` patch (the only user-facing code on `main` since
-`v1.3.0`; Phase 19 is docs-only). Prep done on `release/v1.3.1`: version bump via
-`prep-release.sh`, changelog + Upgrade Notice, and all 6 wp.org screenshots
-recaptured against the shipping UI. Go-live = push the `v1.3.1` tag after PR #88
-merges (`release.yml` → GitHub Release → `wp-deploy.yml` → WordPress.org SVN,
-all automated off the tag). This does **not** consume the v1.4.0 version.
+**Interim patch — v1.3.1 ✅ SHIPPED 2026-07-05 (PR #88).** Phase 23's editor UX
+restyle shipped early as a `1.3.1` patch (the only user-facing code on `main`
+since `v1.3.0`; Phase 19 is docs-only). Tag `v1.3.1` on `e77729d` → GitHub
+Release published → WordPress.org SVN deploy succeeded (trunk + `tags/1.3.1` +
+assets); wp.org API confirms `1.3.1` live. Did **not** consume the v1.4.0 version.
+
+**Release-pipeline lesson (v1.3.1):** the tag → GitHub Release step is automatic
+(`release.yml` on `push: tags: v*`), but the **SVN deploy is NOT auto-triggered**
+— a Release created via `GITHUB_TOKEN` does not cascade to the `release:
+published` event, so `wp-deploy.yml` must be run manually via `workflow_dispatch`
+(`gh workflow run wp-deploy.yml -f tag=vX.Y.Z`). This matched v1.3.0 (also a
+manual dispatch). Plan the manual deploy step into every release.
 
 **Milestone release — v1.4.0.** Target version `1.4.0`, tag `v1.4.0`, SVN deploy to
 WordPress.org `trunk` following the v1.2/v1.3 release pipeline. `vX.Y` numbering
@@ -205,5 +210,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-07-05T09:30:00.000Z
-Stopped at: Phases 19 + 23 merged to main (PR #87); v1.3.1 release PR #88 open — merge then push `v1.3.1` tag to deploy (go-live gate)
+Stopped at: v1.3.1 shipped to WordPress.org (tag `v1.3.1` + GitHub Release + SVN deploy); resuming v1.4 — Phase 21 (ROLE-02) unblocked, or Phase 20 / Phase 22
 Resume file: None
