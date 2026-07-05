@@ -201,7 +201,7 @@ Full phase details, success criteria, and outcomes are archived in
 **Depends on**: Phase 18
 **Requirements**: UX-09, UX-12, UX-13, BUG-08
 **Success Criteria** (what must be TRUE):
-  1. The toolbar "Edit Mode" zone (mode + save status) is pinned to the admin-menu column width at the bottom of the menu column, seamless with the menu, and rejoins the bottom toolbar below 782px — confirmed by before/after screenshot
+  1. The edit-mode indicator lives in the bottom toolbar (the menu-column pin was tried in live iteration and scrapped as non-viable, 2026-07-05): the **"Exit Menu Editor"** control names the mode with a subtle neutral (non-colour) background highlight, and the muted save-status sits alongside it — no separate menu-column zone, no 782px relocation — confirmed by before/after screenshot
   2. The semantic-colour border system is removed: controls are quiet menu-native icon buttons, save status is Gutenberg-style muted (spinner / grey "Saved" / red "Save failed"), modified state is a non-colour dot + enabled Reset, and red appears only for errors and destructive Reset All — confirmed by before/after screenshot and an accessibility check (non-colour signals carry all state)
   3. All edit-mode surfaces (shared panel, icon/visibility popovers, first-run banner, coachmark, in-menu selection/badges) adopt core idioms per 23-CONTEXT.md, spot-checked on Default + Modern + Midnight admin colour schemes — confirmed by per-surface before/after screenshots
   4. The first-run banner's text and button are vertically centered instead of visually off-center — confirmed by before/after screenshot
