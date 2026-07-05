@@ -4,7 +4,7 @@ Donate link: https://github.com/sponsors/dknauss
 Tags: admin menu, admin menu editor, menu editor, hide menu items, menu icons
 Requires at least: 6.4
 Tested up to: 7.0
-Stable tag: 1.3.0
+Stable tag: 1.3.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -125,6 +125,13 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 
 == Changelog ==
 
+= 1.3.1 =
+* Editor restyle: the edit-mode toolbar and controls now look native to wp-admin — quiet, borderless icon buttons replacing the coloured-outline toolbar introduced in 1.2.0. Colour is now reserved for errors and the destructive "Reset All".
+* Exit is a single control: the admin-bar "Exit Menu Editor" toggle (the duplicate Exit button in the bottom toolbar is gone). Clicking it saves any pending change before leaving edit mode.
+* Quieter save status — a muted "Saved" confirmation, with red shown only when a save fails.
+* The controls panel, the icon/visibility popovers, and the first-run tour adopt core wp-admin styling; the first-run banner's text and button are now vertically centered.
+* Accessibility: improved contrast for the "Reset All", "Save failed", and "Saved" indicators on dark admin colour schemes (e.g. Midnight).
+
 = 1.3.0 =
 * Saved overrides now keep applying even when your site moves to a new host, when a plugin updates and changes a version number in its menu URL, when UTM tracking parameters drift on external-tool links, and when a taxonomy slug is stored with `&amp;` encoding instead of `&` (or vice versa) — no manual re-save needed.
 * Edit-mode toolbar: the Exit and Reset All controls now use clearer, more consistent icons (Exit matches the admin-bar toggle).
@@ -160,6 +167,9 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 * Editor: click-to-select with a shared panel, debounced single-flight autosave, and folded-mode neutralization.
 
 == Upgrade Notice ==
+
+= 1.3.1 =
+Editor visual refresh: the edit-mode toolbar and controls now match wp-admin's native look (the 1.2.0 coloured-outline system is retired — colour is reserved for errors and "Reset All"), exit is consolidated onto the admin-bar "Exit Menu Editor" toggle, and dark-scheme contrast is improved. No configuration changes required.
 
 = 1.3.0 =
 Reliability fix: your saved menu overrides keep applying after a site moves hosts, a plugin update changes a menu URL's version number, tracking parameters drift, or a slug's `&` is stored as `&amp;`. Adds a first-run guided tour for the editor (replay it with the toolbar "?"). No configuration changes required.
