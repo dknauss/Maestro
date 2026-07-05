@@ -35,7 +35,7 @@ key-decisions:
 patterns-established:
   - "Same-seam-wider-match-key transfer argument: new cosmetic-hiding axes must reuse the existing boolean-intersect-and-drop mechanism and its existing normalized lookup rather than introducing a parallel resolve path"
 
-requirements-completed: []  # ROLE-01 NOT marked complete — Task 3 human sign-off is pending; see below
+requirements-completed: [ROLE-01]  # Task 3 human sign-off recorded 2026-07-05 (maintainer approved partial-go verdict)
 
 # Metrics
 duration: 8min
@@ -44,14 +44,14 @@ completed: 2026-07-05
 
 # Phase 19 Plan 01: ROLE-01 Feasibility Note Summary
 
-**Written feasibility note delivering a PARTIAL-GO verdict: per-user cosmetic hiding is unconditionally go, cloned-role hiding is go via a profiles-registry that compiles to the same inline `items[slug].hidden_users`/`hidden_profiles` axis and widened `is_hidden_for_current_user()` seam — human sign-off (Task 3) is PENDING.**
+**Written feasibility note delivering a PARTIAL-GO verdict: per-user cosmetic hiding is unconditionally go, cloned-role hiding is go via a profiles-registry that compiles to the same inline `items[slug].hidden_users`/`hidden_profiles` axis and widened `is_hidden_for_current_user()` seam. Human sign-off (Task 3) APPROVED 2026-07-05 — Phase 21 (ROLE-02) is unblocked with per-user-first scope.**
 
 ## Performance
 
 - **Duration:** ~8 min
 - **Started:** 2026-07-05T05:07:35Z
 - **Completed:** 2026-07-05T05:10:35Z (Tasks 1-2; Task 3 checkpoint returned to parent session)
-- **Tasks:** 2 of 3 completed (Task 3 is a blocking human-verify checkpoint, not executable by this agent)
+- **Tasks:** 3 of 3 completed (Task 3 blocking human-verify checkpoint — approved by maintainer 2026-07-05 in the parent session)
 - **Files modified:** 1 created (19-FEASIBILITY-NOTE.md), this SUMMARY.md
 
 ## Accomplishments
@@ -128,11 +128,10 @@ None - no external service configuration required.
 
 ## Next Phase Readiness
 
-- **Phase 21 (ROLE-02) planning remains BLOCKED** until a human reviewer signs off
-  19-FEASIBILITY-NOTE.md via the Task 3 checkpoint (see the parent session's checkpoint
-  report for the full note content / section-by-section review aid).
-- If sign-off requests changes, this note should be revised in place and Task 3 re-run
-  before Phase 21 planning proceeds.
+- **Phase 21 (ROLE-02) planning is UNBLOCKED** — the maintainer signed off
+  19-FEASIBILITY-NOTE.md via the Task 3 checkpoint on 2026-07-05 (partial-go verdict
+  accepted). Phase 21 proceeds with per-user-first scope; cloned-role profiles as the
+  bounded fast-follow.
 - STATE.md, ROADMAP.md, and REQUIREMENTS.md were intentionally left untouched by this
   execution (worktree-isolation instruction) — the orchestrator must reconcile:
   - STATE.md position/decisions/session fields

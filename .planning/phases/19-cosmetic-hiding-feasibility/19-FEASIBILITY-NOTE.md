@@ -11,7 +11,7 @@ Neither branch is no-go. Per-user hiding is recommended as the simpler first sli
 cloned-role ships as an additive registry on top of the same seam, either in the same
 Phase 21 pass or a fast-follow — see §12 for the sequencing recommendation.
 
-**Sign-off:** Pending (Task 3 — blocking human-verify checkpoint).
+**Sign-off:** ✅ **Approved 2026-07-05** by maintainer (Dan Knauss) via the Task 3 blocking human-verify checkpoint. Partial-go verdict accepted: per-user hiding is go (ship first); cloned-role hiding is go as an additive `profiles` registry that compiles onto the same inline resolution axis. **Phase 21 (ROLE-02) is unblocked** with per-user-first scope.
 
 ---
 
@@ -473,8 +473,7 @@ specifics that are **flagged as a known risk/edge for Phase 21**, not solved her
   site — a naive per-user or per-profile hide rule authored on one site could have
   different practical effect for a super admin than for a normal per-site user. Phase 21
   must decide whether super admins are exempt from hides by default (consistent with
-  "never lock out the admin" in §11) or treated identically.
-  the same as any other user.
+  "never lock out the admin" in §11) or treated the same as any other user.
 - **Per-site roles.** The same user can hold different roles on different sites in the
   network; a `hidden_roles`/`hidden_users` config is already per-site (Maestro's option
   is stored per-blog), so per-user hides naturally inherit this per-site scoping — but
