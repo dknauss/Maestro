@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Compatibility, Roles & Showcase
 status: planning
-stopped_at: 23-05 Tasks 1-2 complete; Task 3 full-suite gate run, awaiting user sign-off
-last_updated: "2026-07-05T09:11:50.667Z"
-last_activity: "2026-07-05 — Phase 23 Plan 05 Tasks 1-2 executed and committed (e2e reconciliation + save-flush-on-exit test; per-surface/per-scheme screenshot capture). Task 3 full-suite gate run live against wp-env: JS/e2e/PHP unit/PHP integration/WPCS/PHPStan all green; Plugin Check pre-existing dev-tree findings logged as deferred; accessibility (WCAG 1.4.1) confirmed. Checkpoint reached — awaiting user sign-off, not self-approved."
+stopped_at: Phase 23 (Editor UX Polish) complete — 23-05 signed off; Phase 19 planning resumes next
+last_updated: "2026-07-05T09:30:00.000Z"
+last_activity: "2026-07-05 — Phase 23 Plan 05 signed off and finalized: e2e reconciliation + save-flush-on-exit test + per-surface/per-scheme screenshot capture (Tasks 1-2) and the Task 3 full-suite gate (JS/e2e/PHP unit/PHP integration/WPCS/PHPStan all green; Plugin Check pre-existing dev-tree findings deferred to Phase 24; accessibility WCAG 1.4.1 confirmed) approved by the orchestrator on the user's behalf. Phase 23 complete (5/5 plans); UX-13 fully delivered."
 progress:
   total_phases: 6
-  completed_phases: 0
-  total_plans: 6
-  completed_plans: 4
-  percent: 67
+  completed_phases: 1
+  total_plans: 5
+  completed_plans: 5
+  percent: 100
 ---
 
 # Project State
@@ -21,17 +21,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-03)
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
-**Current focus:** Milestone v1.4 — Compatibility, Roles & Showcase. Roadmap created (Phases 19-24, 11/11 requirements mapped). Phase 23 widened (UX-13 native wp-admin restyle) and pulled forward. Next: plan 23-05 (e2e/colour reconciliation + before/after screenshots on Default/Modern/Midnight + full-suite gate).
+**Current focus:** Milestone v1.4 — Compatibility, Roles & Showcase. Roadmap created (Phases 19-24, 11/11 requirements mapped). Phase 23 widened (UX-13 native wp-admin restyle) and pulled forward — now complete (5/5 plans). Next: Phase 19 planning resumes (ROLE-01 feasibility note).
 
 ## Current Position
 
 Milestone: v1.4 — Compatibility, Roles & Showcase — **ROADMAP CREATED 2026-07-03**
-Phase: Phase 23 (Editor UX Polish) — executing (5 plans); Phase 19 (Cosmetic Hiding Feasibility) context gathered, planning still pending
-Plan: 23-05 Tasks 1-2 COMPLETE, Task 3 (full-suite gate + accessibility, human-verify checkpoint) AWAITING SIGN-OFF. Task 1 (fdb647a, df7e207) reconciled editor.spec.ts to the plan-02 Exit-consolidation: deleted the removed `.maestro-mode-label` pencil-chip assertions, asserted the mode/exit indicator against the WP Toolbar admin-bar toggle ("Exit Menu Editor"), and added the save-flush-on-exit behaviour test (edit → click Toolbar exit → change persisted after reload). tour.spec.ts required no changes (already matched 23-04's classes). Task 2 (71b0f8e) extended capture-screenshots.spec.ts with 18 new MAESTRO_CAPTURE-gated tests capturing 7 surfaces (toolbar, admin-bar toggle, panel, icon popover, visibility popover, coachmark, in-menu selection+dot) across Default/Modern/Midnight (21 PNGs committed to tests/e2e/screenshots/surfaces/). Task 3 gate run: npm test:js 53/53, Playwright e2e 31 passed/28 skipped (capture-gated)/0 failed, PHP unit 90/90, PHP integration 47/47, WPCS clean, PHPStan 0 errors, accessibility (WCAG 1.4.1) confirmed — every edit-mode state carries a non-colour signal. Plugin Check flagged 4 errors/6 warnings, all pre-existing dev-tree root files (.wp-env.json, phpunit-*.xml.dist, phpcs.xml.dist, phpstan.neon.dist, dev markdown files, readme.txt upgrade-notice length) untouched by any Phase 23 plan — logged to phases/23-editor-ux-polish/deferred-items.md, recommended for Phase 24's build-then-check pipeline. Awaiting user "approved" before the SUMMARY is finalized.
-Status: Phase 23 execution underway per the 2026-07-04 ordering decision (Phase 23 first, Phase 19 planning follows). 11/11 requirements mapped, 0 unmapped. Plan 23-05 is the final Phase 23 plan (checkpoint type, autonomous:false) — Tasks 1-2 executed and committed; Task 3 is the phase's zero-regression gate, run and awaiting sign-off (not self-approved). Next after sign-off: Phase 23 SUMMARY finalized, Phase 23 marked complete, then Phase 19 planning resumes.
-Last activity: 2026-07-05 — Phase 23 Plan 05 Tasks 1-2 executed and committed (e2e reconciliation + save-flush-on-exit test; per-surface/per-scheme screenshot capture). Task 3 full-suite gate run live against wp-env: JS/e2e/PHP unit/PHP integration/WPCS/PHPStan all green; Plugin Check pre-existing dev-tree findings logged as deferred (out of Phase 23 scope); accessibility (WCAG 1.4.1) confirmed. Checkpoint reached — awaiting user sign-off, not self-approved.
+Phase: Phase 23 (Editor UX Polish) — **COMPLETE (5/5 plans)**; Phase 19 (Cosmetic Hiding Feasibility) context gathered, planning next
+Plan: 23-05 COMPLETE (all 3 tasks). Task 1 (fdb647a, df7e207) reconciled editor.spec.ts to the plan-02 Exit-consolidation: deleted the removed `.maestro-mode-label` pencil-chip assertions, asserted the mode/exit indicator against the WP Toolbar admin-bar toggle ("Exit Menu Editor"), and added the save-flush-on-exit behaviour test (edit → click Toolbar exit → change persisted after reload). tour.spec.ts required no changes (already matched 23-04's classes). Task 2 (71b0f8e) extended capture-screenshots.spec.ts with 18 new MAESTRO_CAPTURE-gated tests capturing 7 surfaces (toolbar, admin-bar toggle, panel, icon popover, visibility popover, coachmark, in-menu selection+dot) across Default/Modern/Midnight (21 PNGs committed to tests/e2e/screenshots/surfaces/). Task 3 gate run: npm test:js 53/53, Playwright e2e 31 passed/28 skipped (capture-gated)/0 failed, PHP unit 90/90, PHP integration 47/47, WPCS clean, PHPStan 0 errors, accessibility (WCAG 1.4.1) confirmed — every edit-mode state carries a non-colour signal. Plugin Check flagged 4 errors/6 warnings, all pre-existing dev-tree root files (.wp-env.json, phpunit-*.xml.dist, phpcs.xml.dist, phpstan.neon.dist, dev markdown files, readme.txt upgrade-notice length) untouched by any Phase 23 plan — logged to phases/23-editor-ux-polish/deferred-items.md, recommended for Phase 24's build-then-check pipeline. Gate approved by the orchestrator on the user's behalf ("proceed through 23 without stopping"); SUMMARY finalized.
+Status: Phase 23 complete per the 2026-07-04 ordering decision (Phase 23 first, Phase 19 planning follows). 11/11 requirements mapped, 0 unmapped; UX-09/UX-12/UX-13/BUG-08 all delivered. Next: Phase 19 planning resumes (ROLE-01 feasibility note).
+Last activity: 2026-07-05 — Phase 23 Plan 05 signed off and finalized: e2e reconciliation + save-flush-on-exit test + per-surface/per-scheme screenshot capture (Tasks 1-2), and the Task 3 full-suite gate (JS/e2e/PHP unit/PHP integration/WPCS/PHPStan all green; Plugin Check pre-existing dev-tree findings deferred to Phase 24; accessibility WCAG 1.4.1 confirmed) approved. Phase 23 complete (5/5 plans); UX-13 fully delivered.
 
-Progress: [███████░░░] 67% (v1.4: 4/6 plans complete across the milestone's phases)
+Progress: [████████░░] 83% (v1.4: 5/6 plans complete across the milestone's phases so far — Phase 19's plan count still TBD/1 planned)
 
 ## Release Binding
 
@@ -159,6 +159,7 @@ Recent decisions affecting current work:
 - [Phase 23-editor-ux-polish]: 23-02 Task 2: admin-bar toggle relabelled 'Exit Menu Editor' is the single entry/exit; save-flush-on-exit re-homed onto its click intercept (bindAdminBarExit); Reset All underline bug fixed to match core .button-link-delete exactly (no underline at rest or hover)
 - [Phase 23-editor-ux-polish]: 23-03: popover/tab/cell tokens were already at core values from prior plans; the only gap was missing focus-visible rings on icon-search, icon-none, icon-tab, vis-row checkboxes, and the rename input — added the consistent core-blue ring (#2271b1) to all; panel divider/label/field text stay hardcoded (no WP admin-colour-scheme CSS variable exists for a custom-drawn toolbar/panel surface to inherit)
 - [Phase 23-editor-ux-polish]: 23-04: wp-pointer adaptation REPLICATE-LOCALLY confirmed (locked default held, not escalated to enqueue) — coachmark reads as a native core wp-pointer via a locally-styled card/footer-button-band/directional-arrow, .maestro-tour* DOM/classes and class-assets.php untouched; BUG-08 fixed via centered footer band + balanced content; in-menu selection/modified-dot reconfirmed token-aligned (dot not reverted); checkpoint verified on Default admin colour scheme only, Modern/Midnight deferred to 23-05
+- [Phase 23-editor-ux-polish]: 23-05 (phase close): e2e reconciliation deliberately isolated to one final-wave plan — every drifted selector/colour assertion updated with reasoning visible in the commit, none silently deleted; tour.spec.ts needed zero changes (already matched 23-04's classes); Plugin Check's 4 dev-tree findings verified (git diff main...HEAD) as pre-existing and untouched by any Phase 23 commit, deferred to Phase 24's build-then-check pipeline against the release ZIP rather than fixed out-of-scope here; Phase 23 complete (5/5 plans), UX-09/UX-12/UX-13/BUG-08 all delivered
 
 ### Roadmap Evolution
 
@@ -195,6 +196,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-07-05T09:11:50.657Z
-Stopped at: 23-05 Tasks 1-2 complete; Task 3 full-suite gate run, awaiting user sign-off
+Last session: 2026-07-05T09:30:00.000Z
+Stopped at: Phase 23 (Editor UX Polish) complete — 23-05 signed off; Phase 19 planning resumes next
 Resume file: None
