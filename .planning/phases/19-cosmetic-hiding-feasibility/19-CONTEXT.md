@@ -108,12 +108,20 @@ without an explicit **go** verdict signed off here.
   against "where did my menu go."
 
 ### Enforcement-line reaffirmation
-- **Explicit restatement + wp-sudo pointer.** The note carries a short section
-  restating that ROLE-02 is **cosmetic-only**, and that any **enforced** per-user
-  tier belongs in the sibling **wp-sudo** project or a documented bridge (V2-17)
-  — not Maestro core. Keeps the "we hide, we don't enforce" line legible so
-  Phase 21 can't drift across it. (wp-sudo is Maestro's sibling access-control
-  project; enforcement is *its* domain, cosmetic presentation is Maestro's.)
+- **Explicit restatement; enforcement is out of scope, full stop.** The note
+  carries a short section restating that ROLE-02 is **cosmetic-only** and that
+  **Maestro never enforces** — WordPress's own per-page capability check is the
+  true access gate, and a hidden page still loads by URL for a capable user.
+  Keeps the "we hide, we don't enforce" line legible so Phase 21 can't drift
+  across it.
+- **Maestro assumes NO dependency on any other plugin.** The cosmetic-only
+  guarantee must hold on Maestro alone — Maestro must not assume, require,
+  reference, or depend on wp-sudo (or anything else) for its behavior. Maestro
+  behaves identically whether or not wp-sudo exists on the site.
+- **wp-sudo is an internal-roadmap note only, not part of this feature.** If an
+  *enforced* per-user tier is ever wanted (V2-17), that is separate work in a
+  separate project; the feasibility note and Phase 21 make **no functional
+  reference to it** and ship nothing that touches it.
 
 ### Claude's Discretion
 - Exact structure/format of the feasibility note document.
@@ -179,9 +187,10 @@ without an explicit **go** verdict signed off here.
 - **Full multisite user targeting / role intersection** — noted as a risk in the
   feasibility note; full solution deferred to Phase 21 (or later) rather than
   solved in ROLE-01.
-- **Enforced per-user privileged tier (V2-17)** — out of scope for Maestro core;
-  belongs in the sibling wp-sudo project or a documented bridge. The note
-  restates this line; no work here.
+- **Enforced per-user privileged tier (V2-17)** — out of scope for Maestro;
+  enforcement is a separate concern Maestro never takes on. Any such work would
+  be an entirely separate project with no Maestro dependency (internal roadmap
+  note only). The note restates the cosmetic-only line; no work here.
 - **Unified "who sees this" targeting model** (folding role + user + profile into
   one UI/storage) — the note may float it as a direction, but any redesign of
   the shipped visibility surface is Phase 21+ work.
