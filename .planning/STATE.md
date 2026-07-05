@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Compatibility, Roles & Showcase
-status: "Phase 23 execution underway. Plan 02 (both tasks) complete: the pinned menu-column zone was built, live-iterated, and scrapped; the bottom-toolbar Exit was removed as redundant with the WP Toolbar admin-bar toggle, now the single entry/exit relabelled 'Exit Menu Editor' with a save-flush-on-exit click intercept; Reset All underline bug fixed. Next: plan 23-03 (panel/popover token alignment)."
-stopped_at: Completed 23-02-PLAN.md
-last_updated: "2026-07-05T07:16:07.087Z"
-last_activity: "2026-07-05 — Phase 23 Plan 02 Task 2 executed: removed the redundant bottom-toolbar Exit control, relabelled the admin-bar toggle to 'Exit Menu Editor' (single entry/exit + mode indicator), re-homed the save-flush-on-exit guarantee onto a click intercept on the admin-bar toggle (live-verified edit-exit-persist), and fixed the Reset All underline bug. npm run test:js 53/53, PHP unit 90/90, PHP integration 47/47, e2e save-race 3/3 green."
+status: "Phase 23 execution underway. Plan 03 (panel/popover token alignment) complete: popover/tab/cell tokens were already at core values from prior plans; the one real gap was missing focus-visible rings on the icon-search field, 'No icon' button, tab buttons, visibility-popover checkboxes, and the rename input — all now carry the consistent core-blue ring. Panel divider/label text documented as necessarily hardcoded (no WP admin-colour-scheme CSS variable exists for this custom surface). Note: the in-menu modified-dot centering fix (part of plan 23-04's scope) already landed out-of-band via live iteration (b9f4cca/2737466) before this session; the rest of 23-04 (BUG-08 coachmark centering + wp-pointer restyle) is still pending. Next: plan 23-04 (remaining scope), then plan 23-05 (banner/e2e reconciliation)."
+stopped_at: Completed 23-03-PLAN.md
+last_updated: "2026-07-05T08:13:24.548Z"
+last_activity: "2026-07-05 — Phase 23 Plan 03 executed: audited panel + icon/visibility popovers against core wp-admin tokens (most values already aligned from plans 01/02); added missing core-blue (#2271b1) focus-visible rings to icon-search, icon-none, icon-tab, visibility checkboxes, and the rename input; documented the panel's necessary colour-scheme hardcode. npm run test:js 53/53 green; live-verified on wp-env dev site via Playwright screenshots."
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 6
-  completed_plans: 2
-  percent: 33
+  completed_plans: 3
+  percent: 50
 ---
 
 # Project State
@@ -21,17 +21,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-03)
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
-**Current focus:** Milestone v1.4 — Compatibility, Roles & Showcase. Roadmap created (Phases 19-24, 11/11 requirements mapped). Phase 23 widened (UX-13 native wp-admin restyle) and pulled forward. Next: plan 23-03 (panel/popover token alignment).
+**Current focus:** Milestone v1.4 — Compatibility, Roles & Showcase. Roadmap created (Phases 19-24, 11/11 requirements mapped). Phase 23 widened (UX-13 native wp-admin restyle) and pulled forward. Next: plan 23-04 (coachmark BUG-08/wp-pointer restyle + in-menu token pass — dot-centering piece already landed out-of-band).
 
 ## Current Position
 
 Milestone: v1.4 — Compatibility, Roles & Showcase — **ROADMAP CREATED 2026-07-03**
 Phase: Phase 23 (Editor UX Polish) — executing (5 plans); Phase 19 (Cosmetic Hiding Feasibility) context gathered, planning still pending
-Plan: 23-02 COMPLETE (both tasks). The pinned menu-column mode/status zone (Task 1) was built, live-iterated against the running site, and rejected/scrapped per two 2026-07-05 user decisions recorded in 23-CONTEXT.md — the WP Toolbar admin-bar toggle is now the single entry/exit AND mode indicator (Task 2), relabelled "Exit Menu Editor" while editing, with the save-flush-on-exit guarantee re-homed onto a click intercept on that toggle (live-verified: edit -> exit via Toolbar -> reload -> change persisted). Reset All's underline bug also fixed to match core's `.button-link-delete` idiom exactly.
-Status: Phase 23 execution underway per the 2026-07-04 ordering decision (Phase 23 first, Phase 19 planning follows). 11/11 requirements mapped, 0 unmapped. Plan 02 done; e2e drift in `editor.spec.ts` from the removed pencil mode chip (Task 1) is deliberately deferred to plan 23-05 (its own reconciliation plan), not silently left. Next: plan 23-03.
-Last activity: 2026-07-05 — Phase 23 Plan 02 Task 2 executed: removed the redundant bottom-toolbar Exit control, relabelled the admin-bar toggle to "Exit Menu Editor," re-homed the save-flush-on-exit intercept, fixed the Reset All underline bug. All suites green (JS 53/53, PHP unit 90/90, PHP integration 47/47, e2e save-race 3/3); live-verified on wp-env.
+Plan: 23-03 COMPLETE (both tasks). Panel + icon/visibility popover tokens were audited against core wp-admin idioms: popover card/tab/cell tokens were already at core values from plans 01/02; the one real gap was missing focus-visible rings on the icon-search field, "No icon" button, tab buttons, visibility-popover checkboxes, and the rename input — all now carry the consistent core-blue ring (#2271b1). Panel divider/label text documented as necessarily hardcoded (no WP admin-colour-scheme CSS variable exists for this custom-drawn surface to inherit). Live-verified via Playwright screenshots on the wp-env dev site.
+Status: Phase 23 execution underway per the 2026-07-04 ordering decision (Phase 23 first, Phase 19 planning follows). 11/11 requirements mapped, 0 unmapped. Plan 03 done; e2e drift in `editor.spec.ts` from the removed pencil mode chip (23-01) remains deliberately deferred to plan 23-05 (its own reconciliation plan). The in-menu modified-dot centering fix (part of 23-04's scope) already landed out-of-band via live iteration (b9f4cca/2737466); the remainder of 23-04 (BUG-08 coachmark centering + wp-pointer restyle) is still pending. Next: plan 23-04.
+Last activity: 2026-07-05 — Phase 23 Plan 03 executed: audited panel + icon/visibility popovers against core wp-admin tokens; added missing core-blue focus-visible rings to icon-search, icon-none, icon-tab, visibility checkboxes, and the rename input; documented the panel's necessary colour-scheme hardcode. npm run test:js 53/53 green; live-verified on wp-env dev site via Playwright screenshots.
 
-Progress: [███░░░░░░░] 33% (v1.4: 2/6 plans complete across the milestone's phases)
+Progress: [█████░░░░░] 50% (v1.4: 3/6 plans complete across the milestone's phases)
 
 ## Release Binding
 
@@ -157,6 +157,7 @@ Recent decisions affecting current work:
 - [Phase 23-editor-ux-polish]: 23-01: kept dashicons-update spin (font-based, zero added payload) over core .spinner (background-image asset) for the saving-state glyph
 - [Phase 23-editor-ux-polish]: 23-01: kept the existing bullet-dot modified-row badge, only recoloured amber to neutral #c3c4c7 — already matched the Gutenberg unsaved-changes idiom, no new glyph needed
 - [Phase 23-editor-ux-polish]: 23-02 Task 2: admin-bar toggle relabelled 'Exit Menu Editor' is the single entry/exit; save-flush-on-exit re-homed onto its click intercept (bindAdminBarExit); Reset All underline bug fixed to match core .button-link-delete exactly (no underline at rest or hover)
+- [Phase 23-editor-ux-polish]: 23-03: popover/tab/cell tokens were already at core values from prior plans; the only gap was missing focus-visible rings on icon-search, icon-none, icon-tab, vis-row checkboxes, and the rename input — added the consistent core-blue ring (#2271b1) to all; panel divider/label/field text stay hardcoded (no WP admin-colour-scheme CSS variable exists for a custom-drawn toolbar/panel surface to inherit)
 
 ### Roadmap Evolution
 
@@ -193,6 +194,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-07-05T07:16:07.087Z
-Stopped at: Completed 23-02-PLAN.md
+Last session: 2026-07-05T08:13:24.548Z
+Stopped at: Completed 23-03-PLAN.md
 Resume file: None
