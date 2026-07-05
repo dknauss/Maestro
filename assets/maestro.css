@@ -498,6 +498,15 @@ body.maestro-editing.auto-fold #wpfooter {
 .maestro-status.maestro-status-saved  { color: #646970; }
 .maestro-status.maestro-status-error  { color: #d63638; } /* core danger red */
 
+/* Panel stays DARK — part of the menu-column/toolbar surface (quiet-control
+ * treatment from plan 01), never a light card. Colour-scheme inheritance
+ * (transparent/currentColor) was evaluated per CONTEXT §WP-native but WP's
+ * admin colour schemes only restyle #adminmenu/#wpadminbar/etc. via hardcoded
+ * per-scheme hex swaps — there is no scheme CSS custom property exposed for a
+ * plugin-drawn surface like this toolbar/panel to inherit. The divider and
+ * label/field tones below are therefore necessarily hardcoded to the same
+ * #1d2327-toolbar-surface neutrals plan 01 established (#3c434a divider,
+ * #c3c4c7 muted text) rather than left un-themed. */
 .maestro-panel {
 	display: flex;
 	flex-wrap: wrap; /* BUG-03: panel controls stack onto rows when narrow, never overlap */
@@ -506,11 +515,11 @@ body.maestro-editing.auto-fold #wpfooter {
 	flex: 1;
 	min-width: 0;
 	padding-left: 12px; /* inset reinforces the left-separator as a zone boundary */
-	border-left: 1px solid #3c434a; /* subtle zone divider (matches right-actions) */
+	border-left: 1px solid #3c434a; /* subtle zone divider (matches right-actions); no WP scheme variable exists for this custom surface, so hardcoded */
 }
 .maestro-panel[hidden] { display: none; }
 .maestro-panel-label {
-	color: #c3c4c7;
+	color: #c3c4c7; /* menu-surface muted text; hardcoded, see .maestro-panel comment above */
 	font-size: 13px;
 	font-weight: 600;
 	max-width: 200px; /* tighter cap: status zone must not be overrun */
@@ -523,9 +532,13 @@ body.maestro-editing.auto-fold #wpfooter {
 	display: flex;
 	align-items: center;
 	gap: 4px;
-	color: #c3c4c7;
+	color: #c3c4c7; /* menu-surface muted text; hardcoded, see .maestro-panel comment above */
 	font-size: 12px;
 }
+/* Rename input KEEPS core's light-input styling (CONTEXT §WP-native: "rename
+ * input keeps core's light input styling") even though it sits on the dark
+ * panel — white field, dark text, core border, core-blue focus ring. This is
+ * the one panel control that is intentionally NOT dark/quiet. */
 .maestro-rename-input {
 	width: 180px;
 	max-width: 100%;
@@ -537,6 +550,10 @@ body.maestro-editing.auto-fold #wpfooter {
 	border: 1px solid #c3c4c7; /* neutral, matches the ordinary-control outline; stays white for legibility */
 	background: #fff;
 	color: #1d2327;
+}
+.maestro-rename-input:focus-visible {
+	outline: 2px solid #2271b1;
+	outline-offset: 1px;
 }
 /* Placeholder contrast: when the field is empty the placeholder is the only
  * visible hint, so it counts as TEXT (WCAG 1.4.3 → 4.5:1), not the 3:1 non-text
