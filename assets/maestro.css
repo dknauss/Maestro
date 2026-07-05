@@ -250,7 +250,15 @@ body.maestro-editing.auto-fold #wpfooter {
 	height: 34px;
 }
 
-/* ---------- popovers (icon picker, visibility) -------------------------- */
+/* ---------- popovers (icon picker, visibility) --------------------------
+ * UX-13 token-alignment pass: these were already near core popover/postbox
+ * values (white card, #c3c4c7 border, #2271b1 focus/accent) — verified against
+ * core's own popover/postbox/tab tokens and left as-is where they matched.
+ * The one real gap: several interactive controls here (search field, "No
+ * icon" button, tab buttons) had no explicit focus-visible ring at all,
+ * inconsistent with the core-blue ring used everywhere else in the panel and
+ * toolbar — added below so every interactive control in this file rings
+ * `outline: 2px solid #2271b1` on keyboard focus. */
 .maestro-popover {
 	position: absolute;
 	z-index: 100000;
@@ -269,8 +277,12 @@ body.maestro-editing.auto-fold #wpfooter {
 	box-sizing: border-box;
 	margin: 0 0 8px;
 	padding: 6px 8px;
-	border: 1px solid #8c8f94;
+	border: 1px solid #8c8f94; /* core light-input border, matches .maestro-rename-input's idiom */
 	border-radius: 3px;
+}
+.maestro-icon-search:focus-visible {
+	outline: 2px solid #2271b1;
+	outline-offset: 1px;
 }
 .maestro-icon-none {
 	margin: 0 0 8px;
@@ -279,6 +291,10 @@ body.maestro-editing.auto-fold #wpfooter {
 .maestro-icon-none[aria-pressed="true"] {
 	border-color: #2271b1;
 	box-shadow: 0 0 0 1px #2271b1;
+}
+.maestro-icon-none:focus-visible {
+	outline: 2px solid #2271b1;
+	outline-offset: 1px;
 }
 .maestro-icon-tabs {
 	display: flex;
@@ -292,13 +308,17 @@ body.maestro-editing.auto-fold #wpfooter {
 	border-bottom: 2px solid transparent;
 	padding: 6px 10px;
 	cursor: pointer;
-	color: #50575e;
+	color: #50575e; /* core's inactive-tab text tone */
 	font-size: 13px;
 }
 .maestro-icon-tab[aria-selected="true"] {
-	color: #1d2327;
-	border-bottom-color: #2271b1;
+	color: #1d2327; /* core's active-tab text tone */
+	border-bottom-color: #2271b1; /* core's tab-idiom accent */
 	font-weight: 600;
+}
+.maestro-icon-tab:focus-visible {
+	outline: 2px solid #2271b1;
+	outline-offset: 1px;
 }
 .maestro-icon-grid {
 	display: grid;
@@ -346,13 +366,21 @@ body.maestro-editing.auto-fold #wpfooter {
 .maestro-vis-head {
 	margin: 0 0 6px;
 	font-weight: 600;
-	color: #1d2327;
+	color: #1d2327; /* core body text, matches the tab-active tone */
 }
 .maestro-vis-row {
 	display: block;
 	padding: 3px 0;
 	color: #1d2327;
 	font-size: 13px;
+}
+/* The row is a <label> wrapping a native checkbox — the checkbox itself is
+ * the focusable control; give it the same core-blue ring as every other
+ * interactive control in the panel/popovers rather than relying on the
+ * browser's inconsistent default checkbox outline. */
+.maestro-vis-row input:focus-visible {
+	outline: 2px solid #2271b1;
+	outline-offset: 1px;
 }
 
 /* ---------- toolbar + shared controls panel ----------------------------- */
