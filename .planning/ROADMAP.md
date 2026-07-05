@@ -205,7 +205,13 @@ Full phase details, success criteria, and outcomes are archived in
   3. All edit-mode surfaces (shared panel, icon/visibility popovers, first-run banner, coachmark, in-menu selection/badges) adopt core idioms per 23-CONTEXT.md, spot-checked on Default + Modern + Midnight admin colour schemes — confirmed by per-surface before/after screenshots
   4. The first-run banner's text and button are vertically centered instead of visually off-center — confirmed by before/after screenshot
   5. Existing PHP unit, integration, JS, and Playwright e2e suites stay green (e2e selector/colour assertions updated deliberately in-plan); Plugin Check 0 errors
-**Plans**: TBD
+**Plans**: 5 plans
+Plans:
+- [x] 23-01-PLAN.md — Remove semantic-colour borders; convert the bottom toolbar to native quiet controls + muted save status (UX-12, UX-13)
+- [ ] 23-02-PLAN.md — Pin the Edit-Mode zone (mode + status) to the admin-menu column; 782px relocation gate; live-iteration proportions (UX-09, UX-13)
+- [ ] 23-03-PLAN.md — Align the shared panel + icon/visibility popovers to core popover/postbox tokens (UX-13)
+- [ ] 23-04-PLAN.md — First-run banner centering (BUG-08); wp-pointer coachmark restyle; in-menu selection/dot-badge token pass (BUG-08, UX-13)
+- [ ] 23-05-PLAN.md — e2e selector/colour reconciliation + before/after screenshots (Default/Modern/Midnight) + full-suite gate (UX-13)
 
 ### Phase 24: Release v1.4.0
 **Goal**: v1.4 is cut and live on WordPress.org — the runtime zip builds clean, all suites pass, the tag exists, SVN trunk is updated, and the directory/editor screenshots reflect the shipped UX-11 coachmark plus any v1.4 UX changes
