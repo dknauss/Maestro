@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Compatibility, Roles & Showcase
-status: "Roadmap created — 6 phases. Ordering decision 2026-07-04: plan Phase 19 (ROLE-01 feasibility note — unblocks the Phase 21 gate) next, THEN execute the already-planned Phase 23 (5 plans). 11/11 requirements mapped, 0 unmapped. Next: `/gsd:plan-phase 19` → `/gsd:execute-phase 23`."
-stopped_at: Phase 19 context gathered
-last_updated: "2026-07-05T04:21:33.256Z"
-last_activity: 2026-07-04 — Phase 19 context gathered; ordering set (plan 19 → execute 23)
+status: "Phase 19 (ROLE-01) COMPLETE 2026-07-05 on branch `gsd/phase-19-cosmetic-hiding-feasibility` (unmerged). Feasibility verdict: **partial-go** — both per-user and cloned-role hiding clear the cosmetic-only bar; Phase 21 unblocked, per-user first. Phase 23 (Editor UX Polish) also COMPLETE on branch `gsd/phase-23-editor-ux-polish` (verification 5/5), unmerged. Next: merge both feature branches to main, then Phases 20/21/22, then 24. `/gsd:progress`."
+stopped_at: Phase 19 complete (ROLE-01 signed off, partial-go)
+last_updated: "2026-07-05T09:47:24.304Z"
+last_activity: 2026-07-05 — Phase 19 complete on its branch; ROLE-01 partial-go signed off; Phase 21 unblocked. Phase 23 done on its branch (unmerged)
 progress:
   total_phases: 6
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 6
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -21,17 +21,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-03)
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
-**Current focus:** Milestone v1.4 — Compatibility, Roles & Showcase. Roadmap created (Phases 19-24, 11/11 requirements mapped). Phase 23 widened (UX-13 native wp-admin restyle) and pulled forward. Next: `/gsd:plan-phase 23`.
+**Current focus:** Milestone v1.4 — Compatibility, Roles & Showcase. Phase 19 (ROLE-01) and Phase 23 (Editor UX Polish) are both **complete on their own unmerged branches**. Immediate priority: merge Phase 23 (the UX refresh) and Phase 19 to `main`. Then Phases 20/21/22, then 24.
 
 ## Current Position
 
-Milestone: v1.4 — Compatibility, Roles & Showcase — **ROADMAP CREATED 2026-07-03**
-Phase: Phase 19 (Cosmetic Hiding Feasibility) — context gathered, planning next; Phase 23 (Editor UX Polish) already planned (5 plans), executes after
+Milestone: v1.4 — Compatibility, Roles & Showcase
+Phase: Phase 19 (Cosmetic Hiding Feasibility) — ✅ COMPLETE 2026-07-05 on branch `gsd/phase-19-cosmetic-hiding-feasibility` (unmerged). Phase 23 (Editor UX Polish) — ✅ COMPLETE on branch `gsd/phase-23-editor-ux-polish` (verification 5/5, unmerged).
 Plan: —
-Status: Ordering decision 2026-07-04 — plan Phase 19 (ROLE-01 feasibility, unblocks the Phase 21 gate) next, THEN execute the already-planned Phase 23 (5 plans, native wp-admin restyle). 11/11 requirements mapped, 0 unmapped. Next: `/gsd:plan-phase 19` → `/gsd:execute-phase 23`.
-Last activity: 2026-07-04 — Phase 19 context gathered; ordering set (plan 19 → execute 23)
+Status: Phase 19 ROLE-01 feasibility signed off — **partial-go** (per-user go + ship first; cloned-role go as an additive `profiles` registry compiling to the same inline seam). Phase 21 unblocked. Both feature branches await merge to `main`.
+Last activity: 2026-07-05 — Phase 19 complete (ROLE-01 partial-go, signed off); Phase 21 unblocked
 
-Progress: [░░░░░░░░░░] 0% (v1.4: 0/6 phases complete)
+Progress: [██░░░░░░░░] ~17% (v1.4: 1/6 phases complete on main-lineage; Phase 23 also done on its branch → 2/6 after merge)
 
 ## Release Binding
 
