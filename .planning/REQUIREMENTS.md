@@ -59,7 +59,7 @@ backlog IDs without renumbering.
 
 | Item | Reason |
 |------|--------|
-| Real access control / enforced tiers | Visibility is cosmetic by design; the page's own capability is the true gate. Bundling half-enforcement manufactures false security. An *enforced* per-user tier belongs in a sibling project or a documented bridge, not Maestro core. |
+| Real access control / enforced tiers | Visibility is cosmetic by design; the page's own capability is the true gate. Bundling half-enforcement manufactures false security. An *enforced* per-user tier is out of scope entirely — Maestro never enforces and assumes **no dependency** on any other plugin to hold its cosmetic-only guarantee; any enforced tier would be separate work in a separate project, not Maestro core. |
 | Front-end / non-admin menu editing | Admin menu only. |
 | Reparenting, separators, import/export, multisite defaults, custom-icon upload | Post-1.0 backlog, not this milestone. |
 
