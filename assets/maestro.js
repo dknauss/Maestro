@@ -34,9 +34,6 @@
 	var selectedSlug = null;
 	var panel = {};        // references into the shared panel
 	var statusEl = null;   // status indicator span
-	var modeZoneEl = null; // .maestro-mode-zone wrapper (mode chip + save status); relocates by width
-	var modeZoneAnchor = null; // toolbar node the zone sits before, so it can rejoin in place
-	var toolbarEl = null;  // the .maestro-toolbar element (relocation home for the zone <= 782px)
 	var saveTimer = null;
 	var saveInFlight = false;  // a full-replace POST is currently running
 	var savePending = false;   // another change arrived mid-flight; save again on land
@@ -205,12 +202,6 @@
 		} );
 
 		buildToolbar();
-		// UX-09: place the mode/status zone for the current width, then keep it in
-		// sync when the 782px breakpoint is crossed. addEventListener('change') is
-		// supported across the plugin's browser matrix (same API the editor already
-		// uses elsewhere). Pure relocation — no behavioral change.
-		relocateModeZone();
-		window.matchMedia( '(max-width:782px)' ).addEventListener( 'change', relocateModeZone );
 		bindMenuSelection();
 		initSortables();
 		// First-run guided tour — after the toolbar/panel and selection wiring
@@ -436,19 +427,6 @@
 	function buildToolbar() {
 		var bar = el( 'div', 'maestro-toolbar' );
 
-		// Persistent mode indicator — NOT a live region, text never changes (UX-03).
-		// Icon-only (neutral pencil dashicon) to reclaim toolbar width; the
-		// accessible name is carried by aria-label and a hidden .maestro-btn-label
-		// span, with a title tooltip for sighted users. UX-12/UX-13: no green — the
-		// pencil is a non-colour shape cue in the toolbar's own neutral text colour.
-		var modeEl = el( 'div', 'maestro-mode-label' );
-		modeEl.setAttribute( 'aria-label', I.modeLabel );
-		modeEl.setAttribute( 'title', I.modeLabel );
-		var modeIcon = el( 'span', 'dashicons dashicons-edit maestro-mode-icon' );
-		modeIcon.setAttribute( 'aria-hidden', 'true' );
-		modeEl.appendChild( modeIcon );
-		modeEl.appendChild( el( 'span', 'maestro-btn-label', I.modeLabel ) );
-
 		// Transient save-status — aria-live, empty at idle so no announcement fires.
 		// Icon-only: the per-state ::before dashicon (spinner/check/warning) is the
 		// visible cue; the word ("Saving…"/"Saved"/…) lives in a screen-reader-only
@@ -458,15 +436,7 @@
 		statusEl.setAttribute( 'aria-live', 'polite' );
 		statusEl.setAttribute( 'aria-atomic', 'true' );
 		statusEl.appendChild( el( 'span', 'maestro-status-text screen-reader-text' ) );
-
-		// UX-09: the mode chip + save status travel together as ONE node so the
-		// 782px relocation (relocateModeZone) moves a single wrapper — into the
-		// admin-menu column > 782px, back into the toolbar <= 782px. Only these
-		// two signals relocate; every other toolbar control stays put.
-		modeZoneEl = el( 'div', 'maestro-mode-zone' );
-		modeZoneEl.appendChild( modeEl );
-		modeZoneEl.appendChild( statusEl );
-		bar.appendChild( modeZoneEl );
+		bar.appendChild( statusEl );
 
 		// Shared panel — empty/hidden until something is selected.
 		var p = el( 'div', 'maestro-panel' );
@@ -607,51 +577,6 @@
 		bar.appendChild( right );
 
 		document.body.appendChild( bar );
-
-		// Remember the toolbar slot the zone rejoins at <= 782px (its next sibling
-		// inside the bar), so relocateModeZone can put it back in place — not just
-		// at the toolbar's trailing edge — when the column goes off-canvas.
-		modeZoneAnchor = modeZoneEl.nextSibling;
-		toolbarEl = bar;
-	}
-
-	/* ---------- UX-09: pin the mode/status zone to the menu column -------- */
-
-	// Move ONLY the mode/status zone between the toolbar and the admin-menu
-	// column based on viewport width. The 782px gate is the pure
-	// modeZonePlacement seam (maestro-logic.js). Pure DOM relocation — no
-	// storage/REST/behavioral change; setStatus keeps writing to statusEl by var.
-	//
-	// LOCKED default (replace-while-editing): > 782px the zone docks at the very
-	// bottom of #adminmenuwrap in core's Collapse-menu slot, and the already-
-	// neutralised #collapse-menu is HIDDEN (a reversible scoped class, never DOM
-	// removal) so the zone is the single bottom affordance. <= 782px the zone
-	// rejoins the full-width toolbar AND #collapse-menu is restored. The hide is
-	// CSS-scoped to .maestro-editing and gated by this class, so it can never
-	// leak past the editing session (Exit is a full navigation that reloads
-	// without the editor assets, which also restores Collapse).
-	function relocateModeZone() {
-		if ( ! modeZoneEl ) { return; }
-
-		var placement = window.maestroLogic.modeZonePlacement( window.innerWidth );
-		var wrap = document.getElementById( 'adminmenuwrap' );
-		var collapse = document.getElementById( 'collapse-menu' );
-
-		if ( placement === 'menu' && wrap ) {
-			// Dock in the Collapse-menu slot: as the last child of #adminmenuwrap.
-			wrap.appendChild( modeZoneEl );
-			if ( collapse ) {
-				collapse.classList.add( 'maestro-collapse-hidden' );
-			}
-		} else {
-			// Rejoin the toolbar in its original slot and restore Collapse.
-			if ( toolbarEl && modeZoneEl.parentNode !== toolbarEl ) {
-				toolbarEl.insertBefore( modeZoneEl, modeZoneAnchor );
-			}
-			if ( collapse ) {
-				collapse.classList.remove( 'maestro-collapse-hidden' );
-			}
-		}
 	}
 
 	function populatePanel( slug ) {

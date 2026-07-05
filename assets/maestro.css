@@ -27,17 +27,6 @@ body.maestro-editing.auto-fold #wpcontent,
 body.maestro-editing.auto-fold #wpfooter {
 	margin-left: 160px !important;
 }
-/* UX-09 replace-while-editing: the mode/status zone docks in the Collapse-menu
- * slot at the bottom of #adminmenuwrap (> 782px), so the already-neutralised
- * Collapse control is hidden for that case only. The hide is gated by a
- * JS-toggled class (relocateModeZone) — NOT an unconditional editing-wide hide
- * — so narrowing to <= 782px (where the zone rejoins the toolbar) restores the
- * Collapse control. Scoped to .maestro-editing so it can never leak past the
- * session; Exit is a full navigation that reloads without these styles anyway. */
-body.maestro-editing #collapse-menu.maestro-collapse-hidden {
-	display: none !important;
-}
-
 /* ---------- expanded submenus while editing ------------------------------ */
 .maestro-editing #adminmenu .wp-submenu {
 	display: block !important;
@@ -136,9 +125,8 @@ body.maestro-editing #collapse-menu.maestro-collapse-hidden {
 	box-shadow: none;
 	text-decoration: none; /* Exit is an <a class="button"> */
 }
-/* The mode + persistent status indicators are not clickable buttons — flat,
+/* The persistent status indicator is not a clickable button — flat,
  * borderless glyph + text, no hover/focus affordance. */
-.maestro-mode-label,
 .maestro-status {
 	cursor: default;
 	border: 0;
@@ -183,16 +171,15 @@ body.maestro-editing #collapse-menu.maestro-collapse-hidden {
 }
 
 /* Reset All + Exit keep their visible text label (Label mix preserved,
- * CONTEXT §WP-native styling) — only the five icon-only panel buttons and the
- * persistent mode indicator hide their .maestro-btn-label text span.
- * aria-label + title supply the accessible name and hover hint for those. */
+ * CONTEXT §WP-native styling) — only the five icon-only panel buttons hide
+ * their .maestro-btn-label text span. aria-label + title supply the
+ * accessible name and hover hint for those. */
 .maestro-toolbar .maestro-move-up .maestro-btn-label,
 .maestro-toolbar .maestro-move-down .maestro-btn-label,
 .maestro-toolbar .maestro-icon-btn .maestro-btn-label,
 .maestro-toolbar .maestro-vis-btn .maestro-btn-label,
 .maestro-toolbar .maestro-reset-item .maestro-btn-label,
-.maestro-toolbar .maestro-tour-help .maestro-btn-label,
-.maestro-mode-label .maestro-btn-label {
+.maestro-toolbar .maestro-tour-help .maestro-btn-label {
 	display: none;
 }
 
@@ -384,7 +371,7 @@ body.maestro-editing #collapse-menu.maestro-collapse-hidden {
 /* (The former `.wp-core-ui .button .dashicons` specificity-fight rule is gone —
  * it only existed to fight the `.button` box, which is now transparent/borderless.) */
 
-/* (Mode + status indicators are flat, borderless glyph+text — see the quiet-
+/* (The status indicator is flat, borderless glyph+text — see the quiet-
  * control rules near the top of this file.) */
 
 /* Status zone — sits to the left, never overlapped by the panel label. */
@@ -398,83 +385,16 @@ body.maestro-editing #collapse-menu.maestro-collapse-hidden {
 	gap: 5px;
 }
 
-/* Persistent mode indicator — always visible, text never changes (UX-03).
- * Idle icon is a real aria-hidden <span class="dashicons dashicons-edit"> child
- * of .maestro-mode-label (NOT a ::before pseudo-element on .maestro-status).
- * This avoids BUG-04 (idle glyph reading as a fake interactive control).
- * UX-12/UX-13: neutral toolbar text colour — no green. The toolbar/zone's
- * presence is the mode signal; the label just names it (pencil + "Edit Mode"). */
-.maestro-mode-label {
-	display: inline-flex;
-	align-items: center;
-	gap: 5px;
-	color: #c3c4c7; /* neutral toolbar text colour */
-	font-size: 13px;
-	font-weight: 600;
-	white-space: nowrap;
-	flex-shrink: 0;
-}
-.maestro-mode-icon {
-	font-size: 20px;
-	width: 20px;
-	height: 20px;
-	line-height: 1;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-}
-
-/* ---------- UX-09 mode/status zone (relocatable) ------------------------- *
- * The zone wraps the mode chip + save status as a single relocatable node
- * (relocateModeZone in maestro.js). Its base layout is the horizontal toolbar
- * flow it has in the bottom bar (<= 782px, and while docked-but-unstyled at
- * build time); the > 782px docked-in-menu-column treatment is added below,
- * gated by min-width so it can never apply at <= 782px. */
-.maestro-mode-zone {
-	display: inline-flex;
-	align-items: center;
-	gap: 16px; /* mode chip | save status — matches the toolbar's inter-zone gap */
-	flex-shrink: 0;
-}
-
-/* Docked into the admin-menu column (> 782px). Seamless with the menu: NO
- * plate, NO box-shadow — a subtle hairline divider above is the only separator.
- * Colour-scheme inheritance: transparent background + currentColor let each
- * admin colour scheme's menu tint show through, so Default/Modern/Midnight all
- * read as native menu chrome (no hardcoded dark). Docked at the very bottom of
- * #adminmenuwrap in the Collapse-menu slot (Collapse hidden by
- * .maestro-collapse-hidden). min-width:783px keeps ALL of this off at <= 782px,
- * where the zone rejoins the toolbar. */
-@media screen and ( min-width: 783px ) {
-	body.maestro-editing #adminmenuwrap > .maestro-mode-zone {
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 4px;
-		box-sizing: border-box;
-		width: 160px; /* fill the menu column */
-		padding: 10px 12px;
-		background: transparent; /* inherit the menu surface — seamless, no plate */
-		color: currentColor;
-		border-top: 1px solid rgba( 255, 255, 255, 0.13 ); /* subtle hairline divider only */
-		box-shadow: none;
-	}
-	/* Compact the chip + status so both read cleanly stacked at 160px. */
-	body.maestro-editing #adminmenuwrap > .maestro-mode-zone .maestro-mode-label,
-	body.maestro-editing #adminmenuwrap > .maestro-mode-zone .maestro-status {
-		min-height: 0;
-		font-size: 13px;
-	}
-}
-
 /* Per-state leading dashicon for the transient save states, so status is
  * distinguishable by shape as well as colour (WCAG 1.4.1). Dashicons (always
  * present in wp-admin, and declared as a style dependency) render consistently,
  * unlike the previous Unicode dingbats which some platforms substituted with
  * colour-emoji or dropped when emoji were disabled.
  *
- * The idle state has no ::before glyph on .maestro-status — the persistent
- * .maestro-mode-label element above carries the edit icon. The ::before
- * pseudo-element is used only for saving/saved/error save-state feedback.
+ * The idle state has no ::before glyph on .maestro-status — the toolbar's
+ * "Exit Menu Editor" control names the mode instead (assets/maestro.js
+ * buildToolbar). The ::before pseudo-element is used only for
+ * saving/saved/error save-state feedback.
  *
  * UX-12/UX-13 Gutenberg-muted save status: the rotating dashicons-update
  * glyph IS the "saving" signal (no colour needed) — this reuses core's own
@@ -657,16 +577,8 @@ body.maestro-editing #collapse-menu.maestro-collapse-hidden {
 		font-size: 12px;
 		min-height: 44px; /* tap-target floor — WCAG 2.5.5 AAA */
 	}
-	/* Keep the mode/status tiles the same height as the buttons at mobile widths. */
-	.maestro-mode-label,
+	/* Keep the status tile the same height as the buttons at mobile widths. */
 	.maestro-status:not( .maestro-status-idle ) {
-		min-height: 44px;
-	}
-	/* UX-09: at <= 782px the zone rejoins the toolbar as a horizontal row (its
-	 * base .maestro-mode-zone layout), tap-target floor carried by the tiles
-	 * above. The > 782px docked-column treatment is gated by min-width:783px so
-	 * none of it applies here. */
-	.maestro-mode-zone {
 		min-height: 44px;
 	}
 	/* Scope under .maestro-toolbar (specificity 0,2,0) so the 44px floor beats
