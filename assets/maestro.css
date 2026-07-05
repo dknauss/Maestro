@@ -93,11 +93,20 @@ body.maestro-editing.auto-fold #wpfooter {
 	position: relative;
 }
 .maestro-editing #adminmenu .maestro-modified-badge {
+	/* CSS-drawn dot (not the • text glyph, which rode its own low baseline and
+	 * appeared to slip below the label). Fixed box + vertical-align:middle
+	 * centres it on the label text independent of the font. The • textContent is
+	 * hidden by font-size:0; screen readers get "(modified)" from .maestro-modified-sr. */
+	display: inline-block;
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: currentColor;
 	color: #c3c4c7;
-	font-size: 15px; /* Gap 4 / BUG-07: bumped from 10px — bullet reads at a glance */
-	line-height: 1;
-	margin-left: 4px;
+	margin-left: 6px;
 	vertical-align: middle;
+	font-size: 0;
+	line-height: 1;
 	pointer-events: none;
 	user-select: none;
 }
