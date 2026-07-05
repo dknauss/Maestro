@@ -86,24 +86,30 @@ Public screenshot recapture stays in Phase 24 (REL-10).
   scheme; hardcode only where inheritance can't work (WP exposes no scheme CSS
   variables).
 
-### UX-09 geometry — REVISED 2026-07-05 (live iteration, user decision)
+### UX-09 geometry — RESOLVED 2026-07-05 (live iteration, two user decisions)
 - **The pinned menu-column zone is SCRAPPED.** Docking the mode+status zone at
   the bottom of the admin-menu column was built and viewed against the running
-  site (plan 23-02, commits `d768801`/`537b2f8`) and rejected by the user: it
-  read out-of-sync/misaligned and was "not viable down there." Lonely pencil in
-  a near-empty 160×45 slot below the fold.
-- **New approach — the Exit control names the mode.** The edit-mode signal
-  collapses into the bottom toolbar's Exit control, relabelled
-  **"Exit Menu Editor"** with a subtle neutral (menu-native, non-colour)
-  **background highlight** so its presence reads as the active-mode affordance
-  (wp-native pattern: Customizer/Site-Editor "Exit"). The pencil **"Edit Mode"
-  chip is removed** entirely.
+  site (plan 23-02, commits `d768801`/`537b2f8`, since removed) and rejected: it
+  read out-of-sync/misaligned and was "not viable down there."
+- **The bottom-toolbar Exit is REMOVED as redundant.** It duplicated the admin-
+  bar (WP Toolbar) toggle, which already flips **"Edit Menu" ↔ "Exit"** while
+  editing. Per the plugin's own doctrine (`class-admin-bar.php`: the toggle is
+  "deliberately hung off the admin bar, NOT the admin menu"), the Toolbar is the
+  home for entering/exiting.
+- **FINAL — the admin-bar Toolbar toggle is the single entry/exit AND the mode
+  indicator.** Relabel its editing state **"Exit" → "Exit Menu Editor"**; the
+  label flip ("Edit Menu" → "Exit Menu Editor") names the mode — no highlight
+  needed. The pencil "Edit Mode" chip is removed. The bottom toolbar holds only
+  the editing controls (muted save-status + contextual per-item tools + rename +
+  "?" help + Reset All) — no Exit, no mode chip.
+- **Save-flush guarantee preserved:** the removed bottom Exit's `onExit` awaited
+  a pending auto-save before navigating; the admin-bar toggle is a plain link, so
+  its click is intercepted (while editing) to await any pending save before
+  navigating — no last-change loss.
 - **Save status stays in the toolbar** (muted spinner / "Saved" / "Save failed",
-  per plan 01) — the only other indicator. Colour still reserved for
-  errors/destructive only.
-- **Dropped with the pin:** menu-column relocation, the 782px relocation gate
-  (`modeZonePlacement`), and all Collapse-menu manipulation. Item controls,
-  rename input, Reset All, and Exit already lived in the toolbar and stay there.
+  per plan 01). Colour reserved for errors/destructive only.
+- **Dropped with the pin:** menu-column relocation, the 782px gate
+  (`modeZonePlacement`), and all Collapse-menu manipulation.
 
 ### Motion
 - **Core-minimal**: instant state changes; the spinner is the only animation;
