@@ -34,8 +34,8 @@ backlog IDs without renumbering.
 
 - [x] **UX-09**: The toolbar "Edit Mode" zone is pinned to the admin-menu **column width** so it visually aligns with the menu it edits (distinct from the shipped UX-10 toolbar).
 - [x] **UX-12**: The toolbar's semantic-colour borders are refined — clearer or replaced with a more legible signal — via a discuss-and-refine pass, keeping the colour mapping accessible (not colour-only). *(Discuss-and-refine completed 2026-07-03: verdict is **replace** — the colour-border system is removed outright, superseded by the UX-13 native treatment.)*
-- [ ] **UX-13**: All edit-mode surfaces (toolbar, shared controls panel, icon/visibility popovers, first-run banner, coachmark, in-menu selection/badges) adopt **native wp-admin idioms** — quiet menu-native controls, Gutenberg-style muted save status, core popover/pointer patterns, colour reserved for errors and destructive actions, admin-colour-scheme inheritance where feasible. Non-colour signals (icons/labels/screen-reader text) remain the primary state carriers. *(Added 2026-07-03 during the Phase 23 discussion — deliberate widening of the v1.4 editor-polish scope; decisions locked in `phases/23-editor-ux-polish/23-CONTEXT.md`.)* *(Spans Phases 23-01–23-05; 23-01 converted the bottom toolbar, 23-02 consolidated the toolbar Exit onto the admin-bar toggle, 23-03 aligned the shared panel + icon/visibility popovers to core tokens — remaining surfaces (banner/coachmark/in-menu) land in 23-04–23-05.)*
-- [ ] **BUG-08**: The first-run banner's text and button are vertically centered (low cosmetic).
+- [ ] **UX-13**: All edit-mode surfaces (toolbar, shared controls panel, icon/visibility popovers, first-run banner, coachmark, in-menu selection/badges) adopt **native wp-admin idioms** — quiet menu-native controls, Gutenberg-style muted save status, core popover/pointer patterns, colour reserved for errors and destructive actions, admin-colour-scheme inheritance where feasible. Non-colour signals (icons/labels/screen-reader text) remain the primary state carriers. *(Added 2026-07-03 during the Phase 23 discussion — deliberate widening of the v1.4 editor-polish scope; decisions locked in `phases/23-editor-ux-polish/23-CONTEXT.md`.)* *(Spans Phases 23-01–23-05; 23-01 converted the bottom toolbar, 23-02 consolidated the toolbar Exit onto the admin-bar toggle, 23-03 aligned the shared panel + icon/visibility popovers to core tokens, 23-04 restyled the coachmark to a locally-replicated wp-pointer look and reconfirmed in-menu selection/dot tokens (Default scheme verified) — remaining work (Modern/Midnight spot-check, e2e/colour reconciliation, before/after screenshots) lands in 23-05.)*
+- [x] **BUG-08**: The first-run banner's text and button are vertically centered (low cosmetic). *(Fixed in Phase 23-04: the coachmark's footer buttons band and content area are vertically centered — confirmed across all 5 tour steps via the human-verify checkpoint.)*
 
 ### Release
 
@@ -79,8 +79,8 @@ Which phases cover which requirements. Populated during roadmap creation.
 | ROLE-02 | Phase 21 (conditional on Phase 19) | Pending |
 | UX-09 | Phase 23 | Complete |
 | UX-12 | Phase 23 | Complete |
-| UX-13 | Phase 23 | In Progress (23-01, 23-02, 23-03/5 done) |
-| BUG-08 | Phase 23 | Pending |
+| UX-13 | Phase 23 | In Progress (23-01, 23-02, 23-03, 23-04/5 done) |
+| BUG-08 | Phase 23 | Complete |
 | REL-10 | Phase 24 | Pending |
 
 **Coverage:**
@@ -90,4 +90,4 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 ---
 *Requirements defined: 2026-07-03*
-*Last updated: 2026-07-03 — UX-13 added (native wp-admin look, Phase 23 discussion); 11 requirements mapped to Phases 19–24 (0 unmapped)*
+*Last updated: 2026-07-05 — Phase 23-04 complete: BUG-08 marked Complete; UX-13 progress updated (23-01–23-04 done, 23-05 remaining)*

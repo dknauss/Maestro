@@ -211,7 +211,7 @@ Plans:
 - [x] 23-01-PLAN.md — Remove semantic-colour borders; convert the bottom toolbar to native quiet controls + muted save status (UX-12, UX-13)
 - [x] 23-02-PLAN.md — REVISED 2026-07-05 (live iteration): the pinned menu-column zone was built, viewed against the running site, and scrapped as out-of-sync; the bottom-toolbar Exit was then removed as redundant with the WP Toolbar admin-bar toggle, which is now the single entry/exit relabelled "Exit Menu Editor" with a re-homed save-flush-on-exit intercept, plus a Reset All underline fix (UX-09, UX-13)
 - [x] 23-03-PLAN.md — Align the shared panel + icon/visibility popovers to core popover/postbox tokens (UX-13). Most tokens already matched core from plans 01/02; closed the one real gap (missing core-blue focus-visible rings on several popover/panel controls) and documented the panel's necessary colour-scheme hardcode.
-- [ ] 23-04-PLAN.md — First-run banner centering (BUG-08); wp-pointer coachmark restyle; in-menu selection/dot-badge token pass (BUG-08, UX-13)
+- [x] 23-04-PLAN.md — First-run banner centering (BUG-08) and coachmark wp-pointer restyle, REPLICATED LOCALLY (locked default confirmed by live-verify checkpoint, not escalated to enqueue); in-menu selection/dot-badge tokens reconfirmed aligned. Checkpoint verified on Default admin colour scheme; Modern/Midnight deferred to 23-05 (BUG-08, UX-13)
 - [ ] 23-05-PLAN.md — e2e selector/colour reconciliation + before/after screenshots (Default/Modern/Midnight) + full-suite gate (UX-13)
 
 ### Phase 24: Release v1.4.0

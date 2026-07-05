@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Compatibility, Roles & Showcase
-status: "Phase 23 execution underway. Plan 23-04 IN PROGRESS — Task 1 complete + committed (badca7c), PAUSED at the Task 2 human-verify checkpoint (awaiting user 'approved'). Task 1: restyled the first-run coachmark to the wp-pointer look, REPLICATED LOCALLY (locked default) — a card body (.maestro-tour-content), a footer buttons band (light #f6f7f7 fill + top border, right-aligned Back/Next), and a directional CSS-drawn arrow (data-pointer-edge on the box; positionTour points it at the anchor centre). Our .maestro-tour* DOM/classes kept; behaviour/5 steps/copy/focus-trap frozen — no core stylesheet enqueued, no reshape to .wp-pointer* structure. BUG-08 fixed: the footer band vertically centres Skip/Back/Next (align-items:center + symmetric padding) and the content area balances the progress eyebrow + step text. In-menu selection (tinted row + inset #2271b1 bar) and the centered CSS modified dot already token-aligned from prior work — confirmed, left intact (dot NOT reverted). npm run test:js 53/53 green; tour.spec.ts hooks (.maestro-tour/-progress/-next/-help) all preserved. Dev site localhost:8888 serving the working-tree CSS live. Next: user verifies the checkpoint live (native wp-pointer read + BUG-08 + behaviour-unchanged + in-menu on Default/Modern/Midnight); on 'approved', finalize 23-04-SUMMARY, then plan 23-05 (banner/e2e reconciliation)."
-stopped_at: "Plan 23-04 Task 1 committed (badca7c); paused at Task 2 human-verify checkpoint (awaiting approval)"
-last_updated: "2026-07-05T09:00:00.000Z"
-last_activity: "2026-07-05 — Phase 23 Plan 04 Task 1 executed + committed (badca7c): coachmark restyled to the locally-replicated wp-pointer look (card body + footer buttons band + directional arrow), BUG-08 vertical centering fixed, in-menu selection/modified-dot confirmed token-aligned. npm run test:js 53/53 green. PAUSED at the Task 2 human-verify checkpoint — user to confirm the native wp-pointer read + BUG-08 + frozen behaviour + in-menu on Default/Modern/Midnight before the SUMMARY is finalized."
+status: "Phase 23 execution underway. Plan 23-04 COMPLETE — Task 1 (coachmark wp-pointer restyle + BUG-08 centering) committed badca7c; Task 2 human-verify checkpoint APPROVED by the user ('looks awesome'). wp-pointer adaptation: REPLICATE-LOCALLY confirmed (locked default held, not escalated to enqueue) — a card body (.maestro-tour-content), a footer buttons band (light #f6f7f7 fill + top border, right-aligned Back/Next), and a directional CSS-drawn arrow (data-pointer-edge on the box; positionTour points it at the anchor centre) read as a native core wp-pointer. Our .maestro-tour* DOM/classes kept; behaviour/5 steps/copy/focus-trap frozen — no core stylesheet enqueued, no reshape to .wp-pointer* structure; class-assets.php untouched. BUG-08 fixed: the footer band vertically centres Skip/Back/Next (align-items:center + symmetric padding) and the content area balances the progress eyebrow + step text. In-menu selection (tinted row + inset #2271b1 bar) and the centered CSS modified dot confirmed token-aligned (dot NOT reverted). npm run test:js 53/53 green; tour.spec.ts hooks preserved. Verification scope: checkpoint screenshot-verified on the Default admin colour scheme only (the white pointer card is scheme-independent); Modern + Midnight per-scheme spot-check is deferred to plan 23-05's before/after screenshot pass. Next: plan 23-05 (e2e/colour reconciliation + before/after screenshots on all three schemes + full-suite gate)."
+stopped_at: "Completed 23-04-PLAN.md"
+last_updated: "2026-07-05T09:30:00.000Z"
+last_activity: "2026-07-05 — Phase 23 Plan 04 completed: Task 1 (coachmark wp-pointer restyle, badca7c) + Task 2 human-verify checkpoint approved by the user. wp-pointer adaptation confirmed replicate-locally (not escalated to enqueue); BUG-08 centering fixed; in-menu selection/modified-dot confirmed token-aligned. npm run test:js 53/53 green. Verified on Default admin colour scheme; Modern/Midnight deferred to plan 23-05's screenshot pass."
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 6
-  completed_plans: 3
-  percent: 50
+  completed_plans: 4
+  percent: 67
 ---
 
 # Project State
@@ -21,17 +21,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-03)
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
-**Current focus:** Milestone v1.4 — Compatibility, Roles & Showcase. Roadmap created (Phases 19-24, 11/11 requirements mapped). Phase 23 widened (UX-13 native wp-admin restyle) and pulled forward. Next: plan 23-04 (coachmark BUG-08/wp-pointer restyle + in-menu token pass — dot-centering piece already landed out-of-band).
+**Current focus:** Milestone v1.4 — Compatibility, Roles & Showcase. Roadmap created (Phases 19-24, 11/11 requirements mapped). Phase 23 widened (UX-13 native wp-admin restyle) and pulled forward. Next: plan 23-05 (e2e/colour reconciliation + before/after screenshots on Default/Modern/Midnight + full-suite gate).
 
 ## Current Position
 
 Milestone: v1.4 — Compatibility, Roles & Showcase — **ROADMAP CREATED 2026-07-03**
 Phase: Phase 23 (Editor UX Polish) — executing (5 plans); Phase 19 (Cosmetic Hiding Feasibility) context gathered, planning still pending
-Plan: 23-04 IN PROGRESS — Task 1 done + committed (badca7c), PAUSED at the Task 2 human-verify checkpoint. Task 1 restyled the first-run coachmark to the locally-replicated wp-pointer look (card body + footer buttons band + directional arrow), fixed BUG-08 (vertical centering of the coachmark text + Skip/Back/Next), and confirmed the in-menu selection tint + inset #2271b1 accent bar and the centered CSS modified dot are already token-aligned (dot NOT reverted). Behaviour/5 steps/copy/focus-trap frozen — no core wp-pointer stylesheet enqueued, DOM kept as our .maestro-tour* classes. npm run test:js 53/53 green; tour.spec.ts hooks preserved.
-Status: Phase 23 execution underway per the 2026-07-04 ordering decision (Phase 23 first, Phase 19 planning follows). 11/11 requirements mapped, 0 unmapped. Plan 23-04 Task 1 committed; PAUSED at the Task 2 human-verify checkpoint (awaiting user "approved" or adjustments) — the SUMMARY is finalized only after the checkpoint resolves. e2e drift in `editor.spec.ts` from the removed pencil mode chip (23-01) remains deliberately deferred to plan 23-05 (its own reconciliation plan). The in-menu modified-dot centering fix landed out-of-band earlier via live iteration (b9f4cca/2737466). Next: user live-verifies the coachmark checkpoint, then finalize 23-04, then plan 23-05.
-Last activity: 2026-07-05 — Phase 23 Plan 03 executed: audited panel + icon/visibility popovers against core wp-admin tokens; added missing core-blue focus-visible rings to icon-search, icon-none, icon-tab, visibility checkboxes, and the rename input; documented the panel's necessary colour-scheme hardcode. npm run test:js 53/53 green; live-verified on wp-env dev site via Playwright screenshots.
+Plan: 23-04 COMPLETE — Task 1 committed (badca7c), Task 2 human-verify checkpoint APPROVED. Task 1 restyled the first-run coachmark to the locally-replicated wp-pointer look (card body + footer buttons band + directional arrow), fixed BUG-08 (vertical centering of the coachmark text + Skip/Back/Next), and confirmed the in-menu selection tint + inset #2271b1 accent bar and the centered CSS modified dot are already token-aligned (dot NOT reverted). Behaviour/5 steps/copy/focus-trap frozen — no core wp-pointer stylesheet enqueued, DOM kept as our .maestro-tour* classes. npm run test:js 53/53 green; tour.spec.ts hooks preserved. Checkpoint verified on the Default admin colour scheme; Modern/Midnight per-scheme spot-check deferred to plan 23-05.
+Status: Phase 23 execution underway per the 2026-07-04 ordering decision (Phase 23 first, Phase 19 planning follows). 11/11 requirements mapped, 0 unmapped. Plan 23-04 complete (Task 1 badca7c; Task 2 checkpoint approved by the user, "looks awesome") — wp-pointer adaptation confirmed replicate-locally (locked default held, not escalated to enqueue). e2e drift in `editor.spec.ts` from the removed pencil mode chip (23-01) remains deliberately deferred to plan 23-05 (its own reconciliation plan). The in-menu modified-dot centering fix landed out-of-band earlier via live iteration (b9f4cca/2737466). Next: plan 23-05 (e2e/colour reconciliation + before/after screenshots on Default/Modern/Midnight + full-suite gate).
+Last activity: 2026-07-05 — Phase 23 Plan 04 executed: coachmark restyled to the locally-replicated wp-pointer look (card body + footer buttons band + directional arrow, badca7c); BUG-08 vertical centering fixed; in-menu selection/modified-dot confirmed token-aligned. Task 2 human-verify checkpoint approved by the user. npm run test:js 53/53 green; tour.spec.ts hooks preserved. Verified on Default admin colour scheme; Modern/Midnight deferred to plan 23-05.
 
-Progress: [█████░░░░░] 50% (v1.4: 3/6 plans complete across the milestone's phases)
+Progress: [███████░░░] 67% (v1.4: 4/6 plans complete across the milestone's phases)
 
 ## Release Binding
 
@@ -158,6 +158,7 @@ Recent decisions affecting current work:
 - [Phase 23-editor-ux-polish]: 23-01: kept the existing bullet-dot modified-row badge, only recoloured amber to neutral #c3c4c7 — already matched the Gutenberg unsaved-changes idiom, no new glyph needed
 - [Phase 23-editor-ux-polish]: 23-02 Task 2: admin-bar toggle relabelled 'Exit Menu Editor' is the single entry/exit; save-flush-on-exit re-homed onto its click intercept (bindAdminBarExit); Reset All underline bug fixed to match core .button-link-delete exactly (no underline at rest or hover)
 - [Phase 23-editor-ux-polish]: 23-03: popover/tab/cell tokens were already at core values from prior plans; the only gap was missing focus-visible rings on icon-search, icon-none, icon-tab, vis-row checkboxes, and the rename input — added the consistent core-blue ring (#2271b1) to all; panel divider/label/field text stay hardcoded (no WP admin-colour-scheme CSS variable exists for a custom-drawn toolbar/panel surface to inherit)
+- [Phase 23-editor-ux-polish]: 23-04: wp-pointer adaptation REPLICATE-LOCALLY confirmed (locked default held, not escalated to enqueue) — coachmark reads as a native core wp-pointer via a locally-styled card/footer-button-band/directional-arrow, .maestro-tour* DOM/classes and class-assets.php untouched; BUG-08 fixed via centered footer band + balanced content; in-menu selection/modified-dot reconfirmed token-aligned (dot not reverted); checkpoint verified on Default admin colour scheme only, Modern/Midnight deferred to 23-05
 
 ### Roadmap Evolution
 
@@ -194,6 +195,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-07-05T08:13:24.548Z
-Stopped at: Completed 23-03-PLAN.md
+Last session: 2026-07-05T09:30:00.000Z
+Stopped at: Completed 23-04-PLAN.md
 Resume file: None
