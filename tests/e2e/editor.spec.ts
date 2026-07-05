@@ -91,6 +91,58 @@ test.describe( 'Admin Menu Maestro — editor', () => {
 		await expect( page.locator( '#menu-posts .wp-menu-name' ) ).not.toContainText( 'Articles' );
 	} );
 
+	test( 'exiting via the admin-bar toggle flushes the pending save before navigating (no lost last change)', async ( { page } ) => {
+		// Phase 23 plan 02: the redundant bottom-toolbar `.maestro-exit` control was
+		// removed; the WP Toolbar admin-bar toggle (#wp-admin-bar-maestro-toggle,
+		// relabelled "Exit Menu Editor" while editing) is now the single entry/exit,
+		// and bindAdminBarExit() re-homes the save-flush-before-navigate guarantee
+		// onto its click. This proves that guarantee end to end: edit → click the
+		// Toolbar exit → after the reload, the change PERSISTED.
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+
+		await page.locator( '#menu-posts > a.menu-top' ).click();
+		const panel = page.locator( '.maestro-toolbar .maestro-panel' );
+		await expect( panel ).toBeVisible();
+
+		const rename = panel.locator( '.maestro-rename-input' );
+		await expect( rename ).toBeVisible();
+		await rename.fill( 'Exit Test' );
+		await rename.press( 'Enter' );
+
+		// Click the admin-bar toggle immediately after committing the rename, while
+		// the debounced autosave is still pending/in-flight — this is the race the
+		// click-intercept must win by awaiting waitForSaveIdle() before navigating.
+		const toggle = page.locator( '#wp-admin-bar-maestro-toggle > .ab-item' );
+		await expect( toggle ).toContainText( 'Exit Menu Editor' );
+		await toggle.click();
+
+		// The intercept navigates via the toggle's own href once the save settles —
+		// wait for that navigation to land on the non-editing admin page (the href
+		// is `remove_query_arg( 'maestro_edit' )`, so the flag is absent entirely).
+		await page.waitForURL( ( url ) => ! url.search.includes( 'maestro_edit' ) );
+
+		// Re-enter edit mode and reload: the change must have persisted server-side,
+		// proving the click-intercept awaited the pending save rather than racing it.
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
+		await expect( page.locator( '#menu-posts .wp-menu-name' ) ).toContainText( 'Exit Test' );
+
+		// Clean up so the next test starts from a stable baseline. force:true —
+		// after this test's double navigation (admin-bar click-intercept, then a
+		// second page.goto), Playwright's actionability "stable" wait hangs on
+		// this element even though its bounding box is static, hit-tests to
+		// itself, and is enabled/opaque/pointer-events:auto (verified directly);
+		// force bypasses only that hover/animation-frame wait, not a real
+		// obstruction — same escape hatch this suite already relies on for
+		// click-delivery quirks after multi-step navigations (see STATE.md's
+		// 11-08 race(b) note on position:fixed toolbar click-delivery).
+		const resetAll = page.locator( '.maestro-toolbar .maestro-reset-all' );
+		await expect( resetAll ).toBeVisible();
+		page.once( 'dialog', d => d.accept() );
+		await resetAll.click( { force: true } );
+		await expect( page.locator( '#menu-posts .wp-menu-name' ) ).toContainText( 'Posts' );
+	} );
+
 	test( 'reset this item clears a single item override without resetting everything', async ( { page } ) => {
 		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
 
@@ -542,13 +594,13 @@ test.describe( 'Phase 7 — UX-02 no-overlap / no-resize at 1200px and 700px', (
 			const panel = page.locator( '.maestro-toolbar .maestro-panel' );
 			await expect( panel ).toBeVisible();
 
-			// The toolbar and its persistent mode indicator must be visible.
-			// (Post-09-02 the persistent indicator is `.maestro-mode-label`;
-			// `.maestro-status` is now the transient save-status, empty/hidden at idle.)
+			// The toolbar must be visible. (Phase 23 plan 02: the persistent
+			// `.maestro-mode-label` pencil chip was REMOVED — mode is now named
+			// by the WP Toolbar admin-bar toggle, not a bottom-toolbar element.
+			// `.maestro-status` remains the transient save-status, empty/hidden
+			// at idle — no relocation happened.)
 			const toolbar = page.locator( '.maestro-toolbar' );
-			const modeLabel = toolbar.locator( '.maestro-mode-label' );
 			await expect( toolbar ).toBeVisible();
-			await expect( modeLabel ).toBeVisible();
 
 			// No horizontal overflow: toolbar width must fit within the viewport.
 			const toolbarBox = await toolbar.boundingBox();
@@ -642,41 +694,32 @@ test.describe( 'Phase 7 — status icon: none when idle, dashicon for save state
 
 } );
 
-test.describe( 'UX-03 — split mode indicator: persistent mode label + transient save-status', () => {
+test.describe( 'UX-03/UX-09 — mode named by the admin-bar toggle; transient save-status in the toolbar', () => {
 
-	test( 'persistent .maestro-mode-label is icon-only with pencil dashicon and "Edit Mode" accessible name', async ( { page } ) => {
+	// Phase 23 plan 02 REMOVED the persistent `.maestro-mode-label` pencil chip
+	// entirely (no relocation, no replacement bottom-toolbar element) — the mode
+	// is now named by the WP Toolbar (admin-bar) toggle, whose editing-state
+	// label reads "Exit Menu Editor". The two mode-label tests that used to live
+	// here are deleted (never silently — see 23-05-SUMMARY.md); the admin-bar
+	// toggle's label is asserted directly below and in the save-flush-on-exit
+	// test further down this file.
+
+	test( 'the admin-bar toggle is relabelled "Exit Menu Editor" while editing, and the toolbar save-status stays a separate, empty-at-idle element', async ( { page } ) => {
 		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
 
-		// The persistent mode indicator must be visible in the toolbar at all times.
-		const modeLabel = page.locator( '.maestro-toolbar .maestro-mode-label' );
-		await expect( modeLabel ).toBeVisible();
+		// The mode indicator is the WP Toolbar toggle, not a bottom-toolbar element.
+		const toggle = page.locator( '#wp-admin-bar-maestro-toggle' );
+		await expect( toggle ).toBeVisible();
+		await expect( toggle ).toContainText( 'Exit Menu Editor' );
 
-		// It must contain a .dashicons child (the aria-hidden green pencil mode icon).
-		const modeIcon = modeLabel.locator( '.dashicons' );
-		await expect( modeIcon ).toHaveCount( 1 );
-
-		// Icon-only: the accessible name is carried by aria-label (UX-03 intent — a
-		// glanceable, non-colour-dependent "you are editing" cue), not visible text.
-		await expect( modeLabel ).toHaveAttribute( 'aria-label', 'Edit Mode' );
-
-		// The visible text label is hidden to keep the toolbar compact.
-		await expect( modeLabel.locator( '.maestro-btn-label' ) ).toBeHidden();
-	} );
-
-	test( 'save-status element is separate from mode label and empty at idle', async ( { page } ) => {
-		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
-
-		// The transient save-status element must be present as a SEPARATE element.
+		// The transient save-status element must be present as a SEPARATE element,
+		// still under `.maestro-toolbar` (no relocation happened).
 		const saveStatus = page.locator( '.maestro-toolbar .maestro-status' );
 		await expect( saveStatus ).toHaveCount( 1 );
 
 		// At idle, the save-status element must be empty (textContent is '' or whitespace).
 		const idleText = await saveStatus.textContent();
 		expect( ( idleText ?? '' ).trim() ).toBe( '' );
-
-		// The mode label and save-status must be distinct, independent elements.
-		const modeLabel = page.locator( '.maestro-toolbar .maestro-mode-label' );
-		await expect( modeLabel ).toHaveCount( 1 );
 	} );
 
 	test( 'idle .maestro-status::before content is none (save-status has no glyph at idle)', async ( { page } ) => {
@@ -686,8 +729,9 @@ test.describe( 'UX-03 — split mode indicator: persistent mode label + transien
 		await expect( status ).toHaveCount( 1 );
 
 		// PRESERVED GUARD (Phase 7): the save-status ::before must have content:none at idle.
-		// The idle edit icon is now a real DOM <span> child of .maestro-mode-label,
-		// NOT a ::before on .maestro-status — so this assertion still holds.
+		// (The removed .maestro-mode-label pencil chip carried its own idle icon as a
+		// real DOM <span> child before Phase 23 plan 02 removed it entirely; that never
+		// touched .maestro-status, so this assertion still holds unchanged.)
 		const idleContent = await status.evaluate(
 			( el ) => getComputedStyle( el, '::before' ).content
 		);

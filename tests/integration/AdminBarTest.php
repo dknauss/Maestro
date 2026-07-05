@@ -9,14 +9,12 @@
  * LocalizationTest asserts the JS i18n payload which does NOT contain these admin-bar
  * strings, so relying on it would leave UX-08b unverified.
  *
- * WAVE 0 STATE: This test is INTENTIONALLY RED against current code. It asserts the
- * UX-08b TARGET strings:
- *   - Visible label (enter):  'Edit Menu'    (current: 'Edit Admin Menu')
- *   - Visible label (exit):   'Exit'         (current: 'Exit Editor')
+ * Strings locked by UX-08b (Phase 11) and relabelled by UX-09 (Phase 23, plan 23-02
+ * Task 2 — the admin-bar toggle became the single entry/exit and mode indicator):
+ *   - Visible label (enter):  'Edit Menu'
+ *   - Visible label (exit):   'Exit Menu Editor'  (was 'Exit' pre-Phase-23)
  *   - meta.title (enter):     'Edit Admin Menu'
- *   - meta.title (exit):      'Exit Editor'
- *
- * Plan 11-02 changes class-admin-bar.php to these strings and turns this test green.
+ *   - meta.title (exit):      'Exit Menu Editor'  (was 'Exit Editor' pre-Phase-23)
  *
  * @package Maestro
  */
@@ -105,12 +103,12 @@ class AdminBarTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * UX-08b exit label: the visible node title must contain 'Exit' (short form)
-	 * and retain the dashicons-exit icon span.
-	 *
-	 * Current code emits 'Exit Editor' — this test is RED until 11-02.
+	 * UX-09 exit label: the visible node title must contain 'Exit Menu Editor'
+	 * and retain the dashicons-exit icon span. The admin-bar toggle is the
+	 * single entry/exit and mode indicator (Phase 23) — its editing-state
+	 * label names the mode, no highlight needed.
 	 */
-	public function test_exit_label_contains_exit() {
+	public function test_exit_label_contains_exit_menu_editor() {
 		// Enter edit mode.
 		$_GET['maestro_edit'] = '1';
 
@@ -127,19 +125,12 @@ class AdminBarTest extends WP_UnitTestCase {
 			'Exit-mode node title must contain the dashicons-exit icon span'
 		);
 
-		// UX-08b target: visible label is compact 'Exit', not the long form.
+		// UX-09 target: visible label is the full "Exit Menu Editor" — it now
+		// names the mode as well as the action (no separate mode chip).
 		$this->assertStringContainsString(
-			'Exit',
+			'Exit Menu Editor',
 			$title,
-			'Exit-mode node title must contain "Exit" (UX-08b compact label)'
-		);
-
-		// Guard: the full form 'Exit Editor' must NOT appear in the visible title
-		// (it belongs in meta.title only).
-		$this->assertStringNotContainsString(
-			'Exit Editor',
-			$title,
-			'Exit-mode visible title must use compact "Exit", not full "Exit Editor"'
+			'Exit-mode node title must contain "Exit Menu Editor" (UX-09 relabel)'
 		);
 	}
 
@@ -166,10 +157,9 @@ class AdminBarTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * UX-08b meta.title (exit): the long accessible form 'Exit Editor' must be
-	 * preserved in meta.title (aria-label / tooltip) for screen readers.
-	 *
-	 * This ensures the compact visible 'Exit' label doesn't drop a11y coverage.
+	 * UX-09 meta.title (exit): 'Exit Menu Editor' must be preserved in
+	 * meta.title (aria-label / tooltip) for screen readers, matching the
+	 * visible label now that both are the same full form.
 	 */
 	public function test_exit_meta_title_is_long_form() {
 		$_GET['maestro_edit'] = '1';
@@ -181,9 +171,9 @@ class AdminBarTest extends WP_UnitTestCase {
 		$meta_title = $node->meta['title'] ?? '';
 
 		$this->assertStringContainsString(
-			'Exit Editor',
+			'Exit Menu Editor',
 			$meta_title,
-			'Exit-mode meta.title must retain full "Exit Editor" for screen readers'
+			'Exit-mode meta.title must contain "Exit Menu Editor" for screen readers'
 		);
 	}
 }

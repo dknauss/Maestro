@@ -27,15 +27,15 @@ backlog IDs without renumbering.
 
 ### Roles (cosmetic only)
 
-- [ ] **ROLE-01**: A feasibility note determines whether per-user and/or cloned-role cosmetic menu hiding can be delivered **without** touching capabilities (stays cosmetic per the core value) within WordPress's role/user model, and specifies the storage shape + resolution seam. **Gates ROLE-02** — if it can't stay cosmetic, ROLE-02 defers.
+- [x] **ROLE-01**: A feasibility note determines whether per-user and/or cloned-role cosmetic menu hiding can be delivered **without** touching capabilities (stays cosmetic per the core value) within WordPress's role/user model, and specifies the storage shape + resolution seam. **Gates ROLE-02** — if it can't stay cosmetic, ROLE-02 defers. *(Complete 2026-07-05 — Phase 19. Verdict: **partial-go**; both branches clear the cosmetic-only bar. Storage: inline `items[slug].hidden_users` axis + a `profiles` registry compiling onto `items[slug].hidden_profiles`; seam: widen `is_hidden_for_current_user()`. Phase 21 unblocked, per-user first. See `phases/19-cosmetic-hiding-feasibility/19-FEASIBILITY-NOTE.md`.)*
 - [ ] **ROLE-02**: An admin can apply cosmetic menu-hiding rules scoped to a **specific user** (or a cloned role), intersected against that user's live roles. The rules never grant or remove a capability; a hidden page still loads by URL for a user who has the capability. *(conditional on ROLE-01)*
 
 ### Editor UX
 
-- [ ] **UX-09**: The toolbar "Edit Mode" zone is pinned to the admin-menu **column width** so it visually aligns with the menu it edits (distinct from the shipped UX-10 toolbar).
-- [ ] **UX-12**: The toolbar's semantic-colour borders are refined — clearer or replaced with a more legible signal — via a discuss-and-refine pass, keeping the colour mapping accessible (not colour-only). *(Discuss-and-refine completed 2026-07-03: verdict is **replace** — the colour-border system is removed outright, superseded by the UX-13 native treatment.)*
-- [ ] **UX-13**: All edit-mode surfaces (toolbar, shared controls panel, icon/visibility popovers, first-run banner, coachmark, in-menu selection/badges) adopt **native wp-admin idioms** — quiet menu-native controls, Gutenberg-style muted save status, core popover/pointer patterns, colour reserved for errors and destructive actions, admin-colour-scheme inheritance where feasible. Non-colour signals (icons/labels/screen-reader text) remain the primary state carriers. *(Added 2026-07-03 during the Phase 23 discussion — deliberate widening of the v1.4 editor-polish scope; decisions locked in `phases/23-editor-ux-polish/23-CONTEXT.md`.)*
-- [ ] **BUG-08**: The first-run banner's text and button are vertically centered (low cosmetic).
+- [x] **UX-09**: The toolbar "Edit Mode" zone is pinned to the admin-menu **column width** so it visually aligns with the menu it edits (distinct from the shipped UX-10 toolbar). *(Re-scoped in live iteration 2026-07-05: the pinned menu-column zone was built and tried against a running site, then **scrapped** as non-viable (misaligned, read as a stray element). UX-09's intent — a clear, native edit-mode indicator — is delivered instead by consolidating onto the WP Toolbar (admin-bar) toggle, relabelled **"Exit Menu Editor"** while editing, which names the mode and is the single entry/exit; a click-intercept flushes any pending auto-save before navigating. Decisions in `phases/23-editor-ux-polish/23-CONTEXT.md` §UX-09 geometry.)*
+- [x] **UX-12**: The toolbar's semantic-colour borders are refined — clearer or replaced with a more legible signal — via a discuss-and-refine pass, keeping the colour mapping accessible (not colour-only). *(Discuss-and-refine completed 2026-07-03: verdict is **replace** — the colour-border system is removed outright, superseded by the UX-13 native treatment.)*
+- [x] **UX-13**: All edit-mode surfaces (toolbar, shared controls panel, icon/visibility popovers, first-run banner, coachmark, in-menu selection/badges) adopt **native wp-admin idioms** — quiet menu-native controls, Gutenberg-style muted save status, core popover/pointer patterns, colour reserved for errors and destructive actions, admin-colour-scheme inheritance where feasible. Non-colour signals (icons/labels/screen-reader text) remain the primary state carriers. *(Added 2026-07-03 during the Phase 23 discussion — deliberate widening of the v1.4 editor-polish scope; decisions locked in `phases/23-editor-ux-polish/23-CONTEXT.md`.)* *(Delivered across Phases 23-01–23-05; 23-01 converted the bottom toolbar, 23-02 consolidated the toolbar Exit onto the admin-bar toggle, 23-03 aligned the shared panel + icon/visibility popovers to core tokens, 23-04 restyled the coachmark to a locally-replicated wp-pointer look, 23-05 spot-checked Modern/Midnight, reconciled e2e selector/colour assertions to the restyle, and closed the phase with a green full-suite gate (WCAG 1.4.1 accessibility confirmed) — complete 2026-07-05.)*
+- [x] **BUG-08**: The first-run banner's text and button are vertically centered (low cosmetic). *(Fixed in Phase 23-04: the coachmark's footer buttons band and content area are vertically centered — confirmed across all 5 tour steps via the human-verify checkpoint.)*
 
 ### Release
 
@@ -59,7 +59,7 @@ backlog IDs without renumbering.
 
 | Item | Reason |
 |------|--------|
-| Real access control / enforced tiers | Visibility is cosmetic by design; the page's own capability is the true gate. Bundling half-enforcement manufactures false security. An *enforced* per-user tier belongs in a sibling project or a documented bridge, not Maestro core. |
+| Real access control / enforced tiers | Visibility is cosmetic by design; the page's own capability is the true gate. Bundling half-enforcement manufactures false security. An *enforced* per-user tier is out of scope entirely — Maestro never enforces and assumes **no dependency** on any other plugin to hold its cosmetic-only guarantee; any enforced tier would be separate work in a separate project, not Maestro core. |
 | Front-end / non-admin menu editing | Admin menu only. |
 | Reparenting, separators, import/export, multisite defaults, custom-icon upload | Post-1.0 backlog, not this milestone. |
 
@@ -75,12 +75,12 @@ Which phases cover which requirements. Populated during roadmap creation.
 | COMPAT-04 | Phase 20 | Pending |
 | COMPAT-07 | Phase 20 | Pending |
 | COMPAT-10 | Phase 20 | Pending |
-| ROLE-01 | Phase 19 | Pending |
-| ROLE-02 | Phase 21 (conditional on Phase 19) | Pending |
-| UX-09 | Phase 23 | Pending |
-| UX-12 | Phase 23 | Pending |
-| UX-13 | Phase 23 | Pending |
-| BUG-08 | Phase 23 | Pending |
+| ROLE-01 | Phase 19 | ✅ Complete (partial-go) 2026-07-05 |
+| ROLE-02 | Phase 21 (unblocked — go, per-user first) | Pending |
+| UX-09 | Phase 23 | ✅ Complete 2026-07-05 |
+| UX-12 | Phase 23 | ✅ Complete 2026-07-05 |
+| UX-13 | Phase 23 | ✅ Complete 2026-07-05 |
+| BUG-08 | Phase 23 | ✅ Complete 2026-07-05 |
 | REL-10 | Phase 24 | Pending |
 
 **Coverage:**
@@ -90,4 +90,4 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 ---
 *Requirements defined: 2026-07-03*
-*Last updated: 2026-07-03 — UX-13 added (native wp-admin look, Phase 23 discussion); 11 requirements mapped to Phases 19–24 (0 unmapped)*
+*Last updated: 2026-07-05 — Phase 23-05 complete: UX-13 marked Complete; Phase 23 fully delivered (UX-09, UX-12, UX-13, BUG-08)*

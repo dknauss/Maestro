@@ -84,7 +84,8 @@
 	 * When the item matches its pristine default: removes everything.
 	 *
 	 * WCAG 1.4.1 (color alone): the glyph provides a perceivable non-color signal.
-	 * WCAG 1.4.11 (graphical objects): amber #dba617 on #1d2327 ≈ 5.5:1 contrast.
+	 * WCAG 1.4.11 (graphical objects): neutral #c3c4c7 on #1d2327 ≈ 8.6:1 contrast
+	 * (UX-12/UX-13: no amber — colour is reserved for errors + destructive actions).
 	 * AT users hear "(modified)" via the screen-reader-text span.
 	 */
 	function refreshModifiedIndicator( slug ) {
@@ -426,19 +427,6 @@
 	function buildToolbar() {
 		var bar = el( 'div', 'maestro-toolbar' );
 
-		// Persistent mode indicator — NOT a live region, text never changes (UX-03).
-		// Icon-only (green pencil) to reclaim toolbar width; the accessible name is
-		// carried by aria-label and a hidden .maestro-btn-label span, with a title
-		// tooltip for sighted users. The green pencil is the non-colour shape cue.
-		var modeEl = el( 'div', 'maestro-mode-label' );
-		modeEl.setAttribute( 'aria-label', I.modeLabel );
-		modeEl.setAttribute( 'title', I.modeLabel );
-		var modeIcon = el( 'span', 'dashicons dashicons-edit maestro-mode-icon' );
-		modeIcon.setAttribute( 'aria-hidden', 'true' );
-		modeEl.appendChild( modeIcon );
-		modeEl.appendChild( el( 'span', 'maestro-btn-label', I.modeLabel ) );
-		bar.appendChild( modeEl );
-
 		// Transient save-status — aria-live, empty at idle so no announcement fires.
 		// Icon-only: the per-state ::before dashicon (spinner/check/warning) is the
 		// visible cue; the word ("Saving…"/"Saved"/…) lives in a screen-reader-only
@@ -555,26 +543,22 @@
 
 		var right = el( 'div', 'maestro-toolbar-right' );
 
-		// Icon-only like the panel controls. Distinct glyphs: backup/restore (restore
-		// everything) for Reset All vs the panel's undo (single-item) Reset Item;
-		// the exit-door glyph for Exit — matching the admin-bar toggle
-		// (class-admin-bar.php) so the same action shares one icon across surfaces,
-		// and so Exit reads distinctly from the toolbar's ▲/▼ move arrows. aria-label
-		// + title carry the name; Reset All is still guarded by the confirm dialog in
-		// doResetAll().
-		var resetAll = el( 'button', 'button maestro-reset-all' );
+		// Reset All keeps its visible text label (Label mix preserved, CONTEXT
+		// §WP-native styling) — unlike the five icon-only panel buttons, the CSS
+		// does not hide its .maestro-btn-label span. aria-label + title still
+		// carry the accessible name/hover hint; Reset All is still guarded by
+		// the confirm dialog in doResetAll(). Reset All additionally carries
+		// button-link-delete — core's destructive text-link idiom (red text,
+		// no box). The single entry/exit lives on the admin-bar (WP Toolbar)
+		// toggle now (class-admin-bar.php) — no bottom-toolbar Exit control.
+		var resetAll = el( 'button', 'button maestro-reset-all button-link-delete' );
 		resetAll.type = 'button';
 		iconButton( resetAll, 'dashicons-backup', I.resetAll );
 		resetAll.addEventListener( 'click', doResetAll );
 
-		var exit = el( 'a', 'button maestro-exit' );
-		iconButton( exit, 'dashicons-exit', I.exit );
-		exit.href = D.exitUrl;
-		exit.addEventListener( 'click', onExit );
-
 		// Replay the guided tour (UX-11). The "?" glyph is the conventional help
-		// affordance; it sits ahead of Reset All / Exit so destructive controls
-		// stay at the trailing edge.
+		// affordance; it sits ahead of Reset All so the destructive control
+		// stays at the trailing edge.
 		var help = el( 'button', 'button maestro-tour-help' );
 		help.type = 'button';
 		iconButton( help, 'dashicons-editor-help', I.tourHelp );
@@ -582,10 +566,31 @@
 
 		right.appendChild( help );
 		right.appendChild( resetAll );
-		right.appendChild( exit );
 		bar.appendChild( right );
 
 		document.body.appendChild( bar );
+
+		bindAdminBarExit();
+	}
+
+	// UX-09: the WP Toolbar (admin-bar) "Exit Menu Editor" toggle is the single
+	// entry/exit — it replaces the removed bottom-toolbar Exit control. The
+	// admin-bar node is a plain navigation link, so its click is intercepted
+	// (while editing) to flush any pending/in-flight save first — the same
+	// save-flush guarantee the removed Exit control provided via onExit — then
+	// navigate to the link's href. The href itself (remove_query_arg) is left
+	// entirely to class-admin-bar.php; this only defers the navigation.
+	function bindAdminBarExit() {
+		var toggle = document.querySelector( '#wp-admin-bar-maestro-toggle > .ab-item' );
+		if ( ! toggle ) { return; }
+		toggle.addEventListener( 'click', function ( e ) {
+			if ( ! saveTimer && ! inFlight ) { return; }
+			e.preventDefault();
+			var href = toggle.href;
+			waitForSaveIdle().then( function () {
+				window.location.href = href;
+			} );
+		} );
 	}
 
 	function populatePanel( slug ) {
@@ -603,14 +608,14 @@
 		// Icon picker is top-level only; submenu items have no icon column.
 		panel.iconBtn.style.display = m.isSub ? 'none' : '';
 
-		// Reflect modified state on the reset button: amber + enabled when modified,
-		// dimmed + disabled when there is nothing to reset.
+		// Reflect modified state on the reset button: enabled when modified,
+		// dimmed + disabled when there is nothing to reset (no amber — UX-12/UX-13).
 		var def = m.isSub ? pristineSub( slug ) : pristineTop( slug );
 		updateResetButton( slug, window.maestroLogic.diffItem( m, def ).modified );
 	}
 
 	// Sync the per-item Reset button to the selected item's modified state so its
-	// enabled/amber state means "you have changes to undo".
+	// enabled/dimmed state means "you have changes to undo".
 	function updateResetButton( slug, isModified ) {
 		if ( ! panel.resetBtn || slug !== selectedSlug ) { return; }
 		panel.resetBtn.classList.toggle( 'is-modified', isModified );
@@ -1133,7 +1138,7 @@
 	// pending flag and fire exactly one more save when the current one settles —
 	// that trailing POST carries the latest buildConfig(). The returned promise
 	// resolves only after the whole chain (including the trailing save) is done,
-	// so onExit can safely await it.
+	// so bindAdminBarExit's click intercept can safely await it.
 	function doAutosave() {
 		saveTimer = null;
 
@@ -1229,16 +1234,6 @@
 			} );
 	}
 
-	function onExit( e ) {
-		// If there's pending or active work, flush/wait before navigating so nothing is lost.
-		if ( saveTimer || inFlight ) {
-			e.preventDefault();
-			waitForSaveIdle().then( function () {
-				window.location.href = D.exitUrl;
-			} );
-		}
-	}
-
 	/* ---------- guided tour (coachmarks) ---------------------------------- */
 
 	// UX-11: a stepped, anchored coachmark tour replaces the old one-shot pulse
@@ -1267,7 +1262,12 @@
 			{ text: I.tourStep2, placement: 'top', before: tourSelectFirst, anchor: function () { return panel.rename; } },
 			{ text: I.tourStep3, placement: 'top', before: tourSelectFirst, anchor: function () { return document.querySelector( '.maestro-move-up' ); } },
 			{ text: I.tourStep4, placement: 'top', anchor: function () { return document.querySelector( '.maestro-reset-all' ); } },
-			{ text: I.tourStep5, placement: 'top', anchor: function () { return document.querySelector( '.maestro-exit' ); } },
+			// Step 5 anchors to the WP Toolbar (admin-bar) "Exit Menu Editor"
+			// toggle — the single entry/exit (UX-09) — not a bottom-toolbar
+			// control. positionTour's 'top' placement falls back to below the
+			// anchor when there's no room above, which is always the case this
+			// near the top of the viewport.
+			{ text: I.tourStep5, placement: 'top', anchor: function () { return document.getElementById( 'wp-admin-bar-maestro-toggle' ); } },
 		];
 	}
 
@@ -1369,6 +1369,20 @@
 		box.setAttribute( 'aria-modal', 'true' );
 		box.setAttribute( 'aria-label', I.tourTitle );
 
+		/* wp-pointer look, replicated locally: a directional arrow drawn as a
+		 * rotated square that overlaps the card edge (see .maestro-tour-arrow in
+		 * maestro.css). aria-hidden — purely decorative; the card is the dialog.
+		 * positionTour sets data-pointer-edge to the resolved edge so CSS draws
+		 * the arrow on the correct side. No effect on steps/copy/anchors/trap. */
+		var arrow = el( 'span', 'maestro-tour-arrow' );
+		arrow.setAttribute( 'aria-hidden', 'true' );
+
+		/* The card body holds the pointer content (progress + text); controls
+		 * live in a footer band below, mirroring wp-pointer-content /
+		 * wp-pointer-buttons. Grouping is presentational only — the same
+		 * progress/text/Skip/Back/Next nodes and classes as before. */
+		var content = el( 'div', 'maestro-tour-content' );
+
 		var progress = el(
 			'span',
 			'maestro-tour-progress',
@@ -1407,8 +1421,10 @@
 		controls.appendChild( skip );
 		controls.appendChild( back );
 		controls.appendChild( next );
-		box.appendChild( progress );
-		box.appendChild( body );
+		content.appendChild( progress );
+		content.appendChild( body );
+		box.appendChild( arrow );
+		box.appendChild( content );
 		box.appendChild( controls );
 		document.body.appendChild( box );
 		tour.root = box;
@@ -1436,26 +1452,53 @@
 		var vh = window.innerHeight;
 		var top;
 		var left;
+		// The card edge the arrow sits on (points back at the anchor). Mirrors
+		// the wp-pointer .wp-pointer-{top,bottom,left,right} edge classes.
+		var edge;
 		if ( placement === 'right' ) {
 			left = r.right + pad;
 			top = r.top;
+			edge = 'left'; // card is to the right → arrow on the card's left edge
 			if ( left + w > vw - 8 ) {
 				// No room to the right — drop below the anchor instead.
 				left = r.left;
 				top = r.bottom + pad;
+				edge = 'top';
 			}
 		} else {
 			// 'top' — sit above the anchor (toolbar controls live at the bottom).
 			left = r.left;
 			top = r.top - h - pad;
+			edge = 'bottom'; // card is above → arrow on the card's bottom edge
 			if ( top < 8 ) {
 				top = r.bottom + pad;
+				edge = 'top';
 			}
 		}
 		left = Math.max( 8, Math.min( left, vw - w - 8 ) );
 		top = Math.max( 8, Math.min( top, vh - h - 8 ) );
 		box.style.left = left + 'px';
 		box.style.top = top + 'px';
+
+		/* Point the arrow at the anchor's centre along the shared edge, clamped
+		 * so it stays within the card's rounded corners. Presentational only —
+		 * the anchor, placement source, and step logic are unchanged. */
+		box.setAttribute( 'data-pointer-edge', edge );
+		var arrow = box.querySelector( '.maestro-tour-arrow' );
+		if ( arrow ) {
+			var inset = 16; // keep the arrow clear of the 4px-radius corners
+			if ( edge === 'left' || edge === 'right' ) {
+				var anchorCy = r.top + r.height / 2;
+				var offY = Math.max( inset, Math.min( anchorCy - top, h - inset ) );
+				arrow.style.top = offY + 'px';
+				arrow.style.left = '';
+			} else {
+				var anchorCx = r.left + r.width / 2;
+				var offX = Math.max( inset, Math.min( anchorCx - left, w - inset ) );
+				arrow.style.left = offX + 'px';
+				arrow.style.top = '';
+			}
+		}
 	}
 
 	/**

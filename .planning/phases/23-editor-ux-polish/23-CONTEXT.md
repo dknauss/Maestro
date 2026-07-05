@@ -86,15 +86,30 @@ Public screenshot recapture stays in Phase 24 (REL-10).
   scheme; hardcode only where inheritance can't work (WP exposes no scheme CSS
   variables).
 
-### UX-09 geometry
-- **Only the mode + status zone moves** into the admin-menu column; the item
-  controls, rename input, Reset All, and Exit stay in the bottom toolbar.
-- Pinned at the **bottom of the menu column, adjacent to core's Collapse-menu
-  control**; **seamless** with the menu background, separated by a subtle
-  hairline divider (no plate/shadow).
-- **At ≤782px the zone rejoins the full-width bottom toolbar** (the menu
-  column is off-canvas there). Folded mode is moot — editing already
-  neutralizes folding.
+### UX-09 geometry — RESOLVED 2026-07-05 (live iteration, two user decisions)
+- **The pinned menu-column zone is SCRAPPED.** Docking the mode+status zone at
+  the bottom of the admin-menu column was built and viewed against the running
+  site (plan 23-02, commits `d768801`/`537b2f8`, since removed) and rejected: it
+  read out-of-sync/misaligned and was "not viable down there."
+- **The bottom-toolbar Exit is REMOVED as redundant.** It duplicated the admin-
+  bar (WP Toolbar) toggle, which already flips **"Edit Menu" ↔ "Exit"** while
+  editing. Per the plugin's own doctrine (`class-admin-bar.php`: the toggle is
+  "deliberately hung off the admin bar, NOT the admin menu"), the Toolbar is the
+  home for entering/exiting.
+- **FINAL — the admin-bar Toolbar toggle is the single entry/exit AND the mode
+  indicator.** Relabel its editing state **"Exit" → "Exit Menu Editor"**; the
+  label flip ("Edit Menu" → "Exit Menu Editor") names the mode — no highlight
+  needed. The pencil "Edit Mode" chip is removed. The bottom toolbar holds only
+  the editing controls (muted save-status + contextual per-item tools + rename +
+  "?" help + Reset All) — no Exit, no mode chip.
+- **Save-flush guarantee preserved:** the removed bottom Exit's `onExit` awaited
+  a pending auto-save before navigating; the admin-bar toggle is a plain link, so
+  its click is intercepted (while editing) to await any pending save before
+  navigating — no last-change loss.
+- **Save status stays in the toolbar** (muted spinner / "Saved" / "Save failed",
+  per plan 01). Colour reserved for errors/destructive only.
+- **Dropped with the pin:** menu-column relocation, the 782px gate
+  (`modeZonePlacement`), and all Collapse-menu manipulation.
 
 ### Motion
 - **Core-minimal**: instant state changes; the spinner is the only animation;
@@ -125,9 +140,9 @@ Public screenshot recapture stays in Phase 24 (REL-10).
 
 ### Methodology — TDD boundary (carried forward from Phases 7/9)
 - Pure styling → no unit TDD; Playwright + screenshots cover it.
-- Any changed pure logic (status-state mapping in `assets/maestro-logic.js`,
-  mode-zone relocation gating at 782px) is test-first via `tests/js/`
-  (`node:test`), red before green.
+- Any changed pure logic (status-state mapping in `assets/maestro-logic.js`) is
+  test-first via `tests/js/` (`node:test`), red before green. (The 782px
+  relocation gate was dropped with the pinned-zone scrap — see UX-09 geometry.)
 
 ### Executor-model guidance (standing pattern)
 - **sonnet** — token swaps and CSS conversion to a checklist, mechanical i18n

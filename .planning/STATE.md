@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Compatibility, Roles & Showcase
-status: "Roadmap created — 6 phases (19: Cosmetic Hiding Feasibility [ROLE-01] → 20: Third-Party Compatibility Fixes [COMPAT-04/07/10] → 21: Cosmetic Per-User/Cloned-Role Hiding [ROLE-02, conditional on Phase 19] → 22: Slug-Resolution Showcase Demo [DEMO-01] → 23: Editor UX Polish [UX-09/UX-12/UX-13/BUG-08, widened 2026-07-03, executes next] → 24: Release v1.4.0 [REL-10]). 11/11 requirements mapped, 0 unmapped. Next: `/gsd:plan-phase 23`."
-stopped_at: Phase 23 context gathered
-last_updated: "2026-07-04T03:19:39.512Z"
-last_activity: 2026-07-03 — Phase 23 context gathered (UX-13 added; phase widened + pulled forward)
+status: "Phases 19 + 23 COMPLETE and merged to main 2026-07-05 (local, not pushed). Phase 19 (ROLE-01): feasibility verdict **partial-go** — per-user + cloned-role both clear the cosmetic-only bar; Phase 21 unblocked, per-user first. Phase 23 (Editor UX Polish): UX-09/UX-12/UX-13/BUG-08 delivered (native wp-admin restyle; 5/5 plans; full-suite gate green). Next: Phase 20 (COMPAT-04/07/10), Phase 21 (ROLE-02), Phase 22 (DEMO-01), then 24 (release). `/gsd:progress`."
+stopped_at: Phases 19 + 23 complete and merged to main
+last_updated: "2026-07-05T09:47:24.304Z"
+last_activity: 2026-07-05 — merged Phase 23 (fast-forward) + Phase 19 (3-way, tracking-file conflicts resolved) into main; both phases complete
 progress:
   total_phases: 6
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 2
+  total_plans: 6
+  completed_plans: 6
+  percent: 33
 ---
 
 # Project State
@@ -21,17 +21,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-03)
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
-**Current focus:** Milestone v1.4 — Compatibility, Roles & Showcase. Roadmap created (Phases 19-24, 11/11 requirements mapped). Phase 23 widened (UX-13 native wp-admin restyle) and pulled forward. Next: `/gsd:plan-phase 23`.
+**Current focus:** Milestone v1.4 — Compatibility, Roles & Showcase. Phases 19 (ROLE-01 feasibility) and 23 (Editor UX Polish) are **complete and merged to main** (local, not pushed). Remaining: Phase 20 (COMPAT-04/07/10), Phase 21 (ROLE-02, now unblocked), Phase 22 (DEMO-01), Phase 24 (release).
 
 ## Current Position
 
-Milestone: v1.4 — Compatibility, Roles & Showcase — **ROADMAP CREATED 2026-07-03**
-Phase: Phase 23 (Editor UX Polish) — context gathered, executes next (user decision 2026-07-03); Phases 19-22 follow
+Milestone: v1.4 — Compatibility, Roles & Showcase
+Phase: Phase 19 (Cosmetic Hiding Feasibility) ✅ COMPLETE and Phase 23 (Editor UX Polish) ✅ COMPLETE — both merged to main 2026-07-05 (local; not pushed to remote).
 Plan: —
-Status: Roadmap created — 6 phases; Phase 23 [UX-09/UX-12/UX-13/BUG-08] widened to the native wp-admin restyle and pulled forward (depends only on Phase 18). 11/11 requirements mapped, 0 unmapped. Next: `/gsd:plan-phase 23`.
-Last activity: 2026-07-03 — Phase 23 context gathered (UX-13 added; phase widened + pulled forward)
+Status: Phase 19 ROLE-01 signed off — **partial-go** (per-user go + ship first; cloned-role go as an additive `profiles` registry compiling to the same inline `is_hidden_for_current_user()` seam); Phase 21 unblocked. Phase 23 delivered UX-09/UX-12/UX-13/BUG-08 (native wp-admin restyle; 5/5 plans; full-suite gate green — JS 53/53, e2e 31 pass, PHP unit 90/90, integration 47/47, WPCS/PHPStan clean, WCAG 1.4.1 confirmed). **NOTE for Phase 24:** Plugin Check flagged 4 errors/6 warnings, all pre-existing dev-tree root files untouched by Phase 23 — logged to `phases/23-editor-ux-polish/deferred-items.md` for the Phase 24 build-then-check pipeline.
+Last activity: 2026-07-05 — Phase 23 + Phase 19 merged to main; both complete
 
-Progress: [░░░░░░░░░░] 0% (v1.4: 0/6 phases complete)
+Progress: [███░░░░░░░] 33% (v1.4: 2/6 phases complete — 19, 23)
 
 ## Release Binding
 
@@ -153,6 +153,13 @@ Recent decisions affecting current work:
 - [Phase 17-03]: Bug found in gate: class-slug.php missing from require_once list in maestro-menu-editor.php — fixed as Rule 1 (all 16 integration normalization tests failed with 'Class Maestro\Slug not found'); committed as fix(17-03)
 - [Phase 17-03]: Plugin Check run with --exclude-directories excluding tests,bin,docs,build,vendor,node_modules,playground,.planning,.claude,.github,test-results — shippable-source gate invocation for this project's dev-tree mapping pattern
 - [Phase 17-03]: wp-env started on alternate ports 8890/8899 (dev/tests) — 8888 and 8889 both held by other projects; established port-contention pattern (STATE.md note)
+- [Phase 23-editor-ux-polish]: 23-01: modeStatusLabel copy already matched CONTEXT's locked Gutenberg-muted wording — no i18n reword needed; Task 1 verification-only, no commit
+- [Phase 23-editor-ux-polish]: 23-01: kept dashicons-update spin (font-based, zero added payload) over core .spinner (background-image asset) for the saving-state glyph
+- [Phase 23-editor-ux-polish]: 23-01: kept the existing bullet-dot modified-row badge, only recoloured amber to neutral #c3c4c7 — already matched the Gutenberg unsaved-changes idiom, no new glyph needed
+- [Phase 23-editor-ux-polish]: 23-02 Task 2: admin-bar toggle relabelled 'Exit Menu Editor' is the single entry/exit; save-flush-on-exit re-homed onto its click intercept (bindAdminBarExit); Reset All underline bug fixed to match core .button-link-delete exactly (no underline at rest or hover)
+- [Phase 23-editor-ux-polish]: 23-03: popover/tab/cell tokens were already at core values from prior plans; the only gap was missing focus-visible rings on icon-search, icon-none, icon-tab, vis-row checkboxes, and the rename input — added the consistent core-blue ring (#2271b1) to all; panel divider/label/field text stay hardcoded (no WP admin-colour-scheme CSS variable exists for a custom-drawn toolbar/panel surface to inherit)
+- [Phase 23-editor-ux-polish]: 23-04: wp-pointer adaptation REPLICATE-LOCALLY confirmed (locked default held, not escalated to enqueue) — coachmark reads as a native core wp-pointer via a locally-styled card/footer-button-band/directional-arrow, .maestro-tour* DOM/classes and class-assets.php untouched; BUG-08 fixed via centered footer band + balanced content; in-menu selection/modified-dot reconfirmed token-aligned (dot not reverted); checkpoint verified on Default admin colour scheme only, Modern/Midnight deferred to 23-05
+- [Phase 23-editor-ux-polish]: 23-05 (phase close): e2e reconciliation deliberately isolated to one final-wave plan — every drifted selector/colour assertion updated with reasoning visible in the commit, none silently deleted; tour.spec.ts needed zero changes (already matched 23-04's classes); Plugin Check's 4 dev-tree findings verified (git diff main...HEAD) as pre-existing and untouched by any Phase 23 commit, deferred to Phase 24's build-then-check pipeline against the release ZIP rather than fixed out-of-scope here; Phase 23 complete (5/5 plans), UX-09/UX-12/UX-13/BUG-08 all delivered
 
 ### Roadmap Evolution
 
@@ -162,6 +169,8 @@ Recent decisions affecting current work:
 - v1.3.0 roadmap created 2026-06-29: 2 phases (17–18), 4 requirements mapped; FIX-01/02/03 in Phase 17, REL-09 in Phase 18.
 - v1.4 roadmap created 2026-07-03: 6 phases (19–24), 10 requirements mapped. Phase 19 (ROLE-01 feasibility gate) precedes Phase 21 (ROLE-02, conditional). Phase 20 groups the three R1 COMPAT-xx fixes (COMPAT-04/07/10). Phase 22 (DEMO-01) depends on Phase 20 so the showcased fixes actually exist. Phase 23 groups the three small UX/BUG polish items (UX-09, UX-12, BUG-08). Phase 24 (REL-10) depends on all five feature phases.
 - Phase 23 widened + pulled forward 2026-07-03 (`/gsd:discuss-phase 23`): UX-13 added (native wp-admin restyle of all edit-mode surfaces; requirements now 11); UX-12 discuss-and-refine resolved to remove the semantic-colour borders; Phase 23 executes next (depends only on Phase 18). Decisions in `phases/23-editor-ux-polish/23-CONTEXT.md`.
+- Phase 19 context gathered 2026-07-04 (`/gsd:discuss-phase 19`): ROLE-01 feasibility-note decisions locked — evaluate both per-user + cloned-role (recommend simpler first, partial-go allowed); "cloned role" = Maestro-internal hiding profile (never `add_role()`); go bar = `current_user_can()` provably unchanged, anchored to the shipped per-role proof; storage recommended among bounded options under the sparse contract; resolution widens `is_hidden_for_current_user()`; enforcement is out of scope with **no wp-sudo dependency assumed** (reframed V2-17 in PROJECT.md/REQUIREMENTS.md to match). Decisions in `phases/19-cosmetic-hiding-feasibility/19-CONTEXT.md`.
+- Ordering decision 2026-07-04: plan Phase 19 next (small research deliverable, unblocks the ROLE-01→Phase 21 gate), then execute the already-planned Phase 23 (5 plans). Phase 19 has no dependents on its *plan*, only on its verdict before Phase 21.
 
 ### Pending Todos
 
@@ -187,6 +196,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-07-04T03:19:39.502Z
-Stopped at: Phase 23 context gathered
-Resume file: .planning/phases/23-editor-ux-polish/23-CONTEXT.md
+Last session: 2026-07-05T09:30:00.000Z
+Stopped at: Phase 23 (Editor UX Polish) complete — 23-05 signed off; Phase 19 planning resumes next
+Resume file: None

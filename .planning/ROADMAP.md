@@ -142,11 +142,11 @@ Full phase details, success criteria, and outcomes are archived in
 
 ## Phase Details (v1.4 — Compatibility, Roles & Showcase)
 
-- [ ] **Phase 19: Cosmetic Hiding Feasibility** — feasibility note determining whether per-user/cloned-role menu hiding can stay strictly cosmetic; gates Phase 21
+- [x] **Phase 19: Cosmetic Hiding Feasibility** — feasibility note determining whether per-user/cloned-role menu hiding can stay strictly cosmetic; gates Phase 21 (completed 2026-07-05)
 - [ ] **Phase 20: Third-Party Compatibility Fixes** — level-qualified match keys, badge/HTML-in-title preservation on rename, optional subtree-hide cascade (R1 backlog)
 - [ ] **Phase 21: Cosmetic Per-User / Cloned-Role Hiding** — conditional on Phase 19 clearing the cosmetic-only bar
 - [ ] **Phase 22: Slug-Resolution Showcase Demo** — Playground demo that visibly demonstrates the v1.3.0 slug-normalization fixes
-- [ ] **Phase 23: Editor UX Polish** — native wp-admin restyle of all edit-mode surfaces (UX-13, added 2026-07-03), toolbar column-width pin, semantic-colour borders removed (UX-12 verdict), first-run banner centering — **executes next by user decision (depends only on Phase 18)**
+- [x] **Phase 23: Editor UX Polish** — native wp-admin restyle of all edit-mode surfaces (UX-13, added 2026-07-03), semantic-colour borders removed (UX-12 verdict), first-run banner centering (BUG-08) — complete 2026-07-05
 - [ ] **Phase 24: Release v1.4.0** — cut and ship to WordPress.org; recapture editor screenshots for the UX-11 coachmark
 
 ### Phase 19: Cosmetic Hiding Feasibility
@@ -158,7 +158,8 @@ Full phase details, success criteria, and outcomes are archived in
   2. If the verdict is go, the note specifies the storage shape (e.g. per-user override keyed by user ID vs. a cloned-role approach) and the resolution seam where it plugs into Replay
   3. If the verdict is no-go (cannot stay cosmetic), the note explains why and Phase 21 is marked deferred rather than attempted
   4. The note is reviewed and signed off before Phase 21 planning begins — Phase 21 cannot start without an explicit go verdict from this phase
-**Plans**: TBD
+**Plans**: 1 plan
+  - [ ] 19-01-PLAN.md — Write the ROLE-01 feasibility note (go/no-go verdict + storage/seam recommendation + guardrail test sketch) and gate it on human sign-off
 
 ### Phase 20: Third-Party Compatibility Fixes
 **Goal**: Maestro's rename/hide overrides behave correctly against the remaining R1-identified compatibility gaps — same-slug top-level/submenu collisions, badge/HTML-bearing titles, and parent-hide cascade — without weakening the cosmetic-only guarantee
@@ -194,18 +195,24 @@ Full phase details, success criteria, and outcomes are archived in
   4. An optional "Try it with WooCommerce" opt-in blueprint is available (wizard suppressed, version pinned) without being required for the core demo story
 **Plans**: TBD
 
-### Phase 23: Editor UX Polish
-**Goal**: The entire edit-mode UI reads as native wp-admin — quiet menu-native controls, muted Gutenberg-style status, colour reserved for errors and destructive actions — with the Edit Mode zone pinned to the menu column and the first-run banner reading cleanly
-**Scope widened 2026-07-03** (user decision, `/gsd:discuss-phase 23`): UX-13 added — full native-wp-admin pass over all edit-mode surfaces; UX-12's discuss-and-refine resolved to *remove* the semantic-colour borders. Decisions locked in [23-CONTEXT.md](phases/23-editor-ux-polish/23-CONTEXT.md). Phase 23 executes next (it depends only on Phase 18).
+### Phase 23: Editor UX Polish — COMPLETE 2026-07-05
+**Goal**: The entire edit-mode UI reads as native wp-admin — quiet menu-native controls, muted Gutenberg-style status, colour reserved for errors and destructive actions — with the edit mode named by the WP Toolbar "Exit Menu Editor" toggle (the menu-column pin was tried and scrapped in live iteration, 2026-07-05) and the first-run coachmark reading cleanly
+**Scope widened 2026-07-03** (user decision, `/gsd:discuss-phase 23`): UX-13 added — full native-wp-admin pass over all edit-mode surfaces; UX-12's discuss-and-refine resolved to *remove* the semantic-colour borders. Decisions locked in [23-CONTEXT.md](phases/23-editor-ux-polish/23-CONTEXT.md).
 **Depends on**: Phase 18
-**Requirements**: UX-09, UX-12, UX-13, BUG-08
+**Requirements**: UX-09, UX-12, UX-13, BUG-08 — all delivered
 **Success Criteria** (what must be TRUE):
-  1. The toolbar "Edit Mode" zone (mode + save status) is pinned to the admin-menu column width at the bottom of the menu column, seamless with the menu, and rejoins the bottom toolbar below 782px — confirmed by before/after screenshot
+  1. The edit-mode indicator is the WP Toolbar (admin-bar) toggle — the single entry/exit — relabelled **"Exit Menu Editor"** while editing (menu-column pin and the redundant bottom-toolbar Exit both scrapped in live iteration, 2026-07-05); its click flushes any pending auto-save before navigating; the bottom toolbar holds only editing controls (muted save-status + per-item tools + Reset All), no Exit or mode chip — confirmed by before/after screenshot
   2. The semantic-colour border system is removed: controls are quiet menu-native icon buttons, save status is Gutenberg-style muted (spinner / grey "Saved" / red "Save failed"), modified state is a non-colour dot + enabled Reset, and red appears only for errors and destructive Reset All — confirmed by before/after screenshot and an accessibility check (non-colour signals carry all state)
   3. All edit-mode surfaces (shared panel, icon/visibility popovers, first-run banner, coachmark, in-menu selection/badges) adopt core idioms per 23-CONTEXT.md, spot-checked on Default + Modern + Midnight admin colour schemes — confirmed by per-surface before/after screenshots
   4. The first-run banner's text and button are vertically centered instead of visually off-center — confirmed by before/after screenshot
-  5. Existing PHP unit, integration, JS, and Playwright e2e suites stay green (e2e selector/colour assertions updated deliberately in-plan); Plugin Check 0 errors
-**Plans**: TBD
+  5. Existing PHP unit, integration, JS, and Playwright e2e suites stay green (e2e selector/colour assertions updated deliberately in-plan) — JS 53/53, e2e 31/31, PHP unit 90/90, PHP integration 47/47, WPCS/PHPStan clean; Plugin Check 0 errors on Phase 23's shipped code (4 pre-existing dev-tree findings deferred to Phase 24, see [deferred-items.md](phases/23-editor-ux-polish/deferred-items.md))
+**Plans**: 5 plans (5/5 complete)
+Plans:
+- [x] 23-01-PLAN.md — Remove semantic-colour borders; convert the bottom toolbar to native quiet controls + muted save status (UX-12, UX-13)
+- [x] 23-02-PLAN.md — REVISED 2026-07-05 (live iteration): the pinned menu-column zone was built, viewed against the running site, and scrapped as out-of-sync; the bottom-toolbar Exit was then removed as redundant with the WP Toolbar admin-bar toggle, which is now the single entry/exit relabelled "Exit Menu Editor" with a re-homed save-flush-on-exit intercept, plus a Reset All underline fix (UX-09, UX-13)
+- [x] 23-03-PLAN.md — Align the shared panel + icon/visibility popovers to core popover/postbox tokens (UX-13). Most tokens already matched core from plans 01/02; closed the one real gap (missing core-blue focus-visible rings on several popover/panel controls) and documented the panel's necessary colour-scheme hardcode.
+- [x] 23-04-PLAN.md — First-run banner centering (BUG-08) and coachmark wp-pointer restyle, REPLICATED LOCALLY (locked default confirmed by live-verify checkpoint, not escalated to enqueue); in-menu selection/dot-badge tokens reconfirmed aligned. Checkpoint verified on Default admin colour scheme; Modern/Midnight deferred to 23-05 (BUG-08, UX-13)
+- [x] 23-05-PLAN.md — e2e selector/colour reconciliation + before/after screenshots (Default/Modern/Midnight) + full-suite gate (UX-13) — complete 2026-07-05
 
 ### Phase 24: Release v1.4.0
 **Goal**: v1.4 is cut and live on WordPress.org — the runtime zip builds clean, all suites pass, the tag exists, SVN trunk is updated, and the directory/editor screenshots reflect the shipped UX-11 coachmark plus any v1.4 UX changes
@@ -224,7 +231,7 @@ Full phase details, success criteria, and outcomes are archived in
 ## Progress
 
 **Execution Order:**
-v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). v1.2 complete (Phases 9–12, archived 2026-06-22; Phase 10 was a non-blocking research spike not shipped in v1.2). R1 complete (Phases 13–16, archived 2026-06-29; non-versioned research). v1.3.0 complete (Phases 17–18, shipped 2026-06-30; release tag `v1.3.0`, archived). v1.4 in progress (Phases 19–24; release tag `v1.4.0`).
+v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). v1.2 complete (Phases 9–12, archived 2026-06-22; Phase 10 was a non-blocking research spike not shipped in v1.2). R1 complete (Phases 13–16, archived 2026-06-29; non-versioned research). v1.3.0 complete (Phases 17–18, shipped 2026-06-30; release tag `v1.3.0`, archived). v1.4 in progress (Phases 19–24; release tag `v1.4.0`; Phase 23 complete 2026-07-05).
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -248,9 +255,9 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 | 16. Synthesis | R1 | 2/2 | Complete | 2026-06-29 |
 | 17. Slug Normalization | v1.3.0 | 3/3 | Complete (shipped 2026-06-30) | 2026-06-29 |
 | 18. Release v1.3.0 | v1.3.0 | 3/3 | Complete (shipped 2026-06-30) | 2026-06-30 |
-| 19. Cosmetic Hiding Feasibility | v1.4 | 0/TBD | Not started | - |
+| 19. Cosmetic Hiding Feasibility | v1.4 | Complete    | 2026-07-05 | - |
 | 20. Third-Party Compatibility Fixes | v1.4 | 0/TBD | Not started | - |
 | 21. Cosmetic Per-User / Cloned-Role Hiding | v1.4 | 0/TBD | Not started (conditional on Phase 19) | - |
 | 22. Slug-Resolution Showcase Demo | v1.4 | 0/TBD | Not started | - |
-| 23. Editor UX Polish | v1.4 | 0/TBD | Not started | - |
+| 23. Editor UX Polish | v1.4 | 5/5 | Complete | 2026-07-05 |
 | 24. Release v1.4.0 | v1.4 | 0/TBD | Not started | - |
