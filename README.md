@@ -78,7 +78,7 @@ The plugin uses the `maestro-menu-editor` text domain and ships a translation te
 
 Maestro is deliberately lightweight. *Figures are a v1.3.1 snapshot from a static sweep; run [`bin/build.sh`](bin/build.sh) to re-measure the package.*
 
-**Deployed package** (`bin/build.sh`, with dev/test/tooling excluded): ~90 KB zip, ~330 KB installed (of which ~80 KB is bundled translations).
+**Deployed package** ([`bin/build.sh`](bin/build.sh), with dev/test/tooling excluded): ~90 KB zip, ~330 KB installed (of which ~80 KB is bundled translations).
 
 | Runtime code | Approx. |
 |---|---|
