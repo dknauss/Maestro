@@ -107,6 +107,18 @@ their current parent.
 * The editor JS is driven by a localized model (with DOM ids), not DOM scraping, and diffs against captured pristine defaults so the stored config stays sparse.
 * Localized editor labels are passed from PHP to JavaScript in `maestroData.i18n`; the runtime zip includes the bundled POT template and starter catalogs.
 
+== Performance & footprint ==
+
+Maestro is built to stay out of the way:
+
+* **Zero extra database queries on the front end.** Every hook is admin-only, so the plugin is completely inert for public page loads and logged-out visitors.
+* **One extra query on an admin page** — a single, *non-autoloaded* option (`maestro_config`), read once per request and cached. With a persistent object cache (Redis / Memcached) that drops to zero.
+* **Nothing added to `alloptions`.** Because the option is not autoloaded, it adds no weight to the bundle WordPress loads on every request.
+* **Minimal storage.** One `wp_options` row, created only when you first save a change — a fresh install stores nothing. No custom tables, no post or user meta, no transients, no cron jobs. Uninstalling deletes that single row.
+* **Small install** — roughly a 90 KB download. Menu changes are applied in memory during the `admin_menu` pass, not through extra queries.
+
+(Figures are a v1.3.1 snapshot.)
+
 == Known limits / deferred to v2 ==
 
 * **Reparenting** (moving an item between a top-level position and a submenu) is not included. Top-level items reorder among top-level items, and submenu items reorder within their current parent. Reparenting needs hand-splicing of the globals plus `parent_file`/`submenu_file` highlighting fixes — a known minefield, parked deliberately.

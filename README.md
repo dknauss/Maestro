@@ -74,6 +74,26 @@ The plugin uses the `maestro-menu-editor` text domain and ships a translation te
 - **Dev & tooling** — `tests/`, [`composer.json`](composer.json), [`package.json`](package.json), [`.wp-env.json`](.wp-env.json), [`playwright.config.ts`](playwright.config.ts), `phpunit-*.xml.dist`, [`bin/build.sh`](bin/build.sh).
 - **Docs** — [`docs/user-guide.md`](docs/user-guide.md) (user walkthrough), [`SPEC.md`](SPEC.md) (durable specification), [`TESTING.md`](TESTING.md) (how to run each test layer), and [`docs/archive/FIXES.md`](docs/archive/FIXES.md) (historical fix log).
 
+## Footprint & performance
+
+Maestro is deliberately lightweight. *Figures are a v1.3.1 snapshot from a static sweep; run [`bin/build.sh`](bin/build.sh) to re-measure the package.*
+
+**Deployed package** ([`bin/build.sh`](bin/build.sh), with dev/test/tooling excluded): ~90 KB zip, ~330 KB installed (of which ~80 KB is bundled translations).
+
+| Runtime code | Approx. |
+|---|---|
+| PHP | ~1,760 LOC — 8 classes + bootstrap + uninstall |
+| JavaScript | ~1,700 LOC — 2 files, unminified |
+| CSS | ~760 LOC — 2 files |
+
+**Storage** — one *non-autoloaded* `wp_options` row (`maestro_config`), created only on first save (a fresh install stores nothing). No custom tables, post/user meta, transients, or cron events. [`uninstall.php`](uninstall.php) deletes that single row — zero residue.
+
+**Per-request query overhead**
+
+- **Front end: 0 extra queries.** Every hook is admin-gated (the admin-bar node bails on `!is_admin()`), so the plugin is inert for public traffic.
+- **Admin page: exactly 1 extra query** — a single non-autoloaded `get_option`, cached in-request by [`Config::get()`](includes/class-config.php) (one read no matter how many consumers) and served from the object cache after first read → **0 queries with a persistent object cache**. Not autoloaded, so it adds nothing to `alloptions`.
+- **Save: 1 `update_option`**, via the REST endpoint while actively editing. Rename/reorder/hide are applied by mutating the in-memory `$menu`/`$submenu` globals during `admin_menu` — no queries.
+
 ## Install (to a site)
 
 Build a runtime-only zip and upload it under Plugins → Add New → Upload:
