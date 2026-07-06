@@ -36,9 +36,10 @@ export default defineConfig( {
 	},
 	projects: [
 		// Runs first (every spec depends on it) and unauthenticated — it is what
-		// creates the stored session. storageState lives on the chromium project
-		// only, so this project logs in fresh.
-		{ name: 'setup', testMatch: /auth\.setup\.ts/ },
+		// creates the stored session. Shares chromium's device profile so the
+		// context that generates the session matches the one that consumes it;
+		// storageState lives on the chromium project only, so this logs in fresh.
+		{ name: 'setup', testMatch: /auth\.setup\.ts/, use: { ...devices['Desktop Chrome'] } },
 		{
 			name: 'chromium',
 			dependencies: [ 'setup' ],

@@ -61,7 +61,10 @@ setup( 'authenticate', async ( { page } ) => {
 	// serving. Poll until the login form is really there, rather than firing the
 	// submit at a half-up server and timing out on the redirect.
 	await expect( async () => {
-		await page.goto( loginUrl, { waitUntil: 'domcontentloaded' } );
+		// Short per-attempt timeouts so a single slow/hung navigation fails fast
+		// and toPass() retries promptly, rather than one goto eating the whole
+		// 60s recovery window.
+		await page.goto( loginUrl, { waitUntil: 'domcontentloaded', timeout: 10_000 } );
 		await expect( page.locator( '#user_login' ) ).toBeVisible( { timeout: 5_000 } );
 	} ).toPass( { timeout: 60_000 } );
 
