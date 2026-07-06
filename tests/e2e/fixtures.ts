@@ -21,7 +21,7 @@ import { execFileSync } from 'child_process';
 
 /**
  * Delete the single shared plugin option on the wp-env *tests* instance via
- * wp-cli — the same harness/auth path global-setup.ts uses.
+ * wp-cli — the same harness/auth path auth.setup.ts uses.
  *
  * `wp option delete` is idempotent for our purposes: when the option is already
  * absent (the clean baseline) wp-cli exits non-zero, which we deliberately
