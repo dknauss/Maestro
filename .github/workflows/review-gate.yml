@@ -3,29 +3,38 @@ name: Review gate
 # Blocks a PR while an automated reviewer (Codex, Copilot, …) has a P1/P2 finding
 # that hasn't been addressed — including review-BODY summaries that are not inline
 # threads and therefore slip past "require conversation resolution" (this is how a
-# Codex P2 merged past on PR #89). Re-evaluates whenever a review is filed, a
-# thread is resolved, a comment is posted, or the PR is updated, and publishes a
-# commit status under the fixed context "Review gate (P1/P2 addressed)" so it can
-# be a required check.
+# Codex P2 merged past on PR #89). Publishes a commit status under the fixed
+# context "Review gate (P1/P2 addressed)" so it can be a required check.
 #
 # Clear the gate by resolving the bot's inline thread, replying on the PR, or
 # re-running the reviewer until its summary is clean. See .github/scripts/review-gate.js.
 #
-# SECURITY: this runs on `pull_request_target`, so both the workflow and the
-# gate script come from the *base* (protected) branch, never the PR head — a PR
-# cannot edit review-gate.js to make itself pass, and the write-scoped token
-# needed to publish the status is available even for fork PRs. This is only safe
-# because the job never checks out or executes PR-supplied code; the script reads
-# PR data exclusively through the GitHub API. Do NOT add a checkout of the PR head
-# ref here.
+# SECURITY: every job below explicitly checks out `review-gate.js` from the
+# repository's DEFAULT (protected) branch, never the PR head. This matters
+# because the non-target triggers (`pull_request_review`, `issue_comment`) run
+# with GITHUB_REF pointing at the PR merge ref, so a `checkout` without an
+# explicit `ref` would run PR-supplied code. Pinning `ref` to the default branch
+# guarantees the gate always executes trusted code. The job also never checks out
+# or executes any other PR content — it reads PR data exclusively through the API.
+# Do NOT remove the `ref:` pin.
+#
+# FORK LIMITATION: GitHub gives `pull_request` / `pull_request_review` /
+# `issue_comment` events from FORKED repos a read-only token, so the
+# `createCommitStatus` write cannot publish on those events. This repo's workflow
+# is same-repo branch PRs (not forks), where the token is write-capable, so the
+# gate is reliable here. If this repo ever starts accepting fork PRs, gate them
+# manually (or move status publishing to a `workflow_run`/dispatch bridge) — do
+# not make the required context trusted for fork PRs as-is.
+#
+# NOTE: resolving an inline thread does not itself re-run the gate
+# (`pull_request_review_thread` is not a supported Actions trigger). After
+# resolving, a push, PR comment, or new review refreshes the status.
 
 on:
   pull_request_target:
     types: [opened, reopened, synchronize, ready_for_review]
   pull_request_review:
     types: [submitted, edited, dismissed]
-  pull_request_review_thread:
-    types: [resolved, unresolved]
   issue_comment:
     types: [created, edited, deleted]
 
@@ -45,11 +54,12 @@ jobs:
     if: ${{ github.event_name != 'issue_comment' || github.event.issue.pull_request }}
     runs-on: ubuntu-latest
     steps:
-      # Default ref for every trigger above is the base/default branch, so this
-      # is the trusted copy of the script — see the SECURITY note above.
-      - name: Check out review-gate script (base branch)
+      # Pin to the default branch — see the SECURITY note above. This is the
+      # trusted copy of the script regardless of which event triggered the run.
+      - name: Check out review-gate script (default branch)
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.repository.default_branch }}
           sparse-checkout: .github/scripts/review-gate.js
           sparse-checkout-cone-mode: false
 
