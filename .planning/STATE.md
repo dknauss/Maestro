@@ -189,6 +189,7 @@ Recent decisions affecting current work:
 
 - **Named config presets + JSON export/import** — v1.5 candidate; supersedes/extends V2-06 (SPEC.md Roadmap item 6). Research captured in `todos/pending/2026-07-03-config-presets-export-import.md`
 - **Declutter switch (non-core menu items → bottom section)** — v1.5 candidate; needs discuss/feasibility pass (top_order precedence, CPT handling). Research captured in `todos/pending/2026-07-03-declutter-switch-non-core-menu-items.md`
+- **Research Admin Menu Editor (Jānis Elsts) prior art** — v1.5 candidate; research spike on how AME handles Maestro's tricky parts (menu identity/slug drift, replay against live globals, submenu targeting, per-role/per-user hiding, separators). Research captured in `todos/pending/2026-07-05-research-admin-menu-editor-prior-art.md`
 - **V2-15 (backlog)** — role cloning for per-user menu hiding: superseded by ROLE-01/ROLE-02 in the v1.4 roadmap (Phases 19/21); no longer separately deferred
 - **COMPAT-04, COMPAT-07, COMPAT-10, DEMO-01** — no longer deferred; mapped to v1.4 Phases 20 and 22
 
