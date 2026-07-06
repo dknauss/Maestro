@@ -115,9 +115,11 @@ module.exports = async ({ github, context, core }) => {
   // A human "responds" either with a PR issue comment or with a review of their
   // own — both count as addressing a bot's review-body finding.
   const humanResponseTimes = [
+    // Use updated_at so editing an existing comment to reply also counts (the
+    // issue_comment:edited trigger re-runs the gate).
     ...comments
       .filter((c) => !isBot(c.user.login))
-      .map((c) => new Date(c.created_at)),
+      .map((c) => new Date(c.updated_at || c.created_at)),
     ...reviews
       .filter((r) => !isBot(r.user.login) && r.submitted_at)
       .map((r) => new Date(r.submitted_at)),
