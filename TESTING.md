@@ -2,7 +2,7 @@
 
 Three layers, smallest and fastest first.
 
-> **Current expected status:** unit 44/44, integration 29/29 with 81 assertions, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, and toolbar accessibility checks.
+> **Current expected status:** unit 90/90 with 101 assertions, integration 47/47 with 122 assertions, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, and toolbar accessibility checks.
 
 ## Gotchas (first run)
 
@@ -60,12 +60,13 @@ npx playwright install     # one-time browser download
 npm run test:e2e           # or: npm run test:e2e:headed
 ```
 
-The E2E global setup normalizes the tests-site `admin` and `maestro_editor`
+The E2E auth setup normalizes the tests-site `admin` and `maestro_editor`
 passwords to `password` before browser login, so reruns are deterministic even
 after a persisted wp-env database has drifted.
 
 Targets the wp-env **tests** instance at `http://localhost:8889`
-(default login `admin` / `password`). [`global-setup.ts`](tests/e2e/global-setup.ts) authenticates once and
+(default login `admin` / `password`). [`auth.setup.ts`](tests/e2e/auth.setup.ts) runs as a
+Playwright setup project that every spec depends on — it authenticates once and
 stores the session.
 
 ### Test isolation and why the suite runs serially

@@ -15,7 +15,7 @@ import { execFileSync } from 'child_process';
  * `test:e2e` / CI run never regenerates or overwrites the committed PNGs.
  *
  * Auth: inherits the shared storageState admin session from playwright.config.ts
- * (global-setup logs in once) — same path every other spec uses. No bespoke auth.
+ * (auth.setup.ts logs in once) — same path every other spec uses. No bespoke auth.
  */
 
 const CAPTURE = Boolean( process.env.MAESTRO_CAPTURE );
@@ -26,7 +26,7 @@ const CAPTURE = Boolean( process.env.MAESTRO_CAPTURE );
  * deliberately NOT in the set (CONTEXT §UAT/verification).
  *
  * Colour scheme is set via `wp user meta update` against the running wp-env
- * tests-cli container (same container global-setup.ts provisions the admin
+ * tests-cli container (same container auth.setup.ts provisions the admin
  * user against) — there is no in-browser UI path to switch schemes faster
  * than a page reload, and the profile-screen toggle would add an unrelated
  * navigation to every capture. Requires Docker/wp-env; MAESTRO_CAPTURE-gated
