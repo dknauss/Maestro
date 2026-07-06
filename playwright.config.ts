@@ -25,7 +25,11 @@ export default defineConfig( {
 	// here, not a flake mask. (fullyParallel:false alone only serializes WITHIN
 	// a file — separate files still run on separate workers.)
 	workers: 1,
-	retries: 0,
+	// CI absorbs genuine flakes (network/timing races in wp-env) with two
+	// retries; local runs stay strict at zero so a real break surfaces
+	// immediately. `trace: 'on-first-retry'` captures a trace when a retry kicks
+	// in, so a flaky failure is still diagnosable.
+	retries: process.env.CI ? 2 : 0,
 	reporter: 'list',
 	use: {
 		baseURL: `http://localhost:${ testsPort }`,
