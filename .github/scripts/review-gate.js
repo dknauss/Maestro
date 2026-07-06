@@ -2,21 +2,23 @@
 // Copilot, …) has a P1/P2 finding that hasn't been addressed.
 //
 // Two failure modes are covered:
-//   1. Inline review threads carrying a P1/P2 badge that are still unresolved.
-//      (Branch protection's "require conversation resolution" also catches these;
-//      this names them explicitly so the failing check tells you *which* thread.)
+//   1. Inline review threads from a bot carrying a P1/P2 badge that are still
+//      unresolved. (Branch protection's "require conversation resolution" also
+//      catches these; this names them so the failing check says which thread.)
 //   2. Review-BODY findings (top-level review summaries, e.g. Codex's "💡 Codex
 //      Review"). These are not threads, so they can never be "resolved" — they
 //      slipped PR #89 straight past merge. A body finding is considered addressed
-//      when the reviewer's *latest* review no longer carries the badge (a clean
-//      re-review) OR a human left a PR comment after the review (an in-thread
-//      reply / rebuttal).
+//      when the reviewer's latest non-dismissed review no longer carries the
+//      badge (a clean re-review) OR a human responded on the PR after the review
+//      — either an issue comment or a review of their own.
+//
+// Only automated (bot) reviewers gate: a human writing "P1" in a discussion
+// thread must never fail the build, and a maintainer dismissing a bot review
+// clears it.
 //
 // The result is published as a commit status on the PR head SHA under a fixed
 // context so it can be made a required check regardless of which event triggered
-// the run.
-//
-// Invoked from review-gate.yml via actions/github-script.
+// the run. Invoked from review-gate.yml via actions/github-script.
 
 const STATUS_CONTEXT = 'Review gate (P1/P2 addressed)';
 
@@ -29,7 +31,8 @@ const isBot = (login) => !!login && login.endsWith('[bot]');
 module.exports = async ({ github, context, core }) => {
   const { owner, repo } = context.repo;
 
-  // Resolve the PR number across pull_request / pull_request_review / issue_comment.
+  // Resolve the PR number across pull_request_target / pull_request_review /
+  // pull_request_review_thread / issue_comment.
   let prNumber;
   if (context.payload.pull_request) {
     prNumber = context.payload.pull_request.number;
@@ -49,7 +52,7 @@ module.exports = async ({ github, context, core }) => {
   const headSha = pr.head.sha;
   const problems = [];
 
-  // (1) Unresolved P1/P2 inline threads.
+  // (1) Unresolved P1/P2 inline threads — bot authors only.
   const threadQuery = `
     query($owner:String!, $repo:String!, $pr:Int!, $cursor:String) {
       repository(owner:$owner, name:$repo) {
@@ -78,9 +81,15 @@ module.exports = async ({ github, context, core }) => {
     for (const node of threads.nodes) {
       const first = node.comments.nodes[0];
       if (!first) continue;
-      if (!node.isResolved && hasP1P2(first.body)) {
+      // Gate on automated reviewers only — a human's "P1" discussion is not a
+      // blocking finding.
+      if (
+        !node.isResolved &&
+        isBot(first.author?.login) &&
+        hasP1P2(first.body)
+      ) {
         problems.push(
-          `Unresolved P1/P2 thread from ${first.author?.login || 'unknown'} ` +
+          `Unresolved P1/P2 thread from ${first.author.login} ` +
             `at ${node.path}:${node.line ?? '?'} — resolve it or reply with a rebuttal.`
         );
       }
@@ -102,19 +111,29 @@ module.exports = async ({ github, context, core }) => {
     repo,
     issue_number: prNumber,
   });
-  const humanCommentTimes = comments
-    .filter((c) => !isBot(c.user.login))
-    .map((c) => new Date(c.created_at));
 
-  // Keep only each bot reviewer's most recent review (ascending sort ⇒ last wins).
+  // A human "responds" either with a PR issue comment or with a review of their
+  // own — both count as addressing a bot's review-body finding.
+  const humanResponseTimes = [
+    ...comments
+      .filter((c) => !isBot(c.user.login))
+      .map((c) => new Date(c.created_at)),
+    ...reviews
+      .filter((r) => !isBot(r.user.login) && r.submitted_at)
+      .map((r) => new Date(r.submitted_at)),
+  ];
+
+  // Keep only each bot reviewer's most recent *non-dismissed* review (ascending
+  // sort ⇒ last wins). A dismissed review is treated as retracted.
   const latestByAuthor = {};
   for (const r of reviews) {
+    if (r.state === 'DISMISSED') continue;
     if (isBot(r.user.login) && r.body) latestByAuthor[r.user.login] = r;
   }
   for (const [login, review] of Object.entries(latestByAuthor)) {
     if (!hasP1P2(review.body)) continue; // latest review is clean ⇒ addressed
     const reviewTime = new Date(review.submitted_at);
-    const addressed = humanCommentTimes.some((t) => t > reviewTime);
+    const addressed = humanResponseTimes.some((t) => t > reviewTime);
     if (!addressed) {
       problems.push(
         `Review-body P1/P2 from ${login} is unaddressed — reply on the PR, ` +

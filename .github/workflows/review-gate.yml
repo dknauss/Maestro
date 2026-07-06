@@ -4,17 +4,28 @@ name: Review gate
 # that hasn't been addressed — including review-BODY summaries that are not inline
 # threads and therefore slip past "require conversation resolution" (this is how a
 # Codex P2 merged past on PR #89). Re-evaluates whenever a review is filed, a
-# comment is posted, or the PR is updated, and publishes a commit status under the
-# fixed context "Review gate (P1/P2 addressed)" so it can be a required check.
+# thread is resolved, a comment is posted, or the PR is updated, and publishes a
+# commit status under the fixed context "Review gate (P1/P2 addressed)" so it can
+# be a required check.
 #
-# Clear the gate by either resolving the inline thread, replying on the PR, or
+# Clear the gate by resolving the bot's inline thread, replying on the PR, or
 # re-running the reviewer until its summary is clean. See .github/scripts/review-gate.js.
+#
+# SECURITY: this runs on `pull_request_target`, so both the workflow and the
+# gate script come from the *base* (protected) branch, never the PR head — a PR
+# cannot edit review-gate.js to make itself pass, and the write-scoped token
+# needed to publish the status is available even for fork PRs. This is only safe
+# because the job never checks out or executes PR-supplied code; the script reads
+# PR data exclusively through the GitHub API. Do NOT add a checkout of the PR head
+# ref here.
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, reopened, synchronize, ready_for_review]
   pull_request_review:
     types: [submitted, edited, dismissed]
+  pull_request_review_thread:
+    types: [resolved, unresolved]
   issue_comment:
     types: [created, edited, deleted]
 
@@ -34,7 +45,9 @@ jobs:
     if: ${{ github.event_name != 'issue_comment' || github.event.issue.pull_request }}
     runs-on: ubuntu-latest
     steps:
-      - name: Check out review-gate script
+      # Default ref for every trigger above is the base/default branch, so this
+      # is the trusted copy of the script — see the SECURITY note above.
+      - name: Check out review-gate script (base branch)
         uses: actions/checkout@v4
         with:
           sparse-checkout: .github/scripts/review-gate.js
