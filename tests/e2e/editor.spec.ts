@@ -344,9 +344,14 @@ test.describe( 'Admin Menu Maestro — editor', () => {
 		await page.reload();
 		await expect.poll( order ).toEqual( after );
 
-		// Reset back to the natural order.
+		// Reset back to the natural order. Reset All issues a DELETE and then
+		// window.location.reload(); wait for that reload to finish before reading
+		// order via $$eval, which throws "Execution context was destroyed" if it
+		// evaluates mid-navigation (the source of this test's intermittent flake).
+		const reloaded = page.waitForEvent( 'load' );
 		page.once( 'dialog', d => d.accept() );
 		await page.locator( '.maestro-reset-all' ).click();
+		await reloaded;
 		await expect.poll( order ).toEqual( before );
 	} );
 
