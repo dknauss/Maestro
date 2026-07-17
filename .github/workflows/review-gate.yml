@@ -58,7 +58,7 @@ jobs:
       # Pin to the default branch — see the SECURITY note above. This is the
       # trusted copy of the script regardless of which event triggered the run.
       - name: Check out review-gate script (default branch)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.repository.default_branch }}
           sparse-checkout: .github/scripts/review-gate.js
