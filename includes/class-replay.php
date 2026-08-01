@@ -266,14 +266,16 @@ class Replay {
 
 	/**
 	 * `custom_menu_order` filter callback. Only claim core's menu-order machinery
-	 * when we actually have a stored top-level order; otherwise pass through so other
-	 * plugins/themes that hook custom_menu_order/menu_order are not overridden.
+	 * when we actually have a stored top-level order; otherwise pass the incoming
+	 * value through unchanged so other plugins/themes that hook
+	 * custom_menu_order/menu_order are not overridden.
 	 *
+	 * @param bool $enabled Current filter value from earlier callbacks.
 	 * @return bool
 	 */
-	public function has_top_order() {
+	public function has_top_order( $enabled = false ) {
 		$cfg = $this->config->get();
-		return ! empty( $cfg['top_order'] );
+		return ! empty( $cfg['top_order'] ) ? true : $enabled;
 	}
 
 	/**

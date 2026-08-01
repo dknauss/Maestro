@@ -258,6 +258,77 @@ class ReplayTest extends WP_UnitTestCase {
 	}
 
 	// -----------------------------------------------------------------------
+	// HARD-01 (cont.): custom_menu_order pass-through (coexistence)
+	//
+	// The callback is a WP filter; WordPress passes the current filter value as
+	// the first argument. When Maestro has no stored order it must return that
+	// incoming value UNCHANGED, so an earlier plugin that returned true to enable
+	// core's custom menu ordering is not overridden back to false.
+	// (Bonus defect from the PR #105 prior-art review; adjacent to COMPAT-05/06.)
+	// -----------------------------------------------------------------------
+
+	/**
+	 * No stored top_order: an incoming true must pass through as true. Before the
+	 * fix the callback ignored its argument and returned false, clobbering an
+	 * earlier plugin's opt-in to core menu ordering.
+	 */
+	public function test_custom_menu_order_passes_through_incoming_true() {
+		$replay = new Replay( new Config() );
+
+		$this->assertTrue(
+			$replay->has_top_order( true ),
+			'With no stored top_order, an incoming true must pass through unchanged.'
+		);
+	}
+
+	/**
+	 * No stored top_order: an incoming false stays false — Maestro adds no
+	 * opinion of its own.
+	 */
+	public function test_custom_menu_order_passes_through_incoming_false() {
+		$replay = new Replay( new Config() );
+
+		$this->assertFalse(
+			$replay->has_top_order( false ),
+			'With no stored top_order, an incoming false must pass through unchanged.'
+		);
+	}
+
+	/**
+	 * A stored top_order claims the filter regardless of the incoming value: even
+	 * an incoming false becomes true because Maestro now has an ordering opinion.
+	 */
+	public function test_custom_menu_order_claims_true_when_top_order_stored() {
+		( new Config() )->save( array( 'top_order' => array( 'edit.php' ) ) );
+		$replay = new Replay( new Config() );
+
+		$this->assertTrue(
+			$replay->has_top_order( false ),
+			'A stored top_order must make the callback claim the filter (return true).'
+		);
+	}
+
+	/**
+	 * End-to-end coexistence: an earlier plugin hooks custom_menu_order and
+	 * returns true; with no stored top_order Maestro must leave that decision
+	 * intact rather than resetting it to false.
+	 */
+	public function test_custom_menu_order_does_not_override_earlier_plugin() {
+		remove_all_filters( 'custom_menu_order' );
+
+		// Earlier plugin enables core's custom menu ordering.
+		add_filter( 'custom_menu_order', '__return_true', 5 );
+
+		// Maestro registers its callback at the default priority (10).
+		new Replay( new Config() );
+
+		$this->assertTrue(
+			apply_filters( 'custom_menu_order', false ),
+			'Maestro must not override an earlier plugin that enabled custom menu ordering.'
+		);
+	}
+
+	// -----------------------------------------------------------------------
 	// FIX-01/02/03: Normalized slug resolution — acceptance tests
 	// (17-02 Wave 2; full Docker run executes in 17-03)
 	// -----------------------------------------------------------------------
