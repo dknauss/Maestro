@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Compatibility, Roles & Showcase
-status: "**v1.3.1 SHIPPED 2026-07-05** (PR #88) — Phase 23 editor UX restyle live on WordPress.org (tag `v1.3.1`, GitHub Release + SVN deploy). Phases 19 + 23 merged to `main` (PR #87). Phase 19 (ROLE-01): partial-go verdict — Phase 21 unblocked, per-user first. v1.4.0 milestone continues: remaining Phase 20 (COMPAT-04/07/10), Phase 21 (ROLE-02), Phase 22 (DEMO-01), then 24 (v1.4.0 release). `/gsd:progress`."
-stopped_at: v1.3.1 shipped to WordPress.org; back to v1.4 (Phase 21 unblocked, or Phase 20/22)
-last_updated: "2026-07-05T09:47:24.304Z"
-last_activity: 2026-07-05 — shipped v1.3.1 to WordPress.org (Phase 23 UX restyle; tag `v1.3.1` + GitHub Release + SVN deploy); v1.4.0 milestone unchanged
+status: "Phase 19 ROLE-01 signed off — **partial-go** (per-user go + ship first; cloned-role go as an additive `profiles` registry compiling to the same inline `is_hidden_for_current_user()` seam); Phase 21 unblocked. Phase 23 delivered UX-09/UX-12/UX-13/BUG-08 (native wp-admin restyle; 5/5 plans; full-suite gate green — JS 53/53, e2e 31 pass, PHP unit 90/90, integration 47/47, WPCS/PHPStan clean, WCAG 1.4.1 confirmed) and shipped in v1.3.1. **NOTE for Phase 24:** Plugin Check flagged 4 errors/6 warnings, all pre-existing dev-tree root files — logged to `phases/23-editor-ux-polish/deferred-items.md` for the Phase 24 build-then-check pipeline."
+stopped_at: Phase 20 context gathered
+last_updated: "2026-08-01T23:28:02.874Z"
+last_activity: 2026-07-05 — shipped v1.3.1 to WordPress.org (tag + GitHub Release + SVN deploy)
 progress:
   total_phases: 6
   completed_phases: 2
@@ -210,6 +210,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-07-05T09:30:00.000Z
-Stopped at: v1.3.1 shipped to WordPress.org (tag `v1.3.1` + GitHub Release + SVN deploy); resuming v1.4 — Phase 21 (ROLE-02) unblocked, or Phase 20 / Phase 22
-Resume file: None
+Last session: 2026-08-01T23:28:02.869Z
+Stopped at: Phase 20 context gathered
+Resume file: .planning/phases/20-third-party-compatibility-fixes/20-CONTEXT.md
