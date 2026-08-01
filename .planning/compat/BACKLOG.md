@@ -53,6 +53,7 @@ highest-priority item. Classification uses the exact SCHEMA.md category wording.
 | **COMPAT-11** | **Hide is a moot no-op for cap-gated non-admin roles** — where WordPress's own render-time cap gate already removes an item for a role, Maestro's hide is a no-op (the item was never in that role's sidebar); observed across Jetpack (admin-only in disconnected state), Elementor (manage_options-capped submenus), and WPForms (all items manage_options-only, editor/shop_manager never see them) | Jetpack, Elementor, WPForms Lite | Hide | **documented limitation** | 3/6 | Cross-plugin pattern of "moot hide" for capped-out roles; the WPForms case is the most complete (non-admin roles have zero WPForms surface); documented so it is never mistaken for a Maestro defect |
 | **COMPAT-12** | **Dual-slug role-conditional registration** — Yoast SEO registers two different top-level slugs (`wpseo_dashboard` for admin; `wpseo_page_academy` for editor/shop_manager); an override on one slug does not apply to the other; consistent cross-role customization requires two separate Maestro overrides | Yoast SEO | Rename, Reorder, Hide, Re-icon | **documented limitation** | 1/6 | Yoast-specific architectural choice (two independent `add_menu_page` registrations with different caps); no R1 implementation fix exists without special-casing Yoast's role-conditional logic; documented for user guidance (two overrides needed) |
 | **COMPAT-13** | **CSS-hidden top-levels: Elementor hides two of its three top-level items via `admin_head` CSS** — `#toplevel_page_elementor` and `#menu-posts-elementor_library` are hidden with `display: none !important`; Maestro operations land correctly in replay state for all three tops, but a user testing via sidebar visual inspection would not observe changes on the two hidden tops | Elementor | Rename, Reorder, Hide, Re-icon | **documented limitation** | 1/6 | Elementor-specific observational limitation (Elementor's own UX design); Maestro's replay is correct; the issue is purely that two tops are invisible in the sidebar regardless of Maestro; documented for awareness |
+| **COMPAT-14** | **`custom_menu_order` pass-through clobber** — `Replay::has_top_order()`, the `custom_menu_order` filter callback, ignored the incoming filter value and returned a hardcoded `! empty(top_order)`; with no stored top-order it forced `false`, overriding an earlier plugin/theme that returned `true` to enable core's custom menu ordering — contradicting its own "pass through" docblock. Surfaced by the [PRIOR-ART-admin-menu-editor.md](PRIOR-ART-admin-menu-editor.md) review, **not** by SURV-01–06 | Any plugin/theme hooking `custom_menu_order` / `menu_order` (general coexistence; no specific survey plugin) | Reorder (top-level) / coexistence | **defect — ✅ fixed** (real bug, not a limitation) | n/a (review-discovered; not survey-observed) | **✅ Fixed in [PR #106](https://github.com/dknauss/Maestro/pull/106) (squash `65f85f5`).** `has_top_order( $enabled = false )` now claims the filter only when a `top_order` is stored and otherwise returns the incoming value unchanged; covered by four integration tests in `tests/integration/ReplayTest.php`. Appended per the ID-Stability Contract as the next number after COMPAT-13; sits outside the 42 survey-issue traceability set (no `SURV-NN Ix` mapping) because it was found in code review, adjacent to the COMPAT-05/06 `custom_menu_order` collisions |
 
 ---
 
@@ -153,8 +154,14 @@ Deduplicated issues (the same root cause across multiple surveys) map multiple r
 
 **Coverage assertion:** 42 survey Part 3 issues (SURV-01 I1–I7 + SURV-02 I1–I5 + SURV-03 I1–I8 +
 SURV-04 I1–I8 + SURV-05 I1–I7 + SURV-06 I1–I7) are each mapped to exactly one COMPAT-xx item
-above. **0 orphans.** All 13 COMPAT-xx items carry exactly one of the four R1 fix categories.
-COMPAT IDs are sequential from COMPAT-01 to COMPAT-13 with no gaps, assigned in rank order.
+above. **0 orphans.** COMPAT-01 through COMPAT-13 each carry exactly one of the four R1 fix
+categories and are sequential with no gaps, assigned in rank order.
+
+**COMPAT-14** was added after the survey research, from the [PRIOR-ART-admin-menu-editor.md](PRIOR-ART-admin-menu-editor.md)
+review, and is intentionally **not** part of the 42-issue survey traceability set above (it has no
+`SURV-NN Ix` origin). It is a real coexistence defect — now **fixed in [PR #106](https://github.com/dknauss/Maestro/pull/106)** —
+rather than a research limitation, so it carries a `defect — fixed` status instead of one of the four
+R1 fix categories. It is appended per the ID-Stability Contract without renumbering COMPAT-01–13.
 
 ---
 

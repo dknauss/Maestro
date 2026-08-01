@@ -24,8 +24,9 @@ solved — or paid for the sharp corners of — most of Maestro's hard problems.
 3. **AME's "full rebuild, but only live during menu paint, then restore the originals"** is a
    genuinely clever technique worth understanding — Maestro's sparse-splice + delegate-to-core
    model is far simpler and should stay. But "delegate to core" is not automatically coexistence-
-   safe: `has_top_order()` currently overrides other plugins' `custom_menu_order` (see table +
-   Phase 20 note). Keep the delta model; fix the pass-through.
+   safe: `has_top_order()` used to override other plugins' `custom_menu_order` (see table +
+   Phase 20 note) — now fixed (COMPAT-14, [PR #106](https://github.com/dknauss/Maestro/pull/106)).
+   Keep the delta model; the pass-through is in place.
 
 ---
 
@@ -37,7 +38,7 @@ solved — or paid for the sharp corners of — most of Maestro's hard problems.
 | **Apply model** | **Sparse overlay/delta**. Splice `$menu`/`$submenu` in place on `admin_menu` @ `PHP_INT_MAX`; top-order delegated to core's `custom_menu_order`/`menu_order` filters. Reset = `delete_option`. | **Full rebuild**. Snapshot on `admin_menu` @ `PHP_INT_MAX-10`, merge stored tree vs live defaults, but swap globals **only at render time** (`submenu_file` filter @1001 → `replace_wp_menu`, `restore_wp_menu` on `adminmenu`). Originals stay live the rest of the request. |
 | **Submenu targeting** | **Index-based DOM-join** — client zips localized submenu array to `.wp-submenu > li` by index (`assets/maestro.js`). E2E-only tested; **the fragile seam** (`TESTING.md`, `SPEC.md`). | **Slug-within-parent**, server-side (`merge_children()` via `template_id`). No index reliance. Moved items get `file` rewritten to fully-qualified default URL. |
 | **Visibility / access** | **Cosmetic-only**, enforced by omission. `hidden_roles` per-role; `is_hidden_for_current_user()` → `unset()` the row. Never touches caps or page gates. | **Both.** Cosmetic `hidden` flag **and** real access control: `set_final_menu_capability()` rewrites to `do_not_allow`; `user_can_access_current_page()` → `admin_page_access_denied` + `wp_die()`. Per-role/user **grant** = virtual caps via `user_has_cap` (grant is Pro). |
-| **Hook order / coexistence** | Runs last (`PHP_INT_MAX`); routes top-order through core's `custom_menu_order`/`menu_order`. **Caveat (found in review):** `has_top_order()` ignores the incoming filter value and returns a hardcoded `! empty(top_order)` (`class-replay.php:274-277`) — its docblock's "pass through" intent is *not* implemented, so with no stored order it forces `false` and **can override** an earlier plugin that enabled custom ordering. Splices, never rebuilds. | Snapshots on `admin_menu` @ `PHP_INT_MAX-10` (captures plugins hooking *earlier*), then swaps globals only at render and restores after — avoiding permanent clobber. **Caveat:** anything hooking *later* — including Maestro's own replay @ `PHP_INT_MAX` — mutates after AME's snapshot; if both are installed, AME re-swaps its rebuilt menu at paint over Maestro's changes (untested interaction). Ships **named compat shims** (Shopp, WooCommerce, bbPress, Divi, UIPress, Ozh…). |
+| **Hook order / coexistence** | Runs last (`PHP_INT_MAX`); routes top-order through core's `custom_menu_order`/`menu_order`. **Caveat (found in review — ✅ fixed, COMPAT-14 / [PR #106](https://github.com/dknauss/Maestro/pull/106)):** `has_top_order()` used to ignore the incoming filter value and return a hardcoded `! empty(top_order)` — its docblock's "pass through" intent was *not* implemented, so with no stored order it forced `false` and could override an earlier plugin that enabled custom ordering. Now `has_top_order( $enabled = false )` claims the filter only when a `top_order` is stored and otherwise passes the incoming value through. Splices, never rebuilds. | Snapshots on `admin_menu` @ `PHP_INT_MAX-10` (captures plugins hooking *earlier*), then swaps globals only at render and restores after — avoiding permanent clobber. **Caveat:** anything hooking *later* — including Maestro's own replay @ `PHP_INT_MAX` — mutates after AME's snapshot; if both are installed, AME re-swaps its rebuilt menu at paint over Maestro's changes (untested interaction). Ships **named compat shims** (Shopp, WooCommerce, bbPress, Divi, UIPress, Ozh…). |
 | **Highlighting (reparent)** | N/A — reparenting is deliberately out of scope in v1 (`SPEC.md:194`, gated on a highlighting strategy). | **Dual**: server `get_current_menu_item()` best-URL match + client `js/menu-highlight-fix.js` re-applies `current`/`wp-has-current-submenu` after DOM ready. |
 | **Storage** | Single `maestro_config` option; sparse `{items:{slug:{title?,icon?,hidden_roles?}}, top_order, sub_order}`. | Single `ws_menu_editor` option; **full serialized tree** (`ameMenu` format v8.0), delta-compressed against defaults, optional zlib; carries prebuilt virtual caps. |
 
@@ -128,12 +129,15 @@ solved — or paid for the sharp corners of — most of Maestro's hard problems.
   it has no parent→children cosmetic cascade toggle. Maestro's proposed default-off cascade is a
   genuine addition; design it as a pure visibility computation over existing `hidden_roles`
   semantics (children inherit only when the toggle is on), preserving the cosmetic-only guarantee.
-- **Bonus defect (found in review) — `custom_menu_order` clobber.** `has_top_order()` returns a
-  hardcoded `! empty(top_order)` and ignores the incoming filter value (`class-replay.php:274-277`),
-  so when Maestro has no stored top-order it can override an earlier plugin that enabled custom
-  ordering — contradicting its own docblock and adjacent to the COMPAT-05/06 `custom_menu_order`
-  collisions already in `BACKLOG.md`. Small, well-scoped fix (accept + pass through the value):
-  fold into Phase 20's compatibility work or a standalone `fix(replay)`.
+- **Bonus defect (found in review) — `custom_menu_order` clobber. ✅ Fixed in [PR #106](https://github.com/dknauss/Maestro/pull/106).**
+  `has_top_order()` returned a hardcoded `! empty(top_order)` and ignored the incoming filter value
+  (was `class-replay.php:274-277`), so when Maestro had no stored top-order it could override an
+  earlier plugin that enabled custom ordering — contradicting its own docblock and adjacent to the
+  COMPAT-05/06 `custom_menu_order` collisions already in `BACKLOG.md`. The fix (accept + pass through
+  the value) shipped as a standalone `fix(replay)`; the signature is now
+  `has_top_order( $enabled = false )`, claiming the filter only when a `top_order` is stored and
+  otherwise returning the incoming value unchanged, with four integration tests in
+  `tests/integration/ReplayTest.php`. Tracked as **COMPAT-14** in `BACKLOG.md`.
 
 ---
 
