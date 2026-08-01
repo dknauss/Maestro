@@ -9,6 +9,14 @@ files:
   - .planning/compat/ (R1 third-party compatibility survey — same problem space)
 ---
 
+## ✅ COMPLETED 2026-08-01
+
+Pulled forward from v1.5 to feed **Phase 20 (COMPAT-04/07/10)**. Deliverable:
+[`compat/PRIOR-ART-admin-menu-editor.md`](../../compat/PRIOR-ART-admin-menu-editor.md)
+— architecture + feature comparison vs AME 1.15.1 (source read), framed
+adopt/avoid/differentiate, with a dedicated Phase 20 inputs section and v1.5
+market-gap signals.
+
 ## Problem / why
 
 Maestro keeps hitting the same hard edges — menu-item **identity** and slug/URL

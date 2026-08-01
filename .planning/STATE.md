@@ -189,7 +189,7 @@ Recent decisions affecting current work:
 
 - **Named config presets + JSON export/import** — v1.5 candidate; supersedes/extends V2-06 (SPEC.md Roadmap item 6). Research captured in `todos/pending/2026-07-03-config-presets-export-import.md`
 - **Declutter switch (non-core menu items → bottom section)** — v1.5 candidate; needs discuss/feasibility pass (top_order precedence, CPT handling). Research captured in `todos/pending/2026-07-03-declutter-switch-non-core-menu-items.md`
-- **Research Admin Menu Editor (Jānis Elsts) prior art** — v1.5 candidate; research spike on how AME handles Maestro's tricky parts (menu identity/slug drift, replay against live globals, submenu targeting, per-role/per-user hiding, separators). Research captured in `todos/pending/2026-07-05-research-admin-menu-editor-prior-art.md`
+- ~~**Research Admin Menu Editor (Jānis Elsts) prior art**~~ — ✅ DONE 2026-08-01 (pulled forward from v1.5 to feed Phase 20). Findings note: `compat/PRIOR-ART-admin-menu-editor.md` (adopt/avoid/differentiate; AME 1.15.1 source read). Key inputs to Phase 20: COMPAT-04 → adopt AME's parent-scoped `parent>child` submenu identity; COMPAT-07 → split editable label from preserved title markup; COMPAT-10 → no prior art, Maestro-original. Cosmetic-only stays Maestro's differentiator (AME conflates hide with access). Todo moved to `todos/completed/`.
 - **V2-15 (backlog)** — role cloning for per-user menu hiding: superseded by ROLE-01/ROLE-02 in the v1.4 roadmap (Phases 19/21); no longer separately deferred
 - **COMPAT-04, COMPAT-07, COMPAT-10, DEMO-01** — no longer deferred; mapped to v1.4 Phases 20 and 22
 
