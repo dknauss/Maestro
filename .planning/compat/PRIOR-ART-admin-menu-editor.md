@@ -13,10 +13,11 @@
 AME is the deepest prior art in this space (300k+ installs, ~10 yrs), and it has already
 solved — or paid for the sharp corners of — most of Maestro's hard problems. Three findings dominate:
 
-1. **AME keys submenu items by `parent>child`, server-side — never by DOM index.** Maestro's
-   one acknowledged fragile seam (the index-based `.wp-submenu` DOM-join) is exactly the thing
-   AME does *not* do. This is the single most important **adopt** signal, and it directly
-   answers **COMPAT-04** (shared-slug top-level/submenu collisions).
+1. **AME keys menu items by `parent>child`, server-side — never by DOM index.** This gives it two
+   things Maestro lacks: (a) a level-qualified override key that resolves shared-slug top/submenu
+   collisions (**COMPAT-04**), and (b) freedom from any DOM-index association. These are *two
+   distinct fixes*: Maestro should adopt the qualified key **and** separately harden its
+   index-based `.wp-submenu` DOM-join — the qualified key alone does not fix the DOM side.
 2. **AME conflates hiding with access control** (it rewrites caps to `do_not_allow` and can
    `wp_die()` a page). That conflation is its #1 recurring user-confusion category. Maestro's
    provably **cosmetic-only** guarantee is its cleanest **differentiate** — do not follow AME here.
@@ -34,7 +35,7 @@ solved — or paid for the sharp corners of — most of Maestro's hard problems.
 | **Apply model** | **Sparse overlay/delta**. Splice `$menu`/`$submenu` in place on `admin_menu` @ `PHP_INT_MAX`; top-order delegated to core's `custom_menu_order`/`menu_order` filters. Reset = `delete_option`. | **Full rebuild**. Snapshot on `admin_menu` @ `PHP_INT_MAX-10`, merge stored tree vs live defaults, but swap globals **only at render time** (`submenu_file` filter @1001 → `replace_wp_menu`, `restore_wp_menu` on `adminmenu`). Originals stay live the rest of the request. |
 | **Submenu targeting** | **Index-based DOM-join** — client zips localized submenu array to `.wp-submenu > li` by index (`assets/maestro.js`). E2E-only tested; **the fragile seam** (`TESTING.md`, `SPEC.md`). | **Slug-within-parent**, server-side (`merge_children()` via `template_id`). No index reliance. Moved items get `file` rewritten to fully-qualified default URL. |
 | **Visibility / access** | **Cosmetic-only**, enforced by omission. `hidden_roles` per-role; `is_hidden_for_current_user()` → `unset()` the row. Never touches caps or page gates. | **Both.** Cosmetic `hidden` flag **and** real access control: `set_final_menu_capability()` rewrites to `do_not_allow`; `user_can_access_current_page()` → `admin_page_access_denied` + `wp_die()`. Per-role/user **grant** = virtual caps via `user_has_cap` (grant is Pro). |
-| **Hook order / coexistence** | Runs last (`PHP_INT_MAX`); `custom_menu_order` gated off unless a stored `top_order` exists (won't clobber other filterers). Splices, never rebuilds. | Snapshots last (`PHP_INT_MAX-10`) so it sees all other plugins; swap-then-restore avoids permanent clobber. Ships **named compat shims** (Shopp, WooCommerce, bbPress, Divi, UIPress, Ozh…). |
+| **Hook order / coexistence** | Runs last (`PHP_INT_MAX`); `custom_menu_order` gated off unless a stored `top_order` exists (won't clobber other filterers). Splices, never rebuilds. | Snapshots on `admin_menu` @ `PHP_INT_MAX-10` (captures plugins hooking *earlier*), then swaps globals only at render and restores after — avoiding permanent clobber. **Caveat:** anything hooking *later* — including Maestro's own replay @ `PHP_INT_MAX` — mutates after AME's snapshot; if both are installed, AME re-swaps its rebuilt menu at paint over Maestro's changes (untested interaction). Ships **named compat shims** (Shopp, WooCommerce, bbPress, Divi, UIPress, Ozh…). |
 | **Highlighting (reparent)** | N/A — reparenting is deliberately out of scope in v1 (`SPEC.md:194`, gated on a highlighting strategy). | **Dual**: server `get_current_menu_item()` best-URL match + client `js/menu-highlight-fix.js` re-applies `current`/`wp-has-current-submenu` after DOM ready. |
 | **Storage** | Single `maestro_config` option; sparse `{items:{slug:{title?,icon?,hidden_roles?}}, top_order, sub_order}`. | Single `ws_menu_editor` option; **full serialized tree** (`ameMenu` format v8.0), delta-compressed against defaults, optional zlib; carries prebuilt virtual caps. |
 
@@ -46,15 +47,23 @@ solved — or paid for the sharp corners of — most of Maestro's hard problems.
 
 ## Adopt
 
-- **A1 — Parent-scoped submenu identity (`parent>child`).** AME's `template_id` proves the robust
+- **A1 — Parent-scoped override identity (`parent>child`).** AME's `template_id` proves the robust
   pattern: a submenu item's identity includes its parent, so a top-level slug and a same-named
-  submenu slug are *distinct keys*. This is the correct fix for Maestro's index-based DOM-join and
-  for COMPAT-04. See **Phase 20** section below.
-- **A2 — Split the editable label from preserved title markup.** AME keeps the WP-generated title
-  (with count bubbles) in `defaults` and only substitutes a *custom* title when the user sets one;
-  its editor field sanitizes tags out (`sanitizeMenuTitle`) purely for display. The transferable
-  idea for **COMPAT-07**: treat a title as `editable_text + trailing_markup`; rename only the text,
-  re-append the badge/`<span>` on output.
+  submenu slug are *distinct override keys*. This fixes the **override-namespace** collision
+  (COMPAT-04). It does **not** fix Maestro's *DOM-association* problem — the client still zips
+  `node.submenu` to `.wp-submenu` rows by index, so a qualified key attached to a mis-zipped row
+  still lands wrong. Treat as two separate fixes (A1 + A1b). See **Phase 20** below.
+- **A1b — Stable submenu DOM association (distinct from A1).** The index-zip in `assets/maestro.js`
+  is the residual fragility. A durable fix binds each localized submenu entry to its rendered
+  `<li>` by a *stable attribute* (e.g. the child anchor's `href`/resolved slug) rather than array
+  position. AME sidesteps this entirely by never touching the DOM (server-side render swap);
+  Maestro's inline model needs an explicit DOM key of its own.
+- **A2 — Separate the editable label from surrounding title markup.** AME keeps the WP-generated
+  title (with count bubbles) in `defaults` and only substitutes a *custom* title when set; its
+  editor field strips tags (`sanitizeMenuTitle`) for display only. The transferable idea for
+  **COMPAT-07**: edit only the human-readable **text node(s)** and preserve the markup *around*
+  them — not merely a trailing suffix, since some fixtures *wrap* the label (e.g. WPForms
+  `<span style="color:#f18500">Addons</span>`).
 - **A3 — Client-side highlight-fix as a known technique** (`menu-highlight-fix.js`) — bank this for
   the v2 reparenting work `SPEC.md:194` already gates on a highlighting strategy. Not needed now.
 - **A4 — Snapshot-last, restore-after as a mental model.** AME's swap-only-during-paint trick is
@@ -92,17 +101,23 @@ solved — or paid for the sharp corners of — most of Maestro's hard problems.
 
 ## Phase 20 direct inputs (COMPAT-04 / 07 / 10)
 
-- **COMPAT-04 (shared-slug top-level/submenu collision).** AME sidesteps this entirely by keying
-  `parent>child`; Maestro currently keys submenu by slug-within-parent at replay but the *identity
-  namespace is flat enough* that its Axis-1/Axis-2 guards resolve ambiguity by **applying neither**
-  override (safe but lossy). **Recommendation:** adopt a parent-qualified key form for submenu
-  overrides (store/resolve `parent>child`, not bare `child`), so a top-level and submenu sharing a
-  slug get independent overrides instead of a mutual veto. This is the highest-leverage COMPAT-04
-  move and matches proven prior art.
-- **COMPAT-07 (badge/HTML-in-title preservation).** Adopt **A2**: parse the rendered title into
-  `text + trailing HTML/`&nbsp;`+`<span class="update-plugins/awaiting-mod">…`, rename only the
-  text node, re-append the preserved markup on output. AME demonstrates the separation is viable;
-  Maestro can go further by preserving (not just tolerating) the badge.
+- **COMPAT-04 (shared-slug top-level/submenu collision).** Per `BACKLOG.md` COMPAT-04, when a CPT
+  top-level and its first submenu share a slug (e.g. `edit.php?post_type=product`), the single
+  `items[slug]` override **lands on both**: `Replay::replay()` scans the top-level scope and each
+  submenu-parent scope separately, so a bare-slug key matches in *both* (apply-to-both, **not** a
+  mutual veto). The Axis-1/Axis-2 guards address a *different* case — two *distinct* stored keys
+  that normalize to one key. **Recommendation:** adopt a **level-qualified match key**
+  (`parent>child` for submenu overrides, bare slug for top-level) — exactly the "level-aware match"
+  BACKLOG already names as the future direction — so a top-level and submenu sharing a slug get
+  independent overrides. Highest-leverage COMPAT-04 move, matching proven prior art. (Pair with
+  A1b for the DOM-association side.)
+- **COMPAT-07 (badge/HTML-in-title preservation).** `BACKLOG.md` COMPAT-07 spans 4/6 plugins whose
+  titles carry baked-in HTML: *trailing* count spans (WooCommerce/Yoast), but **also** markup that
+  *wraps* the label (WPForms `<span style="color:#f18500">Addons</span>`; Yoast Upgrade / AI Brand
+  Insights upsell wrappers). A `text + trailing_suffix` split fails the wrap cases. **Recommendation
+  (A2):** represent a title as its DOM text node(s) plus the surrounding markup, and on rename
+  replace only the text node(s) — a text-node-replacement strategy preserving markup *before and
+  after* the label. This is what the required 4/6-plugin coverage bar demands.
 - **COMPAT-10 (optional cascade-hide to children).** **No strong prior art** — AME hides per-item;
   it has no parent→children cosmetic cascade toggle. Maestro's proposed default-off cascade is a
   genuine addition; design it as a pure visibility computation over existing `hidden_roles`
