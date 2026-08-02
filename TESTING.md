@@ -2,7 +2,7 @@
 
 Three layers, smallest and fastest first.
 
-> **Current expected status:** unit 103/103 with 127 assertions, integration 60/60 with 143 assertions, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, and (COMPAT-04) independent shared-slug top-level/submenu editing.
+> **Current expected status:** unit 114/114 with 141 assertions, integration 60/60 with 143 assertions, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, and (COMPAT-04) independent shared-slug top-level/submenu editing.
 
 ## Gotchas (first run)
 
@@ -18,8 +18,10 @@ Three layers, smallest and fastest first.
 
 ## 1. Unit (pure PHP, no WordPress, no Docker)
 
-Covers the highest-risk pure logic: the `Ordering` resilience rules and the
-dashicon validator. Fast, runs anywhere with PHP + Composer.
+Covers the highest-risk pure logic: the `Ordering` resilience rules, the
+dashicon validator, and (COMPAT-07) [`Title::replace_label()`](includes/class-title.php)'s
+text-node label-replacement against [`tests/unit/TitleTest.php`](tests/unit/TitleTest.php)'s
+badge/wrapping-markup fixtures. Fast, runs anywhere with PHP + Composer.
 
 ```bash
 composer install

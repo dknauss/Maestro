@@ -29,6 +29,7 @@ define( 'MAESTRO_OPTION', 'maestro_config' );
 require_once MAESTRO_DIR . 'includes/class-config.php';
 require_once MAESTRO_DIR . 'includes/class-slug.php';
 require_once MAESTRO_DIR . 'includes/class-ordering.php';
+require_once MAESTRO_DIR . 'includes/class-title.php';
 require_once MAESTRO_DIR . 'includes/class-replay.php';
 require_once MAESTRO_DIR . 'includes/class-rest.php';
 require_once MAESTRO_DIR . 'includes/class-admin-bar.php';

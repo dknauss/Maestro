@@ -123,3 +123,4 @@ $amm_inc = dirname( __DIR__ ) . '/includes/';
 require_once $amm_inc . 'class-ordering.php';
 require_once $amm_inc . 'class-slug.php';
 require_once $amm_inc . 'class-config.php';
+require_once $amm_inc . 'class-title.php';
