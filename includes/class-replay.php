@@ -155,21 +155,47 @@ class Replay {
 		// --- Submenus: rename, visibility, then reorder ------------------------
 		if ( is_array( $submenu ) ) {
 			foreach ( $submenu as $parent => $children ) {
+				// COMPAT-04: a qualified `parent>child` override resolves ONLY this
+				// submenu row, never a same-slug top-level item (level-qualified).
+				// A legacy bare child key (no qualified key stored for this pair)
+				// keeps matching this row too — exactly today's behavior — so an
+				// existing config's effect does not change until it is re-saved.
+				// Both Axis-2 collision guards below are independent: a rendered
+				// collision on the qualified path does not veto the bare path or
+				// vice versa.
+				$norm_parent = Slug::normalize( (string) $parent, $base );
+
 				// Axis-2 collision guard for this parent's children: pre-scan before mutating.
-				$sub_rendered_matches = array(); // normalized_key => first rendered slug matched.
-				$sub_skip_rendered    = array(); // normalized_key => true (matched 2+ distinct rendered).
+				$sub_rendered_matches  = array(); // bare normalized_key => first rendered slug matched.
+				$sub_skip_rendered     = array(); // bare normalized_key => true (matched 2+ distinct rendered).
+				$qual_rendered_matches = array(); // qualified normalized_key => first rendered slug matched.
+				$qual_skip_rendered    = array(); // qualified normalized_key => true (matched 2+ distinct rendered).
 				foreach ( $children as $row ) {
 					if ( empty( $row[2] ) ) {
 						continue;
 					}
 					$nk = Slug::normalize( (string) $row[2], $base );
-					if ( '' === $nk || isset( $norm_skip[ $nk ] ) || ! isset( $norm_items[ $nk ] ) ) {
+					if ( '' === $nk ) {
 						continue;
 					}
-					if ( ! isset( $sub_rendered_matches[ $nk ] ) ) {
-						$sub_rendered_matches[ $nk ] = $row[2];
-					} elseif ( $sub_rendered_matches[ $nk ] !== $row[2] ) {
-						$sub_skip_rendered[ $nk ] = true;
+
+					if ( ! isset( $norm_skip[ $nk ] ) && isset( $norm_items[ $nk ] ) ) {
+						if ( ! isset( $sub_rendered_matches[ $nk ] ) ) {
+							$sub_rendered_matches[ $nk ] = $row[2];
+						} elseif ( $sub_rendered_matches[ $nk ] !== $row[2] ) {
+							$sub_skip_rendered[ $nk ] = true;
+						}
+					}
+
+					if ( '' !== $norm_parent ) {
+						$qnk = $norm_parent . Slug::QUALIFIED_SEPARATOR . $nk;
+						if ( ! isset( $norm_skip[ $qnk ] ) && isset( $norm_items[ $qnk ] ) ) {
+							if ( ! isset( $qual_rendered_matches[ $qnk ] ) ) {
+								$qual_rendered_matches[ $qnk ] = $row[2];
+							} elseif ( $qual_rendered_matches[ $qnk ] !== $row[2] ) {
+								$qual_skip_rendered[ $qnk ] = true;
+							}
+						}
 					}
 				}
 
@@ -179,24 +205,45 @@ class Replay {
 					}
 
 					$nk = Slug::normalize( (string) $row[2], $base );
-					if ( '' === $nk || isset( $norm_skip[ $nk ] ) || isset( $sub_skip_rendered[ $nk ] ) ) {
+					if ( '' === $nk ) {
 						continue;
 					}
-					if ( isset( $norm_items[ $nk ] ) ) {
+
+					$ovr = null;
+
+					// Qualified key wins first: an unambiguous parent>child override
+					// for THIS rendered parent+child pair. A stored qualified key
+					// whose parent half matches no rendered parent here never builds
+					// a matching $qnk in this loop, so it is skipped silently — no
+					// extra check needed for the parent-half-miss rule.
+					if ( '' !== $norm_parent ) {
+						$qnk = $norm_parent . Slug::QUALIFIED_SEPARATOR . $nk;
+						if ( ! isset( $norm_skip[ $qnk ] ) && ! isset( $qual_skip_rendered[ $qnk ] ) && isset( $norm_items[ $qnk ] ) ) {
+							$ovr = $norm_items[ $qnk ];
+						}
+					}
+
+					// Legacy bare fallback: only when no qualified override applied.
+					if ( null === $ovr && ! isset( $norm_skip[ $nk ] ) && ! isset( $sub_skip_rendered[ $nk ] ) && isset( $norm_items[ $nk ] ) ) {
 						$ovr = $norm_items[ $nk ];
-						if ( isset( $ovr['title'] ) ) {
-							$submenu[ $parent ][ $pos ][0] = $ovr['title']; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: mutating $submenu via admin_menu hook is the documented WP API for submenu customization.
-						}
-						if ( $this->is_hidden_for_current_user( $ovr ) ) {
-							unset( $submenu[ $parent ][ $pos ] ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: unsetting $submenu entries via admin_menu hook is the documented WP API for hiding menu items.
-						}
+					}
+
+					if ( null === $ovr ) {
+						continue;
+					}
+
+					if ( isset( $ovr['title'] ) ) {
+						$submenu[ $parent ][ $pos ][0] = $ovr['title']; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: mutating $submenu via admin_menu hook is the documented WP API for submenu customization.
+					}
+					if ( $this->is_hidden_for_current_user( $ovr ) ) {
+						unset( $submenu[ $parent ][ $pos ] ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: unsetting $submenu entries via admin_menu hook is the documented WP API for hiding menu items.
 					}
 				}
 
 				// Reorder this parent's surviving children.
-				// Normalize the sub_order parent key so an absolute/encoded stored
-				// key resolves against the (possibly different form) rendered parent.
-				$norm_parent   = Slug::normalize( (string) $parent, $base );
+				// $norm_parent (computed above) also resolves the sub_order parent
+				// key so an absolute/encoded stored key matches the (possibly
+				// different form) rendered parent.
 				$desired_order = null;
 				if ( ! empty( $cfg['sub_order'] ) ) {
 					foreach ( $cfg['sub_order'] as $sp => $sd ) {
@@ -357,6 +404,11 @@ class Replay {
 	 * resolve to nothing. Shared by replay() (which applies overrides) and
 	 * get_menu_model() (which shows them in the editor) so the two never drift.
 	 *
+	 * A stored key may be a bare top-level slug or a qualified `parent>child`
+	 * submenu key (COMPAT-04); Slug::normalize_qualified() normalizes each form
+	 * appropriately (bare keys behave exactly as Slug::normalize(), unchanged),
+	 * so the Axis-1 guard applies equally to both key shapes in one pass.
+	 *
 	 * @param array  $items Stored items keyed by raw override key.
 	 * @param string $base  Admin base for Slug::normalize().
 	 * @return array{0: array<string, array>, 1: array<string, bool>} [ norm_items, norm_skip ]
@@ -365,7 +417,7 @@ class Replay {
 		$norm_items = array(); // normalized_key => override.
 		$norm_skip  = array(); // normalized_key => true (ambiguous, skip).
 		foreach ( $items as $stored_key => $override ) {
-			$nk = Slug::normalize( (string) $stored_key, $base );
+			$nk = Slug::normalize_qualified( (string) $stored_key, $base );
 			if ( '' === $nk ) {
 				continue;
 			}

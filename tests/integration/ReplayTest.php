@@ -666,4 +666,169 @@ class ReplayTest extends WP_UnitTestCase {
 			'Anti-regression: plain slug overrides must still apply unchanged after normalization wiring.'
 		);
 	}
+
+	// -----------------------------------------------------------------------
+	// COMPAT-04: level-qualified submenu resolution (20-02)
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Seed a WooCommerce-style shared-slug fixture: a top-level item and its
+	 * own first submenu child render the SAME slug (e.g. Products top-level +
+	 * "All Products" submenu under itself) — the COMPAT-04 collision surface.
+	 */
+	private function seed_shared_slug_menu() {
+		global $menu, $submenu;
+
+		$menu[20] = array( 'Products', 'manage_woocommerce', 'edit.php?post_type=product', '', 'menu-top', 'menu-posts-product', 'dashicons-tag' );
+
+		$submenu['edit.php?post_type=product'] = array(
+			5  => array( 'All Products', 'manage_woocommerce', 'edit.php?post_type=product', '' ),
+			10 => array( 'Add Product', 'manage_woocommerce', 'post-new.php?post_type=product', '' ),
+		);
+	}
+
+	/**
+	 * A qualified `parent>child` override renames ONLY the submenu row; the
+	 * same-slug top-level item is untouched.
+	 */
+	public function test_qualified_key_renames_only_submenu_not_top() {
+		$this->seed_shared_slug_menu();
+
+		( new Config() )->save(
+			array(
+				'items' => array(
+					'edit.php?post_type=product>edit.php?post_type=product' => array( 'title' => 'All Items' ),
+				),
+			)
+		);
+
+		$this->run_replay();
+
+		global $menu, $submenu;
+		$this->assertSame( 'All Items', $submenu['edit.php?post_type=product'][5][0], 'Qualified key must rename the submenu row.' );
+		$this->assertSame( 'Products', $menu[20][0], 'Qualified submenu key must not touch the same-slug top-level item.' );
+	}
+
+	/**
+	 * A bare top-level override and a qualified submenu override on the SAME
+	 * underlying slug apply independently: each hits only its own scope.
+	 */
+	public function test_bare_top_override_and_qualified_submenu_override_are_independent() {
+		$this->seed_shared_slug_menu();
+
+		( new Config() )->save(
+			array(
+				'items' => array(
+					'edit.php?post_type=product'                             => array( 'title' => 'Shop Items' ),
+					'edit.php?post_type=product>edit.php?post_type=product' => array( 'title' => 'All Items' ),
+				),
+			)
+		);
+
+		$this->run_replay();
+
+		global $menu, $submenu;
+		$this->assertSame( 'Shop Items', $menu[20][0], 'Bare top-level key must rename only the top-level item.' );
+		$this->assertSame( 'All Items', $submenu['edit.php?post_type=product'][5][0], 'Qualified key must win for the submenu row over the bare top key.' );
+	}
+
+	/**
+	 * Zero-regression: a legacy config with ONLY a bare submenu key (no
+	 * qualified key stored) still renames BOTH the top-level item and the
+	 * same-slug submenu row — exactly today's behavior — until re-saved.
+	 */
+	public function test_legacy_bare_submenu_key_still_matches_both_scopes_today() {
+		$this->seed_shared_slug_menu();
+
+		( new Config() )->save(
+			array( 'items' => array( 'edit.php?post_type=product' => array( 'title' => 'Renamed Everywhere' ) ) )
+		);
+
+		$this->run_replay();
+
+		global $menu, $submenu;
+		$this->assertSame( 'Renamed Everywhere', $menu[20][0], 'Legacy bare key must still rename the top-level item.' );
+		$this->assertSame(
+			'Renamed Everywhere',
+			$submenu['edit.php?post_type=product'][5][0],
+			'Legacy bare key with no qualified key present must still rename the same-slug submenu row (zero-regression until re-saved).'
+		);
+	}
+
+	/**
+	 * A qualified key whose parent half matches no rendered parent in this
+	 * pass is skipped and degrades silently — no misapplied override.
+	 */
+	public function test_qualified_key_parent_half_miss_skips_silently() {
+		$this->seed_shared_slug_menu();
+
+		( new Config() )->save(
+			array(
+				'items' => array(
+					'no-such-parent.php>edit.php?post_type=product' => array( 'title' => 'Should Not Apply' ),
+				),
+			)
+		);
+
+		$this->run_replay();
+
+		global $submenu;
+		$this->assertSame(
+			'All Products',
+			$submenu['edit.php?post_type=product'][5][0],
+			'A qualified key whose parent half matches no rendered parent must be skipped silently.'
+		);
+	}
+
+	/**
+	 * Axis-1 collision guard extends to qualified keys: two distinct stored
+	 * qualified keys that normalize (ver= dropped) to the SAME qualified key
+	 * are ambiguous — apply nothing.
+	 */
+	public function test_axis1_guard_extends_to_qualified_keys() {
+		$this->seed_shared_slug_menu();
+
+		( new Config() )->save(
+			array(
+				'items' => array(
+					'edit.php?post_type=product>edit.php?post_type=product&ver=1.0' => array( 'title' => 'Ambiguous A' ),
+					'edit.php?post_type=product>edit.php?post_type=product&ver=2.0' => array( 'title' => 'Ambiguous B' ),
+				),
+			)
+		);
+
+		$this->run_replay();
+
+		global $submenu;
+		$this->assertSame(
+			'All Products',
+			$submenu['edit.php?post_type=product'][5][0],
+			'Axis-1 collision guard must extend to qualified keys: two stored keys normalizing to one apply nothing.'
+		);
+	}
+
+	/**
+	 * Each half of a qualified key normalizes independently: a host-moved
+	 * parent half and a ver=-drifted child half both still resolve to the
+	 * live parent/child pair.
+	 */
+	public function test_qualified_key_normalizes_each_half_independently() {
+		$this->seed_shared_slug_menu();
+
+		$stored_key = 'https://oldhost.test/wp-admin/edit.php?post_type=product>edit.php?post_type=product&ver=9.9';
+
+		( new Config() )->save(
+			array( 'items' => array( $stored_key => array( 'title' => 'All Items Twin' ) ) )
+		);
+
+		$this->run_replay();
+
+		global $menu, $submenu;
+		$this->assertSame(
+			'All Items Twin',
+			$submenu['edit.php?post_type=product'][5][0],
+			'Each half of a qualified key must be normalized independently (host-move parent half + ver-drift child half).'
+		);
+		$this->assertSame( 'Products', $menu[20][0], 'Top-level item must remain untouched by the qualified override.' );
+	}
 }
