@@ -2,7 +2,7 @@
 
 Three layers, smallest and fastest first.
 
-> **Current expected status:** unit 114/114 with 141 assertions, integration 60/60 with 143 assertions, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, and (COMPAT-04) independent shared-slug top-level/submenu editing.
+> **Current expected status:** unit 114/114 with 141 assertions, integration 65/65 with 150 assertions, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, and (COMPAT-04) independent shared-slug top-level/submenu editing.
 
 ## Gotchas (first run)
 
@@ -34,8 +34,9 @@ Config: [`phpunit-unit.xml.dist`](phpunit-unit.xml.dist) → bootstrap [`tests/b
 ## 2. Integration (WordPress test suite, via wp-env)
 
 Covers `Config::sanitize()`, the replay engine mutating real `$menu`/`$submenu`
-globals, role-based visibility, the REST round-trip, and the localized editor
-payload. Uses Docker.
+globals, role-based visibility, the REST round-trip, the localized editor
+payload, and (COMPAT-07) badge/wrapping-markup preservation on rename at both
+title-write seams in [`Replay::replay()`](includes/class-replay.php). Uses Docker.
 
 ```bash
 npm install

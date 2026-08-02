@@ -131,7 +131,14 @@ class Replay {
 				$ovr = $norm_items[ $nk ];
 
 				if ( isset( $ovr['title'] ) ) {
-					$menu[ $pos ][0] = $ovr['title']; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: mutating $menu via admin_menu hook is the documented WP API for menu customization.
+					// COMPAT-07: re-extract badge/wrapper markup from the LIVE title
+					// each request and swap only the human-readable label into it,
+					// instead of overwriting the row wholesale. Falls back to the
+					// wholesale stored title when no replaceable text node exists
+					// (today's behavior) — no fatal, no invented markup.
+					$live_title      = isset( $row[0] ) ? (string) $row[0] : '';
+					$retitled        = Title::replace_label( $live_title, $ovr['title'] );
+					$menu[ $pos ][0] = ( null !== $retitled ) ? $retitled : $ovr['title']; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: mutating $menu via admin_menu hook is the documented WP API for menu customization.
 				}
 				if ( isset( $ovr['icon'] ) ) {
 					$menu[ $pos ][6] = $ovr['icon']; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: mutating $menu via admin_menu hook is the documented WP API for menu customization. Index 6 is top-level only.
@@ -233,7 +240,11 @@ class Replay {
 					}
 
 					if ( isset( $ovr['title'] ) ) {
-						$submenu[ $parent ][ $pos ][0] = $ovr['title']; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: mutating $submenu via admin_menu hook is the documented WP API for submenu customization.
+						// COMPAT-07: same live-title text-node swap as the top-level seam
+						// above, applied to the submenu row.
+						$live_title                    = isset( $row[0] ) ? (string) $row[0] : '';
+						$retitled                      = Title::replace_label( $live_title, $ovr['title'] );
+						$submenu[ $parent ][ $pos ][0] = ( null !== $retitled ) ? $retitled : $ovr['title']; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: mutating $submenu via admin_menu hook is the documented WP API for submenu customization.
 					}
 					if ( $this->is_hidden_for_current_user( $ovr ) ) {
 						unset( $submenu[ $parent ][ $pos ] ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: unsetting $submenu entries via admin_menu hook is the documented WP API for hiding menu items.

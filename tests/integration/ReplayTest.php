@@ -934,4 +934,126 @@ class ReplayTest extends WP_UnitTestCase {
 		}
 		$this->assertSame( array( 'editor' ), $sub['hiddenRoles'], 'Legacy bare key with no qualified key present must still resolve for the same-slug submenu node too.' );
 	}
+
+	// -----------------------------------------------------------------------
+	// COMPAT-07: badge/HTML preservation on rename (20-04)
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Top-level rename over a live title with a trailing badge preserves the
+	 * badge; only the label text is swapped in $menu[pos][0].
+	 */
+	public function test_rename_top_level_preserves_trailing_badge() {
+		global $menu;
+		$menu[5][0] = 'Orders <span class="awaiting-mod count-3"><span class="pending-count">3</span></span>';
+
+		( new Config() )->save(
+			array( 'items' => array( 'edit.php' => array( 'title' => 'Sales' ) ) )
+		);
+
+		$this->run_replay();
+
+		$this->assertSame(
+			'Sales <span class="awaiting-mod count-3"><span class="pending-count">3</span></span>',
+			$menu[5][0],
+			'Top-level rename must preserve the trailing badge markup.'
+		);
+	}
+
+	/**
+	 * Submenu rename over a wrapping-span title preserves the wrapper; only
+	 * the inner label text is swapped in $submenu[parent][pos][0].
+	 */
+	public function test_rename_submenu_preserves_wrapping_span() {
+		global $submenu;
+		$submenu['edit.php'][10][0] = '<span style="color:#f18500">Addons</span>';
+
+		( new Config() )->save(
+			array( 'items' => array( 'post-new.php' => array( 'title' => 'Extras' ) ) )
+		);
+
+		$this->run_replay();
+
+		$this->assertSame(
+			'<span style="color:#f18500">Extras</span>',
+			$submenu['edit.php'][10][0],
+			'Submenu rename must preserve the wrapping markup around the label.'
+		);
+	}
+
+	/**
+	 * When Title::replace_label() finds no replaceable text node (icon + badge
+	 * only), replay must fall back to the wholesale stored title — today's
+	 * behavior — with no fatal and no invented markup.
+	 */
+	public function test_rename_falls_back_to_wholesale_when_no_text_node() {
+		global $menu;
+		$menu[5][0] = '<span class="wp-menu-image"></span><span class="count-2">2</span>';
+
+		( new Config() )->save(
+			array( 'items' => array( 'edit.php' => array( 'title' => 'Articles' ) ) )
+		);
+
+		$this->run_replay();
+
+		$this->assertSame(
+			'Articles',
+			$menu[5][0],
+			'With no replaceable text node, replay must fall back to the wholesale stored title.'
+		);
+	}
+
+	/**
+	 * Counts are current: a badge's count is re-extracted from the LIVE title
+	 * every replay pass, never a stale stored snapshot. Changing the live
+	 * count between two replay passes (same stored override) must show the
+	 * NEW count both times.
+	 */
+	public function test_rename_preserves_current_count_not_stale_snapshot() {
+		global $menu;
+		$menu[5][0] = 'Orders <span class="count-5">5</span>';
+
+		( new Config() )->save(
+			array( 'items' => array( 'edit.php' => array( 'title' => 'Sales' ) ) )
+		);
+
+		$this->run_replay();
+
+		$this->assertSame( 'Sales <span class="count-5">5</span>', $menu[5][0] );
+
+		// Simulate the badge count changing before the NEXT request — same
+		// stored plain-text override, different live title.
+		$menu[5][0] = 'Orders <span class="count-9">9</span>';
+		$this->run_replay();
+
+		$this->assertSame(
+			'Sales <span class="count-9">9</span>',
+			$menu[5][0],
+			'Counts must be re-extracted from the live title each request, not a stale stored snapshot.'
+		);
+	}
+
+	/**
+	 * Stored config is unaffected: after a save+replay round-trip over a
+	 * badge-bearing live title, the stored items[key].title remains plain
+	 * text — badge HTML must never leak into storage.
+	 */
+	public function test_stored_title_stays_plain_text_after_badge_replay_round_trip() {
+		global $menu;
+		$menu[5][0] = 'Orders <span class="count-3">3</span>';
+
+		( new Config() )->save(
+			array( 'items' => array( 'edit.php' => array( 'title' => 'Sales' ) ) )
+		);
+
+		$this->run_replay();
+
+		$cfg = ( new Config() )->get();
+		$this->assertSame(
+			'Sales',
+			$cfg['items']['edit.php']['title'],
+			'Stored config must hold only the plain-text label; badge HTML must never enter storage.'
+		);
+		$this->assertStringNotContainsString( '<span', $cfg['items']['edit.php']['title'] );
+	}
 }
