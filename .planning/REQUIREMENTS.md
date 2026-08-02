@@ -21,7 +21,7 @@ backlog IDs without renumbering.
 
 ### Third-Party Compatibility (R1 backlog)
 
-- [ ] **COMPAT-04**: A rename or hide override on a top-level slug does **not** also hit a submenu that renders the same slug — match keys are level-qualified (parent vs submenu), verified against the R1 shared-slug fixtures.
+- [x] **COMPAT-04**: A rename or hide override on a top-level slug does **not** also hit a submenu that renders the same slug — match keys are level-qualified (parent vs submenu), verified against the R1 shared-slug fixtures.
 - [ ] **COMPAT-07**: A rename **preserves** a menu item's trailing badge / HTML-in-title (update-count bubble, "NEW"/count spans) instead of stripping it, for the R1 plugins that use them (4/6), verified by fixture.
 - [ ] **COMPAT-10**: An admin can **optionally** cascade a parent hide to its children (subtree-hide), off by default; enabling it hides the children cosmetically without affecting access.
 
@@ -72,7 +72,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | DEMO-01 | Phase 22 | Pending |
-| COMPAT-04 | Phase 20 | Pending |
+| COMPAT-04 | Phase 20 | ✅ Complete 2026-08-01 |
 | COMPAT-07 | Phase 20 | Pending |
 | COMPAT-10 | Phase 20 | Pending |
 | ROLE-01 | Phase 19 | ✅ Complete (partial-go) 2026-07-05 |

@@ -108,8 +108,8 @@ The DOM-join (locating submenu items by resolved anchor href/slug within
 `.wp-submenu`, including a shared-slug top-level/submenu pair — COMPAT-04) is
 only exercised by the E2E layer — that is the layer to watch when testing
 against a real-world menu with third-party plugins registered.
-`tests/e2e/specs/shared-slug.spec.ts` covers the shared-slug case against a
-gated fixture CPT (`tests/e2e/fixtures/maestro-e2e-shared-slug.php`) that
+[`tests/e2e/specs/shared-slug.spec.ts`](tests/e2e/specs/shared-slug.spec.ts) covers the shared-slug case against a
+gated fixture CPT ([`tests/e2e/fixtures/maestro-e2e-shared-slug.php`](tests/e2e/fixtures/maestro-e2e-shared-slug.php)) that
 reproduces WordPress's post-type self-link convention (the WooCommerce
 Products / "All Products" shape) without depending on a real third-party
 plugin.

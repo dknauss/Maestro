@@ -174,7 +174,7 @@ Full phase details, success criteria, and outcomes are archived in
 Plans:
 - [x] 20-01-PLAN.md — COMPAT-04: qualified-key storage foundation (pure key helper + Config::sanitize) [COMPAT-04]
 - [x] 20-02-PLAN.md — COMPAT-04: replay + editor-model qualified resolution with legacy bare fallback [COMPAT-04]
-- [ ] 20-03-PLAN.md — COMPAT-04: client A1b (qualified model + stable submenu DOM bind) + shared-slug e2e [COMPAT-04]
+- [x] 20-03-PLAN.md — COMPAT-04: client A1b (qualified model + stable submenu DOM bind) + shared-slug e2e [COMPAT-04]
 - [ ] 20-04-PLAN.md — COMPAT-07: text-node badge/HTML preservation on rename (pure helper + replay wiring) [COMPAT-07]
 - [ ] 20-05-PLAN.md — COMPAT-10: cascade-hide server (pure computation + replay + cosmetic-only guardrail) [COMPAT-10]
 - [ ] 20-06-PLAN.md — COMPAT-10: cascade UI in visibility popover + phase zero-regression gate [COMPAT-10]
@@ -263,7 +263,7 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 | 17. Slug Normalization | v1.3.0 | 3/3 | Complete (shipped 2026-06-30) | 2026-06-29 |
 | 18. Release v1.3.0 | v1.3.0 | 3/3 | Complete (shipped 2026-06-30) | 2026-06-30 |
 | 19. Cosmetic Hiding Feasibility | v1.4 | Complete    | 2026-07-05 | - |
-| 20. Third-Party Compatibility Fixes | v1.4 | 2/6 | In Progress | - |
+| 20. Third-Party Compatibility Fixes | v1.4 | 3/6 | In Progress | - |
 | 21. Cosmetic Per-User / Cloned-Role Hiding | v1.4 | 0/TBD | Not started (conditional on Phase 19) | - |
 | 22. Slug-Resolution Showcase Demo | v1.4 | 0/TBD | Not started | - |
 | 23. Editor UX Polish | v1.4 | 5/5 | Complete | 2026-07-05 |
