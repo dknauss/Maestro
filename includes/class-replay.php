@@ -172,18 +172,21 @@ class Replay {
 				// vice versa.
 				$norm_parent = Slug::normalize( (string) $parent, $base );
 
-				// COMPAT-10: resolve the PARENT's own override (bare top-level key
-				// only -- cascade_hide is a parent concept and Config::sanitize()
-				// never stores it on a qualified submenu key) so its cascade_hide
-				// flag and hidden_roles can be unioned into each child below. The
-				// same Axis-1 guard (norm_skip) and the top-level Axis-2 guard
-				// (top_skip_rendered, computed above) apply here too: an ambiguous
-				// parent resolves to no override, so cascade never fires for it.
-				$parent_ovr          = ( '' !== $norm_parent && ! isset( $norm_skip[ $norm_parent ] ) && ! isset( $top_skip_rendered[ $norm_parent ] ) && isset( $norm_items[ $norm_parent ] ) )
+				// COMPAT-10 (REVISED): resolve the PARENT's own override (bare
+				// top-level key only -- child_hidden_roles is a parent concept
+				// and Config::sanitize() never stores it on a qualified submenu
+				// key) so its child_hidden_roles can be unioned into each child
+				// below. Independent of the parent's own hidden_roles (whether
+				// the PARENT itself is hidden) -- that stays exactly the
+				// existing top-level hide, untouched here. The same Axis-1
+				// guard (norm_skip) and the top-level Axis-2 guard
+				// (top_skip_rendered, computed above) apply here too: an
+				// ambiguous parent resolves to no override, so child-hiding
+				// never fires for it.
+				$parent_ovr                = ( '' !== $norm_parent && ! isset( $norm_skip[ $norm_parent ] ) && ! isset( $top_skip_rendered[ $norm_parent ] ) && isset( $norm_items[ $norm_parent ] ) )
 					? $norm_items[ $norm_parent ]
 					: null;
-				$parent_cascade_hide = ( null !== $parent_ovr && ! empty( $parent_ovr['cascade_hide'] ) );
-				$parent_hidden_roles = ( null !== $parent_ovr && ! empty( $parent_ovr['hidden_roles'] ) ) ? $parent_ovr['hidden_roles'] : array();
+				$parent_child_hidden_roles = ( null !== $parent_ovr && ! empty( $parent_ovr['child_hidden_roles'] ) ) ? $parent_ovr['child_hidden_roles'] : array();
 
 				// Axis-2 collision guard for this parent's children: pre-scan before mutating.
 				$sub_rendered_matches  = array(); // bare normalized_key => first rendered slug matched.
@@ -249,8 +252,8 @@ class Replay {
 					}
 
 					// A child with no override of its own is NOT skipped outright any
-					// more (COMPAT-10): the parent's cascade may still hide it below,
-					// even though there is nothing of its own to rename/hide.
+					// more (COMPAT-10): the parent's child_hidden_roles may still hide
+					// it below, even though there is nothing of its own to rename/hide.
 					if ( null !== $ovr && isset( $ovr['title'] ) ) {
 						// COMPAT-07: same live-title text-node swap as the top-level seam
 						// above, applied to the submenu row.
@@ -259,13 +262,15 @@ class Replay {
 						$submenu[ $parent ][ $pos ][0] = ( null !== $retitled ) ? $retitled : $ovr['title']; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: mutating $submenu via admin_menu hook is the documented WP API for submenu customization.
 					}
 
-					// COMPAT-10: union the child's own hidden_roles with the parent's
-					// cascade (Cascade::effective_hidden_roles() is pure -- it only
-					// merges role-slug lists, never touches a capability). When cascade
-					// is off (the default) or the parent has no override, this is
-					// exactly the child's own hidden_roles -- zero regression.
+					// COMPAT-10 (REVISED): union the child's own hidden_roles with the
+					// parent's child_hidden_roles (Cascade::effective_hidden_roles() is
+					// pure -- it only merges role-slug lists, never touches a
+					// capability). This is fully INDEPENDENT of whether the parent
+					// itself is hidden -- a parent with no child_hidden_roles rule
+					// contributes nothing, so an untouched parent is exactly the
+					// child's own hidden_roles -- zero regression.
 					$child_own_roles = ( null !== $ovr && ! empty( $ovr['hidden_roles'] ) ) ? $ovr['hidden_roles'] : array();
-					$effective_roles = Cascade::effective_hidden_roles( $child_own_roles, $parent_cascade_hide, $parent_hidden_roles );
+					$effective_roles = Cascade::effective_hidden_roles( $child_own_roles, $parent_child_hidden_roles );
 					if ( $effective_roles && $this->is_hidden_for_current_user( array( 'hidden_roles' => $effective_roles ) ) ) {
 						unset( $submenu[ $parent ][ $pos ] ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: unsetting $submenu entries via admin_menu hook is the documented WP API for hiding menu items.
 					}
@@ -501,24 +506,24 @@ class Replay {
 	}
 
 	/**
-	 * Resolve a top-level rendered slug's stored cascade_hide flag through the
-	 * SAME normalized bare-key lookup replay() consults for the parent's own
-	 * override (cascade_hide is a parent-only concept — never resolved via a
-	 * qualified submenu key). Returns false when nothing (or something
-	 * ambiguous) resolves — the default-OFF, zero-regression case.
+	 * Resolve a top-level rendered slug's stored child_hidden_roles through
+	 * the SAME normalized bare-key lookup replay() consults for the parent's
+	 * own override (child_hidden_roles is a parent-only concept — never
+	 * resolved via a qualified submenu key). Returns an empty array when
+	 * nothing (or something ambiguous) resolves — the untouched, no-op case.
 	 *
 	 * @param string $slug       Rendered top-level slug.
 	 * @param array  $norm_items Normalized override map from normalized_items().
 	 * @param array  $norm_skip  Ambiguous normalized keys from normalized_items().
 	 * @param string $base       Admin base for Slug::normalize().
-	 * @return bool
+	 * @return array
 	 */
-	private function resolved_cascade_hide( $slug, array $norm_items, array $norm_skip, $base ) {
+	private function resolved_child_hidden_roles( $slug, array $norm_items, array $norm_skip, $base ) {
 		$nk = Slug::normalize( (string) $slug, $base );
-		if ( '' === $nk || isset( $norm_skip[ $nk ] ) || empty( $norm_items[ $nk ]['cascade_hide'] ) ) {
-			return false;
+		if ( '' === $nk || isset( $norm_skip[ $nk ] ) || empty( $norm_items[ $nk ]['child_hidden_roles'] ) ) {
+			return array();
 		}
-		return true;
+		return $norm_items[ $nk ]['child_hidden_roles'];
 	}
 
 	/**
@@ -557,16 +562,17 @@ class Replay {
 			$slug = $row[2];
 
 			$node = array(
-				'slug'        => $slug,
-				'liId'        => $this->li_id( $row ),
-				'title'       => isset( $row[0] ) ? wp_strip_all_tags( $row[0] ) : '',
-				'icon'        => isset( $row[6] ) ? $row[6] : '',
-				'hiddenRoles' => $this->resolved_hidden_roles( $slug, $norm_items, $norm_skip, $base ),
-				// COMPAT-10: parent-only cascade_hide flag, resolved via the SAME
-				// normalized bare-key lookup as hiddenRoles above, so the editor
-				// popover reflects exactly what replay() will apply.
-				'cascadeHide' => $this->resolved_cascade_hide( $slug, $norm_items, $norm_skip, $base ),
-				'submenu'     => array(),
+				'slug'             => $slug,
+				'liId'             => $this->li_id( $row ),
+				'title'            => isset( $row[0] ) ? wp_strip_all_tags( $row[0] ) : '',
+				'icon'             => isset( $row[6] ) ? $row[6] : '',
+				'hiddenRoles'      => $this->resolved_hidden_roles( $slug, $norm_items, $norm_skip, $base ),
+				// COMPAT-10 (REVISED): parent-only child_hidden_roles, resolved via
+				// the SAME normalized bare-key lookup as hiddenRoles above, so the
+				// editor popover reflects exactly what replay() will apply.
+				// Independent of hiddenRoles above (whether the PARENT is hidden).
+				'childHiddenRoles' => $this->resolved_child_hidden_roles( $slug, $norm_items, $norm_skip, $base ),
+				'submenu'          => array(),
 			);
 
 			if ( ! empty( $submenu[ $slug ] ) ) {

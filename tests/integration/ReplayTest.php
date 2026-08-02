@@ -1058,39 +1058,78 @@ class ReplayTest extends WP_UnitTestCase {
 	}
 
 	// -----------------------------------------------------------------------
-	// COMPAT-10: cascade-hide to children (20-05)
+	// COMPAT-10 (REVISED 2026-08-01): independent child_hidden_roles.
+	//
+	// The original boolean cascade_hide + "rides the parent hide" model
+	// (20-05) was found INERT: WordPress core's _wp_menu_output() never
+	// renders a parent's <ul class="wp-submenu"> once the parent's own $menu
+	// row is unset(), so hiding the parent already removes the whole subtree
+	// cosmetically — cascading on TOP of that produced no observable
+	// difference. The revised model makes child-hiding INDEPENDENT of parent
+	// visibility: a per-parent child_hidden_roles list hides all live
+	// children from those roles WITH THE PARENT LEFT VISIBLE, unrelated to
+	// the parent's own hidden_roles.
 	//
 	// Parent 'edit.php' from seed_menu() has three live children: 'edit.php'
 	// (All Posts), 'post-new.php' (Add New), 'edit-tags.php?taxonomy=category'
-	// (Categories) — enough to prove "ALL live children" cascade-hide, not
+	// (Categories) — enough to prove "ALL live children" are hidden, not
 	// just one.
 	// -----------------------------------------------------------------------
 
 	/**
-	 * Default OFF, zero regression: hiding a parent with NO cascade_hide flag
-	 * leaves every child visible — exactly today's behavior.
+	 * Untouched parent (no child_hidden_roles rule): every child stays
+	 * visible — zero regression, nothing hides by default.
 	 */
-	public function test_cascade_off_leaves_children_visible_default_zero_regression() {
+	public function test_no_child_hidden_roles_rule_leaves_children_visible() {
 		$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( $editor );
 
-		( new Config() )->save(
-			array( 'items' => array( 'edit.php' => array( 'hidden_roles' => array( 'editor' ) ) ) )
-		);
+		( new Config() )->save( array( 'items' => array() ) );
 
 		$this->run_replay();
 
 		global $submenu;
 		$slugs = wp_list_pluck( $submenu['edit.php'], 2 );
-		$this->assertContains( 'post-new.php', $slugs, 'Cascade OFF (default) must leave children visible.' );
-		$this->assertContains( 'edit-tags.php?taxonomy=category', $slugs, 'Cascade OFF (default) must leave children visible.' );
+		$this->assertContains( 'post-new.php', $slugs );
+		$this->assertContains( 'edit-tags.php?taxonomy=category', $slugs );
 	}
 
 	/**
-	 * Cascade ON + parent hidden for this role: EVERY live child under the
-	 * parent is hidden, even one with no hidden_roles of its own.
+	 * child_hidden_roles hides ALL live children for that role — WITH THE
+	 * PARENT ITSELF LEFT VISIBLE (no hidden_roles set on the parent at all).
+	 * This is the core of the revision: a visible effect independent of
+	 * parent visibility.
 	 */
-	public function test_cascade_on_hides_all_live_children_when_parent_hidden_for_role() {
+	public function test_child_hidden_roles_hides_all_live_children_parent_stays_visible() {
+		$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor );
+
+		( new Config() )->save(
+			array(
+				'items' => array(
+					'edit.php' => array( 'child_hidden_roles' => array( 'editor' ) ),
+				),
+			)
+		);
+
+		$this->run_replay();
+
+		global $menu, $submenu;
+		$top_slugs = wp_list_pluck( $menu, 2 );
+		$this->assertContains( 'edit.php', $top_slugs, 'Parent must remain visible — child_hidden_roles never touches the parent row.' );
+		$this->assertEmpty(
+			$submenu['edit.php'],
+			'child_hidden_roles must hide ALL live children for the targeted role.'
+		);
+	}
+
+	/**
+	 * Independence from the parent's own hide: hiding the PARENT (its own
+	 * hidden_roles) for one role and hiding CHILDREN (child_hidden_roles) for
+	 * a DIFFERENT role are unrelated settings that both take effect for
+	 * their respective, non-overlapping roles.
+	 */
+	public function test_parent_hide_and_child_hidden_roles_are_independent_settings() {
 		$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( $editor );
 
@@ -1098,8 +1137,8 @@ class ReplayTest extends WP_UnitTestCase {
 			array(
 				'items' => array(
 					'edit.php' => array(
-						'hidden_roles' => array( 'editor' ),
-						'cascade_hide' => true,
+						'hidden_roles'       => array( 'shop_manager' ),
+						'child_hidden_roles' => array( 'editor' ),
 					),
 				),
 			)
@@ -1107,49 +1146,28 @@ class ReplayTest extends WP_UnitTestCase {
 
 		$this->run_replay();
 
-		global $submenu;
-		$this->assertEmpty(
-			$submenu['edit.php'],
-			'Cascade ON with the parent hidden for this role must hide ALL live children.'
-		);
+		global $menu, $submenu;
+		// Editor is not in the parent's OWN hidden_roles (shop_manager only) —
+		// the parent row stays visible for editor.
+		$top_slugs = wp_list_pluck( $menu, 2 );
+		$this->assertContains( 'edit.php', $top_slugs );
+		// But editor IS in child_hidden_roles — every child is gone.
+		$this->assertEmpty( $submenu['edit.php'] );
 	}
 
 	/**
-	 * Rides the parent hide: cascade_hide ON but the parent's hidden_roles is
-	 * empty (parent hidden from nobody) must fire for nobody — turning the
-	 * flag on alone does nothing.
+	 * Role-mirror: child_hidden_roles targets editor ONLY. An administrator
+	 * (not in that list) must still see every child — never broadens beyond
+	 * the exact roles named.
 	 */
-	public function test_cascade_on_but_parent_hidden_from_nobody_fires_for_nobody() {
-		$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
-		wp_set_current_user( $editor );
-
-		( new Config() )->save(
-			array( 'items' => array( 'edit.php' => array( 'cascade_hide' => true ) ) )
-		);
-
-		$this->run_replay();
-
-		global $submenu;
-		$slugs = wp_list_pluck( $submenu['edit.php'], 2 );
-		$this->assertContains( 'post-new.php', $slugs, 'Cascade must ride the parent hide: no parent hidden_roles means no cascade.' );
-	}
-
-	/**
-	 * Role-mirror: parent hidden from editor ONLY. An administrator (who the
-	 * parent is NOT hidden from) must still see every child — cascade never
-	 * broadens beyond the exact roles the parent is hidden from.
-	 */
-	public function test_cascade_role_mirror_other_roles_unaffected() {
+	public function test_child_hidden_roles_role_mirror_other_roles_unaffected() {
 		$admin = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $admin );
 
 		( new Config() )->save(
 			array(
 				'items' => array(
-					'edit.php' => array(
-						'hidden_roles' => array( 'editor' ),
-						'cascade_hide' => true,
-					),
+					'edit.php' => array( 'child_hidden_roles' => array( 'editor' ) ),
 				),
 			)
 		);
@@ -1158,28 +1176,26 @@ class ReplayTest extends WP_UnitTestCase {
 
 		global $submenu;
 		$slugs = wp_list_pluck( $submenu['edit.php'], 2 );
-		$this->assertContains( 'post-new.php', $slugs, 'Role-mirror: an administrator must still see children the parent is not hidden from.' );
+		$this->assertContains( 'post-new.php', $slugs, 'Role-mirror: an administrator must still see children not targeted by child_hidden_roles.' );
 		$this->assertContains( 'edit-tags.php?taxonomy=category', $slugs );
 	}
 
 	/**
-	 * Union: a child's OWN hidden_roles rule keeps working under cascade,
-	 * for a role the parent's cascade does NOT itself reach. Parent is
-	 * hidden (and cascading) only for 'editor'; the child is separately
-	 * hidden for 'author' via its own rule. An author must still lose the
-	 * child even though cascade contributes nothing for author.
+	 * Union: a child's OWN hidden_roles rule keeps working alongside the
+	 * parent's child_hidden_roles, for a DIFFERENT role the parent's rule
+	 * does NOT itself reach. Parent hides children only for 'editor'; the
+	 * child is separately hidden for 'author' via its own rule. An author
+	 * must still lose the child even though the parent's rule contributes
+	 * nothing for author.
 	 */
-	public function test_cascade_unions_with_childs_own_hidden_roles_rule() {
+	public function test_child_hidden_roles_unions_with_childs_own_hidden_roles_rule() {
 		$author = self::factory()->user->create( array( 'role' => 'author' ) );
 		wp_set_current_user( $author );
 
 		( new Config() )->save(
 			array(
 				'items' => array(
-					'edit.php'     => array(
-						'hidden_roles' => array( 'editor' ),
-						'cascade_hide' => true,
-					),
+					'edit.php'     => array( 'child_hidden_roles' => array( 'editor' ) ),
 					'post-new.php' => array( 'hidden_roles' => array( 'author' ) ),
 				),
 			)
@@ -1190,25 +1206,25 @@ class ReplayTest extends WP_UnitTestCase {
 		global $submenu;
 		$slugs = wp_list_pluck( $submenu['edit.php'], 2 );
 		$this->assertNotContains( 'post-new.php', $slugs, "Union: the child's own hidden_roles rule must still apply." );
-		$this->assertContains( 'edit-tags.php?taxonomy=category', $slugs, 'A sibling with no own rule and no cascade match for this role must remain visible.' );
+		$this->assertContains( 'edit-tags.php?taxonomy=category', $slugs, 'A sibling with no own rule and no child_hidden_roles match for this role must remain visible.' );
 	}
 
 	/**
-	 * get_menu_model() exposes each parent's cascade_hide flag so the editor
-	 * popover can reflect it — true when stored, false (not merely absent)
-	 * for an untouched parent.
+	 * get_menu_model() exposes each parent's child_hidden_roles list so the
+	 * editor popover can reflect it — the stored roles when set, an empty
+	 * array (not merely absent) for an untouched parent.
 	 */
-	public function test_get_menu_model_exposes_cascade_hide_flag() {
+	public function test_get_menu_model_exposes_child_hidden_roles() {
 		( new Config() )->save(
-			array( 'items' => array( 'edit.php' => array( 'cascade_hide' => true ) ) )
+			array( 'items' => array( 'edit.php' => array( 'child_hidden_roles' => array( 'editor' ) ) ) )
 		);
 
 		$replay = new Replay( new Config() );
 		$replay->replay();
 		$model = $replay->get_menu_model();
 
-		$edit_node   = null;
-		$index_node  = null;
+		$edit_node  = null;
+		$index_node = null;
 		foreach ( $model as $node ) {
 			if ( 'edit.php' === $node['slug'] ) {
 				$edit_node = $node;
@@ -1219,68 +1235,66 @@ class ReplayTest extends WP_UnitTestCase {
 		}
 
 		$this->assertNotNull( $edit_node );
-		$this->assertTrue( $edit_node['cascadeHide'], 'A stored cascade_hide:true must be exposed as true in the model.' );
+		$this->assertSame( array( 'editor' ), $edit_node['childHiddenRoles'], 'A stored child_hidden_roles must be exposed in the model.' );
 
 		$this->assertNotNull( $index_node );
-		$this->assertFalse( $index_node['cascadeHide'], 'An untouched parent must expose cascadeHide as false, not merely absent.' );
+		$this->assertSame( array(), $index_node['childHiddenRoles'], 'An untouched parent must expose childHiddenRoles as an empty array, not merely absent.' );
 	}
 
 	/**
-	 * COSMETIC-ONLY GUARDRAIL (mandatory, non-negotiable): applying a cascade
-	 * rule must NEVER change current_user_can() for any capability — cascade
-	 * is pure visibility. Proven two ways: (1) the editor role's entire
-	 * capabilities map is byte-for-byte identical before and after the
-	 * cascade rule is saved and replayed; (2) the exact capability the
-	 * cascade-hidden child page itself gates on ('edit_posts', per
-	 * seed_menu()'s post-new.php row) still resolves true for the editor —
-	 * i.e. the page is still directly loadable by URL even though its
-	 * sidebar row was unset().
+	 * COSMETIC-ONLY GUARDRAIL (mandatory, non-negotiable): applying a
+	 * child_hidden_roles rule must NEVER change current_user_can() for any
+	 * capability — it is pure visibility. Proven two ways: (1) the editor
+	 * role's entire capabilities map is byte-for-byte identical before and
+	 * after the rule is saved and replayed; (2) the exact capability the
+	 * hidden child page itself gates on ('edit_posts', per seed_menu()'s
+	 * post-new.php row) still resolves true for the editor — i.e. the page
+	 * is still directly loadable by URL even though its sidebar row was
+	 * unset() and its parent remains visible.
 	 */
-	public function test_cascade_is_cosmetic_only_current_user_can_and_page_capability_unchanged() {
+	public function test_child_hidden_roles_is_cosmetic_only_current_user_can_and_page_capability_unchanged() {
 		$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( $editor );
 
 		$role_before = get_role( 'editor' );
 		$caps_before = $role_before->capabilities;
 
-		$can_edit_posts_before      = current_user_can( 'edit_posts' );
-		$can_manage_options_before  = current_user_can( 'manage_options' );
+		$can_edit_posts_before     = current_user_can( 'edit_posts' );
+		$can_manage_options_before = current_user_can( 'manage_options' );
 
 		( new Config() )->save(
 			array(
 				'items' => array(
-					'edit.php' => array(
-						'hidden_roles' => array( 'editor' ),
-						'cascade_hide' => true,
-					),
+					'edit.php' => array( 'child_hidden_roles' => array( 'editor' ) ),
 				),
 			)
 		);
 
 		$this->run_replay();
 
-		// Sidebar row is cosmetically gone...
-		global $submenu;
+		// Sidebar row is cosmetically gone, parent stays visible...
+		global $menu, $submenu;
+		$this->assertContains( 'edit.php', wp_list_pluck( $menu, 2 ) );
 		$slugs = wp_list_pluck( $submenu['edit.php'], 2 );
-		$this->assertNotContains( 'post-new.php', $slugs, 'Cascade must hide the child row cosmetically.' );
+		$this->assertNotContains( 'post-new.php', $slugs, 'child_hidden_roles must hide the child row cosmetically.' );
 
-		// ...but capabilities are byte-for-byte unchanged: cascade never
-		// grants or removes a capability from the role.
+		// ...but capabilities are byte-for-byte unchanged: child_hidden_roles
+		// never grants or removes a capability from the role.
 		$role_after = get_role( 'editor' );
 		$this->assertSame(
 			$caps_before,
 			$role_after->capabilities,
-			'Applying a cascade rule must never mutate the role capabilities map.'
+			'Applying a child_hidden_roles rule must never mutate the role capabilities map.'
 		);
 
 		// The exact capability post-new.php itself gates direct access on
 		// ('edit_posts', from seed_menu()'s row) is unchanged — the page is
-		// still directly loadable by URL for a user who holds it. Maestro's
-		// cascade only unset() the sidebar row; it never touches capability
+		// still directly loadable by URL for a user who holds it. Maestro
+		// only unset() the sidebar row; it never touches capability
 		// resolution.
 		$this->assertSame( $can_edit_posts_before, current_user_can( 'edit_posts' ) );
-		$this->assertTrue( current_user_can( 'edit_posts' ), 'Editor must still hold edit_posts after a cascade rule is applied.' );
+		$this->assertTrue( current_user_can( 'edit_posts' ), 'Editor must still hold edit_posts after a child_hidden_roles rule is applied.' );
 		$this->assertSame( $can_manage_options_before, current_user_can( 'manage_options' ) );
-		$this->assertFalse( current_user_can( 'manage_options' ), 'Cascade must not grant a capability the role never had.' );
+		$this->assertFalse( current_user_can( 'manage_options' ), 'child_hidden_roles must not grant a capability the role never had.' );
 	}
 }

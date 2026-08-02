@@ -13,7 +13,11 @@
  *       '<slug>' => [
  *           'title'        => 'Custom Title',          // optional
  *           'icon'         => 'dashicons-foo',          // optional, top-level only
- *           'hidden_roles' => [ 'author', 'editor' ],   // optional, roles that DON'T see it
+ *           'hidden_roles'        => [ 'author', 'editor' ], // optional, roles that DON'T see it
+ *           'child_hidden_roles'  => [ 'editor' ],           // optional, top-level only: hides
+ *                                                             // ALL live children from these
+ *                                                             // roles, independent of whether
+ *                                                             // this parent is itself hidden.
  *       ],
  *   ],
  *   'top_order' => [ '<slug>', '<slug>', ... ],          // desired top-level order
@@ -196,15 +200,6 @@ class Config {
 					}
 				}
 
-				// COMPAT-10: cascade_hide is a per-PARENT (top-level) concept
-				// only — a qualified submenu key never carries it, mirroring
-				// the icon rule above. Default OFF: only a truthy value is
-				// stored (normalized to a real bool); absent/falsey emits
-				// nothing, so an untouched item stays cascade-off.
-				if ( isset( $item['cascade_hide'] ) && ! $is_qualified && $item['cascade_hide'] ) {
-					$entry['cascade_hide'] = true;
-				}
-
 				if ( ! empty( $item['hidden_roles'] ) && is_array( $item['hidden_roles'] ) ) {
 					$roles = array_values(
 						array_intersect( array_map( 'sanitize_key', $item['hidden_roles'] ), $valid_roles )
@@ -214,6 +209,24 @@ class Config {
 					}
 					if ( $roles ) {
 						$entry['hidden_roles'] = $roles;
+					}
+				}
+
+				// COMPAT-10 (REVISED): child_hidden_roles is a per-PARENT
+				// (top-level) concept only — a qualified submenu key never
+				// carries it, mirroring the icon rule above. Independent of
+				// the parent's own hidden_roles: hides ALL of the parent's
+				// live children from these roles, with the parent left
+				// visible. Same shape/caps as hidden_roles.
+				if ( ! $is_qualified && ! empty( $item['child_hidden_roles'] ) && is_array( $item['child_hidden_roles'] ) ) {
+					$roles = array_values(
+						array_intersect( array_map( 'sanitize_key', $item['child_hidden_roles'] ), $valid_roles )
+					);
+					if ( count( $roles ) > self::MAX_HIDDEN_ROLES ) {
+						$roles = array_slice( $roles, 0, self::MAX_HIDDEN_ROLES );
+					}
+					if ( $roles ) {
+						$entry['child_hidden_roles'] = $roles;
 					}
 				}
 
