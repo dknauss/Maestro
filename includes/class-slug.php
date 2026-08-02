@@ -183,4 +183,73 @@ class Slug {
 
 		return $path . '?' . implode( '&', $filtered );
 	}
+
+	/**
+	 * Qualified-key separator between a parent slug half and a child slug half
+	 * in a `parent>child` stored submenu override key (COMPAT-04).
+	 *
+	 * A single split on the FIRST occurrence is used: parent slugs are
+	 * admin-page slugs and do not themselves contain '>', so first-split is
+	 * an unambiguous, sufficient rule (documented executor discretion).
+	 *
+	 * @var string
+	 */
+	const QUALIFIED_SEPARATOR = '>';
+
+	/**
+	 * Whether a stored/candidate key is a qualified `parent>child` submenu key.
+	 *
+	 * Pure string check — does not validate either half.
+	 *
+	 * @param mixed $key Candidate key.
+	 * @return bool
+	 */
+	public static function is_qualified( $key ) {
+		return is_string( $key ) && false !== strpos( $key, self::QUALIFIED_SEPARATOR );
+	}
+
+	/**
+	 * Split a qualified `parent>child` key into its two raw halves on the
+	 * FIRST '>' only. Does not normalize or validate either half.
+	 *
+	 * @param string $key Qualified key (caller should check is_qualified() first).
+	 * @return array{0: string, 1: string} [ parent_half, child_half ].
+	 */
+	public static function split_qualified( $key ) {
+		$parts = explode( self::QUALIFIED_SEPARATOR, (string) $key, 2 );
+		return array( $parts[0], isset( $parts[1] ) ? $parts[1] : '' );
+	}
+
+	/**
+	 * Normalize a stored/rendered key that may be a qualified `parent>child`
+	 * submenu key or a bare top-level slug.
+	 *
+	 * A bare (non-qualified) key is normalized exactly as normalize() does
+	 * (single pass, unchanged behavior). A qualified key has its parent half
+	 * and child half normalized INDEPENDENTLY via normalize() and rejoined
+	 * with '>' — so a host-move / ver= / utm_ / &amp; twin on EITHER half
+	 * still collapses to the same canonical qualified key as its plain twin.
+	 * If either half normalizes to '' (empty/unparseable), the WHOLE qualified
+	 * key is rejected to '' — mirroring normalize('') === ''.
+	 *
+	 * @param mixed  $key        Stored override key or rendered slug — may be qualified.
+	 * @param string $admin_base Admin base URL, forwarded to normalize() per half.
+	 * @return string Normalized key ('' on reject). Never throws; total.
+	 */
+	public static function normalize_qualified( $key, $admin_base = '' ) {
+		if ( ! self::is_qualified( $key ) ) {
+			return self::normalize( $key, $admin_base );
+		}
+
+		list( $parent_half, $child_half ) = self::split_qualified( $key );
+
+		$parent_norm = self::normalize( $parent_half, $admin_base );
+		$child_norm  = self::normalize( $child_half, $admin_base );
+
+		if ( '' === $parent_norm || '' === $child_norm ) {
+			return '';
+		}
+
+		return $parent_norm . self::QUALIFIED_SEPARATOR . $child_norm;
+	}
 }
