@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Compatibility, Roles & Showcase
 status: "Phase 19 ROLE-01 signed off — **partial-go** (per-user go + ship first; cloned-role go as an additive `profiles` registry compiling to the same inline `is_hidden_for_current_user()` seam); Phase 21 unblocked. Phase 23 delivered UX-09/UX-12/UX-13/BUG-08 (native wp-admin restyle; 5/5 plans; full-suite gate green — JS 53/53, e2e 31 pass, PHP unit 90/90, integration 47/47, WPCS/PHPStan clean, WCAG 1.4.1 confirmed) and shipped in v1.3.1. **NOTE for Phase 24:** Plugin Check flagged 4 errors/6 warnings, all pre-existing dev-tree root files — logged to `phases/23-editor-ux-polish/deferred-items.md` for the Phase 24 build-then-check pipeline."
-stopped_at: Completed 20-01-PLAN.md
-last_updated: "2026-08-02T00:57:52.094Z"
-last_activity: 2026-07-05 — shipped v1.3.1 to WordPress.org (tag + GitHub Release + SVN deploy)
+stopped_at: Completed 20-02-PLAN.md
+last_updated: "2026-08-02T01:31:36.000Z"
+last_activity: 2026-08-01 — Phase 20 Plan 02 (replay + editor-model qualified resolution) executed and committed
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 12
-  completed_plans: 7
+  completed_plans: 8
   percent: 33
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-07-03)
 ## Current Position
 
 Milestone: v1.4 — Compatibility, Roles & Showcase (interim v1.3.1 patch shipped 2026-07-05)
-Phase: Phase 19 (Cosmetic Hiding Feasibility) ✅ COMPLETE, Phase 23 (Editor UX Polish) ✅ COMPLETE, Phase 20 (Third-Party Compatibility Fixes) IN PROGRESS (1/6 plans complete).
-Plan: 20-01 (qualified-key storage foundation) COMPLETE — next: 20-02 (replay + editor-model qualified resolution with legacy bare fallback)
-Status: Phase 20 executing. 20-01 delivered `Slug::is_qualified()`/`split_qualified()`/`normalize_qualified()` and `Config::sanitize()` qualified-key acceptance + submenu icon drop (COMPAT-04 foundation) — unit suite 103/103 (127 assertions), WPCS/PHPStan clean, zero regression. Phase 19 ROLE-01 signed off — **partial-go** (per-user go + ship first; cloned-role go as an additive `profiles` registry compiling to the same inline `is_hidden_for_current_user()` seam); Phase 21 unblocked. Phase 23 delivered UX-09/UX-12/UX-13/BUG-08 (native wp-admin restyle; 5/5 plans; full-suite gate green — JS 53/53, e2e 31 pass, PHP unit 90/90, integration 47/47, WPCS/PHPStan clean, WCAG 1.4.1 confirmed) and shipped in v1.3.1. **NOTE for Phase 24:** Plugin Check flagged 4 errors/6 warnings, all pre-existing dev-tree root files — logged to `phases/23-editor-ux-polish/deferred-items.md` for the Phase 24 build-then-check pipeline.
-Last activity: 2026-08-01 — Phase 20 Plan 01 (qualified-key foundation) executed and committed
+Phase: Phase 19 (Cosmetic Hiding Feasibility) ✅ COMPLETE, Phase 23 (Editor UX Polish) ✅ COMPLETE, Phase 20 (Third-Party Compatibility Fixes) IN PROGRESS (2/6 plans complete).
+Plan: 20-02 (replay + editor-model qualified resolution with legacy bare fallback) COMPLETE — next: 20-03 (client A1b: qualified model + stable submenu DOM bind + shared-slug e2e)
+Status: Phase 20 executing. 20-02 wired COMPAT-04's qualified-key resolution into `Replay::replay()`'s submenu loop (qualified-first with legacy bare fallback; both Axis-1/Axis-2 collision guards extended, not replaced) and into `get_menu_model()` (submenu nodes emit `qualifiedKey`; `resolved_hidden_roles()` resolves qualified-first/bare-fallback for submenu children, bare-only for top-level, so editor display and replay apply never drift) — integration suite 60/60 (143 assertions, up from the 51/126 baseline), unit suite unaffected at 103/103 (127 assertions), WPCS/PHPStan clean, zero regression. 20-01 (prior) delivered `Slug::is_qualified()`/`split_qualified()`/`normalize_qualified()` and `Config::sanitize()` qualified-key acceptance + submenu icon drop (COMPAT-04 foundation). Phase 19 ROLE-01 signed off — **partial-go** (per-user go + ship first; cloned-role go as an additive `profiles` registry compiling to the same inline `is_hidden_for_current_user()` seam); Phase 21 unblocked. Phase 23 delivered UX-09/UX-12/UX-13/BUG-08 (native wp-admin restyle; 5/5 plans; full-suite gate green — JS 53/53, e2e 31 pass, PHP unit 90/90, integration 47/47, WPCS/PHPStan clean, WCAG 1.4.1 confirmed) and shipped in v1.3.1. **NOTE for Phase 24:** Plugin Check flagged 4 errors/6 warnings, all pre-existing dev-tree root files — logged to `phases/23-editor-ux-polish/deferred-items.md` for the Phase 24 build-then-check pipeline.
+Last activity: 2026-08-01 — Phase 20 Plan 02 (replay + editor-model qualified resolution) executed and committed
 
-Progress: [███░░░░░░░] 33% (v1.4: 2/6 phases complete — 19, 23; Phase 20 in progress at 1/6 plans; Phase 23's UX shipped as v1.3.1)
+Progress: [███░░░░░░░] 33% (v1.4: 2/6 phases complete — 19, 23; Phase 20 in progress at 2/6 plans; Phase 23's UX shipped as v1.3.1)
 
 ## Release Binding
 
@@ -174,6 +174,9 @@ Recent decisions affecting current work:
 - [Phase 23-editor-ux-polish]: 23-04: wp-pointer adaptation REPLICATE-LOCALLY confirmed (locked default held, not escalated to enqueue) — coachmark reads as a native core wp-pointer via a locally-styled card/footer-button-band/directional-arrow, .maestro-tour* DOM/classes and class-assets.php untouched; BUG-08 fixed via centered footer band + balanced content; in-menu selection/modified-dot reconfirmed token-aligned (dot not reverted); checkpoint verified on Default admin colour scheme only, Modern/Midnight deferred to 23-05
 - [Phase 23-editor-ux-polish]: 23-05 (phase close): e2e reconciliation deliberately isolated to one final-wave plan — every drifted selector/colour assertion updated with reasoning visible in the commit, none silently deleted; tour.spec.ts needed zero changes (already matched 23-04's classes); Plugin Check's 4 dev-tree findings verified (git diff main...HEAD) as pre-existing and untouched by any Phase 23 commit, deferred to Phase 24's build-then-check pipeline against the release ZIP rather than fixed out-of-scope here; Phase 23 complete (5/5 plans), UX-09/UX-12/UX-13/BUG-08 all delivered
 - [Phase 20-third-party-compatibility-fixes]: 20-01: Slug gained qualified-key (parent>child) parse/normalize helper; Config::sanitize() accepts qualified items keys, cleans each half independently, drops icon on submenu keys
+- [Phase 20-third-party-compatibility-fixes]: 20-02: Replay::replay()'s submenu loop resolves qualified parent>child keys FIRST, with a legacy bare-key fallback that keeps every pre-existing config's both-scope behavior unchanged until re-saved; both Axis-1 (normalized_items() via Slug::normalize_qualified()) and Axis-2 (independent per-path pre-scans) collision guards extended, not replaced
+- [Phase 20-third-party-compatibility-fixes]: 20-02: A qualified key's parent-half-miss needs no explicit skip branch — the qualified candidate key is only ever built from the loop's own rendered parent, so an orphaned qualified override never produces a matching lookup key and degrades silently by construction
+- [Phase 20-third-party-compatibility-fixes]: 20-02: get_menu_model() submenu nodes gained a qualifiedKey field (alongside slug); resolved_hidden_roles() takes an optional $parent_slug (null = top-level bare-only, non-null = submenu qualified-first/bare-fallback) so editor display and replay() apply stay in lockstep
 
 ### Roadmap Evolution
 
@@ -211,6 +214,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-08-02T00:57:52.091Z
-Stopped at: Completed 20-01-PLAN.md
+Last session: 2026-08-02T01:31:36.000Z
+Stopped at: Completed 20-02-PLAN.md
 Resume file: None
