@@ -2,7 +2,7 @@
 
 Three layers, smallest and fastest first.
 
-> **Current expected status:** unit 128/128 with 160 assertions, integration 72/72 with 168 assertions, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, (COMPAT-04) independent shared-slug top-level/submenu editing, and (COMPAT-10) the "also hide children" cascade checkbox's default-off-vs-on behavior.
+> **Current expected status:** unit 127/127 with 158 assertions, integration 72/72 with 172 assertions, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, (COMPAT-04) independent shared-slug top-level/submenu editing, and (COMPAT-10) the "Hide its sub-items from:" role group's independent child-hiding behavior.
 
 ## Gotchas (first run)
 
@@ -22,9 +22,9 @@ Covers the highest-risk pure logic: the `Ordering` resilience rules, the
 dashicon validator, (COMPAT-07) [`Title::replace_label()`](includes/class-title.php)'s
 text-node label-replacement against [`tests/unit/TitleTest.php`](tests/unit/TitleTest.php)'s
 badge/wrapping-markup fixtures, and (COMPAT-10) [`Cascade::effective_hidden_roles()`](includes/class-cascade.php)'s
-pure role-list union computation against [`tests/unit/CascadeTest.php`](tests/unit/CascadeTest.php)'s
-rides-parent-hide / role-mirror / union / flag-off cases. Fast, runs anywhere
-with PHP + Composer.
+pure role-list union of a child's own `hidden_roles` with its parent's
+independent `child_hidden_roles`, against [`tests/unit/CascadeTest.php`](tests/unit/CascadeTest.php)'s
+union / dedup / multi-role cases. Fast, runs anywhere with PHP + Composer.
 
 ```bash
 composer install
@@ -40,10 +40,11 @@ Covers `Config::sanitize()`, the replay engine mutating real `$menu`/`$submenu`
 globals, role-based visibility, the REST round-trip, the localized editor
 payload, (COMPAT-07) badge/wrapping-markup preservation on rename at both
 title-write seams in [`Replay::replay()`](includes/class-replay.php), and
-(COMPAT-10) cascade-hide-to-children — rides-the-parent-hide, role-mirror,
-union-with-a-child's-own-rule, all-live-children, and the mandatory
-cosmetic-only guardrail (`current_user_can()` byte-for-byte unchanged; the
-cascade-hidden child's own capability requirement still resolves true) in
+(COMPAT-10) independent `child_hidden_roles` — hides ALL live children while
+the parent stays visible, independence from the parent's own hide, role-mirror,
+union-with-a-child's-own-rule, and the mandatory cosmetic-only guardrail
+(`current_user_can()` byte-for-byte unchanged; the hidden child's own
+capability requirement still resolves true) in
 [`tests/integration/ReplayTest.php`](tests/integration/ReplayTest.php). Uses Docker.
 
 ```bash
@@ -125,22 +126,18 @@ reproduces WordPress's post-type self-link convention (the WooCommerce
 Products / "All Products" shape) without depending on a real third-party
 plugin.
 
-(COMPAT-10) [`tests/e2e/specs/cascade-hide.spec.ts`](tests/e2e/specs/cascade-hide.spec.ts) proves the "also hide
-children" checkbox is gated to parents with children (absent on a childless
-item — via the gated fixture
+(COMPAT-10) [`tests/e2e/specs/cascade-hide.spec.ts`](tests/e2e/specs/cascade-hide.spec.ts) proves the "Hide its
+sub-items from:" role group is gated to parents with children (absent on a
+childless item — via the gated fixture
 [`tests/e2e/fixtures/maestro-e2e-childless.php`](tests/e2e/fixtures/maestro-e2e-childless.php), since every native WP
 core top-level item always registers at least one submenu row — and absent on
-a submenu row), that toggling it persists `cascade_hide` via the normal save,
-and that cascade OFF leaves every child visible while cascade ON hides them
-all, role-mirrored. Because hiding a parent's own top-level row already
-removes its entire rendered dropdown regardless of cascade (WordPress core's
-`_wp_menu_output()` never renders a `$submenu` array whose parent row was
-`unset()`), the on/off distinction is asserted against the real
-`$submenu['edit.php']` state `Replay::replay()` produces for a given user via
-[`tests/e2e/fixtures/dump-cascade-submenu.php`](tests/e2e/fixtures/dump-cascade-submenu.php) — the same
-`admin_menu`@`PHP_INT_MAX` wp-cli dump technique the R1 compat surveys used —
-run against whatever config the browser actually saved through the REST
-endpoint.
+a submenu row), that toggling a role in it persists `child_hidden_roles`
+independently of the item's own `hidden_roles`, and — because this model
+leaves the parent VISIBLE — the effect is asserted DIRECTLY against the
+rendered sidebar as the targeted role: the parent's row stays, its child rows
+are gone, role-mirrored (an admin not in `child_hidden_roles` still sees every
+child), and the hidden child page still loads by direct URL for a capable user
+(cosmetic-only guardrail, reconfirmed end-to-end).
 
 
 ## 4. Static and package QA
