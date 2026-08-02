@@ -161,6 +161,21 @@ class Replay {
 
 		// --- Submenus: rename, visibility, then reorder ------------------------
 		if ( is_array( $submenu ) ) {
+			// Precompute a normalized sub_order lookup ONCE (O(P)) instead of
+			// re-scanning and re-normalizing every stored sub_order key for each
+			// rendered parent (O(P²)). First stored key wins per normalized key,
+			// which reproduces the previous per-parent scan exactly — it broke on
+			// its first normalized match in stored-key order.
+			$norm_sub_order = array();
+			if ( ! empty( $cfg['sub_order'] ) ) {
+				foreach ( $cfg['sub_order'] as $sp => $sd ) {
+					$snk = Slug::normalize( (string) $sp, $base );
+					if ( ! isset( $norm_sub_order[ $snk ] ) ) {
+						$norm_sub_order[ $snk ] = $sd;
+					}
+				}
+			}
+
 			foreach ( $submenu as $parent => $children ) {
 				// COMPAT-04: a qualified `parent>child` override resolves ONLY this
 				// submenu row, never a same-slug top-level item (level-qualified).
@@ -279,16 +294,9 @@ class Replay {
 				// Reorder this parent's surviving children.
 				// $norm_parent (computed above) also resolves the sub_order parent
 				// key so an absolute/encoded stored key matches the (possibly
-				// different form) rendered parent.
-				$desired_order = null;
-				if ( ! empty( $cfg['sub_order'] ) ) {
-					foreach ( $cfg['sub_order'] as $sp => $sd ) {
-						if ( Slug::normalize( (string) $sp, $base ) === $norm_parent ) {
-							$desired_order = $sd;
-							break;
-						}
-					}
-				}
+				// different form) rendered parent. O(1) lookup into the map
+				// precomputed once above.
+				$desired_order = isset( $norm_sub_order[ $norm_parent ] ) ? $norm_sub_order[ $norm_parent ] : null;
 
 				if ( ! empty( $desired_order ) ) {
 					// Normalize desired child slug list.

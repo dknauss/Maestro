@@ -55,6 +55,33 @@ class Title {
 		}
 		$plain_label = is_string( $plain_label ) ? $plain_label : (string) $plain_label;
 
+		/*
+		 * Fast path: replay() runs on every admin load at PHP_INT_MAX and the
+		 * common rename target is a plain-text core item with no markup to
+		 * preserve, where a full DOMDocument parse + walk is pure overhead.
+		 * When the live title contains no '<', short-circuit with byte-identical
+		 * output to the DOM path:
+		 *   - outer whitespace preserved (mirrors the label node's prefix/suffix);
+		 *   - the label HTML-encoded exactly as DOMDocument::saveHTML() would
+		 *     encode a text node under the UTF-8 declaration below
+		 *     (htmlspecialchars ENT_NOQUOTES / UTF-8 == saveHTML: & < > encoded,
+		 *     quotes and multibyte left literal);
+		 *   - a purely numeric title (or whitespace-only) has no human-readable
+		 *     label node — find_label_node() would return null — so we return
+		 *     null too, letting the caller fall back to a wholesale set (N3).
+		 */
+		if ( false === strpos( $live_html_title, '<' ) ) {
+			$trimmed = trim( $live_html_title );
+			if ( '' === $trimmed || preg_match( '/^\d+$/', $trimmed ) ) {
+				return null;
+			}
+			$encoded = htmlspecialchars( $plain_label, ENT_NOQUOTES, 'UTF-8' );
+			if ( preg_match( '/^(\s*).*?(\s*)$/s', $live_html_title, $m ) ) {
+				return $m[1] . $encoded . $m[2];
+			}
+			return $encoded;
+		}
+
 		$dom             = new \DOMDocument();
 		$internal_errors = libxml_use_internal_errors( true );
 		$dom->loadHTML(
