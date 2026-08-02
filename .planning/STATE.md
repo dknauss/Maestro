@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Compatibility, Roles & Showcase
-status: executing
-stopped_at: Completed 20-06-PLAN.md (revised COMPAT-10 design) — awaiting human-verify checkpoint
-last_updated: "2026-08-02T13:24:36.856Z"
-last_activity: "2026-08-02 — Phase 20 Plan 06 reworked for revised COMPAT-10 (independent child_hidden_roles replaces the inert cascade_hide boolean); editor UI, e2e, and full zero-regression gate complete; Phase 20 (COMPAT-04/07/10) all 6/6 plans done, awaiting checkpoint sign-off"
+status: verifying
+stopped_at: Completed 20-06-PLAN.md (revised COMPAT-10 design) — Phase 20 (COMPAT-04/07/10) 6/6 plans done, awaiting human-verify checkpoint sign-off. wp-env left running for live verification.
+last_updated: "2026-08-02T15:07:05.105Z"
+last_activity: 2026-08-02 — Phase 20 Plan 06 reworked for revised COMPAT-10 (independent child_hidden_roles); editor UI, e2e, and full zero-regression gate complete; Phase 20 (COMPAT-04/07/10) all 6/6 plans done, awaiting human-verify checkpoint
 progress:
   total_phases: 6
   completed_phases: 3

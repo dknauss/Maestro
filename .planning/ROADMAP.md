@@ -263,7 +263,7 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 | 17. Slug Normalization | v1.3.0 | 3/3 | Complete (shipped 2026-06-30) | 2026-06-29 |
 | 18. Release v1.3.0 | v1.3.0 | 3/3 | Complete (shipped 2026-06-30) | 2026-06-30 |
 | 19. Cosmetic Hiding Feasibility | v1.4 | 1/1 | Complete | 2026-07-05 |
-| 20. Third-Party Compatibility Fixes | v1.4 | 6/6 | Complete | 2026-08-02 |
+| 20. Third-Party Compatibility Fixes | v1.4 | Complete    | 2026-08-02 | 2026-08-02 |
 | 21. Cosmetic Per-User / Cloned-Role Hiding | v1.4 | 0/TBD | Not started (conditional on Phase 19) | - |
 | 22. Slug-Resolution Showcase Demo | v1.4 | 0/TBD | Not started | - |
 | 23. Editor UX Polish | v1.4 | 5/5 | Complete | 2026-07-05 |
