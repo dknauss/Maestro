@@ -139,6 +139,20 @@ are gone, role-mirrored (an admin not in `child_hidden_roles` still sees every
 child), and the hidden child page still loads by direct URL for a capable user
 (cosmetic-only guardrail, reconfirmed end-to-end).
 
+A second `cascade-hide.spec.ts` case covers the DERIVED-lock refinement: a
+role checked in "Hide this item from:" renders that same role's checkbox in
+"Hide its sub-items from:" as checked+disabled (with a title tooltip and an
+AT-only [`screen-reader-text`](assets/maestro.css) hint), live and without
+reopening the popover, while the save payload for that action never carries
+`child_hidden_roles` for that role — proving the lock is a pure display
+derivation ([`isChildRoleLockedByParent()`](assets/maestro-logic.js), unit
+tests in
+[`tests/js/child-role-lock.test.mjs`](tests/js/child-role-lock.test.mjs)),
+never something written into the model. Un-hiding the parent restores the
+locked role to unchecked+enabled, and the live menu (a second authenticated
+browser context) proves the round-trip end-to-end: the children reappear for
+that role, because the lock never persisted it into `child_hidden_roles`.
+
 
 ## 4. Static and package QA
 
