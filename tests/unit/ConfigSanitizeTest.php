@@ -412,4 +412,98 @@ class ConfigSanitizeTest extends TestCase {
 		$this->assertCount( 1, $out['items'], 'Only the valid bare key should survive.' );
 		$this->assertArrayHasKey( 'edit.php?post_type=x', $out['items'] );
 	}
+
+	/* -----------------------------------------------------------------------
+	 * cascade_hide flag (COMPAT-10, per-parent, default OFF)
+	 * --------------------------------------------------------------------- */
+
+	/**
+	 * A truthy cascade_hide on a top-level item is stored, normalized to a
+	 * real bool `true` (not the raw truthy value that was sent).
+	 */
+	public function test_cascade_hide_true_stored_as_normalized_bool() {
+		$raw = array(
+			'items' => array(
+				'woocommerce' => array( 'cascade_hide' => 1 ),
+			),
+		);
+		$out = $this->config->sanitize( $raw );
+
+		$this->assertSame( true, $out['items']['woocommerce']['cascade_hide'], 'Truthy cascade_hide must normalize to bool true.' );
+	}
+
+	/**
+	 * An explicit falsey cascade_hide (false) must NOT be stored — default
+	 * OFF means absent, not `false` sitting in the array.
+	 */
+	public function test_cascade_hide_false_not_stored() {
+		$raw = array(
+			'items' => array(
+				'woocommerce' => array(
+					'title'        => 'Shop',
+					'cascade_hide' => false,
+				),
+			),
+		);
+		$out = $this->config->sanitize( $raw );
+
+		$this->assertArrayNotHasKey( 'cascade_hide', $out['items']['woocommerce'] );
+		$this->assertSame( 'Shop', $out['items']['woocommerce']['title'], 'Sibling fields must still be stored.' );
+	}
+
+	/**
+	 * When cascade_hide is entirely absent from the payload, it must not
+	 * appear in the stored entry — this is the default-OFF success criterion.
+	 */
+	public function test_cascade_hide_absent_not_stored() {
+		$raw = array(
+			'items' => array(
+				'woocommerce' => array( 'title' => 'Shop' ),
+			),
+		);
+		$out = $this->config->sanitize( $raw );
+
+		$this->assertArrayNotHasKey( 'cascade_hide', $out['items']['woocommerce'] );
+	}
+
+	/**
+	 * cascade_hide is a PARENT-only concept: a qualified `parent>child`
+	 * submenu key must never carry it, mirroring the icon-drop rule.
+	 */
+	public function test_cascade_hide_dropped_on_qualified_key() {
+		$key = 'edit.php?post_type=product>edit.php?post_type=product';
+		$raw = array(
+			'items' => array(
+				$key => array(
+					'title'        => 'My Products',
+					'cascade_hide' => true,
+				),
+			),
+		);
+		$out = $this->config->sanitize( $raw );
+
+		$this->assertArrayNotHasKey( 'cascade_hide', $out['items'][ $key ], 'A qualified (submenu) key must never carry cascade_hide.' );
+		$this->assertSame( 'My Products', $out['items'][ $key ]['title'], 'Title must still survive on the qualified key.' );
+	}
+
+	/**
+	 * cascade_hide coexists with hidden_roles and other existing caps on the
+	 * same top-level item without interfering with each other.
+	 */
+	public function test_cascade_hide_coexists_with_hidden_roles_and_other_caps() {
+		$raw = array(
+			'items' => array(
+				'woocommerce' => array(
+					'title'        => 'Shop',
+					'hidden_roles' => array( 'role-1' ),
+					'cascade_hide' => true,
+				),
+			),
+		);
+		$out = $this->config->sanitize( $raw );
+
+		$this->assertSame( 'Shop', $out['items']['woocommerce']['title'] );
+		$this->assertSame( array( 'role-1' ), $out['items']['woocommerce']['hidden_roles'] );
+		$this->assertTrue( $out['items']['woocommerce']['cascade_hide'] );
+	}
 }

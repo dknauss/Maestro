@@ -2,7 +2,7 @@
 
 Three layers, smallest and fastest first.
 
-> **Current expected status:** unit 114/114 with 141 assertions, integration 65/65 with 150 assertions, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, and (COMPAT-04) independent shared-slug top-level/submenu editing.
+> **Current expected status:** unit 128/128 with 160 assertions, integration 65/65 with 150 assertions, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, and (COMPAT-04) independent shared-slug top-level/submenu editing.
 
 ## Gotchas (first run)
 
@@ -19,9 +19,12 @@ Three layers, smallest and fastest first.
 ## 1. Unit (pure PHP, no WordPress, no Docker)
 
 Covers the highest-risk pure logic: the `Ordering` resilience rules, the
-dashicon validator, and (COMPAT-07) [`Title::replace_label()`](includes/class-title.php)'s
+dashicon validator, (COMPAT-07) [`Title::replace_label()`](includes/class-title.php)'s
 text-node label-replacement against [`tests/unit/TitleTest.php`](tests/unit/TitleTest.php)'s
-badge/wrapping-markup fixtures. Fast, runs anywhere with PHP + Composer.
+badge/wrapping-markup fixtures, and (COMPAT-10) [`Cascade::effective_hidden_roles()`](includes/class-cascade.php)'s
+pure role-list union computation against [`tests/unit/CascadeTest.php`](tests/unit/CascadeTest.php)'s
+rides-parent-hide / role-mirror / union / flag-off cases. Fast, runs anywhere
+with PHP + Composer.
 
 ```bash
 composer install

@@ -196,6 +196,15 @@ class Config {
 					}
 				}
 
+				// COMPAT-10: cascade_hide is a per-PARENT (top-level) concept
+				// only — a qualified submenu key never carries it, mirroring
+				// the icon rule above. Default OFF: only a truthy value is
+				// stored (normalized to a real bool); absent/falsey emits
+				// nothing, so an untouched item stays cascade-off.
+				if ( isset( $item['cascade_hide'] ) && ! $is_qualified && $item['cascade_hide'] ) {
+					$entry['cascade_hide'] = true;
+				}
+
 				if ( ! empty( $item['hidden_roles'] ) && is_array( $item['hidden_roles'] ) ) {
 					$roles = array_values(
 						array_intersect( array_map( 'sanitize_key', $item['hidden_roles'] ), $valid_roles )
