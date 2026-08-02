@@ -997,23 +997,33 @@
 		pop.setAttribute( 'aria-modal', 'true' );
 		pop.setAttribute( 'aria-label', I.visibility );
 		pop.tabIndex = -1;
-		var firstCheckbox = null;
+
+		// Forward reference: Group 1's onToggle (below) refreshes Group 2's
+		// derived-lock rows live. Declared before Group 1 is built so the
+		// closure captures the binding, not a value — assigned once Group 2
+		// itself is built (or left null on a childless item / submenu row).
+		var childrenGroup = null;
 
 		// One independent role-checkbox group per role set. `getSet`/`setSet`
-		// read/write the model field this group is bound to; `onToggle` runs any
-		// extra per-group side-effect (e.g. the item's own maestro-has-hidden
-		// class, which only reflects hiddenRoles, never childHiddenRoles).
-		function buildRoleGroup( heading, groupClass, getSet, setSet, onToggle ) {
+		// read/write the model field this group is bound to. `opts.onToggle`
+		// runs any extra per-group side-effect (e.g. the item's own
+		// maestro-has-hidden class, which only reflects hiddenRoles, never
+		// childHiddenRoles). `opts.isLocked`/`opts.lockedHint` (COMPAT-10) let a
+		// role row render checked+disabled as a DERIVED display state — see
+		// `refresh()` below; this NEVER writes the derived value into the
+		// model (payload purity: buildConfig() only ever reads the real,
+		// unioned model field, never DOM checkbox state).
+		function buildRoleGroup( heading, groupClass, getSet, setSet, opts ) {
+			opts = opts || {};
 			var group = el( 'div', 'maestro-vis-group ' + groupClass );
 			group.appendChild( el( 'p', 'maestro-vis-head', heading ) );
+			var rows = {}; // roleKey -> { cb, row, hint }
 
 			Object.keys( D.roles ).forEach( function ( roleKey ) {
 				var row = el( 'label', 'maestro-vis-row' );
 				var cb  = el( 'input' );
 				cb.type = 'checkbox';
 				cb.value = roleKey;
-				cb.checked = getSet().indexOf( roleKey ) !== -1;
-				if ( ! firstCheckbox ) { firstCheckbox = cb; }
 				cb.addEventListener( 'change', function () {
 					var set = getSet();
 					if ( cb.checked ) {
@@ -1022,16 +1032,61 @@
 					} else {
 						setSet( set.filter( function ( r ) { return r !== roleKey; } ) );
 					}
-					if ( onToggle ) { onToggle(); }
+					if ( opts.onToggle ) { opts.onToggle(); }
 					refreshModifiedIndicator( slug );
 					scheduleAutosave();
 				} );
 				row.appendChild( cb );
 				row.appendChild( document.createTextNode( ' ' + D.roles[ roleKey ] ) );
+
+				var hint = null;
+				if ( opts.isLocked ) {
+					// AT-only explanation (WP admin's always-present screen-reader-text
+					// class): a bare disabled checkbox conveys nothing to assistive
+					// tech, so the "already hidden via the parent" reason is exposed
+					// programmatically, not just visually via the title tooltip.
+					hint = el( 'span', 'maestro-vis-locked-hint screen-reader-text' );
+					row.appendChild( hint );
+				}
+
 				group.appendChild( row );
+				rows[ roleKey ] = { cb: cb, row: row, hint: hint };
 			} );
 
 			pop.appendChild( group );
+
+			// Re-derive every role row's checked/disabled/locked state from the
+			// CURRENT model. Called once at build time and again, live, whenever
+			// a role is toggled in the OTHER group this group's lock derivation
+			// depends on (COMPAT-10: toggling "Hide this item from:" re-derives
+			// "Hide its sub-items from:"'s locked rows without closing the popover).
+			function refresh() {
+				Object.keys( D.roles ).forEach( function ( roleKey ) {
+					var r      = rows[ roleKey ];
+					var locked = !! ( opts.isLocked && opts.isLocked( roleKey ) );
+
+					if ( locked ) {
+						// Derived display only — never touches getSet()/setSet().
+						r.cb.checked  = true;
+						r.cb.disabled = true;
+						r.cb.setAttribute( 'aria-disabled', 'true' );
+						r.row.classList.add( 'maestro-vis-locked' );
+						var reason = opts.lockedHint( roleKey );
+						r.hint.textContent = ' ' + reason;
+						r.row.title = reason;
+					} else {
+						r.cb.checked  = getSet().indexOf( roleKey ) !== -1;
+						r.cb.disabled = false;
+						r.cb.removeAttribute( 'aria-disabled' );
+						r.row.classList.remove( 'maestro-vis-locked' );
+						if ( r.hint ) { r.hint.textContent = ''; }
+						r.row.removeAttribute( 'title' );
+					}
+				} );
+			}
+
+			refresh();
+			return { refresh: refresh };
 		}
 
 		// Group 1: "Hide this item from:" — the existing hidden_roles, hides
@@ -1046,6 +1101,13 @@
 				if ( li ) {
 					li.classList.toggle( 'maestro-has-hidden', model[ slug ].hiddenRoles.length > 0 );
 				}
+			},
+			{
+				onToggle: function () {
+					// Live reactivity: a role just hidden (or un-hidden) for THIS
+					// item may need Group 2's corresponding row locked (or unlocked).
+					if ( childrenGroup ) { childrenGroup.refresh(); }
+				}
 			}
 		);
 
@@ -1053,13 +1115,26 @@
 		// INDEPENDENT role list that hides ALL of this parent's live children,
 		// with the parent left visible. Shown ONLY on a top-level parent that
 		// actually has children (never on a childless item or a submenu row).
-		// Independent of group 1: toggling it never touches hiddenRoles.
+		// Independent of group 1's STORED value: toggling it never touches
+		// hiddenRoles. A role already checked in group 1 renders here as a
+		// DERIVED locked (checked+disabled) row — WordPress core already
+		// removes that role's whole rendered subtree, so this group's own
+		// entry for it would be redundant — but the lock is display-only and
+		// is refreshed live by group 1's onToggle above.
 		if ( ! model[ slug ].isSub && model[ slug ].hasChildren ) {
-			buildRoleGroup(
+			childrenGroup = buildRoleGroup(
 				I.hideChildrenFrom,
 				'maestro-vis-children',
 				function () { return model[ slug ].childHiddenRoles; },
-				function ( arr ) { model[ slug ].childHiddenRoles = arr; }
+				function ( arr ) { model[ slug ].childHiddenRoles = arr; },
+				{
+					isLocked: function ( roleKey ) {
+						return model[ slug ].hiddenRoles.indexOf( roleKey ) !== -1;
+					},
+					lockedHint: function ( roleKey ) {
+						return I.hideChildrenLocked.replace( '%s', D.roles[ roleKey ] );
+					}
+				}
 			);
 		}
 
@@ -1074,8 +1149,12 @@
 			var focusable = pop.querySelectorAll(
 				'input, button, [tabindex]:not([tabindex="-1"])'
 			);
+			// COMPAT-10: a derived-locked checkbox is disabled and never actually
+			// receives focus, so it must be excluded here too — otherwise it would
+			// be wrongly treated as the tab-trap's `first`/`last` boundary and the
+			// wraparound would silently fail to fire.
 			focusable = Array.prototype.filter.call( focusable, function ( n ) {
-				return ! n.hidden && n.offsetParent !== null;
+				return ! n.hidden && ! n.disabled && n.offsetParent !== null;
 			} );
 			if ( ! focusable.length ) { return; }
 			var first = focusable[ 0 ];
@@ -1090,7 +1169,8 @@
 		} );
 
 		placePopover( pop, anchorBtn );
-		( firstCheckbox || pop ).focus();
+		var initialFocus = pop.querySelector( 'input:not([disabled])' ) || pop;
+		initialFocus.focus();
 	}
 
 	/* ---------- per-item reset -------------------------------------------- */

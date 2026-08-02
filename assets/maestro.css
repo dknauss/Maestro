@@ -388,6 +388,16 @@ body.maestro-editing.auto-fold #wpfooter {
 .maestro-vis-group + .maestro-vis-group {
 	margin-top: 6px;
 }
+/* COMPAT-10: a derived-locked row (the role is already hidden via the
+ * item's own "Hide this item from:" group) is muted — core's standard
+ * disabled-text tone — so it visually reads as "already handled" rather
+ * than an equally-actionable checkbox. Colour is not the only signal: the
+ * checkbox itself is checked+disabled and a title tooltip + AT-only
+ * screen-reader-text explain why (see maestro.js buildRoleGroup#refresh). */
+.maestro-vis-locked {
+	color: #8c8f94;
+	cursor: default;
+}
 /* COMPAT-10 (REVISED): the "Hide its sub-items from:" group is visually set
  * apart from the item's own hide group above it (an independent role set,
  * not the same concept) via the same core divider token used elsewhere in

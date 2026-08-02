@@ -120,6 +120,8 @@ class Assets {
 					'hideFrom'          => __( 'Hide this item from:', 'maestro-menu-editor' ),
 					/* translators: Heading for the role-checkbox group that cosmetically hides ALL of a parent's sub-items, independent of the parent's own visibility (COMPAT-10). Shown only for parents that have children. */
 					'hideChildrenFrom'  => __( 'Hide its sub-items from:', 'maestro-menu-editor' ),
+					/* translators: %s: role display name. Explains why a "Hide its sub-items from:" checkbox is shown checked and disabled — the parent is already hidden from this role in the "Hide this item from:" group above, so its sub-items are already gone too (WordPress core removes a hidden parent's whole rendered subtree). */
+					'hideChildrenLocked' => esc_html__( 'Already hidden because this item is hidden from %s.', 'maestro-menu-editor' ),
 					'confirmAll'        => __( 'Reset ALL menu customizations to WordPress defaults? This cannot be undone.', 'maestro-menu-editor' ),
 					'drag'              => __( 'Drag to reorder', 'maestro-menu-editor' ),
 					/* translators: 1: item title, 2: direction ("up"/"down"), 3: new position number, 4: total items. */

@@ -162,14 +162,43 @@ function firstRunSeen( storage ) {
 	}
 }
 
+/**
+ * Pure DERIVED-lock predicate for the "Hide its sub-items from:" (COMPAT-10)
+ * role group in the visibility popover: a role is "locked" — rendered
+ * checked+disabled, a display-only state, never a real persisted rule —
+ * exactly when that SAME role is checked in "Hide this item from:" (the
+ * item's own `hiddenRoles`). WordPress core already removes a hidden
+ * parent's whole rendered subtree for that role, so "Hide its sub-items
+ * from:"'s own entry for it would be redundant.
+ *
+ * PAYLOAD PURITY CONTRACT: this function only ever reads `hiddenRoles` — it
+ * never reads or writes `childHiddenRoles`. The caller (maestro.js's
+ * buildRoleGroup#refresh) uses this ONLY to decide the checkbox's rendered
+ * checked/disabled attributes; it must never feed the result back into
+ * `childHiddenRoles`/`setSet`. This is what guarantees the round-trip
+ * property: hiding the parent from a role (which locks that role's
+ * sub-items checkbox) can never itself add that role to the persisted
+ * `child_hidden_roles`, so un-hiding the parent from that role always
+ * restores the children to whatever `childHiddenRoles` genuinely held
+ * before — see tests/js/child-role-lock.test.mjs's round-trip case.
+ *
+ * @param {string[]} hiddenRoles Parent's own hidden_roles (Group 1's current state).
+ * @param {string} roleKey Role slug to test.
+ * @return {boolean} true if roleKey is locked (already hidden via the parent's own hide).
+ */
+function isChildRoleLockedByParent( hiddenRoles, roleKey ) {
+	return hiddenRoles.indexOf( roleKey ) !== -1;
+}
+
 /* ---------- dual-export guard ----------------------------------------- */
 
 var api = {
-	reorderMove:     reorderMove,
-	diffItem:        diffItem,
-	resetItem:       resetItem,
-	modeStatusLabel: modeStatusLabel,
-	firstRunSeen:    firstRunSeen,
+	reorderMove:               reorderMove,
+	diffItem:                  diffItem,
+	resetItem:                 resetItem,
+	modeStatusLabel:           modeStatusLabel,
+	firstRunSeen:              firstRunSeen,
+	isChildRoleLockedByParent: isChildRoleLockedByParent,
 };
 
 if ( typeof module !== 'undefined' && module.exports ) {
