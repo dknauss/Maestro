@@ -74,7 +74,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | DEMO-01 | Phase 22 | Pending |
 | COMPAT-04 | Phase 20 | ✅ Complete 2026-08-01 |
 | COMPAT-07 | Phase 20 | ✅ Complete 2026-08-01 |
-| COMPAT-10 | Phase 20 | Complete |
+| COMPAT-10 | Phase 20 | ✅ Complete 2026-08-01 |
 | ROLE-01 | Phase 19 | ✅ Complete (partial-go) 2026-07-05 |
 | ROLE-02 | Phase 21 (unblocked — go, per-user first) | Pending |
 | UX-09 | Phase 23 | ✅ Complete 2026-07-05 |

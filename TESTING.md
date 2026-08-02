@@ -2,7 +2,7 @@
 
 Three layers, smallest and fastest first.
 
-> **Current expected status:** unit 128/128 with 160 assertions, integration 72/72 with 168 assertions, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, and (COMPAT-04) independent shared-slug top-level/submenu editing.
+> **Current expected status:** unit 128/128 with 160 assertions, integration 72/72 with 168 assertions, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, (COMPAT-04) independent shared-slug top-level/submenu editing, and (COMPAT-10) the "also hide children" cascade checkbox's default-off-vs-on behavior.
 
 ## Gotchas (first run)
 
@@ -124,6 +124,23 @@ gated fixture CPT ([`tests/e2e/fixtures/maestro-e2e-shared-slug.php`](tests/e2e/
 reproduces WordPress's post-type self-link convention (the WooCommerce
 Products / "All Products" shape) without depending on a real third-party
 plugin.
+
+(COMPAT-10) [`tests/e2e/specs/cascade-hide.spec.ts`](tests/e2e/specs/cascade-hide.spec.ts) proves the "also hide
+children" checkbox is gated to parents with children (absent on a childless
+item — via the gated fixture
+[`tests/e2e/fixtures/maestro-e2e-childless.php`](tests/e2e/fixtures/maestro-e2e-childless.php), since every native WP
+core top-level item always registers at least one submenu row — and absent on
+a submenu row), that toggling it persists `cascade_hide` via the normal save,
+and that cascade OFF leaves every child visible while cascade ON hides them
+all, role-mirrored. Because hiding a parent's own top-level row already
+removes its entire rendered dropdown regardless of cascade (WordPress core's
+`_wp_menu_output()` never renders a `$submenu` array whose parent row was
+`unset()`), the on/off distinction is asserted against the real
+`$submenu['edit.php']` state `Replay::replay()` produces for a given user via
+[`tests/e2e/fixtures/dump-cascade-submenu.php`](tests/e2e/fixtures/dump-cascade-submenu.php) — the same
+`admin_menu`@`PHP_INT_MAX` wp-cli dump technique the R1 compat surveys used —
+run against whatever config the browser actually saved through the REST
+endpoint.
 
 
 ## 4. Static and package QA
