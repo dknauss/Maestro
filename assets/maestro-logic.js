@@ -61,8 +61,12 @@ function reorderMove( order, slug, direction ) {
  *   - icon is modified iff current.icon is truthy AND !== pristine.icon
  *     (skipped when pristine has no icon key, i.e. submenu items)
  *   - hiddenRoles is modified iff current.hiddenRoles.length > 0
+ *   - cascadeHide (COMPAT-10, parent-only) is modified iff current.cascadeHide
+ *     is truthy — it has no WP-native pristine state (always starts false), so
+ *     the check mirrors the hiddenRoles length-only rule rather than a pristine
+ *     comparison.
  *
- * @param {{ title: string, icon?: string, hiddenRoles: string[] }} current  Working model item.
+ * @param {{ title: string, icon?: string, hiddenRoles: string[], cascadeHide?: boolean }} current  Working model item.
  * @param {{ title: string, icon?: string }}                        pristine Pristine default.
  * @return {{ modified: boolean, fields: string[] }}
  */
@@ -81,6 +85,10 @@ function diffItem( current, pristine ) {
 
 	if ( current.hiddenRoles && current.hiddenRoles.length > 0 ) {
 		fields.push( 'hiddenRoles' );
+	}
+
+	if ( current.cascadeHide ) {
+		fields.push( 'cascadeHide' );
 	}
 
 	return { modified: fields.length > 0, fields: fields };
@@ -115,17 +123,22 @@ function modeStatusLabel( state, strings ) {
  *   m.title       = def.title || '';
  *   m.hiddenRoles = [];
  *   if ( ! m.isSub ) m.icon = def.icon || '';
+ *   m.cascadeHide = false;
  *
- * @param {{ title: string, icon?: string, hiddenRoles: string[] }} item     Current item state.
+ * cascadeHide (COMPAT-10) has no WP-native pristine state — reset always clears
+ * it to false, top-level or submenu (the field is simply unused for submenu items).
+ *
+ * @param {{ title: string, icon?: string, hiddenRoles: string[], cascadeHide?: boolean }} item     Current item state.
  * @param {{ title: string, icon?: string }}                        pristine Pristine default.
  * @param {boolean}                                                 isSub    True for submenu items.
- * @return {{ title: string, hiddenRoles: string[], icon: string }}
+ * @return {{ title: string, hiddenRoles: string[], icon: string, cascadeHide: boolean }}
  */
 function resetItem( item, pristine, isSub ) {
 	var result = {
 		title:       pristine.title || '',
 		hiddenRoles: [],
 		icon:        isSub ? '' : ( pristine.icon || '' ),
+		cascadeHide: false,
 	};
 	return result;
 }

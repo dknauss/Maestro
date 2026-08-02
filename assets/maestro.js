@@ -224,7 +224,13 @@
 				title: node.title,
 				icon: node.icon,
 				hiddenRoles: node.hiddenRoles.slice(),
-				isSub: false
+				isSub: false,
+				// COMPAT-10: cascade-hide-to-children is a parent-only flag, seeded
+				// from the resolved value get_menu_model() already computes
+				// server-side (20-05). hasChildren gates the popover checkbox to
+				// parents that actually have a submenu (20-CONTEXT.md locked UI).
+				cascadeHide: !! node.cascadeHide,
+				hasChildren: node.submenu.length > 0
 			};
 
 			var li = node.liId ? document.getElementById( node.liId ) : null;
@@ -1019,6 +1025,26 @@
 			pop.appendChild( row );
 		} );
 
+		// COMPAT-10: "also hide children" — shown ONLY on a top-level parent that
+		// actually has children (never on a childless item or a submenu row).
+		// Always enabled: its effect is gated at replay time (20-05), not here, so
+		// toggling it never depends on whether a role is currently hidden.
+		if ( ! model[ slug ].isSub && model[ slug ].hasChildren ) {
+			var cascadeRow = el( 'label', 'maestro-vis-row maestro-vis-cascade' );
+			var cascadeCb  = el( 'input' );
+			cascadeCb.type = 'checkbox';
+			cascadeCb.checked = !! model[ slug ].cascadeHide;
+			if ( ! firstCheckbox ) { firstCheckbox = cascadeCb; }
+			cascadeCb.addEventListener( 'change', function () {
+				model[ slug ].cascadeHide = cascadeCb.checked;
+				refreshModifiedIndicator( slug );
+				scheduleAutosave();
+			} );
+			cascadeRow.appendChild( cascadeCb );
+			cascadeRow.appendChild( document.createTextNode( ' ' + I.cascadeHide ) );
+			pop.appendChild( cascadeRow );
+		}
+
 		pop.addEventListener( 'keydown', function ( e ) {
 			if ( e.key === 'Escape' ) {
 				e.preventDefault();
@@ -1060,6 +1086,9 @@
 
 		m.title       = def.title || '';
 		m.hiddenRoles = [];
+		// cascadeHide (COMPAT-10) has no WP-native pristine state — reset always
+		// clears it to false; harmless no-op on a submenu entry (field unused there).
+		m.cascadeHide = false;
 
 		var li = liForKey( selectedKey );
 		if ( li ) { li.classList.remove( 'maestro-has-hidden' ); }
@@ -1148,6 +1177,10 @@
 			if ( diff.fields.indexOf( 'title' ) !== -1 )       { entry.title = m.title; }
 			if ( diff.fields.indexOf( 'icon' ) !== -1 )        { entry.icon  = m.icon; }
 			if ( diff.fields.indexOf( 'hiddenRoles' ) !== -1 ) { entry.hidden_roles = m.hiddenRoles; }
+			// COMPAT-10: parent-only cascade flag. diffItem() flags it whenever
+			// truthy (no pristine concept), so a cascade-only toggle with no other
+			// change still produces a diff.modified entry and persists.
+			if ( diff.fields.indexOf( 'cascadeHide' ) !== -1 ) { entry.cascade_hide = m.cascadeHide; }
 			if ( diff.modified )                                { cfg.items[ slug ] = entry; }
 
 			var subLis = li.querySelectorAll( '.wp-submenu > li.maestro-subitem[data-maestro-slug]' );

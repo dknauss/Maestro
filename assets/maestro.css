@@ -382,6 +382,14 @@ body.maestro-editing.auto-fold #wpfooter {
 	outline: 2px solid #2271b1;
 	outline-offset: 1px;
 }
+/* COMPAT-10: cascade-hide checkbox is visually set apart from the per-role
+ * rows above it (its own concept, not another role) via the same core
+ * divider token used elsewhere in the panel/popovers (#dcdcde). */
+.maestro-vis-cascade {
+	margin-top: 6px;
+	padding-top: 9px;
+	border-top: 1px solid #dcdcde;
+}
 
 /* ---------- toolbar + shared controls panel ----------------------------- */
 .maestro-toolbar {

@@ -117,6 +117,8 @@ class Assets {
 					'resetItem'         => __( 'Reset Item', 'maestro-menu-editor' ),
 					'resetAll'          => __( 'Reset All', 'maestro-menu-editor' ),
 					'hideFrom'          => __( 'Hide from these roles:', 'maestro-menu-editor' ),
+					/* translators: Label for the checkbox that also cosmetically hides a parent's submenu items (COMPAT-10). Shown only for parents that have children. */
+					'cascadeHide'       => __( 'Also hide children', 'maestro-menu-editor' ),
 					'confirmAll'        => __( 'Reset ALL menu customizations to WordPress defaults? This cannot be undone.', 'maestro-menu-editor' ),
 					'drag'              => __( 'Drag to reorder', 'maestro-menu-editor' ),
 					/* translators: 1: item title, 2: direction ("up"/"down"), 3: new position number, 4: total items. */

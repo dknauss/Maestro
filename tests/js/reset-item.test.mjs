@@ -23,6 +23,15 @@ test( 'top-level item: returns title, hiddenRoles=[], icon from pristine', () =>
 	assert.deepEqual( result.hiddenRoles, [] );
 } );
 
+// Cascade-hide (COMPAT-10) has no WP-native pristine state — reset always clears
+// it to false, top-level or submenu.
+test( 'top-level item: cascadeHide is always reset to false', () => {
+	const item     = { title: 'My Posts', icon: 'dashicons-admin-home', hiddenRoles: [ 'editor' ], cascadeHide: true };
+	const pristine = { title: 'Posts', icon: 'dashicons-admin-post' };
+	const result   = resetItem( item, pristine, false );
+	assert.equal( result.cascadeHide, false );
+} );
+
 // Top-level item with empty pristine strings
 test( 'top-level item: empty pristine title/icon -> empty strings in result', () => {
 	const item     = { title: 'Foo', icon: 'dashicons-admin-home', hiddenRoles: [] };

@@ -96,3 +96,30 @@ test( 'multiple changes -> fields contains each changed key', () => {
 	assert.equal( result.modified, true );
 	assert.deepEqual( result.fields.sort(), [ 'hiddenRoles', 'icon', 'title' ] );
 } );
+
+// Cascade-hide flag (COMPAT-10 editor UI, parent-only field) — default false is
+// not modified; true is modified regardless of pristine (cascade has no WP-native
+// pristine state, mirrors the hiddenRoles-length-only rule).
+test( 'cascadeHide false -> not modified, fields empty', () => {
+	const current  = { title: 'Posts', icon: 'dashicons-admin-post', hiddenRoles: [], cascadeHide: false };
+	const pristine = { title: 'Posts', icon: 'dashicons-admin-post' };
+	const result = diffItem( current, pristine );
+	assert.equal( result.modified, false );
+	assert.deepEqual( result.fields, [] );
+} );
+
+test( 'cascadeHide true -> modified, fields=[cascadeHide]', () => {
+	const current  = { title: 'Posts', icon: 'dashicons-admin-post', hiddenRoles: [], cascadeHide: true };
+	const pristine = { title: 'Posts', icon: 'dashicons-admin-post' };
+	const result = diffItem( current, pristine );
+	assert.equal( result.modified, true );
+	assert.deepEqual( result.fields, [ 'cascadeHide' ] );
+} );
+
+test( 'cascadeHide true alongside other changes -> fields contains cascadeHide too', () => {
+	const current  = { title: 'My Posts', icon: 'dashicons-admin-post', hiddenRoles: [], cascadeHide: true };
+	const pristine = { title: 'Posts', icon: 'dashicons-admin-post' };
+	const result = diffItem( current, pristine );
+	assert.equal( result.modified, true );
+	assert.deepEqual( result.fields.sort(), [ 'cascadeHide', 'title' ] );
+} );
