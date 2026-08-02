@@ -175,7 +175,7 @@ Plans:
 - [x] 20-01-PLAN.md — COMPAT-04: qualified-key storage foundation (pure key helper + Config::sanitize) [COMPAT-04]
 - [x] 20-02-PLAN.md — COMPAT-04: replay + editor-model qualified resolution with legacy bare fallback [COMPAT-04]
 - [x] 20-03-PLAN.md — COMPAT-04: client A1b (qualified model + stable submenu DOM bind) + shared-slug e2e [COMPAT-04]
-- [ ] 20-04-PLAN.md — COMPAT-07: text-node badge/HTML preservation on rename (pure helper + replay wiring) [COMPAT-07]
+- [x] 20-04-PLAN.md — COMPAT-07: text-node badge/HTML preservation on rename (pure helper + replay wiring) [COMPAT-07]
 - [ ] 20-05-PLAN.md — COMPAT-10: cascade-hide server (pure computation + replay + cosmetic-only guardrail) [COMPAT-10]
 - [ ] 20-06-PLAN.md — COMPAT-10: cascade UI in visibility popover + phase zero-regression gate [COMPAT-10]
 

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Compatibility, Roles & Showcase
 status: executing
-stopped_at: Completed 20-03-PLAN.md
-last_updated: "2026-08-02T02:50:02.434Z"
-last_activity: 2026-08-01 — Phase 20 Plan 03 (client qualified-key model + stable submenu DOM bind + shared-slug e2e; COMPAT-04 human-verified complete) executed and committed
+stopped_at: Completed 20-04-PLAN.md
+last_updated: "2026-08-02T03:16:28.000Z"
+last_activity: 2026-08-01 — Phase 20 Plan 04 (COMPAT-07 badge/HTML preservation on rename: pure Title::replace_label() text-node helper + replay wiring at both title-write seams) executed and committed
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 12
-  completed_plans: 9
+  completed_plans: 10
   percent: 33
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-07-03)
 ## Current Position
 
 Milestone: v1.4 — Compatibility, Roles & Showcase (interim v1.3.1 patch shipped 2026-07-05)
-Phase: Phase 19 (Cosmetic Hiding Feasibility) ✅ COMPLETE, Phase 23 (Editor UX Polish) ✅ COMPLETE, Phase 20 (Third-Party Compatibility Fixes) IN PROGRESS (3/6 plans complete).
-Plan: 20-03 (client A1b: qualified-key model + stable submenu DOM bind + shared-slug e2e, human-verified) COMPLETE — next: 20-04 (COMPAT-07 badge/HTML preservation on rename)
-Status: Phase 20 executing. 20-03 closed out COMPAT-04 client-side: `assets/maestro.js` keys each submenu child by its qualified `parent>child` identity instead of collapsing a shared-slug child into the top-level model entry, binds submenu `<li>` elements by resolved anchor href/slug (not array position — the minimal A1b fix), and `buildConfig()` emits the shared-slug submenu override under its qualified key so the save payload matches the server's qualified-first/legacy-bare-fallback resolution from 20-02. Proven by a gated Playwright fixture (`tests/e2e/specs/shared-slug.spec.ts`) and **live-verified by the human checkpoint against real WooCommerce** in the compat wp-env — renaming/hiding the top-level Products item did not affect the "All Products" submenu (and vice versa), both persisted to the correct row after reload, no console errors. Zero regression: JS 53/53, full e2e 34 pass/28 capture-gated skipped, PHP integration 60/60. **COMPAT-04 is now fully complete** (20-01 server foundation, 20-02 replay/editor-model wiring, 20-03 client + live verification). 20-02 (prior) wired COMPAT-04's qualified-key resolution into `Replay::replay()`'s submenu loop (qualified-first with legacy bare fallback; both Axis-1/Axis-2 collision guards extended, not replaced) and into `get_menu_model()` (submenu nodes emit `qualifiedKey`; `resolved_hidden_roles()` resolves qualified-first/bare-fallback for submenu children, bare-only for top-level, so editor display and replay apply never drift) — integration suite 60/60 (143 assertions, up from the 51/126 baseline), unit suite unaffected at 103/103 (127 assertions), WPCS/PHPStan clean, zero regression. 20-01 (prior) delivered `Slug::is_qualified()`/`split_qualified()`/`normalize_qualified()` and `Config::sanitize()` qualified-key acceptance + submenu icon drop (COMPAT-04 foundation). Phase 19 ROLE-01 signed off — **partial-go** (per-user go + ship first; cloned-role go as an additive `profiles` registry compiling to the same inline `is_hidden_for_current_user()` seam); Phase 21 unblocked. Phase 23 delivered UX-09/UX-12/UX-13/BUG-08 (native wp-admin restyle; 5/5 plans; full-suite gate green — JS 53/53, e2e 31 pass, PHP unit 90/90, integration 47/47, WPCS/PHPStan clean, WCAG 1.4.1 confirmed) and shipped in v1.3.1. **NOTE for Phase 24:** Plugin Check flagged 4 errors/6 warnings, all pre-existing dev-tree root files — logged to `phases/23-editor-ux-polish/deferred-items.md` for the Phase 24 build-then-check pipeline.
-Last activity: 2026-08-01 — Phase 20 Plan 03 (client qualified-key model + stable submenu DOM bind + shared-slug e2e; COMPAT-04 human-verified complete) executed and committed
+Phase: Phase 19 (Cosmetic Hiding Feasibility) ✅ COMPLETE, Phase 23 (Editor UX Polish) ✅ COMPLETE, Phase 20 (Third-Party Compatibility Fixes) IN PROGRESS (4/6 plans complete).
+Plan: 20-04 (COMPAT-07 badge/HTML preservation on rename: pure text-node helper + replay wiring) COMPLETE — next: 20-05 (COMPAT-10 cascade-hide server: pure computation + replay + cosmetic-only guardrail)
+Status: Phase 20 executing. 20-04 delivered COMPAT-07: a new pure, WP-free `Maestro\Title::replace_label()` (`includes/class-title.php`) parses a live rendered menu title with `DOMDocument`, walks it depth-first in document order, and swaps ONLY the first text node whose trimmed value is non-empty and non-numeric (a bare digit run is a count/badge, never the label) — preserving markup BEFORE and AFTER the label (trailing count bubbles AND wrapping spans), with leading/trailing whitespace kept so a trailing badge's separating space survives. Returns `null` when no such node exists (icon+badge-only titles), signalling the caller to fall back to a wholesale set. `Replay::replay()`'s two title-write seams (`$menu[pos][0]` top-level, `$submenu[parent][pos][0]` submenu) now read the LIVE row title fresh each request, pass it through the helper alongside the stored plain-text override, and write the result — 20-02's qualified-key/legacy-bare-fallback resolution logic is untouched. Storage never changes shape: the stored `items[key].title` stays plain text (`sanitize_text_field()` still guards it); badge HTML is re-extracted from the live title every request, never cached. Covers all 4/6 R1 fixture shapes (WooCommerce trailing count bubble, Yoast-style notification span, WPForms-style wrapping span, upsell-badge trailing wrapper) plus plain-label/no-text-node/multi-text-node/entity-round-trip edge cases. Zero regression: PHP unit 114/114 (141 assertions, up from 103/103), PHP integration 65/65 (150 assertions, up from 60/60), WPCS/PHPStan clean, doc-links clean; e2e not required for this server-side-only plan. 20-03 (prior) closed out COMPAT-04 client-side: `assets/maestro.js` keys each submenu child by its qualified `parent>child` identity instead of collapsing a shared-slug child into the top-level model entry, binds submenu `<li>` elements by resolved anchor href/slug (not array position — the minimal A1b fix), and `buildConfig()` emits the shared-slug submenu override under its qualified key so the save payload matches the server's qualified-first/legacy-bare-fallback resolution from 20-02. Proven by a gated Playwright fixture (`tests/e2e/specs/shared-slug.spec.ts`) and **live-verified by the human checkpoint against real WooCommerce** in the compat wp-env — renaming/hiding the top-level Products item did not affect the "All Products" submenu (and vice versa), both persisted to the correct row after reload, no console errors. Zero regression: JS 53/53, full e2e 34 pass/28 capture-gated skipped, PHP integration 60/60. **COMPAT-04 is now fully complete** (20-01 server foundation, 20-02 replay/editor-model wiring, 20-03 client + live verification). 20-02 (prior) wired COMPAT-04's qualified-key resolution into `Replay::replay()`'s submenu loop (qualified-first with legacy bare fallback; both Axis-1/Axis-2 collision guards extended, not replaced) and into `get_menu_model()` (submenu nodes emit `qualifiedKey`; `resolved_hidden_roles()` resolves qualified-first/bare-fallback for submenu children, bare-only for top-level, so editor display and replay apply never drift) — integration suite 60/60 (143 assertions, up from the 51/126 baseline), unit suite unaffected at 103/103 (127 assertions), WPCS/PHPStan clean, zero regression. 20-01 (prior) delivered `Slug::is_qualified()`/`split_qualified()`/`normalize_qualified()` and `Config::sanitize()` qualified-key acceptance + submenu icon drop (COMPAT-04 foundation). Phase 19 ROLE-01 signed off — **partial-go** (per-user go + ship first; cloned-role go as an additive `profiles` registry compiling to the same inline `is_hidden_for_current_user()` seam); Phase 21 unblocked. Phase 23 delivered UX-09/UX-12/UX-13/BUG-08 (native wp-admin restyle; 5/5 plans; full-suite gate green — JS 53/53, e2e 31 pass, PHP unit 90/90, integration 47/47, WPCS/PHPStan clean, WCAG 1.4.1 confirmed) and shipped in v1.3.1. **NOTE for Phase 24:** Plugin Check flagged 4 errors/6 warnings, all pre-existing dev-tree root files — logged to `phases/23-editor-ux-polish/deferred-items.md` for the Phase 24 build-then-check pipeline.
+Last activity: 2026-08-01 — Phase 20 Plan 04 (COMPAT-07 badge/HTML preservation on rename: pure Title::replace_label() text-node helper + replay wiring at both title-write seams) executed and committed
 
-Progress: [███░░░░░░░] 33% (v1.4: 2/6 phases complete — 19, 23; Phase 20 in progress at 3/6 plans; Phase 23's UX shipped as v1.3.1)
+Progress: [███░░░░░░░] 33% (v1.4: 2/6 phases complete — 19, 23; Phase 20 in progress at 4/6 plans; Phase 23's UX shipped as v1.3.1)
 
 ## Release Binding
 
@@ -180,6 +180,9 @@ Recent decisions affecting current work:
 - [Phase 20]: 20-03: assets/maestro.js keys each submenu child by its qualified parent>child identity (model[key], not model[bare_slug]); selectedSlug/liForSlug renamed selectedKey/liForKey since both now hold a generic key that can be qualified
 - [Phase 20]: 20-03: submenu <li> bound to its model key by resolved anchor href/slug (findSubmenuLi/resolveSubmenuHref), not .wp-submenu array position, with a positional fallback if no href match is found — the minimal A1b fix; full A1b hardening stays deferred
 - [Phase 20]: 20-03: buildConfig() drops the topSlugs early-return and emits the shared-slug submenu override under its qualified key, matching the server's qualified-first/legacy-bare-fallback resolution from 20-02; COMPAT-04 live-verified against real WooCommerce in the compat wp-env checkpoint
+- [Phase 20]: 20-04: Title::replace_label()'s candidate-node rule is depth-first/document-order, first text node whose trimmed value is non-empty AND not purely numeric — a bare digit run (badge/count inner text) is never mistaken for the label, so icon+count-only titles correctly signal no-text-node (null) instead of swapping the count
+- [Phase 20]: 20-04: Title kept entirely WP-free (DOMDocument/libxml only, no wp_* calls) so it lives in the fast pure-unit suite; registered in maestro-menu-editor.php's require list and tests/bootstrap-unit.php's unit bootstrap alongside Ordering/Slug/Config
+- [Phase 20]: 20-04: the wholesale-fallback decision stays in the WP-coupled caller (Replay::replay()), not inside Title::replace_label() — the pure helper only returns null on no-text-node; storage never changes shape, badge HTML is re-extracted from the live title every request and never stored
 
 ### Roadmap Evolution
 
@@ -217,6 +220,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-08-02T02:48:51.221Z
-Stopped at: Completed 20-03-PLAN.md
+Last session: 2026-08-02T03:16:28.000Z
+Stopped at: Completed 20-04-PLAN.md
 Resume file: None
