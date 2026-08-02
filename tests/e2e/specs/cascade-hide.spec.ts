@@ -153,4 +153,92 @@ test.describe( 'COMPAT-10 — independent child_hidden_roles ("Hide its sub-item
 		await expect( page.locator( '#menu-posts .wp-submenu a[href*="post-new.php"]' ) ).toBeVisible();
 	} );
 
+	test( 'a role hidden in "Hide this item from:" locks (checked+disabled) the same role in "Hide its sub-items from:", live, WITHOUT ever persisting it into child_hidden_roles', async ( { page, browser } ) => {
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+
+		const panel = page.locator( '.maestro-toolbar .maestro-panel' );
+		const postsLi = page.locator( '#menu-posts' );
+		await postsLi.locator( '> a.menu-top' ).click();
+		await expect( panel ).toBeVisible();
+		await panel.locator( '.maestro-vis-btn' ).click();
+
+		const picker = page.locator( '.maestro-vis-popover' );
+		await expect( picker ).toBeVisible();
+		const ownGroup = picker.locator( '.maestro-vis-own' );
+		const childrenGroup = picker.locator( '.maestro-vis-children' );
+		const editorInOwn = ownGroup.getByLabel( 'Editor' );
+		const editorInChildren = childrenGroup.getByLabel( 'Editor' );
+
+		// --- Baseline: nothing locked. ---
+		await expect( editorInChildren ).not.toBeChecked();
+		await expect( editorInChildren ).toBeEnabled();
+
+		// --- Hide Posts itself from Editor (Group 1). ---
+		const saveHide = page.waitForResponse(
+			( r ) => POST_SAVE( r.url() ) && r.request().method() === 'POST' && r.ok()
+		);
+		await editorInOwn.check();
+		const hidePayload = ( await saveHide ).request().postDataJSON();
+		expect( hidePayload?.config?.items?.[ 'edit.php' ]?.hidden_roles ).toContain( 'editor' );
+		// PAYLOAD PURITY: hiding the parent must NEVER, by itself, write
+		// 'editor' into child_hidden_roles.
+		expect( hidePayload?.config?.items?.[ 'edit.php' ]?.child_hidden_roles ).toBeFalsy();
+
+		// --- Live reactivity: Editor's row in Group 2 is now checked+disabled,
+		// with a title tooltip and an AT-only reason, WITHOUT closing/reopening
+		// the popover. ---
+		await expect( editorInChildren ).toBeChecked();
+		await expect( editorInChildren ).toBeDisabled();
+		await expect( editorInChildren ).toHaveAttribute( 'aria-disabled', 'true' );
+		// The enclosing <label> row, found via ancestor traversal from the
+		// checkbox itself (robust — no dependency on `.filter({ has })`, which
+		// this Playwright version doesn't resolve reliably against a locator
+		// built from a chained-scope ancestor).
+		const lockedRow = editorInChildren.locator( 'xpath=ancestor::label[1]' );
+		await expect( lockedRow ).toHaveClass( /maestro-vis-locked/ );
+		await expect( lockedRow ).toHaveAttribute( 'title', /Editor/ );
+		await expect( lockedRow.locator( '.maestro-vis-locked-hint' ) ).toContainText( 'Editor' );
+
+		// A DIFFERENT role's checkbox in Group 2 is unaffected — still a real,
+		// interactive, unchecked control.
+		const authorInChildren = childrenGroup.getByLabel( 'Author' );
+		await expect( authorInChildren ).not.toBeChecked();
+		await expect( authorInChildren ).toBeEnabled();
+
+		// --- Un-hide Posts from Editor (Group 1 toggled back off). ---
+		const saveUnhide = page.waitForResponse(
+			( r ) => POST_SAVE( r.url() ) && r.request().method() === 'POST' && r.ok()
+		);
+		await editorInOwn.uncheck();
+		const unhidePayload = ( await saveUnhide ).request().postDataJSON();
+		expect( unhidePayload?.config?.items?.[ 'edit.php' ]?.hidden_roles ).toBeFalsy();
+		// ROUND-TRIP PROOF: 'editor' was never actually written to
+		// child_hidden_roles by the lock, so unhiding restores an unchecked,
+		// enabled checkbox — not a stale "still hidden" state.
+		expect( unhidePayload?.config?.items?.[ 'edit.php' ]?.child_hidden_roles ).toBeFalsy();
+		await expect( editorInChildren ).not.toBeChecked();
+		await expect( editorInChildren ).toBeEnabled();
+		await page.keyboard.press( 'Escape' );
+
+		// --- Prove the round-trip end-to-end in the live menu: after
+		// hide-then-unhide, the editor role sees Posts AND its children again
+		// — nothing was left silently hidden by the lock. ---
+		const editorContext = await browser.newContext();
+		const editorPage = await editorContext.newPage();
+		await editorPage.goto( '/wp-login.php' );
+		await editorPage.fill( '#user_login', 'maestro_editor' );
+		await editorPage.fill( '#user_pass', 'password' );
+		await editorPage.click( '#wp-submit' );
+		await editorPage.waitForURL( /wp-admin/ );
+		await editorPage.goto( '/wp-admin/index.php' );
+		await expect( editorPage.locator( '#menu-posts' ) ).toBeVisible();
+		await expect( editorPage.locator( '#menu-posts .wp-submenu a[href*="post-new.php"]' ) ).toBeVisible();
+		await editorContext.close();
+
+		// Clean up.
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		page.once( 'dialog', ( d ) => d.accept() );
+		await page.locator( '.maestro-reset-all' ).click();
+	} );
+
 } );
