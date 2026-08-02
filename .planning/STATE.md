@@ -69,6 +69,12 @@ diff `vLAST..main` for user-facing commits before tagging.
 | 5 | **Directory + editor screenshots reflect shipping UI** (recapture for UX-11 coachmark + Phase 23 UX changes) | Pending |
 | 6 | Tag points at a `main` commit with all code + final readme | Pending |
 | 7 | Tag + GitHub Release published; SVN trunk/tag/assets confirmed | Pending |
+| 8 | **Code review clean** — deep review of the release PR; automated-review (Codex) P1/P2 resolved; conversation-resolution gate satisfied | Pending |
+| 9 | **A11y sweep passed** — WCAG 2.2 AA across editor surfaces (Phases 20/21/25), spot-checked Default/Modern/Midnight | Pending |
+| 10 | **Adversarial security pass clean** — cosmetic-only invariant holds (guardrail tests green); no unresolved XSS/authz findings on the release diff | Pending |
+| 11 | **Performance assessment acceptable** — replay hot-path measured (incl. `Title::replace_label` DOMDocument cost); no regressions | Pending |
+
+**Gate status note (2026-08-02):** a first a11y + adversarial-security pass ran against the **Phase 20 diff** (not the full release). Security: **safe-to-merge** (Title::replace_label not XSS-exploitable — label double-escaped, preserved markup = WP's own raw-render model; cosmetic-only invariant intact & test-enforced; REST authz/CSRF correct; one optional LOW hardening L1 = entity-smuggled `&gt;` key self-collision, admin-only cosmetic). A11y: **pass-with-issues** — S1 (WCAG 1.3.1 A, serious): the two visibility-popover role groups lack a programmatic group name (no fieldset/legend or role=group+aria-labelledby) so a SR user can't distinguish "hide item" vs "hide sub-items"; M2/M3 minor. Gates 8-11 remain Pending — they re-run consolidated across the full release diff at Phase 24.
 
 **Standing lesson for future milestones:** before any release tag, diff
 `vLAST..main` for user-facing commits and confirm (a) every user-facing change
