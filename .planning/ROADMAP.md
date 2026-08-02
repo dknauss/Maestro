@@ -170,7 +170,14 @@ Full phase details, success criteria, and outcomes are archived in
   2. Renaming a menu item that carries a trailing badge or HTML fragment in its title (update-count bubble, "NEW"/count span) preserves that badge/HTML instead of stripping it, verified against the 4/6 R1 plugins that use them
   3. An admin can enable an optional "cascade hide to children" setting on a parent item; with it off (default), hiding a parent leaves children visible; with it on, children are cosmetically hidden too, with no change to their underlying capabilities
   4. Existing PHP unit, integration, and Playwright e2e suites stay green; WPCS clean; PHPStan clean; Plugin Check 0 errors
-**Plans**: TBD
+**Plans**: 6 plans in 5 waves
+Plans:
+- [ ] 20-01-PLAN.md — COMPAT-04: qualified-key storage foundation (pure key helper + Config::sanitize) [COMPAT-04]
+- [ ] 20-02-PLAN.md — COMPAT-04: replay + editor-model qualified resolution with legacy bare fallback [COMPAT-04]
+- [ ] 20-03-PLAN.md — COMPAT-04: client A1b (qualified model + stable submenu DOM bind) + shared-slug e2e [COMPAT-04]
+- [ ] 20-04-PLAN.md — COMPAT-07: text-node badge/HTML preservation on rename (pure helper + replay wiring) [COMPAT-07]
+- [ ] 20-05-PLAN.md — COMPAT-10: cascade-hide server (pure computation + replay + cosmetic-only guardrail) [COMPAT-10]
+- [ ] 20-06-PLAN.md — COMPAT-10: cascade UI in visibility popover + phase zero-regression gate [COMPAT-10]
 
 ### Phase 21: Cosmetic Per-User / Cloned-Role Hiding
 **Goal**: An admin can hide menu items for a specific user or a cloned role, purely cosmetically, without ever changing what that user is actually permitted to do — conditional on Phase 19's feasibility verdict
