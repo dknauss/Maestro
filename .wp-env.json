@@ -3,7 +3,8 @@
 	"plugins": [],
 	"mappings": {
 		"wp-content/plugins/maestro-menu-editor": ".",
-		"wp-content/mu-plugins/maestro-e2e-shared-slug.php": "./tests/e2e/fixtures/maestro-e2e-shared-slug.php"
+		"wp-content/mu-plugins/maestro-e2e-shared-slug.php": "./tests/e2e/fixtures/maestro-e2e-shared-slug.php",
+		"wp-content/mu-plugins/maestro-e2e-childless.php": "./tests/e2e/fixtures/maestro-e2e-childless.php"
 	},
 	"config": {
 		"WP_DEBUG": true,
