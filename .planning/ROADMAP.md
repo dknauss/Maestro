@@ -148,6 +148,7 @@ Full phase details, success criteria, and outcomes are archived in
 - [ ] **Phase 22: Slug-Resolution Showcase Demo** — Playground demo that visibly demonstrates the v1.3.0 slug-normalization fixes
 - [x] **Phase 23: Editor UX Polish** — native wp-admin restyle of all edit-mode surfaces (UX-13, added 2026-07-03), semantic-colour borders removed (UX-12 verdict), first-run banner centering (BUG-08) — complete 2026-07-05
 - [ ] **Phase 24: Release v1.4.0** — cut and ship to WordPress.org; recapture editor screenshots for the UX-11 coachmark
+- [ ] **Phase 25: Edit-Mode Toolbar Dark-Surface Polish** — dark-toolbar icon/focus contrast (WCAG 1.4.11), save-indicator layout shift, rename commit feedback (added 2026-08-02; pre-existing v1.3.1 surfaces, non-blocking for v1.4.0)
 
 ### Phase 19: Cosmetic Hiding Feasibility
 **Goal**: It is known, before any implementation, whether per-user and/or cloned-role menu hiding can be delivered without touching capabilities — and if so, how it should be stored and resolved
@@ -233,6 +234,19 @@ Plans:
   5. SVN `trunk` is updated and the `1.4.0` SVN tag is cut, following the same pipeline used for v1.2.0/v1.3.0
 **Plans**: TBD
 
+### Phase 25: Edit-Mode Toolbar Dark-Surface Polish
+**Goal**: The edit-mode bottom toolbar reads cleanly on its dark (`#1d2327`) background and meets the accessibility bar Phase 23 held — control icons and focus states clear WCAG non-text contrast, the save-status indicator no longer shifts the layout, and renames give adequate commit feedback — spot-checked on Default + Modern + Midnight admin colour schemes.
+**Depends on**: Phase 23 (builds on the shipped editor-UX toolbar)
+**Requirements**: (none formal — UX/a11y polish; surfaced during Phase 20 verification 2026-08-02. Seed: [.planning/todos/pending/2026-08-01-editor-toolbar-icon-contrast.md](todos/pending/2026-08-01-editor-toolbar-icon-contrast.md))
+**Success Criteria** (what must be TRUE):
+  1. Control **icon glyphs** meet WCAG 1.4.11 (≥3:1) on the dark toolbar — recoloured from WP interactive-blue `#3858e9` (~2.8:1) to WP light gray `#c3c4c7` (~9:1), matching the button labels — confirmed by a contrast check.
+  2. The **focus ring** on toolbar controls is a light/bright indicator (`#fff` or WP blue-30 `#72aee6`, ≥3:1 on `#1d2327`), replacing the dark `#2271b1` ring, mirroring WP's admin bar / Gutenberg dark surfaces — confirmed by a focus-visible contrast check.
+  3. The **save-status indicator** (`.maestro-status`) occupies a persistent fixed-width slot so its appearance/disappearance no longer reflows the rename field — content fades in/out inside a reserved box — confirmed by before/after (no layout shift).
+  4. **Rename commit feedback** is improved (the save-status fires on rename commit and/or an "Enter to apply" hint) so a rename no longer feels unsaved — WITHOUT introducing live as-you-type autosave (keeps the commit-on-Enter/blur + debounced-save model and the HARD-03 save-race behavior intact).
+  5. Existing PHP unit, integration, JS, and Playwright e2e suites stay green; WPCS clean; PHPStan clean; Plugin Check 0 new errors; verified across Default/Modern/Midnight admin colour schemes.
+**Sequencing note**: these are **pre-existing** Phase 23 (v1.3.1) toolbar surfaces, not v1.4 regressions, so they do **not** block the Phase 24 release. Placement is the user's call — ship it *before* Phase 24 (so v1.4.0 carries the fixes and Phase 24's editor-screenshot recapture reflects them), or defer to a v1.4.1 / later follow-up. Currently appended after Phase 24; resequence with `/gsd:insert-phase` if it should precede the release.
+**Plans**: TBD (run /gsd:plan-phase 25 to break down)
+
 ---
 
 ## Progress
@@ -263,8 +277,9 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 | 17. Slug Normalization | v1.3.0 | 3/3 | Complete (shipped 2026-06-30) | 2026-06-29 |
 | 18. Release v1.3.0 | v1.3.0 | 3/3 | Complete (shipped 2026-06-30) | 2026-06-30 |
 | 19. Cosmetic Hiding Feasibility | v1.4 | 1/1 | Complete | 2026-07-05 |
-| 20. Third-Party Compatibility Fixes | v1.4 | Complete    | 2026-08-02 | 2026-08-02 |
+| 20. Third-Party Compatibility Fixes | v1.4 | 6/6 | Complete | 2026-08-02 |
 | 21. Cosmetic Per-User / Cloned-Role Hiding | v1.4 | 0/TBD | Not started (conditional on Phase 19) | - |
 | 22. Slug-Resolution Showcase Demo | v1.4 | 0/TBD | Not started | - |
 | 23. Editor UX Polish | v1.4 | 5/5 | Complete | 2026-07-05 |
 | 24. Release v1.4.0 | v1.4 | 0/TBD | Not started | - |
+| 25. Edit-Mode Toolbar Dark-Surface Polish | v1.4 | 0/TBD | Not started | - |
