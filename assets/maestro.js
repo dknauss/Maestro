@@ -39,6 +39,7 @@
 	var savePending = false;   // another change arrived mid-flight; save again on land
 	var inFlight = null;       // promise that settles when the whole save chain is done
 	var savedClearTimer = null; // reverts the transient "Saved" tile back to idle
+	var groupIdSeq = 0;    // monotonic counter for unique role-group heading ids
 
 	/* ---------- helpers ---------------------------------------------------- */
 
@@ -1016,7 +1017,18 @@
 		function buildRoleGroup( heading, groupClass, getSet, setSet, opts ) {
 			opts = opts || {};
 			var group = el( 'div', 'maestro-vis-group ' + groupClass );
-			group.appendChild( el( 'p', 'maestro-vis-head', heading ) );
+			// WCAG 1.3.1 (A): expose each role-checkbox group as a programmatic
+			// group with an accessible name. Both groups ("Hide this item from:"
+			// and "Hide its sub-items from:") list the SAME role names, so without
+			// a group name an AT user can't tell which axis a checkbox controls.
+			// role="group" + aria-labelledby points at the heading; the heading id
+			// is uniquified via a module-level counter so it stays unique even if
+			// multiple popovers ever coexist. Layout is untouched (no fieldset).
+			var headEl = el( 'p', 'maestro-vis-head', heading );
+			headEl.id = 'maestro-vis-head-' + ( ++groupIdSeq );
+			group.setAttribute( 'role', 'group' );
+			group.setAttribute( 'aria-labelledby', headEl.id );
+			group.appendChild( headEl );
 			var rows = {}; // roleKey -> { cb, row, hint }
 
 			Object.keys( D.roles ).forEach( function ( roleKey ) {

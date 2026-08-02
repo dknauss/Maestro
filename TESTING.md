@@ -137,7 +137,11 @@ leaves the parent VISIBLE — the effect is asserted DIRECTLY against the
 rendered sidebar as the targeted role: the parent's row stays, its child rows
 are gone, role-mirrored (an admin not in `child_hidden_roles` still sees every
 child), and the hidden child page still loads by direct URL for a capable user
-(cosmetic-only guardrail, reconfirmed end-to-end).
+(cosmetic-only guardrail, reconfirmed end-to-end). The same case also asserts
+(WCAG 1.3.1) that each role group carries a programmatic accessible name —
+`role="group"` plus an `aria-labelledby` that resolves to the group's own
+heading text — with the two groups' heading ids distinct, so an assistive-tech
+user can tell which axis a shared role name controls.
 
 A second `cascade-hide.spec.ts` case covers the DERIVED-lock refinement: a
 role checked in "Hide this item from:" renders that same role's checkbox in

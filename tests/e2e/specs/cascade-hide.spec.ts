@@ -98,6 +98,25 @@ test.describe( 'COMPAT-10 — independent child_hidden_roles ("Hide its sub-item
 		await expect( picker.locator( '.maestro-vis-head' ) ).toHaveText( [ 'Hide this item from:', 'Hide its sub-items from:' ] );
 		const childrenGroup = picker.locator( '.maestro-vis-children' );
 		await expect( childrenGroup ).toBeVisible();
+
+		// --- WCAG 1.3.1 (A): each role group must expose a PROGRAMMATIC
+		// accessible name so an AT user can tell which axis a checkbox controls
+		// (both groups list the same role names). Assert role="group" and that
+		// aria-labelledby resolves to the group's own heading text. ---
+		const ownGroup = picker.locator( '.maestro-vis-own' );
+		for ( const [ group, expectedName ] of [
+			[ ownGroup, 'Hide this item from:' ],
+			[ childrenGroup, 'Hide its sub-items from:' ],
+		] as const ) {
+			await expect( group ).toHaveAttribute( 'role', 'group' );
+			const labelledBy = await group.getAttribute( 'aria-labelledby' );
+			expect( labelledBy ).toBeTruthy();
+			await expect( page.locator( `#${ labelledBy }` ) ).toHaveText( expectedName );
+		}
+		// The two heading ids must be distinct (unique per group instance).
+		expect( await ownGroup.getAttribute( 'aria-labelledby' ) )
+			.not.toBe( await childrenGroup.getAttribute( 'aria-labelledby' ) );
+
 		const editorInChildren = childrenGroup.getByLabel( 'Editor' );
 		await expect( editorInChildren ).not.toBeChecked();
 		const editorInOwn = picker.locator( '.maestro-vis-own' ).getByLabel( 'Editor' );
