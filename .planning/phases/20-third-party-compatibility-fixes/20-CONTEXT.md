@@ -63,20 +63,39 @@ behavior. New capabilities belong in other phases.
   set the title wholesale as Replay does today. Predictable; only the rare no-text item loses
   markup, and reset restores it.
 
-### COMPAT-10 — optional cascade-hide to children
-- **Per-parent toggle, default OFF** (success criterion). Pure visibility computation over the
-  existing `hidden_roles` semantics — **never touches capabilities** (cosmetic-only guardrail).
-- **Rides the parent hide** — cascade fires for a role only when the parent is itself hidden for
-  that role. Turning cascade on with no parent-hide does nothing.
-- **Role-mirrored** — a child is cascade-hidden for exactly the roles the parent is hidden from.
-  Parent hidden from editor only → children vanish for editors, admins still see the subtree.
-- **Union with a child's own rule** — a child is hidden if EITHER its own `hidden_roles` OR the
-  parent cascade says so.
-- **All live children** — when cascade fires, every child rendered under the parent is hidden
-  (no per-child override required); the whole subtree goes.
-- **Editor UI:** an "also hide children" checkbox **inside the existing visibility popover**;
-  shown **only on parents that have children**; **always enabled**, its effect gated at replay
-  (stored independently of whether a role is currently hidden).
+### COMPAT-10 — optional per-parent child-hiding (REVISED 2026-08-01 — see note)
+
+**REVISION NOTE (2026-08-01, during 20-06 execution).** The original decision below
+("cascade rides the parent hide" — role-mirrored, union, all live children) was
+implemented in 20-05 and found to be **inert**: WordPress core's `_wp_menu_output()`
+never renders a parent's `<ul class="wp-submenu">` once the parent's own `$menu` row is
+`unset()`, so hiding the parent already removes the whole subtree from the sidebar — and
+Maestro's cosmetic-only guarantee forbids blocking direct-URL access. So "hide the parent,
+also hide its children" produced no observable difference (verified empirically: with Posts
+hidden for `editor`, `#menu-posts` has zero occurrences in the rendered admin HTML,
+cascade or not). User re-decided to make child-hiding **independent of parent visibility**
+so it delivers a visible effect. New semantic:
+
+- **Two independent role groups in the visibility popover** of a parent that has children:
+  1. **"Hide this item from: [roles]"** → the existing `hidden_roles` on the parent; hides the
+     PARENT item (and, via core, its whole subtree).
+  2. **"Hide its sub-items from: [roles]"** → a NEW per-parent stored role set (e.g.
+     `child_hidden_roles`) that hides ALL of the parent's live children from those roles, with
+     the **parent left visible**. Result: the parent shows in the sidebar with the cascaded
+     children removed from its dropdown.
+- **Fully independent** — the two role sets are unrelated; you can hide the parent from one role
+  set and its children from a different one (or hide children while the parent stays visible).
+- **Applies to ALL live children** of the parent (no per-child override required).
+- **Union with a child's own rule** — a child is hidden for role `r` if `r` ∈ the parent's
+  `child_hidden_roles` OR `r` ∈ that child's own `hidden_roles`.
+- **Pure visibility — NEVER touches capabilities** (cosmetic-only guardrail): a child hidden this
+  way still loads by direct URL for a user who holds the capability. Mandatory guardrail test.
+- **Editor UI:** a second role-checkbox group ("Hide its sub-items from…") inside the existing
+  visibility popover; shown **only on parents that have children** (absent on childless items and
+  on submenu rows). Non-destructive/resolve-time as with all overrides.
+
+**Supersedes** the boolean `cascade_hide` + "rides the parent hide" model built in 20-05; that is
+being reworked to this `child_hidden_roles` model in 20-06's revision.
 
 ### A1b — minimal client-side submenu DOM association
 - Bind each localized submenu entry to its rendered `<li>` by a **stable attribute (resolved
