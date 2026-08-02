@@ -2,7 +2,7 @@
 
 Three layers, smallest and fastest first.
 
-> **Current expected status:** unit 128/128 with 160 assertions, integration 65/65 with 150 assertions, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, and (COMPAT-04) independent shared-slug top-level/submenu editing.
+> **Current expected status:** unit 128/128 with 160 assertions, integration 72/72 with 168 assertions, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, and (COMPAT-04) independent shared-slug top-level/submenu editing.
 
 ## Gotchas (first run)
 
@@ -38,8 +38,13 @@ Config: [`phpunit-unit.xml.dist`](phpunit-unit.xml.dist) → bootstrap [`tests/b
 
 Covers `Config::sanitize()`, the replay engine mutating real `$menu`/`$submenu`
 globals, role-based visibility, the REST round-trip, the localized editor
-payload, and (COMPAT-07) badge/wrapping-markup preservation on rename at both
-title-write seams in [`Replay::replay()`](includes/class-replay.php). Uses Docker.
+payload, (COMPAT-07) badge/wrapping-markup preservation on rename at both
+title-write seams in [`Replay::replay()`](includes/class-replay.php), and
+(COMPAT-10) cascade-hide-to-children — rides-the-parent-hide, role-mirror,
+union-with-a-child's-own-rule, all-live-children, and the mandatory
+cosmetic-only guardrail (`current_user_can()` byte-for-byte unchanged; the
+cascade-hidden child's own capability requirement still resolves true) in
+[`tests/integration/ReplayTest.php`](tests/integration/ReplayTest.php). Uses Docker.
 
 ```bash
 npm install
