@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Compatibility, Roles & Showcase
 status: "Phase 19 ROLE-01 signed off — **partial-go** (per-user go + ship first; cloned-role go as an additive `profiles` registry compiling to the same inline `is_hidden_for_current_user()` seam); Phase 21 unblocked. Phase 23 delivered UX-09/UX-12/UX-13/BUG-08 (native wp-admin restyle; 5/5 plans; full-suite gate green — JS 53/53, e2e 31 pass, PHP unit 90/90, integration 47/47, WPCS/PHPStan clean, WCAG 1.4.1 confirmed) and shipped in v1.3.1. **NOTE for Phase 24:** Plugin Check flagged 4 errors/6 warnings, all pre-existing dev-tree root files — logged to `phases/23-editor-ux-polish/deferred-items.md` for the Phase 24 build-then-check pipeline."
-stopped_at: Phase 20 context gathered
-last_updated: "2026-08-01T23:28:02.874Z"
+stopped_at: Completed 20-01-PLAN.md
+last_updated: "2026-08-02T00:57:52.094Z"
 last_activity: 2026-07-05 — shipped v1.3.1 to WordPress.org (tag + GitHub Release + SVN deploy)
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 12
+  completed_plans: 7
   percent: 33
 ---
 
@@ -26,12 +26,12 @@ See: .planning/PROJECT.md (updated 2026-07-03)
 ## Current Position
 
 Milestone: v1.4 — Compatibility, Roles & Showcase (interim v1.3.1 patch shipped 2026-07-05)
-Phase: Phase 19 (Cosmetic Hiding Feasibility) ✅ COMPLETE and Phase 23 (Editor UX Polish) ✅ COMPLETE — merged via PR #87; Phase 23's UX shipped as v1.3.1 (PR #88).
-Plan: — (next: pick up v1.4 — Phase 21 ROLE-02 is unblocked, or Phase 20 / Phase 22)
-Status: Phase 19 ROLE-01 signed off — **partial-go** (per-user go + ship first; cloned-role go as an additive `profiles` registry compiling to the same inline `is_hidden_for_current_user()` seam); Phase 21 unblocked. Phase 23 delivered UX-09/UX-12/UX-13/BUG-08 (native wp-admin restyle; 5/5 plans; full-suite gate green — JS 53/53, e2e 31 pass, PHP unit 90/90, integration 47/47, WPCS/PHPStan clean, WCAG 1.4.1 confirmed) and shipped in v1.3.1. **NOTE for Phase 24:** Plugin Check flagged 4 errors/6 warnings, all pre-existing dev-tree root files — logged to `phases/23-editor-ux-polish/deferred-items.md` for the Phase 24 build-then-check pipeline.
-Last activity: 2026-07-05 — shipped v1.3.1 to WordPress.org (tag + GitHub Release + SVN deploy)
+Phase: Phase 19 (Cosmetic Hiding Feasibility) ✅ COMPLETE, Phase 23 (Editor UX Polish) ✅ COMPLETE, Phase 20 (Third-Party Compatibility Fixes) IN PROGRESS (1/6 plans complete).
+Plan: 20-01 (qualified-key storage foundation) COMPLETE — next: 20-02 (replay + editor-model qualified resolution with legacy bare fallback)
+Status: Phase 20 executing. 20-01 delivered `Slug::is_qualified()`/`split_qualified()`/`normalize_qualified()` and `Config::sanitize()` qualified-key acceptance + submenu icon drop (COMPAT-04 foundation) — unit suite 103/103 (127 assertions), WPCS/PHPStan clean, zero regression. Phase 19 ROLE-01 signed off — **partial-go** (per-user go + ship first; cloned-role go as an additive `profiles` registry compiling to the same inline `is_hidden_for_current_user()` seam); Phase 21 unblocked. Phase 23 delivered UX-09/UX-12/UX-13/BUG-08 (native wp-admin restyle; 5/5 plans; full-suite gate green — JS 53/53, e2e 31 pass, PHP unit 90/90, integration 47/47, WPCS/PHPStan clean, WCAG 1.4.1 confirmed) and shipped in v1.3.1. **NOTE for Phase 24:** Plugin Check flagged 4 errors/6 warnings, all pre-existing dev-tree root files — logged to `phases/23-editor-ux-polish/deferred-items.md` for the Phase 24 build-then-check pipeline.
+Last activity: 2026-08-01 — Phase 20 Plan 01 (qualified-key foundation) executed and committed
 
-Progress: [███░░░░░░░] 33% (v1.4: 2/6 phases complete — 19, 23; Phase 23's UX shipped as v1.3.1)
+Progress: [███░░░░░░░] 33% (v1.4: 2/6 phases complete — 19, 23; Phase 20 in progress at 1/6 plans; Phase 23's UX shipped as v1.3.1)
 
 ## Release Binding
 
@@ -173,6 +173,7 @@ Recent decisions affecting current work:
 - [Phase 23-editor-ux-polish]: 23-03: popover/tab/cell tokens were already at core values from prior plans; the only gap was missing focus-visible rings on icon-search, icon-none, icon-tab, vis-row checkboxes, and the rename input — added the consistent core-blue ring (#2271b1) to all; panel divider/label/field text stay hardcoded (no WP admin-colour-scheme CSS variable exists for a custom-drawn toolbar/panel surface to inherit)
 - [Phase 23-editor-ux-polish]: 23-04: wp-pointer adaptation REPLICATE-LOCALLY confirmed (locked default held, not escalated to enqueue) — coachmark reads as a native core wp-pointer via a locally-styled card/footer-button-band/directional-arrow, .maestro-tour* DOM/classes and class-assets.php untouched; BUG-08 fixed via centered footer band + balanced content; in-menu selection/modified-dot reconfirmed token-aligned (dot not reverted); checkpoint verified on Default admin colour scheme only, Modern/Midnight deferred to 23-05
 - [Phase 23-editor-ux-polish]: 23-05 (phase close): e2e reconciliation deliberately isolated to one final-wave plan — every drifted selector/colour assertion updated with reasoning visible in the commit, none silently deleted; tour.spec.ts needed zero changes (already matched 23-04's classes); Plugin Check's 4 dev-tree findings verified (git diff main...HEAD) as pre-existing and untouched by any Phase 23 commit, deferred to Phase 24's build-then-check pipeline against the release ZIP rather than fixed out-of-scope here; Phase 23 complete (5/5 plans), UX-09/UX-12/UX-13/BUG-08 all delivered
+- [Phase 20-third-party-compatibility-fixes]: 20-01: Slug gained qualified-key (parent>child) parse/normalize helper; Config::sanitize() accepts qualified items keys, cleans each half independently, drops icon on submenu keys
 
 ### Roadmap Evolution
 
@@ -210,6 +211,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-08-01T23:28:02.869Z
-Stopped at: Phase 20 context gathered
-Resume file: .planning/phases/20-third-party-compatibility-fixes/20-CONTEXT.md
+Last session: 2026-08-02T00:57:52.091Z
+Stopped at: Completed 20-01-PLAN.md
+Resume file: None
