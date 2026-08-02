@@ -18,7 +18,8 @@ provides:
   - "Replay::replay()'s submenu loop unioning each child's own hidden_roles with its parent's child_hidden_roles, fully independent of the parent's own hidden_roles"
   - "Replay::get_menu_model() exposing each parent's childHiddenRoles array (empty, not merely absent, for an untouched parent)"
   - "Two independent role-checkbox groups in the visibility popover — \"Hide this item from:\" (existing) and \"Hide its sub-items from:\" (new) — the second shown ONLY on a top-level parent with children"
-  - "tests/e2e/specs/cascade-hide.spec.ts proving the revised, VISIBLE behavior directly against the rendered sidebar (parent stays, children vanish) instead of the inert model's wp-cli/$submenu dump workaround"
+  - "Derived-lock refinement: a role checked in \"Hide this item from:\" renders checked+disabled in \"Hide its sub-items from:\" (live, accessible, DISPLAY-ONLY — isChildRoleLockedByParent() never writes childHiddenRoles), so an admin never sees a redundant, independently-actionable checkbox for a role WordPress core already hides the whole subtree for"
+  - "tests/e2e/specs/cascade-hide.spec.ts proving the revised, VISIBLE behavior directly against the rendered sidebar (parent stays, children vanish) instead of the inert model's wp-cli/$submenu dump workaround, plus the derived-lock's payload-purity round-trip"
 affects: [22-demo-playground, 24-release]
 
 # Tech tracking
@@ -26,12 +27,14 @@ tech-stack:
   added: []
   patterns:
     - "Independent role-set union as the whole child-hiding contract: Cascade::effective_hidden_roles(child_own, parent_child_hidden_roles) is a single unconditional array_unique(array_merge(...)) — no flag, no gating on the parent's own hidden_roles at all. The two role sets (parent's own hidden_roles vs parent's child_hidden_roles) are stored, resolved, and applied through completely separate code paths that happen to share the same Axis-1/Axis-2 parent-lookup guard."
-    - "buildRoleGroup() helper in assets/maestro.js: one closure builds an arbitrary role-checkbox group bound to any model field via getSet/setSet accessors — the popover now composes N independent groups from one code path instead of hand-rolling a second control shape per feature."
+    - "buildRoleGroup() helper in assets/maestro.js: one closure builds an arbitrary role-checkbox group bound to any model field via getSet/setSet accessors, with an opts.isLocked/opts.lockedHint escape hatch for a DERIVED (never-persisted) checked+disabled row and a refresh() closure so one group can be told to re-derive live when a DIFFERENT group's toggle changes what it should show."
     - "Revised-model verification pattern: when a cosmetic effect becomes genuinely visible in the DOM (unlike the superseded inert cascade), e2e specs assert it DIRECTLY against the rendered sidebar via a second authenticated browser context, rather than reaching for a wp-cli/PHP dump of internal $submenu state."
+    - "Payload-purity-by-construction for a derived UI state: the lock predicate (isChildRoleLockedByParent) is a pure function that ONLY reads hiddenRoles and is used ONLY to decide rendered checked/disabled attributes; the locked checkbox is also `disabled`, so it structurally cannot fire a change event that would call setSet() — the persisted model field is provably never touched by the derivation, not just conventionally so."
 
 key-files:
   created:
     - tests/e2e/specs/cascade-hide.spec.ts (rewritten, not created — pre-existing from the superseded plan)
+    - tests/js/child-role-lock.test.mjs
   modified:
     - includes/class-cascade.php
     - includes/class-config.php
@@ -57,24 +60,26 @@ key-decisions:
   - "The visibility popover's two groups share one buildRoleGroup() closure keyed by getSet()/setSet() accessors, rather than duplicating the role-checkbox-rendering logic per group — a toggle in one group never touches the other's model field or the maestro-has-hidden class (which reflects only the item's own hiddenRoles, by design)."
   - "cascade-hide.spec.ts asserts the revised behavior directly against the rendered sidebar (parent visible, child rows gone) via a second authenticated browser context — the wp-cli/$submenu dump technique (tests/e2e/fixtures/dump-cascade-submenu.php) the inert model needed is now unnecessary and was deleted, not kept as dead weight."
   - "editor.spec.ts's pre-existing 'per-role visibility' test (which selects Media, a parent with children) was deliberately reconciled to scope its role checkbox to .maestro-vis-own — Media now has a second 'Editor' checkbox in the new sub-items group, and the fix keeps the existing test's original intent (hide Media itself) rather than silently deleting or loosening the assertion."
+  - "Derived-lock refinement (approved follow-up): a role checked in Group 1 renders checked+disabled in Group 2 — display-only, never written to childHiddenRoles — with aria-disabled + a screen-reader-text hint + title tooltip (WP admin's always-present SR class, no new CSS needed), refreshed live via Group 1's onToggle calling Group 2's refresh() so the popover never needs to close/reopen."
+  - "Row lookup in the new e2e test uses xpath=ancestor::label[1] from the checkbox rather than Locator.filter({ has }), which this project's installed Playwright version did not resolve reliably against a chained-scope ancestor locator — confirmed via a standalone repro (hasText and direct-attribute locators worked; has-with-locator returned zero matches against a DOM snapshot that visibly contained the match) before landing the xpath-based fix."
 
 requirements-completed: [COMPAT-10]
 
 # Metrics
-duration: ~2h
+duration: ~3h (includes the derived-lock refinement round)
 completed: 2026-08-02
 ---
 
 # Phase 20 Plan 06: Independent Child-Hiding Editor UI + Full-Suite Gate (COMPAT-10 Revised) Summary
 
-**Two independent role-checkbox groups in the visibility popover — "Hide this item from:" and, on parents with children, "Hide its sub-items from:" — replace the inert boolean cascade-hide checkbox, wired through a reworked `Maestro\Cascade::effective_hidden_roles()` and a new `child_hidden_roles` config field, proven end-to-end by an e2e spec that asserts the now-genuinely-visible effect directly against the rendered sidebar.**
+**Two independent role-checkbox groups in the visibility popover — "Hide this item from:" and, on parents with children, "Hide its sub-items from:" — replace the inert boolean cascade-hide checkbox, wired through a reworked `Maestro\Cascade::effective_hidden_roles()` and a new `child_hidden_roles` config field; a follow-up refinement renders a role already hidden in Group 1 as a checked+disabled, non-persisted "implied" row in Group 2 so admins never see a redundant, independently-actionable duplicate control.**
 
 ## Performance
 
-- **Duration:** ~2h (this rework session; supersedes the original 20-06 execution)
+- **Duration:** ~3h total (this rework session plus the approved derived-lock refinement round; supersedes the original 20-06 execution)
 - **Completed:** 2026-08-02
-- **Tasks:** 4 (server rework, editor UI rework, e2e rework, full gate) — all committed atomically
-- **Files modified:** 15 modified, 1 deleted (`dump-cascade-submenu.php`)
+- **Tasks:** 6 (server rework, editor UI rework, e2e rework, full gate, derived-lock refinement + tests, re-gate) — all committed atomically
+- **Files modified:** 15 modified + 1 created (`child-role-lock.test.mjs`) in the base rework; 5 more touched in the refinement round (2 new commits plus a whitespace-only phpcbf commit); 1 deleted (`dump-cascade-submenu.php`)
 
 ## Accomplishments
 
@@ -85,15 +90,16 @@ completed: 2026-08-02
 - **Editor UI**: `openVisibilityPicker()` now composes the popover from a shared `buildRoleGroup()` closure — Group 1 ("Hide this item from:", existing `hidden_roles`, always shown) and Group 2 ("Hide its sub-items from:", new `child_hidden_roles`, shown only on a top-level parent with children). The two groups are fully independent: toggling one never touches the other's model field, and only Group 1's toggle updates the item's own `maestro-has-hidden` class.
 - **e2e proof rewritten to match the now-visible behavior.** Because the revised model leaves the parent visible while hiding its children, `cascade-hide.spec.ts` asserts the effect DIRECTLY against the rendered sidebar in a second authenticated browser context (parent's row present, its child rows gone, role-mirrored — an admin not targeted still sees every child) instead of the inert model's wp-cli `$submenu` dump workaround (`tests/e2e/fixtures/dump-cascade-submenu.php`, deleted). The cosmetic-only guardrail is reconfirmed end-to-end: the hidden child page still loads by direct URL for a capable user.
 - **Deliberate e2e reconciliation, not silent deletion.** `editor.spec.ts`'s pre-existing "per-role visibility" test selects Media (`upload.php`), which has children — so the popover now shows a second "Editor" checkbox in the new sub-items group. Scoped the existing assertion to `.maestro-vis-own` so the test still hides Media itself, with the reasoning documented inline and in the commit.
-- **Full zero-regression gate, exact counts:**
+- **Derived-lock refinement (approved follow-up).** When a role is checked in "Hide this item from:", that same role's checkbox in "Hide its sub-items from:" now renders checked+disabled with a title tooltip and an AT-only `screen-reader-text` hint ("Already hidden because this item is hidden from {role}.") — WordPress core already removes that role's whole rendered subtree, so Group 2's own entry for it would be redundant and confusing. The lock is a pure DISPLAY derivation (`isChildRoleLockedByParent()` in `assets/maestro-logic.js`, unit-tested) computed live from Group 1's current checkboxes via a `refresh()` closure Group 1's `onToggle` calls — no popover reopen needed, and un-hiding the parent restores the row to its real, untouched `childHiddenRoles` value. **Payload purity (the critical correctness property) is structural, not just conventional:** the locked checkbox is `disabled`, so it can never fire a `change` event that would call `setSet()`/mutate `childHiddenRoles`; `buildConfig()` still reads only the model's real stored array. Proven end-to-end by a new e2e round-trip case: hide parent from Editor (Editor locks in Group 2) → save → un-hide parent from Editor → Editor's checkbox in Group 2 returns to unchecked+enabled AND the live menu shows Posts' children reappearing for the editor role.
+- **Full zero-regression gate, exact counts (final, post-refinement):**
   - `composer test:unit`: **127/127** (158 assertions)
   - `npm run test:php` (integration): **72/72** (172 assertions)
-  - `npm run test:js`: **58/58**
-  - `npm run test:e2e` (full): **35 passed, 28 capture-gated skipped, 0 failed**
+  - `npm run test:js`: **64/64** (6 new: `isChildRoleLockedByParent` + the payload-purity round-trip, `tests/js/child-role-lock.test.mjs`)
+  - `npm run test:e2e` (full): **36 passed, 28 capture-gated skipped, 0 failed** (`cascade-hide.spec.ts` now 2/2)
   - `composer lint` (WPCS): clean
   - `composer analyse:phpstan`: 0 errors
   - Plugin Check against the built shippable ZIP (`bin/build.sh`, scanned with `--slug=maestro-menu-editor` so the temp-folder-name workaround doesn't trip the text-domain check): **0 errors**, 1 pre-existing `readme.txt` warning (`upgrade_notice_limit`)
-  - Plugin Check against the dev-tree (`--exclude-directories` per the Phase 17/23 convention): 7 errors / 7 warnings, all against plugin-root dev-tooling files (`.lycheeignore`, `.wp-env.json`, `phpunit-*.xml.dist`, `phpstan.neon.dist`, `phpcs.xml.dist`, `.gitignore`, `.distignore`, non-standard root markdown, `readme.txt`'s upgrade-notice length) — confirmed via `git log --diff-filter=A` that every flagged file predates Phase 20 (oldest: the initial commit; newest: the lychee CI hardening commit). Zero NEW errors on code this phase touched.
+  - Plugin Check against the dev-tree (`--exclude-directories` per the Phase 17/23 convention): 7 errors / 7 warnings, all against plugin-root dev-tooling files (`.lycheeignore`, `.wp-env.json`, `phpunit-*.xml.dist`, `phpstan.neon.dist`, `phpcs.xml.dist`, `.gitignore`, `.distignore`, non-standard root markdown, `readme.txt`'s upgrade-notice length) — confirmed via `git log --diff-filter=A` that every flagged file predates Phase 20 (oldest: the initial commit; newest: the lychee CI hardening commit). Zero NEW errors on code this phase touched. Unchanged by the refinement round.
 
 ## Task Commits
 
@@ -103,6 +109,11 @@ Each task was committed atomically (this rework supersedes, but does not rewrite
 2. **Editor UI rework — two independent role groups replace the cascade-hide checkbox** - `be73fff` (feat)
 3. **e2e rework — proof of independent child_hidden_roles** - `10222d2` (test)
 4. **Full zero-regression gate + canonical counts** - `de0c998` (docs)
+5. **Finalize summaries/state/roadmap/requirements (first round)** - `99424d3` (docs)
+6. **Derived-lock refinement: lock+check implied sub-item roles when parent hidden** - `4e0c767` (feat)
+7. **e2e proof of the derived-lock checkbox + payload-purity round-trip** - `46d5464` (test)
+8. **WPCS whitespace realignment after the new i18n key** - `6f043a1` (chore)
+9. **Re-gate for the derived-lock refinement; TESTING.md counts** - `456908d` (docs)
 
 **Plan metadata:** (pending — this commit)
 
@@ -125,7 +136,13 @@ _Per this project's test-blocking commit gate, RED was verified in the working t
 - `tests/e2e/specs/cascade-hide.spec.ts` - rewritten to assert the revised, visible behavior directly against the rendered sidebar
 - `tests/e2e/editor.spec.ts` - per-role-visibility test scoped to `.maestro-vis-own`
 - `tests/e2e/fixtures/dump-cascade-submenu.php` - deleted (superseded workaround, no longer needed)
-- `TESTING.md` - canonical counts and layer descriptions updated for the revised model and final totals
+- `TESTING.md` - canonical counts and layer descriptions updated for the revised model and final totals, then again for the derived-lock refinement
+- `assets/maestro.js` (refinement) - `buildRoleGroup()` gains `opts.isLocked`/`opts.lockedHint` and a `refresh()` closure; Group 1's `onToggle` calls Group 2's `refresh()` live; the popover's Tab-trap now excludes disabled checkboxes from its first/last boundary
+- `assets/maestro-logic.js` (refinement) - new pure `isChildRoleLockedByParent()`, exported via `window.maestroLogic`
+- `assets/maestro.css` (refinement) - `.maestro-vis-locked` muted-row styling (core disabled-text tone)
+- `includes/class-assets.php` (refinement) - new `hideChildrenLocked` i18n key (%s-templated, matches the existing `moveAtTop`-style pattern)
+- `tests/js/child-role-lock.test.mjs` (refinement, new) - 6 tests: lock predicate cases + the payload-purity round-trip + a sibling-role-untouched case
+- `tests/e2e/specs/cascade-hide.spec.ts` (refinement) - second test proving the live lock, accessibility attributes, and the save/round-trip purity property
 
 ## Decisions Made
 
@@ -133,16 +150,20 @@ _Per this project's test-blocking commit gate, RED was verified in the working t
 - Kept the `Cascade` class/method names rather than renaming — the contract ("compute an effective hidden-roles union from two role-list inputs") is unchanged in shape even though the semantics of the second input changed.
 - `buildRoleGroup()` in `assets/maestro.js` is the single code path for both popover groups, keyed by `getSet()`/`setSet()` accessors — avoids a second hand-rolled role-checkbox renderer and keeps the two groups' independence enforced by construction (each accessor only ever touches its own model field).
 - `dump-cascade-submenu.php` was deleted rather than left as dead code — the wp-cli/`$submenu`-dump workaround it existed for was needed only because the superseded model's effect was invisible in the sidebar; the revised model's effect is directly visible, so a second authenticated browser context (the same pattern `editor.spec.ts`'s existing per-role-visibility test already uses) is both simpler and more genuinely end-to-end.
+- **Derived-lock refinement:** locking is enforced by the checkbox's own `disabled` attribute, not by convention — the same event handler that would call `setSet()` simply never fires for a disabled control, so payload purity holds structurally rather than depending on every call site remembering not to persist the derived state.
+- The lock predicate reads ONLY `hiddenRoles` (never `childHiddenRoles`) and the `refresh()` that applies it never calls `getSet()`/`setSet()` for a locked role — this asymmetry (read one field, decide display, never touch the other) is what the new unit tests and e2e round-trip both anchor on.
 
 ## Deviations from Plan
 
-None beyond what the orchestrator's prompt explicitly directed — this whole plan IS the deviation (a user-approved design revision superseding 20-05/20-06's original execution), not an unplanned one. Within that reworked scope, no Rule 1-4 auto-fixes were needed; the one out-of-band fix (`editor.spec.ts`'s per-role-visibility test needing `.maestro-vis-own` scoping) was an anticipated, explicitly-licensed reconciliation per the plan's own "reconcile e2e drift caused by the new control" instruction, not an unplanned discovery.
+None beyond what the orchestrator's prompt explicitly directed — this whole plan IS the deviation (a user-approved design revision superseding 20-05/20-06's original execution), not an unplanned one. Within that reworked scope, no Rule 1-4 auto-fixes were needed; the one out-of-band fix (`editor.spec.ts`'s per-role-visibility test needing `.maestro-vis-own` scoping) was an anticipated, explicitly-licensed reconciliation per the plan's own "reconcile e2e drift caused by the new control" instruction, not an unplanned discovery. The derived-lock refinement itself was likewise an explicitly directed, user-approved follow-up, not an unplanned discovery.
 
 ## Issues Encountered
 
 - **Playwright locator ambiguity**: `editor.spec.ts`'s existing "per-role visibility" test broke because Media (`upload.php`) has children, so the popover now shows a second "Editor" checkbox in the new sub-items group. Fixed by scoping the existing assertion to `.maestro-vis-own`, with the reasoning documented inline (see Files Created/Modified above).
 - **WP core submenu label drift**: the original e2e draft selected the Posts "Add New" submenu row by label text; this WP install (7.0.2) renders it as "Add Post". Fixed by selecting via `a[href="post-new.php"]` instead of label text, avoiding coupling to wording that varies by WP version.
 - **Plugin Check text-domain false positives**: scanning the built shippable ZIP under a differently-named temp folder (to avoid colliding with the live bind-mounted plugin directory) tripped `WordPress.WP.I18n.TextDomainMismatch` on every translation call, since Plugin Check compares the text domain string against the folder slug. Resolved by using `wp plugin check <folder> --slug=maestro-menu-editor` to tell Plugin Check the correct canonical slug independent of the scratch folder's name — confirmed 0 errors, matching the prior gate's result.
+- **`Locator.filter({ has })` false negative (refinement round)**: the new e2e test's original row lookup — `childrenGroup.locator('.maestro-vis-locked').filter({ has: editorInChildren })` — consistently resolved to zero elements even though a raw DOM dump confirmed exactly one matching, correctly-classed row containing that exact checkbox. Isolated via three standalone repro scripts (bypassing the test framework) that showed `hasText` and direct-attribute locators worked correctly against the same DOM while `has`-with-a-chained-locator did not; rather than fight the framework, switched the row lookup to `editorInChildren.locator('xpath=ancestor::label[1]')`, a more direct and equally robust ancestor traversal. Not a product bug — confirmed via the DOM dump that the actual lock/checked/disabled/title/hint behavior was correct throughout.
+- **Plugin deactivated on the tests instance mid-session**: `test:e2e` failed at the very first navigation (childless fixture item and the Posts click-through both timed out) because `maestro-menu-editor` had gone `inactive` on the `tests-cli` container between test runs (cause not fully diagnosed — possibly a wp-env container hiccup, not caused by this session's own commands). Resolved by re-running `npm run pretest:e2e` (plugin activate) before re-running the suite; the "per-role visibility" test's subsequent single-run flake (a login-navigation timeout) reproduced as a genuine flake unrelated to this change (passed standalone and on the full-suite rerun).
 - Docker/Colima and wp-env were already running from the prior (superseded) 20-06 session; reused as-is per this plan's environment note. Left running per the checkpoint instructions below.
 
 ## User Setup Required
@@ -151,9 +172,9 @@ None - no external service configuration required.
 
 ## Next Phase Readiness
 
-- COMPAT-10 is now genuinely delivered: an admin can hide a parent's sub-items from specific roles while the parent stays visible — a real, observable feature, not a cosmetic no-op layered on top of an already-total hide.
-- All three Phase 20 requirements (COMPAT-04, COMPAT-07, COMPAT-10) are complete. Phase 20 is done pending the human-verify checkpoint below.
-- Phase 22 (DEMO-01, Playground demo) can now showcase COMPAT-10 as a real, visible behavior rather than a flag with no observable effect.
+- COMPAT-10 is now genuinely delivered: an admin can hide a parent's sub-items from specific roles while the parent stays visible — a real, observable feature, not a cosmetic no-op layered on top of an already-total hide — and the popover no longer shows a confusing, redundant checkbox for a role already fully hidden via the parent's own hide.
+- All three Phase 20 requirements (COMPAT-04, COMPAT-07, COMPAT-10) are complete, including this approved derived-lock refinement. Phase 20 is done pending the human-verify checkpoint (still outstanding — not yet signed off).
+- Phase 22 (DEMO-01, Playground demo) can now showcase COMPAT-10 as a real, visible behavior rather than a flag with no observable effect, including the polished implied-lock affordance.
 - wp-env is left running (per this plan's instructions) for the checkpoint's live verification — do not tear down until the checkpoint is resolved.
 
 ---
@@ -176,6 +197,7 @@ None - no external service configuration required.
 - FOUND: tests/integration/LocalizationTest.php
 - FOUND: tests/js/modified-diff.test.mjs
 - FOUND: tests/js/reset-item.test.mjs
+- FOUND: tests/js/child-role-lock.test.mjs
 - FOUND: tests/e2e/specs/cascade-hide.spec.ts
 - FOUND: tests/e2e/editor.spec.ts
 - FOUND: TESTING.md
@@ -186,3 +208,8 @@ None - no external service configuration required.
 - FOUND: commit be73fff
 - FOUND: commit 10222d2
 - FOUND: commit de0c998
+- FOUND: commit 99424d3
+- FOUND: commit 4e0c767
+- FOUND: commit 46d5464
+- FOUND: commit 6f043a1
+- FOUND: commit 456908d
