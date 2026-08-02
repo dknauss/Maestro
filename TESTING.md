@@ -2,7 +2,7 @@
 
 Three layers, smallest and fastest first.
 
-> **Current expected status:** unit 103/103 with 127 assertions, integration 60/60 with 143 assertions, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, and toolbar accessibility checks.
+> **Current expected status:** unit 103/103 with 127 assertions, integration 60/60 with 143 assertions, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, and (COMPAT-04) independent shared-slug top-level/submenu editing.
 
 ## Gotchas (first run)
 
@@ -104,9 +104,15 @@ isolation, not a flake mask.
 | Integration  | ~10s  | yes          | replay against real globals, sanitization, REST auth + round-trip |
 | E2E          | ~2 min | yes         | the DOM-join + sortable + save/reset flow that no PHP test can reach |
 
-The DOM-join (locating submenu items by index within `.wp-submenu`) is only
-exercised by the E2E layer — that is the layer to watch when testing against a
-real-world menu with third-party plugins registered.
+The DOM-join (locating submenu items by resolved anchor href/slug within
+`.wp-submenu`, including a shared-slug top-level/submenu pair — COMPAT-04) is
+only exercised by the E2E layer — that is the layer to watch when testing
+against a real-world menu with third-party plugins registered.
+`tests/e2e/specs/shared-slug.spec.ts` covers the shared-slug case against a
+gated fixture CPT (`tests/e2e/fixtures/maestro-e2e-shared-slug.php`) that
+reproduces WordPress's post-type self-link convention (the WooCommerce
+Products / "All Products" shape) without depending on a real third-party
+plugin.
 
 
 ## 4. Static and package QA

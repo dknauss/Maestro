@@ -2,7 +2,8 @@
 	"core": "WordPress/WordPress#7.0",
 	"plugins": [],
 	"mappings": {
-		"wp-content/plugins/maestro-menu-editor": "."
+		"wp-content/plugins/maestro-menu-editor": ".",
+		"wp-content/mu-plugins/maestro-e2e-shared-slug.php": "./tests/e2e/fixtures/maestro-e2e-shared-slug.php"
 	},
 	"config": {
 		"WP_DEBUG": true,
