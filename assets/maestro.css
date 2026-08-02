@@ -382,11 +382,17 @@ body.maestro-editing.auto-fold #wpfooter {
 	outline: 2px solid #2271b1;
 	outline-offset: 1px;
 }
-/* COMPAT-10: cascade-hide checkbox is visually set apart from the per-role
- * rows above it (its own concept, not another role) via the same core
- * divider token used elsewhere in the panel/popovers (#dcdcde). */
-.maestro-vis-cascade {
+/* Each role-checkbox group ("Hide this item from:" / "Hide its sub-items
+ * from:") is its own block; the heading (.maestro-vis-head) styling above
+ * already applies inside each group. */
+.maestro-vis-group + .maestro-vis-group {
 	margin-top: 6px;
+}
+/* COMPAT-10 (REVISED): the "Hide its sub-items from:" group is visually set
+ * apart from the item's own hide group above it (an independent role set,
+ * not the same concept) via the same core divider token used elsewhere in
+ * the panel/popovers (#dcdcde). */
+.maestro-vis-children {
 	padding-top: 9px;
 	border-top: 1px solid #dcdcde;
 }

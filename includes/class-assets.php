@@ -116,9 +116,10 @@ class Assets {
 					'visibility'        => __( 'Visibility', 'maestro-menu-editor' ),
 					'resetItem'         => __( 'Reset Item', 'maestro-menu-editor' ),
 					'resetAll'          => __( 'Reset All', 'maestro-menu-editor' ),
-					'hideFrom'          => __( 'Hide from these roles:', 'maestro-menu-editor' ),
-					/* translators: Label for the checkbox that also cosmetically hides a parent's submenu items (COMPAT-10). Shown only for parents that have children. */
-					'cascadeHide'       => __( 'Also hide children', 'maestro-menu-editor' ),
+					/* translators: Heading for the role-checkbox group that hides THIS menu item (parent or submenu row). */
+					'hideFrom'          => __( 'Hide this item from:', 'maestro-menu-editor' ),
+					/* translators: Heading for the role-checkbox group that cosmetically hides ALL of a parent's sub-items, independent of the parent's own visibility (COMPAT-10). Shown only for parents that have children. */
+					'hideChildrenFrom'  => __( 'Hide its sub-items from:', 'maestro-menu-editor' ),
 					'confirmAll'        => __( 'Reset ALL menu customizations to WordPress defaults? This cannot be undone.', 'maestro-menu-editor' ),
 					'drag'              => __( 'Drag to reorder', 'maestro-menu-editor' ),
 					/* translators: 1: item title, 2: direction ("up"/"down"), 3: new position number, 4: total items. */

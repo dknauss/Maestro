@@ -61,12 +61,11 @@ function reorderMove( order, slug, direction ) {
  *   - icon is modified iff current.icon is truthy AND !== pristine.icon
  *     (skipped when pristine has no icon key, i.e. submenu items)
  *   - hiddenRoles is modified iff current.hiddenRoles.length > 0
- *   - cascadeHide (COMPAT-10, parent-only) is modified iff current.cascadeHide
- *     is truthy — it has no WP-native pristine state (always starts false), so
- *     the check mirrors the hiddenRoles length-only rule rather than a pristine
- *     comparison.
+ *   - childHiddenRoles (COMPAT-10 REVISED, parent-only) is modified iff
+ *     current.childHiddenRoles.length > 0 — same length-only rule as
+ *     hiddenRoles, fully independent of it.
  *
- * @param {{ title: string, icon?: string, hiddenRoles: string[], cascadeHide?: boolean }} current  Working model item.
+ * @param {{ title: string, icon?: string, hiddenRoles: string[], childHiddenRoles?: string[] }} current  Working model item.
  * @param {{ title: string, icon?: string }}                        pristine Pristine default.
  * @return {{ modified: boolean, fields: string[] }}
  */
@@ -87,8 +86,8 @@ function diffItem( current, pristine ) {
 		fields.push( 'hiddenRoles' );
 	}
 
-	if ( current.cascadeHide ) {
-		fields.push( 'cascadeHide' );
+	if ( current.childHiddenRoles && current.childHiddenRoles.length > 0 ) {
+		fields.push( 'childHiddenRoles' );
 	}
 
 	return { modified: fields.length > 0, fields: fields };
@@ -120,25 +119,26 @@ function modeStatusLabel( state, strings ) {
  * restored to pristine values. Does NOT mutate the input. Does NOT touch the DOM.
  *
  * Mirrors the inline reset logic in resetSelected() in maestro.js:
- *   m.title       = def.title || '';
- *   m.hiddenRoles = [];
+ *   m.title            = def.title || '';
+ *   m.hiddenRoles      = [];
  *   if ( ! m.isSub ) m.icon = def.icon || '';
- *   m.cascadeHide = false;
+ *   m.childHiddenRoles = [];
  *
- * cascadeHide (COMPAT-10) has no WP-native pristine state — reset always clears
- * it to false, top-level or submenu (the field is simply unused for submenu items).
+ * childHiddenRoles (COMPAT-10 REVISED) has no WP-native pristine state —
+ * reset always clears it to [], top-level or submenu (the field is simply
+ * unused for submenu items).
  *
- * @param {{ title: string, icon?: string, hiddenRoles: string[], cascadeHide?: boolean }} item     Current item state.
+ * @param {{ title: string, icon?: string, hiddenRoles: string[], childHiddenRoles?: string[] }} item     Current item state.
  * @param {{ title: string, icon?: string }}                        pristine Pristine default.
  * @param {boolean}                                                 isSub    True for submenu items.
- * @return {{ title: string, hiddenRoles: string[], icon: string, cascadeHide: boolean }}
+ * @return {{ title: string, hiddenRoles: string[], icon: string, childHiddenRoles: string[] }}
  */
 function resetItem( item, pristine, isSub ) {
 	var result = {
-		title:       pristine.title || '',
-		hiddenRoles: [],
-		icon:        isSub ? '' : ( pristine.icon || '' ),
-		cascadeHide: false,
+		title:            pristine.title || '',
+		hiddenRoles:      [],
+		icon:             isSub ? '' : ( pristine.icon || '' ),
+		childHiddenRoles: [],
 	};
 	return result;
 }

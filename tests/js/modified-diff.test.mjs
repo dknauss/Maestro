@@ -97,29 +97,37 @@ test( 'multiple changes -> fields contains each changed key', () => {
 	assert.deepEqual( result.fields.sort(), [ 'hiddenRoles', 'icon', 'title' ] );
 } );
 
-// Cascade-hide flag (COMPAT-10 editor UI, parent-only field) — default false is
-// not modified; true is modified regardless of pristine (cascade has no WP-native
-// pristine state, mirrors the hiddenRoles-length-only rule).
-test( 'cascadeHide false -> not modified, fields empty', () => {
-	const current  = { title: 'Posts', icon: 'dashicons-admin-post', hiddenRoles: [], cascadeHide: false };
+// child_hidden_roles (COMPAT-10 REVISED editor UI, parent-only field) —
+// empty is not modified; a non-empty list is modified, independent of
+// hiddenRoles (mirrors the hiddenRoles-length-only rule).
+test( 'childHiddenRoles empty -> not modified, fields empty', () => {
+	const current  = { title: 'Posts', icon: 'dashicons-admin-post', hiddenRoles: [], childHiddenRoles: [] };
 	const pristine = { title: 'Posts', icon: 'dashicons-admin-post' };
 	const result = diffItem( current, pristine );
 	assert.equal( result.modified, false );
 	assert.deepEqual( result.fields, [] );
 } );
 
-test( 'cascadeHide true -> modified, fields=[cascadeHide]', () => {
-	const current  = { title: 'Posts', icon: 'dashicons-admin-post', hiddenRoles: [], cascadeHide: true };
+test( 'childHiddenRoles non-empty -> modified, fields=[childHiddenRoles]', () => {
+	const current  = { title: 'Posts', icon: 'dashicons-admin-post', hiddenRoles: [], childHiddenRoles: [ 'editor' ] };
 	const pristine = { title: 'Posts', icon: 'dashicons-admin-post' };
 	const result = diffItem( current, pristine );
 	assert.equal( result.modified, true );
-	assert.deepEqual( result.fields, [ 'cascadeHide' ] );
+	assert.deepEqual( result.fields, [ 'childHiddenRoles' ] );
 } );
 
-test( 'cascadeHide true alongside other changes -> fields contains cascadeHide too', () => {
-	const current  = { title: 'My Posts', icon: 'dashicons-admin-post', hiddenRoles: [], cascadeHide: true };
+test( 'childHiddenRoles non-empty alongside other changes -> fields contains childHiddenRoles too', () => {
+	const current  = { title: 'My Posts', icon: 'dashicons-admin-post', hiddenRoles: [], childHiddenRoles: [ 'editor' ] };
 	const pristine = { title: 'Posts', icon: 'dashicons-admin-post' };
 	const result = diffItem( current, pristine );
 	assert.equal( result.modified, true );
-	assert.deepEqual( result.fields.sort(), [ 'cascadeHide', 'title' ] );
+	assert.deepEqual( result.fields.sort(), [ 'childHiddenRoles', 'title' ] );
+} );
+
+test( 'hiddenRoles and childHiddenRoles are independent -> both can be modified at once', () => {
+	const current  = { title: 'Posts', icon: 'dashicons-admin-post', hiddenRoles: [ 'shop_manager' ], childHiddenRoles: [ 'editor' ] };
+	const pristine = { title: 'Posts', icon: 'dashicons-admin-post' };
+	const result = diffItem( current, pristine );
+	assert.equal( result.modified, true );
+	assert.deepEqual( result.fields.sort(), [ 'childHiddenRoles', 'hiddenRoles' ] );
 } );

@@ -225,11 +225,12 @@
 				icon: node.icon,
 				hiddenRoles: node.hiddenRoles.slice(),
 				isSub: false,
-				// COMPAT-10: cascade-hide-to-children is a parent-only flag, seeded
-				// from the resolved value get_menu_model() already computes
-				// server-side (20-05). hasChildren gates the popover checkbox to
-				// parents that actually have a submenu (20-CONTEXT.md locked UI).
-				cascadeHide: !! node.cascadeHide,
+				// COMPAT-10 (REVISED): child_hidden_roles is a parent-only,
+				// independent role list ("Hide its sub-items from:"), seeded from
+				// the resolved value get_menu_model() already computes server-side.
+				// hasChildren gates the second popover role group to parents that
+				// actually have a submenu (20-CONTEXT.md locked UI).
+				childHiddenRoles: ( node.childHiddenRoles || [] ).slice(),
 				hasChildren: node.submenu.length > 0
 			};
 
@@ -996,53 +997,70 @@
 		pop.setAttribute( 'aria-modal', 'true' );
 		pop.setAttribute( 'aria-label', I.visibility );
 		pop.tabIndex = -1;
-		pop.appendChild( el( 'p', 'maestro-vis-head', I.hideFrom ) );
 		var firstCheckbox = null;
 
-		Object.keys( D.roles ).forEach( function ( roleKey ) {
-			var row = el( 'label', 'maestro-vis-row' );
-			var cb  = el( 'input' );
-			cb.type = 'checkbox';
-			cb.value = roleKey;
-			cb.checked = model[ slug ].hiddenRoles.indexOf( roleKey ) !== -1;
-			if ( ! firstCheckbox ) { firstCheckbox = cb; }
-			cb.addEventListener( 'change', function () {
-				var set = model[ slug ].hiddenRoles;
-				if ( cb.checked ) {
-					if ( set.indexOf( roleKey ) === -1 ) { set.push( roleKey ); }
-				} else {
-					model[ slug ].hiddenRoles = set.filter( function ( r ) { return r !== roleKey; } );
-				}
+		// One independent role-checkbox group per role set. `getSet`/`setSet`
+		// read/write the model field this group is bound to; `onToggle` runs any
+		// extra per-group side-effect (e.g. the item's own maestro-has-hidden
+		// class, which only reflects hiddenRoles, never childHiddenRoles).
+		function buildRoleGroup( heading, groupClass, getSet, setSet, onToggle ) {
+			var group = el( 'div', 'maestro-vis-group ' + groupClass );
+			group.appendChild( el( 'p', 'maestro-vis-head', heading ) );
+
+			Object.keys( D.roles ).forEach( function ( roleKey ) {
+				var row = el( 'label', 'maestro-vis-row' );
+				var cb  = el( 'input' );
+				cb.type = 'checkbox';
+				cb.value = roleKey;
+				cb.checked = getSet().indexOf( roleKey ) !== -1;
+				if ( ! firstCheckbox ) { firstCheckbox = cb; }
+				cb.addEventListener( 'change', function () {
+					var set = getSet();
+					if ( cb.checked ) {
+						if ( set.indexOf( roleKey ) === -1 ) { set.push( roleKey ); }
+						setSet( set );
+					} else {
+						setSet( set.filter( function ( r ) { return r !== roleKey; } ) );
+					}
+					if ( onToggle ) { onToggle(); }
+					refreshModifiedIndicator( slug );
+					scheduleAutosave();
+				} );
+				row.appendChild( cb );
+				row.appendChild( document.createTextNode( ' ' + D.roles[ roleKey ] ) );
+				group.appendChild( row );
+			} );
+
+			pop.appendChild( group );
+		}
+
+		// Group 1: "Hide this item from:" — the existing hidden_roles, hides
+		// THIS item (parent or submenu row). Always shown.
+		buildRoleGroup(
+			I.hideFrom,
+			'maestro-vis-own',
+			function () { return model[ slug ].hiddenRoles; },
+			function ( arr ) {
+				model[ slug ].hiddenRoles = arr;
 				var li = liForKey( slug );
 				if ( li ) {
 					li.classList.toggle( 'maestro-has-hidden', model[ slug ].hiddenRoles.length > 0 );
 				}
-				refreshModifiedIndicator( slug );
-				scheduleAutosave();
-			} );
-			row.appendChild( cb );
-			row.appendChild( document.createTextNode( ' ' + D.roles[ roleKey ] ) );
-			pop.appendChild( row );
-		} );
+			}
+		);
 
-		// COMPAT-10: "also hide children" — shown ONLY on a top-level parent that
+		// Group 2 (COMPAT-10, REVISED): "Hide its sub-items from:" — a NEW,
+		// INDEPENDENT role list that hides ALL of this parent's live children,
+		// with the parent left visible. Shown ONLY on a top-level parent that
 		// actually has children (never on a childless item or a submenu row).
-		// Always enabled: its effect is gated at replay time (20-05), not here, so
-		// toggling it never depends on whether a role is currently hidden.
+		// Independent of group 1: toggling it never touches hiddenRoles.
 		if ( ! model[ slug ].isSub && model[ slug ].hasChildren ) {
-			var cascadeRow = el( 'label', 'maestro-vis-row maestro-vis-cascade' );
-			var cascadeCb  = el( 'input' );
-			cascadeCb.type = 'checkbox';
-			cascadeCb.checked = !! model[ slug ].cascadeHide;
-			if ( ! firstCheckbox ) { firstCheckbox = cascadeCb; }
-			cascadeCb.addEventListener( 'change', function () {
-				model[ slug ].cascadeHide = cascadeCb.checked;
-				refreshModifiedIndicator( slug );
-				scheduleAutosave();
-			} );
-			cascadeRow.appendChild( cascadeCb );
-			cascadeRow.appendChild( document.createTextNode( ' ' + I.cascadeHide ) );
-			pop.appendChild( cascadeRow );
+			buildRoleGroup(
+				I.hideChildrenFrom,
+				'maestro-vis-children',
+				function () { return model[ slug ].childHiddenRoles; },
+				function ( arr ) { model[ slug ].childHiddenRoles = arr; }
+			);
 		}
 
 		pop.addEventListener( 'keydown', function ( e ) {
@@ -1084,11 +1102,12 @@
 		// the qualified model key.
 		var def = m.isSub ? pristineSub( m.slug ) : pristineTop( selectedKey );
 
-		m.title       = def.title || '';
-		m.hiddenRoles = [];
-		// cascadeHide (COMPAT-10) has no WP-native pristine state — reset always
-		// clears it to false; harmless no-op on a submenu entry (field unused there).
-		m.cascadeHide = false;
+		m.title            = def.title || '';
+		m.hiddenRoles      = [];
+		// childHiddenRoles (COMPAT-10 REVISED) has no WP-native pristine state —
+		// reset always clears it to []; harmless no-op on a submenu entry (field
+		// unused there).
+		m.childHiddenRoles = [];
 
 		var li = liForKey( selectedKey );
 		if ( li ) { li.classList.remove( 'maestro-has-hidden' ); }
@@ -1177,11 +1196,12 @@
 			if ( diff.fields.indexOf( 'title' ) !== -1 )       { entry.title = m.title; }
 			if ( diff.fields.indexOf( 'icon' ) !== -1 )        { entry.icon  = m.icon; }
 			if ( diff.fields.indexOf( 'hiddenRoles' ) !== -1 ) { entry.hidden_roles = m.hiddenRoles; }
-			// COMPAT-10: parent-only cascade flag. diffItem() flags it whenever
-			// truthy (no pristine concept), so a cascade-only toggle with no other
+			// COMPAT-10 (REVISED): parent-only, independent child_hidden_roles.
+			// diffItem() flags it whenever non-empty (no pristine concept, mirrors
+			// hiddenRoles), so a child_hidden_roles-only toggle with no other
 			// change still produces a diff.modified entry and persists.
-			if ( diff.fields.indexOf( 'cascadeHide' ) !== -1 ) { entry.cascade_hide = m.cascadeHide; }
-			if ( diff.modified )                                { cfg.items[ slug ] = entry; }
+			if ( diff.fields.indexOf( 'childHiddenRoles' ) !== -1 ) { entry.child_hidden_roles = m.childHiddenRoles; }
+			if ( diff.modified )                                     { cfg.items[ slug ] = entry; }
 
 			var subLis = li.querySelectorAll( '.wp-submenu > li.maestro-subitem[data-maestro-slug]' );
 			if ( subLis.length ) {
