@@ -831,4 +831,107 @@ class ReplayTest extends WP_UnitTestCase {
 		);
 		$this->assertSame( 'Products', $menu[20][0], 'Top-level item must remain untouched by the qualified override.' );
 	}
+
+	/**
+	 * get_menu_model(): each submenu child node carries its qualified
+	 * `parent>child` key alongside its raw slug, so the client and the next
+	 * full-replace save can address it independently of a same-slug top-level.
+	 */
+	public function test_get_menu_model_submenu_node_exposes_qualified_key() {
+		$this->seed_shared_slug_menu();
+
+		$model = ( new Replay( new Config() ) )->get_menu_model();
+
+		$top = null;
+		foreach ( $model as $entry ) {
+			if ( 'edit.php?post_type=product' === $entry['slug'] ) {
+				$top = $entry;
+				break;
+			}
+		}
+		$this->assertNotNull( $top, 'Shared-slug top-level node must appear in the model.' );
+
+		$children = wp_list_pluck( $top['submenu'], 'qualifiedKey', 'slug' );
+		$this->assertSame(
+			'edit.php?post_type=product>edit.php?post_type=product',
+			$children['edit.php?post_type=product'],
+			'Same-slug submenu child must carry its own qualified key.'
+		);
+		$this->assertSame(
+			'edit.php?post_type=product>post-new.php?post_type=product',
+			$children['post-new.php?post_type=product'],
+			'A different-slug submenu child must carry its own qualified key too.'
+		);
+	}
+
+	/**
+	 * get_menu_model(): a submenu child's hiddenRoles resolves through the
+	 * qualified key first — matching exactly what replay() would apply — and
+	 * a same-slug top-level node never reflects a qualified submenu-only rule.
+	 */
+	public function test_get_menu_model_resolves_submenu_hidden_roles_via_qualified_key() {
+		$this->seed_shared_slug_menu();
+
+		( new Config() )->save(
+			array(
+				'items' => array(
+					'edit.php?post_type=product>edit.php?post_type=product' => array( 'hidden_roles' => array( 'editor' ) ),
+				),
+			)
+		);
+
+		$model = ( new Replay( new Config() ) )->get_menu_model();
+
+		$top = null;
+		foreach ( $model as $entry ) {
+			if ( 'edit.php?post_type=product' === $entry['slug'] ) {
+				$top = $entry;
+				break;
+			}
+		}
+		$this->assertSame( array(), $top['hiddenRoles'], 'Top-level node must not reflect the qualified submenu-only rule.' );
+
+		$sub = null;
+		foreach ( $top['submenu'] as $child ) {
+			if ( 'edit.php?post_type=product' === $child['slug'] ) {
+				$sub = $child;
+				break;
+			}
+		}
+		$this->assertSame( array( 'editor' ), $sub['hiddenRoles'], 'Submenu node must resolve hiddenRoles via the qualified key.' );
+	}
+
+	/**
+	 * get_menu_model(): with no qualified key stored, a legacy bare override
+	 * still resolves for BOTH the top-level node and the same-slug submenu
+	 * node — matching replay()'s legacy fallback so the editor never shows a
+	 * rule that the next full-replace save would drop (or vice versa).
+	 */
+	public function test_get_menu_model_submenu_hidden_roles_fallback_to_legacy_bare_key() {
+		$this->seed_shared_slug_menu();
+
+		( new Config() )->save(
+			array( 'items' => array( 'edit.php?post_type=product' => array( 'hidden_roles' => array( 'editor' ) ) ) )
+		);
+
+		$model = ( new Replay( new Config() ) )->get_menu_model();
+
+		$top = null;
+		foreach ( $model as $entry ) {
+			if ( 'edit.php?post_type=product' === $entry['slug'] ) {
+				$top = $entry;
+				break;
+			}
+		}
+		$this->assertSame( array( 'editor' ), $top['hiddenRoles'], 'Legacy bare key must still resolve for the top-level node.' );
+
+		$sub = null;
+		foreach ( $top['submenu'] as $child ) {
+			if ( 'edit.php?post_type=product' === $child['slug'] ) {
+				$sub = $child;
+				break;
+			}
+		}
+		$this->assertSame( array( 'editor' ), $sub['hiddenRoles'], 'Legacy bare key with no qualified key present must still resolve for the same-slug submenu node too.' );
+	}
 }
