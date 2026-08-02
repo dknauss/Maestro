@@ -287,4 +287,111 @@ class SlugTest extends TestCase {
 			'Host-moved and current-host forms must collapse to the same key.'
 		);
 	}
+
+	// -------------------------------------------------------------------------
+	// Qualified `parent>child` key helpers (COMPAT-04 foundation)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * is_qualified() detects the presence of the `>` separator.
+	 */
+	public function test_is_qualified_detects_separator() {
+		$this->assertTrue( Slug::is_qualified( 'edit.php?post_type=product>edit.php?post_type=product' ) );
+		$this->assertTrue( Slug::is_qualified( 'a>b' ) );
+		$this->assertFalse( Slug::is_qualified( 'edit.php' ) );
+		$this->assertFalse( Slug::is_qualified( '' ) );
+	}
+
+	/**
+	 * split_qualified() returns the [parent, child] halves, splitting on the
+	 * FIRST '>' only.
+	 */
+	public function test_split_qualified_returns_both_halves() {
+		$this->assertSame(
+			array( 'edit.php?post_type=product', 'edit.php?post_type=product' ),
+			Slug::split_qualified( 'edit.php?post_type=product>edit.php?post_type=product' )
+		);
+	}
+
+	/**
+	 * A bare (non-qualified) input is returned normalized unchanged by
+	 * normalize_qualified() — no '>' means a single plain normalize() pass.
+	 */
+	public function test_normalize_qualified_bare_key_matches_plain_normalize() {
+		$this->assertSame(
+			Slug::normalize( 'woocommerce' ),
+			Slug::normalize_qualified( 'woocommerce' )
+		);
+		$this->assertSame(
+			Slug::normalize( 'edit-tags.php?taxonomy=product_cat&amp;post_type=product', self::ADMIN_BASE ),
+			Slug::normalize_qualified( 'edit-tags.php?taxonomy=product_cat&amp;post_type=product', self::ADMIN_BASE )
+		);
+	}
+
+	/**
+	 * Each half is normalized INDEPENDENTLY and rejoined with '>'. A host-moved /
+	 * ver= / utm_ / &amp; twin on EITHER half must normalize to the same
+	 * canonical qualified key as its plain twin — reusing the SlugTest fixture
+	 * pairs, qualified on both halves and on only one half.
+	 */
+	public function test_normalize_qualified_both_halves_independent() {
+		// Both halves are the Elementor ver= twin pair — must collapse equal.
+		$old = 'admin.php?page=elementor-app&ver=4.1.4&return_to&source=wp_db_templates_menu#/kit-library';
+		$new = 'admin.php?page=elementor-app&ver=4.2.0&return_to&source=wp_db_templates_menu#/kit-library';
+
+		$this->assertSame(
+			Slug::normalize_qualified( "{$old}>{$old}", self::ADMIN_BASE ),
+			Slug::normalize_qualified( "{$new}>{$new}", self::ADMIN_BASE ),
+			'Qualified key with ver= drift on BOTH halves must normalize equal.'
+		);
+	}
+
+	/**
+	 * A twin that differs only on ONE half (the other half stays fixed) must
+	 * still collapse to the same canonical key — proving independence.
+	 */
+	public function test_normalize_qualified_one_half_drift_still_collapses() {
+		$fixed = 'edit-tags.php?taxonomy=product_cat&amp;post_type=product';
+		$old   = 'admin.php?page=elementor-app&ver=4.1.4&return_to&source=wp_db_templates_menu#/kit-library';
+		$new   = 'admin.php?page=elementor-app&ver=4.2.0&return_to&source=wp_db_templates_menu#/kit-library';
+
+		$this->assertSame(
+			Slug::normalize_qualified( "{$fixed}>{$old}", self::ADMIN_BASE ),
+			Slug::normalize_qualified( "{$fixed}>{$new}", self::ADMIN_BASE ),
+			'Only the child half drifting (ver=) must still collapse to the same qualified key.'
+		);
+
+		// Same, but the drift is on the PARENT half this time (utm_ twin), child fixed.
+		$utm_old = 'https://wpforms.com/lite-upgrade/?utm_campaign=liteplugin&utm_source=WordPress&utm_medium=admin-menu&utm_locale=en_US';
+		$utm_new = 'https://wpforms.com/lite-upgrade/?utm_campaign=other&utm_source=elsewhere';
+
+		$this->assertSame(
+			Slug::normalize_qualified( "{$utm_old}>{$fixed}", self::ADMIN_BASE ),
+			Slug::normalize_qualified( "{$utm_new}>{$fixed}", self::ADMIN_BASE ),
+			'Only the parent half drifting (utm_) must still collapse to the same qualified key.'
+		);
+	}
+
+	/**
+	 * Distinct halves must NOT collapse — normalize_qualified() must not merge
+	 * a qualified key with a different child (or parent) into the same key.
+	 */
+	public function test_normalize_qualified_distinct_children_stay_distinct() {
+		$parent = 'edit.php?post_type=product';
+
+		$cat = Slug::normalize_qualified( "{$parent}>edit-tags.php?taxonomy=product_cat&amp;post_type=product", self::ADMIN_BASE );
+		$tag = Slug::normalize_qualified( "{$parent}>edit-tags.php?taxonomy=product_tag&amp;post_type=product", self::ADMIN_BASE );
+
+		$this->assertNotSame( $cat, $tag );
+	}
+
+	/**
+	 * An empty parent-half OR empty child-half is rejected the same way an
+	 * empty bare slug is: normalize_qualified() returns ''.
+	 */
+	public function test_normalize_qualified_empty_half_rejected() {
+		$this->assertSame( '', Slug::normalize_qualified( '>child' ) );
+		$this->assertSame( '', Slug::normalize_qualified( 'parent>' ) );
+		$this->assertSame( '', Slug::normalize_qualified( '>' ) );
+	}
 }

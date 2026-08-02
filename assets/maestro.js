@@ -31,7 +31,7 @@
 	// Null-prototype so a menu slug like "__proto__" (plugins register arbitrary
 	// strings) can't pollute the prototype or shadow built-ins on lookup.
 	var model = Object.create( null );
-	var selectedSlug = null;
+	var selectedKey = null;
 	var panel = {};        // references into the shared panel
 	var statusEl = null;   // status indicator span
 	var saveTimer = null;
@@ -39,6 +39,7 @@
 	var savePending = false;   // another change arrived mid-flight; save again on land
 	var inFlight = null;       // promise that settles when the whole save chain is done
 	var savedClearTimer = null; // reverts the transient "Saved" tile back to idle
+	var groupIdSeq = 0;    // monotonic counter for unique role-group heading ids
 
 	/* ---------- helpers ---------------------------------------------------- */
 
@@ -66,8 +67,63 @@
 		if ( window.CSS && window.CSS.escape ) { return window.CSS.escape( s ); }
 		return String( s ).replace( /(["\\\]])/g, '\\$1' );
 	}
-	function liForSlug( slug ) {
-		return document.querySelector( '[data-maestro-slug="' + cssEscape( slug ) + '"]' );
+	/**
+	 * Locate the <li> bound to a model key.
+	 *
+	 * A top-level item and a submenu it renders can share the same raw slug
+	 * (WordPress's self-link convention, e.g. Posts + All Posts both map to
+	 * edit.php) — `[data-maestro-slug="…"]` alone is ambiguous in that case,
+	 * always resolving to whichever <li> comes first in document order (the
+	 * top-level one, since it wraps the nested submenu). Submenu rows carry
+	 * their qualified `parent>child` identity in a SEPARATE attribute
+	 * (data-maestro-key) and the `.maestro-subitem` class, so scoping the
+	 * lookup by isSub + the matching attribute/class pair disambiguates the
+	 * two rows even when their slug values collide.
+	 */
+	function liForKey( key ) {
+		var m = model[ key ];
+		if ( m && m.isSub ) {
+			return document.querySelector( '.wp-submenu li.maestro-subitem[data-maestro-key="' + cssEscape( key ) + '"]' );
+		}
+		return document.querySelector( '#adminmenu > li.maestro-item[data-maestro-slug="' + cssEscape( key ) + '"]' );
+	}
+
+	/**
+	 * Resolve the rendered slug a submenu <li> actually links to, from its
+	 * anchor's href — a stable, DOM-content-derived attribute — rather than
+	 * trusting the child's position in `.wp-submenu`. WordPress renders each
+	 * submenu href as `admin_url( $slug )`; decoding the `&amp;` entity core
+	 * bakes into query-string hrefs lets a plain substring match against the
+	 * raw slug PHP localized work without full URL parsing.
+	 */
+	function resolveSubmenuHref( li ) {
+		var a = li.querySelector( 'a' );
+		if ( ! a ) { return ''; }
+		return ( a.getAttribute( 'href' ) || '' ).replace( /&amp;/g, '&' );
+	}
+
+	/**
+	 * Match a submenu child to its rendered <li> by resolved href/slug — the
+	 * minimal A1b fix — instead of zipping `node.submenu` to `.wp-submenu > li`
+	 * by array index. Falls back to the next unclaimed <li> (old positional
+	 * behavior) only when no href match is found, so an atypical anchor markup
+	 * still gets SOME binding rather than none.
+	 */
+	function findSubmenuLi( candidates, claimed, slug ) {
+		var i;
+		for ( i = 0; i < candidates.length; i++ ) {
+			if ( claimed.indexOf( candidates[ i ] ) !== -1 ) { continue; }
+			var href = resolveSubmenuHref( candidates[ i ] );
+			if ( href && href.indexOf( slug ) !== -1 ) {
+				return candidates[ i ];
+			}
+		}
+		for ( i = 0; i < candidates.length; i++ ) {
+			if ( claimed.indexOf( candidates[ i ] ) === -1 ) {
+				return candidates[ i ];
+			}
+		}
+		return null;
 	}
 
 	/* ---------- modified-state indicator ----------------------------------- */
@@ -88,14 +144,16 @@
 	 * (UX-12/UX-13: no amber — colour is reserved for errors + destructive actions).
 	 * AT users hear "(modified)" via the screen-reader-text span.
 	 */
-	function refreshModifiedIndicator( slug ) {
-		var m = model[ slug ];
+	function refreshModifiedIndicator( key ) {
+		var m = model[ key ];
 		if ( ! m ) { return; }
 
-		var def = m.isSub ? pristineSub( slug ) : pristineTop( slug );
+		// Submenu pristine defaults are keyed by the RAW rendered slug
+		// (D.pristine.sub), not the qualified model key — use m.slug.
+		var def = m.isSub ? pristineSub( m.slug ) : pristineTop( key );
 		var result = window.maestroLogic.diffItem( m, def );
 
-		var li = liForSlug( slug );
+		var li = liForKey( key );
 		if ( ! li ) { return; }
 
 		if ( result.modified ) {
@@ -128,7 +186,7 @@
 		}
 
 		// Keep the panel Reset button in sync when the change is to the selected item.
-		updateResetButton( slug, result.modified );
+		updateResetButton( key, result.modified );
 	}
 
 	/* ---------- folded-mode override -------------------------------------- */
@@ -167,7 +225,14 @@
 				title: node.title,
 				icon: node.icon,
 				hiddenRoles: node.hiddenRoles.slice(),
-				isSub: false
+				isSub: false,
+				// COMPAT-10 (REVISED): child_hidden_roles is a parent-only,
+				// independent role list ("Hide its sub-items from:"), seeded from
+				// the resolved value get_menu_model() already computes server-side.
+				// hasChildren gates the second popover role group to parents that
+				// actually have a submenu (20-CONTEXT.md locked UI).
+				childHiddenRoles: ( node.childHiddenRoles || [] ).slice(),
+				hasChildren: node.submenu.length > 0
 			};
 
 			var li = node.liId ? document.getElementById( node.liId ) : null;
@@ -176,26 +241,35 @@
 			li.classList.add( 'maestro-item' );
 			if ( node.hiddenRoles.length ) { li.classList.add( 'maestro-has-hidden' ); }
 
-			// Submenu children: skip the .wp-submenu-head, then zip by index.
-			var subLis = li.querySelectorAll( '.wp-submenu > li:not(.wp-submenu-head)' );
-			node.submenu.forEach( function ( child, idx ) {
-				// A submenu item can share its slug with the top-level parent —
-				// WordPress's self-link convention (Posts + All Posts both map
-				// to edit.php). The stored config is slug-keyed, so they are one
-				// identity; the top-level entry (which carries the icon) must
-				// win. Only create a model entry for a genuinely distinct slug.
-				if ( ! model[ child.slug ] ) {
-					model[ child.slug ] = {
-						title: child.title,
-						icon: '',
-						hiddenRoles: child.hiddenRoles.slice(),
-						isSub: true,
-						parent: node.slug
-					};
-				}
-				var sli = subLis[ idx ];
+			// Submenu children: each gets its OWN model entry keyed by its
+			// qualified `parent>child` identity (from get_menu_model(),
+			// COMPAT-04) — a submenu sharing its slug with the top-level
+			// parent (WordPress's self-link convention, e.g. Posts + All
+			// Posts both map to edit.php) is now independently addressable
+			// instead of being collapsed into one shared model entry. Bound
+			// to its rendered <li> by resolved anchor href/slug (a stable
+			// attribute), not `.wp-submenu` array position — the minimal
+			// A1b fix (full positional-association hardening is deferred).
+			var subLis = Array.prototype.slice.call(
+				li.querySelectorAll( '.wp-submenu > li:not(.wp-submenu-head)' )
+			);
+			var claimedSubLis = [];
+			node.submenu.forEach( function ( child ) {
+				var key = child.qualifiedKey || ( node.slug + '>' + child.slug );
+				model[ key ] = {
+					slug: child.slug, // raw slug: pristine-default + sub_order lookups
+					title: child.title,
+					icon: '',
+					hiddenRoles: child.hiddenRoles.slice(),
+					isSub: true,
+					parent: node.slug
+				};
+
+				var sli = findSubmenuLi( subLis, claimedSubLis, child.slug );
 				if ( ! sli ) { return; }
-				sli.dataset.maestroSlug = child.slug;
+				claimedSubLis.push( sli );
+				sli.dataset.maestroSlug = child.slug; // bare: sub_order + legacy consumers
+				sli.dataset.maestroKey  = key;         // qualified: model identity / selection
 				sli.classList.add( 'maestro-subitem' );
 				if ( child.hiddenRoles.length ) { sli.classList.add( 'maestro-has-hidden' ); }
 			} );
@@ -260,7 +334,7 @@
 				return;
 			}
 			// Require a currently selected maestro item.
-			if ( ! selectedSlug || ! model[ selectedSlug ] ) {
+			if ( ! selectedKey || ! model[ selectedKey ] ) {
 				return;
 			}
 
@@ -288,34 +362,36 @@
 	 */
 	function moveSelected( dir, opts ) {
 		opts = opts || {};
-		if ( ! selectedSlug || ! model[ selectedSlug ] ) { return; }
+		if ( ! selectedKey || ! model[ selectedKey ] ) { return; }
 
-		var m = model[ selectedSlug ];
+		var m = model[ selectedKey ];
 		var menu = document.getElementById( 'adminmenu' );
-		var currentSlugs, parentUl;
+		var currentKeys, parentUl;
 
 		if ( m.isSub ) {
-			// Submenu scope: siblings under the same parent.
-			var parentLi = liForSlug( m.parent );
+			// Submenu scope: siblings under the same parent, identified by
+			// their qualified key (stable even when a sibling's bare slug
+			// collides with the top-level parent's).
+			var parentLi = liForKey( m.parent );
 			parentUl = parentLi ? parentLi.querySelector( '.wp-submenu' ) : null;
 			if ( ! parentUl ) { return; }
-			currentSlugs = Array.prototype.map.call(
-				parentUl.querySelectorAll( 'li.maestro-subitem[data-maestro-slug]' ),
-				function ( n ) { return n.dataset.maestroSlug; }
+			currentKeys = Array.prototype.map.call(
+				parentUl.querySelectorAll( 'li.maestro-subitem[data-maestro-key]' ),
+				function ( n ) { return n.dataset.maestroKey; }
 			);
 		} else {
 			// Top-level scope.
 			parentUl = menu;
-			currentSlugs = Array.prototype.map.call(
+			currentKeys = Array.prototype.map.call(
 				menu.querySelectorAll( 'li.menu-top.maestro-item[data-maestro-slug]' ),
 				function ( n ) { return n.dataset.maestroSlug; }
 			);
 		}
 
-		var newOrder = window.maestroLogic.reorderMove( currentSlugs, selectedSlug, dir );
+		var newOrder = window.maestroLogic.reorderMove( currentKeys, selectedKey, dir );
 
 		// Detect boundary clamp: order unchanged means the item is already at the edge.
-		if ( newOrder.join( '\n' ) === currentSlugs.join( '\n' ) ) {
+		if ( newOrder.join( '\n' ) === currentKeys.join( '\n' ) ) {
 			var boundaryMsg = dir === 'up'
 				? I.moveAtTop.replace( '%s', m.title )
 				: I.moveAtBottom.replace( '%s', m.title );
@@ -325,11 +401,11 @@
 
 		// Physically move ONLY the selected node by one position. All other nodes —
 		// including li.wp-menu-separator and any non-maestro-item children — stay put.
-		var selectedNode = liForSlug( selectedSlug );
+		var selectedNode = liForKey( selectedKey );
 		var maestroChildren = Array.prototype.slice.call(
 			parentUl.querySelectorAll(
 				m.isSub
-					? 'li.maestro-subitem[data-maestro-slug]'
+					? 'li.maestro-subitem[data-maestro-key]'
 					: 'li.menu-top.maestro-item[data-maestro-slug]'
 			)
 		);
@@ -346,7 +422,7 @@
 		// Button path: the button lives in the fixed toolbar panel (not in #adminmenu),
 		// so insertBefore does not detach it — focus stays on the button naturally.
 		if ( opts.restoreFocusToAnchor ) {
-			var movedLi = liForSlug( selectedSlug );
+			var movedLi = liForKey( selectedKey );
 			if ( movedLi ) {
 				var focusTarget = movedLi.querySelector( 'a' ) || movedLi;
 				focusTarget.focus( { preventScroll: true } );
@@ -354,7 +430,7 @@
 		}
 
 		// Announce the new position politely.
-		var newIndex = newOrder.indexOf( selectedSlug ) + 1;
+		var newIndex = newOrder.indexOf( selectedKey ) + 1;
 		var total = newOrder.length;
 		var movedMsg = I.moved
 			.replace( '%1$s', m.title )
@@ -368,19 +444,24 @@
 	}
 
 	function selectItem( li, opts ) {
-		var slug = li.dataset.maestroSlug;
-		if ( ! slug || ! model[ slug ] ) { return; }
+		// Submenu rows are identified by their qualified key (data-maestro-key);
+		// top-level rows stay bare-slug-identified (data-maestro-slug) — the two
+		// attributes never collide even when the underlying slug does.
+		var key = li.classList.contains( 'maestro-subitem' )
+			? li.dataset.maestroKey
+			: li.dataset.maestroSlug;
+		if ( ! key || ! model[ key ] ) { return; }
 		opts = opts || {};
 
 		document.querySelectorAll( '.maestro-selected' ).forEach( function ( n ) {
 			n.classList.remove( 'maestro-selected' );
 			n.removeAttribute( 'aria-keyshortcuts' );
 		} );
-		selectedSlug = slug;
+		selectedKey = key;
 		li.classList.add( 'maestro-selected' );
 		// The ▲/▼ panel buttons are the discoverable reorder affordance (OS-independent,
 		// Tab-reachable). No aria-keyshortcuts advertised — Alt+Arrow was macOS-broken.
-		populatePanel( slug );
+		populatePanel( key );
 		closePopovers();
 		if ( opts.focusPanel && panel.rename ) {
 			try {
@@ -466,7 +547,7 @@
 				e.preventDefault();
 				rename.blur();
 			} else if ( e.key === 'Escape' ) {
-				if ( selectedSlug ) { rename.value = model[ selectedSlug ].title; }
+				if ( selectedKey ) { rename.value = model[ selectedKey ].title; }
 				rename.blur();
 			}
 		} );
@@ -593,8 +674,8 @@
 		} );
 	}
 
-	function populatePanel( slug ) {
-		var m = model[ slug ];
+	function populatePanel( key ) {
+		var m = model[ key ];
 		if ( ! m ) { return; }
 		panel.root.hidden = false;
 
@@ -610,14 +691,16 @@
 
 		// Reflect modified state on the reset button: enabled when modified,
 		// dimmed + disabled when there is nothing to reset (no amber — UX-12/UX-13).
-		var def = m.isSub ? pristineSub( slug ) : pristineTop( slug );
-		updateResetButton( slug, window.maestroLogic.diffItem( m, def ).modified );
+		// Submenu pristine defaults are keyed by the RAW rendered slug, not the
+		// qualified model key.
+		var def = m.isSub ? pristineSub( m.slug ) : pristineTop( key );
+		updateResetButton( key, window.maestroLogic.diffItem( m, def ).modified );
 	}
 
 	// Sync the per-item Reset button to the selected item's modified state so its
 	// enabled/dimmed state means "you have changes to undo".
-	function updateResetButton( slug, isModified ) {
-		if ( ! panel.resetBtn || slug !== selectedSlug ) { return; }
+	function updateResetButton( key, isModified ) {
+		if ( ! panel.resetBtn || key !== selectedKey ) { return; }
 		panel.resetBtn.classList.toggle( 'is-modified', isModified );
 		panel.resetBtn.disabled = ! isModified;
 	}
@@ -625,8 +708,8 @@
 	/* ---------- rename (single, idempotent) -------------------------------- */
 
 	function commitRename() {
-		if ( ! selectedSlug ) { return; }
-		var m = model[ selectedSlug ];
+		if ( ! selectedKey ) { return; }
+		var m = model[ selectedKey ];
 		var raw = panel.rename.value.trim();
 		var next = raw || m.title;
 		if ( next === m.title ) {
@@ -634,16 +717,16 @@
 			return;
 		}
 		m.title = next;
-		updateMenuLabel( selectedSlug );
-		populatePanel( selectedSlug ); // refresh breadcrumb for renamed parents
-		refreshModifiedIndicator( selectedSlug );
+		updateMenuLabel( selectedKey );
+		populatePanel( selectedKey ); // refresh breadcrumb for renamed parents
+		refreshModifiedIndicator( selectedKey );
 		scheduleAutosave();
 	}
 
-	function updateMenuLabel( slug ) {
-		var li = liForSlug( slug );
+	function updateMenuLabel( key ) {
+		var li = liForKey( key );
 		if ( ! li ) { return; }
-		var m = model[ slug ];
+		var m = model[ key ];
 		var target = m.isSub
 			? li.querySelector( 'a' )
 			: li.querySelector( '.wp-menu-name' );
@@ -654,9 +737,9 @@
 
 	function openIconPicker( anchorBtn ) {
 		closePopovers();
-		if ( ! selectedSlug || model[ selectedSlug ].isSub ) { return; }
+		if ( ! selectedKey || model[ selectedKey ].isSub ) { return; }
 
-		var slug = selectedSlug;
+		var slug = selectedKey; // top-level only here — bare slug === model key
 		var sets = D.iconSets || [];
 
 		var pop = el( 'div', 'maestro-popover maestro-icon-popover' );
@@ -667,7 +750,7 @@
 		// --- choose an icon, persist, close ---
 		function choose( iconId ) {
 			model[ slug ].icon = iconId;
-			var li = liForSlug( slug );
+			var li = liForKey( slug );
 			if ( li ) { applyIconPreview( li, iconId || 'none' ); }
 			closePopovers();
 			anchorBtn.focus();
@@ -907,42 +990,165 @@
 
 	function openVisibilityPicker( anchorBtn ) {
 		closePopovers();
-		if ( ! selectedSlug ) { return; }
+		if ( ! selectedKey ) { return; }
 
-		var slug = selectedSlug;
+		var slug = selectedKey; // model key: bare top slug or qualified submenu key
 		var pop  = el( 'div', 'maestro-popover maestro-vis-popover' );
 		pop.setAttribute( 'role', 'dialog' );
 		pop.setAttribute( 'aria-modal', 'true' );
 		pop.setAttribute( 'aria-label', I.visibility );
 		pop.tabIndex = -1;
-		pop.appendChild( el( 'p', 'maestro-vis-head', I.hideFrom ) );
-		var firstCheckbox = null;
 
-		Object.keys( D.roles ).forEach( function ( roleKey ) {
-			var row = el( 'label', 'maestro-vis-row' );
-			var cb  = el( 'input' );
-			cb.type = 'checkbox';
-			cb.value = roleKey;
-			cb.checked = model[ slug ].hiddenRoles.indexOf( roleKey ) !== -1;
-			if ( ! firstCheckbox ) { firstCheckbox = cb; }
-			cb.addEventListener( 'change', function () {
-				var set = model[ slug ].hiddenRoles;
-				if ( cb.checked ) {
-					if ( set.indexOf( roleKey ) === -1 ) { set.push( roleKey ); }
-				} else {
-					model[ slug ].hiddenRoles = set.filter( function ( r ) { return r !== roleKey; } );
+		// Forward reference: Group 1's onToggle (below) refreshes Group 2's
+		// derived-lock rows live. Declared before Group 1 is built so the
+		// closure captures the binding, not a value — assigned once Group 2
+		// itself is built (or left null on a childless item / submenu row).
+		var childrenGroup = null;
+
+		// One independent role-checkbox group per role set. `getSet`/`setSet`
+		// read/write the model field this group is bound to. `opts.onToggle`
+		// runs any extra per-group side-effect (e.g. the item's own
+		// maestro-has-hidden class, which only reflects hiddenRoles, never
+		// childHiddenRoles). `opts.isLocked`/`opts.lockedHint` (COMPAT-10) let a
+		// role row render checked+disabled as a DERIVED display state — see
+		// `refresh()` below; this NEVER writes the derived value into the
+		// model (payload purity: buildConfig() only ever reads the real,
+		// unioned model field, never DOM checkbox state).
+		function buildRoleGroup( heading, groupClass, getSet, setSet, opts ) {
+			opts = opts || {};
+			var group = el( 'div', 'maestro-vis-group ' + groupClass );
+			// WCAG 1.3.1 (A): expose each role-checkbox group as a programmatic
+			// group with an accessible name. Both groups ("Hide this item from:"
+			// and "Hide its sub-items from:") list the SAME role names, so without
+			// a group name an AT user can't tell which axis a checkbox controls.
+			// role="group" + aria-labelledby points at the heading; the heading id
+			// is uniquified via a module-level counter so it stays unique even if
+			// multiple popovers ever coexist. Layout is untouched (no fieldset).
+			var headEl = el( 'p', 'maestro-vis-head', heading );
+			headEl.id = 'maestro-vis-head-' + ( ++groupIdSeq );
+			group.setAttribute( 'role', 'group' );
+			group.setAttribute( 'aria-labelledby', headEl.id );
+			group.appendChild( headEl );
+			var rows = {}; // roleKey -> { cb, row, hint }
+
+			Object.keys( D.roles ).forEach( function ( roleKey ) {
+				var row = el( 'label', 'maestro-vis-row' );
+				var cb  = el( 'input' );
+				cb.type = 'checkbox';
+				cb.value = roleKey;
+				cb.addEventListener( 'change', function () {
+					var set = getSet();
+					if ( cb.checked ) {
+						if ( set.indexOf( roleKey ) === -1 ) { set.push( roleKey ); }
+						setSet( set );
+					} else {
+						setSet( set.filter( function ( r ) { return r !== roleKey; } ) );
+					}
+					if ( opts.onToggle ) { opts.onToggle(); }
+					refreshModifiedIndicator( slug );
+					scheduleAutosave();
+				} );
+				row.appendChild( cb );
+				row.appendChild( document.createTextNode( ' ' + D.roles[ roleKey ] ) );
+
+				var hint = null;
+				if ( opts.isLocked ) {
+					// AT-only explanation (WP admin's always-present screen-reader-text
+					// class): a bare disabled checkbox conveys nothing to assistive
+					// tech, so the "already hidden via the parent" reason is exposed
+					// programmatically, not just visually via the title tooltip.
+					hint = el( 'span', 'maestro-vis-locked-hint screen-reader-text' );
+					row.appendChild( hint );
 				}
-				var li = liForSlug( slug );
+
+				group.appendChild( row );
+				rows[ roleKey ] = { cb: cb, row: row, hint: hint };
+			} );
+
+			pop.appendChild( group );
+
+			// Re-derive every role row's checked/disabled/locked state from the
+			// CURRENT model. Called once at build time and again, live, whenever
+			// a role is toggled in the OTHER group this group's lock derivation
+			// depends on (COMPAT-10: toggling "Hide this item from:" re-derives
+			// "Hide its sub-items from:"'s locked rows without closing the popover).
+			function refresh() {
+				Object.keys( D.roles ).forEach( function ( roleKey ) {
+					var r      = rows[ roleKey ];
+					var locked = !! ( opts.isLocked && opts.isLocked( roleKey ) );
+
+					if ( locked ) {
+						// Derived display only — never touches getSet()/setSet().
+						r.cb.checked  = true;
+						r.cb.disabled = true;
+						r.cb.setAttribute( 'aria-disabled', 'true' );
+						r.row.classList.add( 'maestro-vis-locked' );
+						var reason = opts.lockedHint( roleKey );
+						r.hint.textContent = ' ' + reason;
+						r.row.title = reason;
+					} else {
+						r.cb.checked  = getSet().indexOf( roleKey ) !== -1;
+						r.cb.disabled = false;
+						r.cb.removeAttribute( 'aria-disabled' );
+						r.row.classList.remove( 'maestro-vis-locked' );
+						if ( r.hint ) { r.hint.textContent = ''; }
+						r.row.removeAttribute( 'title' );
+					}
+				} );
+			}
+
+			refresh();
+			return { refresh: refresh };
+		}
+
+		// Group 1: "Hide this item from:" — the existing hidden_roles, hides
+		// THIS item (parent or submenu row). Always shown.
+		buildRoleGroup(
+			I.hideFrom,
+			'maestro-vis-own',
+			function () { return model[ slug ].hiddenRoles; },
+			function ( arr ) {
+				model[ slug ].hiddenRoles = arr;
+				var li = liForKey( slug );
 				if ( li ) {
 					li.classList.toggle( 'maestro-has-hidden', model[ slug ].hiddenRoles.length > 0 );
 				}
-				refreshModifiedIndicator( slug );
-				scheduleAutosave();
-			} );
-			row.appendChild( cb );
-			row.appendChild( document.createTextNode( ' ' + D.roles[ roleKey ] ) );
-			pop.appendChild( row );
-		} );
+			},
+			{
+				onToggle: function () {
+					// Live reactivity: a role just hidden (or un-hidden) for THIS
+					// item may need Group 2's corresponding row locked (or unlocked).
+					if ( childrenGroup ) { childrenGroup.refresh(); }
+				}
+			}
+		);
+
+		// Group 2 (COMPAT-10, REVISED): "Hide its sub-items from:" — a NEW,
+		// INDEPENDENT role list that hides ALL of this parent's live children,
+		// with the parent left visible. Shown ONLY on a top-level parent that
+		// actually has children (never on a childless item or a submenu row).
+		// Independent of group 1's STORED value: toggling it never touches
+		// hiddenRoles. A role already checked in group 1 renders here as a
+		// DERIVED locked (checked+disabled) row — WordPress core already
+		// removes that role's whole rendered subtree, so this group's own
+		// entry for it would be redundant — but the lock is display-only and
+		// is refreshed live by group 1's onToggle above.
+		if ( ! model[ slug ].isSub && model[ slug ].hasChildren ) {
+			childrenGroup = buildRoleGroup(
+				I.hideChildrenFrom,
+				'maestro-vis-children',
+				function () { return model[ slug ].childHiddenRoles; },
+				function ( arr ) { model[ slug ].childHiddenRoles = arr; },
+				{
+					isLocked: function ( roleKey ) {
+						return model[ slug ].hiddenRoles.indexOf( roleKey ) !== -1;
+					},
+					lockedHint: function ( roleKey ) {
+						return I.hideChildrenLocked.replace( '%s', D.roles[ roleKey ] );
+					}
+				}
+			);
+		}
 
 		pop.addEventListener( 'keydown', function ( e ) {
 			if ( e.key === 'Escape' ) {
@@ -955,8 +1161,12 @@
 			var focusable = pop.querySelectorAll(
 				'input, button, [tabindex]:not([tabindex="-1"])'
 			);
+			// COMPAT-10: a derived-locked checkbox is disabled and never actually
+			// receives focus, so it must be excluded here too — otherwise it would
+			// be wrongly treated as the tab-trap's `first`/`last` boundary and the
+			// wraparound would silently fail to fire.
 			focusable = Array.prototype.filter.call( focusable, function ( n ) {
-				return ! n.hidden && n.offsetParent !== null;
+				return ! n.hidden && ! n.disabled && n.offsetParent !== null;
 			} );
 			if ( ! focusable.length ) { return; }
 			var first = focusable[ 0 ];
@@ -971,20 +1181,27 @@
 		} );
 
 		placePopover( pop, anchorBtn );
-		( firstCheckbox || pop ).focus();
+		var initialFocus = pop.querySelector( 'input:not([disabled])' ) || pop;
+		initialFocus.focus();
 	}
 
 	/* ---------- per-item reset -------------------------------------------- */
 
 	function resetSelected() {
-		if ( ! selectedSlug ) { return; }
-		var m   = model[ selectedSlug ];
-		var def = m.isSub ? pristineSub( selectedSlug ) : pristineTop( selectedSlug );
+		if ( ! selectedKey ) { return; }
+		var m   = model[ selectedKey ];
+		// Submenu pristine defaults are keyed by the RAW rendered slug, not
+		// the qualified model key.
+		var def = m.isSub ? pristineSub( m.slug ) : pristineTop( selectedKey );
 
-		m.title       = def.title || '';
-		m.hiddenRoles = [];
+		m.title            = def.title || '';
+		m.hiddenRoles      = [];
+		// childHiddenRoles (COMPAT-10 REVISED) has no WP-native pristine state —
+		// reset always clears it to []; harmless no-op on a submenu entry (field
+		// unused there).
+		m.childHiddenRoles = [];
 
-		var li = liForSlug( selectedSlug );
+		var li = liForKey( selectedKey );
 		if ( li ) { li.classList.remove( 'maestro-has-hidden' ); }
 
 		if ( ! m.isSub ) {
@@ -993,9 +1210,9 @@
 			// stale dashicon preview rather than leaving it until reload.
 			if ( li ) { applyIconPreview( li, m.icon ); }
 		}
-		updateMenuLabel( selectedSlug );
-		populatePanel( selectedSlug );
-		refreshModifiedIndicator( selectedSlug );
+		updateMenuLabel( selectedKey );
+		populatePanel( selectedKey );
+		refreshModifiedIndicator( selectedKey );
 		scheduleAutosave();
 	}
 
@@ -1060,11 +1277,6 @@
 
 		var topLis = document.querySelectorAll( '#adminmenu > li.menu-top.maestro-item[data-maestro-slug]' );
 
-		// Top-level slugs own their identity. A submenu item sharing one of these
-		// slugs (WP self-link convention) must not emit a conflicting items entry.
-		var topSlugs = Object.create( null );
-		topLis.forEach( function ( li ) { topSlugs[ li.dataset.maestroSlug ] = true; } );
-
 		topLis.forEach( function ( li ) {
 			var slug = li.dataset.maestroSlug;
 			cfg.top_order.push( slug );
@@ -1076,26 +1288,37 @@
 			if ( diff.fields.indexOf( 'title' ) !== -1 )       { entry.title = m.title; }
 			if ( diff.fields.indexOf( 'icon' ) !== -1 )        { entry.icon  = m.icon; }
 			if ( diff.fields.indexOf( 'hiddenRoles' ) !== -1 ) { entry.hidden_roles = m.hiddenRoles; }
-			if ( diff.modified )                                { cfg.items[ slug ] = entry; }
+			// COMPAT-10 (REVISED): parent-only, independent child_hidden_roles.
+			// diffItem() flags it whenever non-empty (no pristine concept, mirrors
+			// hiddenRoles), so a child_hidden_roles-only toggle with no other
+			// change still produces a diff.modified entry and persists.
+			if ( diff.fields.indexOf( 'childHiddenRoles' ) !== -1 ) { entry.child_hidden_roles = m.childHiddenRoles; }
+			if ( diff.modified )                                     { cfg.items[ slug ] = entry; }
 
 			var subLis = li.querySelectorAll( '.wp-submenu > li.maestro-subitem[data-maestro-slug]' );
 			if ( subLis.length ) {
 				cfg.sub_order[ slug ] = [];
 				subLis.forEach( function ( sli ) {
 					var sslug = sli.dataset.maestroSlug;
-					cfg.sub_order[ slug ].push( sslug );
+					cfg.sub_order[ slug ].push( sslug ); // sub_order stays bare-slug-keyed (unchanged)
 
-					// Ordering still records the slug, but a submenu that shares
-					// a top-level slug carries no separate override of its own.
-					if ( topSlugs[ sslug ] ) { return; }
-
-					var sm    = model[ sslug ];
+					// Every submenu override is stored under its qualified
+					// `parent>child` key (COMPAT-04) — including one that shares
+					// its slug with the top-level parent, which used to be
+					// skipped here entirely (the client half of the shared-slug
+					// collision). The server resolves qualified-first with a
+					// legacy bare-key fallback (20-02), so this is additive:
+					// re-saving a config only starts qualifying a row once it
+					// is actually edited.
+					var skey = sli.dataset.maestroKey || sslug;
+					var sm   = model[ skey ];
+					if ( ! sm ) { return; }
 					var sdef  = pristineSub( sslug );
 					var sdiff = window.maestroLogic.diffItem( sm, sdef );
 					var se    = {};
 					if ( sdiff.fields.indexOf( 'title' ) !== -1 )       { se.title = sm.title; }
 					if ( sdiff.fields.indexOf( 'hiddenRoles' ) !== -1 ) { se.hidden_roles = sm.hiddenRoles; }
-					if ( sdiff.modified )                                { cfg.items[ sslug ] = se; }
+					if ( sdiff.modified )                                { cfg.items[ skey ] = se; }
 				} );
 			}
 		} );

@@ -13,7 +13,11 @@
  *       '<slug>' => [
  *           'title'        => 'Custom Title',          // optional
  *           'icon'         => 'dashicons-foo',          // optional, top-level only
- *           'hidden_roles' => [ 'author', 'editor' ],   // optional, roles that DON'T see it
+ *           'hidden_roles'        => [ 'author', 'editor' ], // optional, roles that DON'T see it
+ *           'child_hidden_roles'  => [ 'editor' ],           // optional, top-level only: hides
+ *                                                             // ALL live children from these
+ *                                                             // roles, independent of whether
+ *                                                             // this parent is itself hidden.
  *       ],
  *   ],
  *   'top_order' => [ '<slug>', '<slug>', ... ],          // desired top-level order
@@ -157,7 +161,25 @@ class Config {
 
 		if ( ! empty( $raw['items'] ) && is_array( $raw['items'] ) ) {
 			foreach ( $raw['items'] as $slug => $item ) {
-				$slug  = $this->clean_slug( $slug );
+				// Qualified `parent>child` submenu keys: clean each half
+				// independently and recompose, rather than tag/trim-cleaning
+				// the raw string as a whole (Slug::is_qualified() is the same
+				// '>' contract used at resolve time in class-slug.php).
+				$is_qualified = Slug::is_qualified( $slug );
+				if ( $is_qualified ) {
+					list( $parent_half, $child_half ) = Slug::split_qualified( $slug );
+					$parent_half                      = $this->clean_slug( $parent_half );
+					$child_half                       = $this->clean_slug( $child_half );
+
+					if ( '' === $parent_half || '' === $child_half ) {
+						continue; // Malformed qualified key — skip, mirroring an empty bare slug.
+					}
+
+					$slug = $parent_half . Slug::QUALIFIED_SEPARATOR . $child_half;
+				} else {
+					$slug = $this->clean_slug( $slug );
+				}
+
 				$entry = array();
 
 				if ( isset( $item['title'] ) && '' !== trim( (string) $item['title'] ) ) {
@@ -168,7 +190,10 @@ class Config {
 					$entry['title'] = $title;
 				}
 
-				if ( isset( $item['icon'] ) ) {
+				// Icons stay top-level only — WP submenu rows have no icon
+				// slot, so a qualified (submenu) key never carries one even
+				// if the incoming payload sent one.
+				if ( isset( $item['icon'] ) && ! $is_qualified ) {
 					$icon = self::sanitize_icon( $item['icon'] );
 					if ( '' !== $icon ) {
 						$entry['icon'] = $icon;
@@ -184,6 +209,24 @@ class Config {
 					}
 					if ( $roles ) {
 						$entry['hidden_roles'] = $roles;
+					}
+				}
+
+				// COMPAT-10 (REVISED): child_hidden_roles is a per-PARENT
+				// (top-level) concept only — a qualified submenu key never
+				// carries it, mirroring the icon rule above. Independent of
+				// the parent's own hidden_roles: hides ALL of the parent's
+				// live children from these roles, with the parent left
+				// visible. Same shape/caps as hidden_roles.
+				if ( ! $is_qualified && ! empty( $item['child_hidden_roles'] ) && is_array( $item['child_hidden_roles'] ) ) {
+					$roles = array_values(
+						array_intersect( array_map( 'sanitize_key', $item['child_hidden_roles'] ), $valid_roles )
+					);
+					if ( count( $roles ) > self::MAX_HIDDEN_ROLES ) {
+						$roles = array_slice( $roles, 0, self::MAX_HIDDEN_ROLES );
+					}
+					if ( $roles ) {
+						$entry['child_hidden_roles'] = $roles;
 					}
 				}
 

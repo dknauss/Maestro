@@ -286,4 +286,259 @@ class ConfigSanitizeTest extends TestCase {
 	public function test_data_uri_empty_returns_empty() {
 		$this->assertSame( '', Config::sanitize_icon( '' ) );
 	}
+
+	/* -----------------------------------------------------------------------
+	 * Qualified `parent>child` submenu keys (COMPAT-04 foundation, Task 2)
+	 * --------------------------------------------------------------------- */
+
+	/**
+	 * A qualified `parent>child` items key is preserved (not flattened to the
+	 * bare child slug); title and hidden_roles survive under that same key.
+	 */
+	public function test_qualified_key_preserved_with_title_and_hidden_roles() {
+		$key = 'edit.php?post_type=product>edit.php?post_type=product';
+		$raw = array(
+			'items' => array(
+				$key => array(
+					'title'        => 'My Products',
+					'hidden_roles' => array( 'role-1' ),
+				),
+			),
+		);
+		$out = $this->config->sanitize( $raw );
+
+		$this->assertArrayHasKey( $key, $out['items'], 'Qualified key must be retained as-is, not flattened.' );
+		$this->assertSame( 'My Products', $out['items'][ $key ]['title'] );
+		$this->assertSame( array( 'role-1' ), $out['items'][ $key ]['hidden_roles'] );
+	}
+
+	/**
+	 * Regression guard: a bare top-level slug key is unchanged.
+	 */
+	public function test_bare_top_level_key_unchanged() {
+		$raw = array(
+			'items' => array(
+				'woocommerce' => array( 'title' => 'Shop' ),
+			),
+		);
+		$out = $this->config->sanitize( $raw );
+
+		$this->assertArrayHasKey( 'woocommerce', $out['items'] );
+		$this->assertSame( 'Shop', $out['items']['woocommerce']['title'] );
+	}
+
+	/**
+	 * An icon on a qualified submenu key is DROPPED; the same icon on a bare
+	 * top-level key is kept (existing behaviour) — submenu rows have no icon slot.
+	 */
+	public function test_icon_dropped_on_qualified_key_but_kept_on_bare_key() {
+		$icon = 'dashicons-cart';
+		$key  = 'edit.php?post_type=product>edit.php?post_type=product';
+		$raw  = array(
+			'items' => array(
+				$key            => array(
+					'title' => 'My Products',
+					'icon'  => $icon,
+				),
+				'edit.php?post_type=product' => array(
+					'title' => 'Products',
+					'icon'  => $icon,
+				),
+			),
+		);
+		$out  = $this->config->sanitize( $raw );
+
+		$this->assertArrayNotHasKey( 'icon', $out['items'][ $key ], 'Qualified (submenu) key must never carry an icon.' );
+		$this->assertSame( $icon, $out['items']['edit.php?post_type=product']['icon'], 'Bare top-level key keeps its icon.' );
+	}
+
+	/**
+	 * Both halves of a qualified key are cleaned via clean_slug independently
+	 * so tags/whitespace in either half can't corrupt the stored key.
+	 */
+	public function test_qualified_key_halves_are_cleaned_independently() {
+		$dirty_key = '  edit.php?post_type=product  >  edit.php?post_type=product<b>  ';
+		$clean_key = 'edit.php?post_type=product>edit.php?post_type=product';
+		$raw       = array(
+			'items' => array(
+				$dirty_key => array( 'title' => 'My Products' ),
+			),
+		);
+		$out       = $this->config->sanitize( $raw );
+
+		$this->assertArrayHasKey( $clean_key, $out['items'], 'Both halves must be independently tag/whitespace-stripped.' );
+	}
+
+	/**
+	 * MAX_ITEMS/MAX_TITLE_BYTES/MAX_HIDDEN_ROLES caps still apply per entry
+	 * to a qualified-key row exactly as they do to a bare-key row.
+	 */
+	public function test_qualified_key_entry_still_capped() {
+		$key   = 'edit.php?post_type=product>edit.php?post_type=product';
+		$title = str_repeat( 'a', Config::MAX_TITLE_BYTES + 50 );
+		$roles = array();
+		for ( $i = 1; $i <= Config::MAX_HIDDEN_ROLES + 1; $i++ ) {
+			$roles[] = "role-$i";
+		}
+		$raw = array(
+			'items' => array(
+				$key => array(
+					'title'        => $title,
+					'hidden_roles' => $roles,
+				),
+			),
+		);
+		$out = $this->config->sanitize( $raw );
+
+		$this->assertSame( Config::MAX_TITLE_BYTES, strlen( $out['items'][ $key ]['title'] ) );
+		$this->assertSame( Config::MAX_HIDDEN_ROLES, count( $out['items'][ $key ]['hidden_roles'] ) );
+	}
+
+	/**
+	 * A qualified key whose parent-half or child-half is empty/unparseable is
+	 * skipped — no items entry emitted for it — mirroring an empty bare slug.
+	 */
+	public function test_qualified_key_with_empty_half_skipped() {
+		$raw = array(
+			'items' => array(
+				'>child-only'          => array( 'title' => 'Orphan Child' ),
+				'parent-only>'         => array( 'title' => 'Orphan Parent' ),
+				'>'                    => array( 'title' => 'Both Empty' ),
+				'edit.php?post_type=x' => array( 'title' => 'Valid Bare Key' ),
+			),
+		);
+		$out = $this->config->sanitize( $raw );
+
+		$this->assertCount( 1, $out['items'], 'Only the valid bare key should survive.' );
+		$this->assertArrayHasKey( 'edit.php?post_type=x', $out['items'] );
+	}
+
+	/* -----------------------------------------------------------------------
+	 * child_hidden_roles (COMPAT-10 REVISED, per-parent, independent of
+	 * hidden_roles) — same shape/caps as hidden_roles.
+	 * --------------------------------------------------------------------- */
+
+	/**
+	 * child_hidden_roles on a top-level item is intersected against valid
+	 * roles and stored, mirroring hidden_roles exactly.
+	 */
+	public function test_child_hidden_roles_valid_roles_stored() {
+		$raw = array(
+			'items' => array(
+				'woocommerce' => array( 'child_hidden_roles' => array( 'role-1', 'role-2' ) ),
+			),
+		);
+		$out = $this->config->sanitize( $raw );
+
+		$this->assertSame( array( 'role-1', 'role-2' ), $out['items']['woocommerce']['child_hidden_roles'] );
+	}
+
+	/**
+	 * An invalid role slug is dropped from child_hidden_roles via the same
+	 * array_intersect( ..., valid_roles ) guard hidden_roles uses.
+	 */
+	public function test_child_hidden_roles_invalid_role_dropped() {
+		$raw = array(
+			'items' => array(
+				'woocommerce' => array( 'child_hidden_roles' => array( 'role-1', 'not-a-real-role' ) ),
+			),
+		);
+		$out = $this->config->sanitize( $raw );
+
+		$this->assertSame( array( 'role-1' ), $out['items']['woocommerce']['child_hidden_roles'] );
+	}
+
+	/**
+	 * MAX_HIDDEN_ROLES caps child_hidden_roles exactly as it caps hidden_roles.
+	 */
+	public function test_child_hidden_roles_over_cap_truncated() {
+		$roles = array();
+		for ( $i = 1; $i <= Config::MAX_HIDDEN_ROLES + 1; $i++ ) {
+			$roles[] = "role-$i";
+		}
+		$raw = array(
+			'items' => array(
+				'woocommerce' => array( 'child_hidden_roles' => $roles ),
+			),
+		);
+		$out = $this->config->sanitize( $raw );
+
+		$this->assertSame( Config::MAX_HIDDEN_ROLES, count( $out['items']['woocommerce']['child_hidden_roles'] ) );
+	}
+
+	/**
+	 * An empty child_hidden_roles array must NOT appear in the stored entry —
+	 * default is untouched (no field), not an empty array sitting in storage.
+	 */
+	public function test_child_hidden_roles_empty_not_stored() {
+		$raw = array(
+			'items' => array(
+				'woocommerce' => array(
+					'title'               => 'Shop',
+					'child_hidden_roles'  => array(),
+				),
+			),
+		);
+		$out = $this->config->sanitize( $raw );
+
+		$this->assertArrayNotHasKey( 'child_hidden_roles', $out['items']['woocommerce'] );
+		$this->assertSame( 'Shop', $out['items']['woocommerce']['title'], 'Sibling fields must still be stored.' );
+	}
+
+	/**
+	 * When child_hidden_roles is entirely absent from the payload, it must
+	 * not appear in the stored entry.
+	 */
+	public function test_child_hidden_roles_absent_not_stored() {
+		$raw = array(
+			'items' => array(
+				'woocommerce' => array( 'title' => 'Shop' ),
+			),
+		);
+		$out = $this->config->sanitize( $raw );
+
+		$this->assertArrayNotHasKey( 'child_hidden_roles', $out['items']['woocommerce'] );
+	}
+
+	/**
+	 * child_hidden_roles is a PARENT-only concept: a qualified `parent>child`
+	 * submenu key must never carry it, mirroring the icon-drop rule.
+	 */
+	public function test_child_hidden_roles_dropped_on_qualified_key() {
+		$key = 'edit.php?post_type=product>edit.php?post_type=product';
+		$raw = array(
+			'items' => array(
+				$key => array(
+					'title'               => 'My Products',
+					'child_hidden_roles'  => array( 'role-1' ),
+				),
+			),
+		);
+		$out = $this->config->sanitize( $raw );
+
+		$this->assertArrayNotHasKey( 'child_hidden_roles', $out['items'][ $key ], 'A qualified (submenu) key must never carry child_hidden_roles.' );
+		$this->assertSame( 'My Products', $out['items'][ $key ]['title'], 'Title must still survive on the qualified key.' );
+	}
+
+	/**
+	 * child_hidden_roles coexists with hidden_roles and other existing caps
+	 * on the same top-level item, fully independently (REVISED semantics:
+	 * the two role sets are unrelated, not "rides the parent hide").
+	 */
+	public function test_child_hidden_roles_coexists_with_hidden_roles_and_other_caps() {
+		$raw = array(
+			'items' => array(
+				'woocommerce' => array(
+					'title'               => 'Shop',
+					'hidden_roles'        => array( 'role-1' ),
+					'child_hidden_roles'  => array( 'role-2' ),
+				),
+			),
+		);
+		$out = $this->config->sanitize( $raw );
+
+		$this->assertSame( 'Shop', $out['items']['woocommerce']['title'] );
+		$this->assertSame( array( 'role-1' ), $out['items']['woocommerce']['hidden_roles'] );
+		$this->assertSame( array( 'role-2' ), $out['items']['woocommerce']['child_hidden_roles'] );
+	}
 }

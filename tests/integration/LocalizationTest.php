@@ -70,6 +70,7 @@ class LocalizationTest extends WP_UnitTestCase {
 			'resetItem',
 			'resetAll',
 			'hideFrom',
+			'hideChildrenFrom',
 			'confirmAll',
 			'drag',
 			'moveUp',

@@ -131,7 +131,14 @@ class Replay {
 				$ovr = $norm_items[ $nk ];
 
 				if ( isset( $ovr['title'] ) ) {
-					$menu[ $pos ][0] = $ovr['title']; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: mutating $menu via admin_menu hook is the documented WP API for menu customization.
+					// COMPAT-07: re-extract badge/wrapper markup from the LIVE title
+					// each request and swap only the human-readable label into it,
+					// instead of overwriting the row wholesale. Falls back to the
+					// wholesale stored title when no replaceable text node exists
+					// (today's behavior) — no fatal, no invented markup.
+					$live_title      = isset( $row[0] ) ? (string) $row[0] : '';
+					$retitled        = Title::replace_label( $live_title, $ovr['title'] );
+					$menu[ $pos ][0] = ( null !== $retitled ) ? $retitled : $ovr['title']; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: mutating $menu via admin_menu hook is the documented WP API for menu customization.
 				}
 				if ( isset( $ovr['icon'] ) ) {
 					$menu[ $pos ][6] = $ovr['icon']; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: mutating $menu via admin_menu hook is the documented WP API for menu customization. Index 6 is top-level only.
@@ -154,22 +161,79 @@ class Replay {
 
 		// --- Submenus: rename, visibility, then reorder ------------------------
 		if ( is_array( $submenu ) ) {
+			// Precompute a normalized sub_order lookup ONCE (O(P)) instead of
+			// re-scanning and re-normalizing every stored sub_order key for each
+			// rendered parent (O(P²)). First stored key wins per normalized key,
+			// which reproduces the previous per-parent scan exactly — it broke on
+			// its first normalized match in stored-key order.
+			$norm_sub_order = array();
+			if ( ! empty( $cfg['sub_order'] ) ) {
+				foreach ( $cfg['sub_order'] as $sp => $sd ) {
+					$snk = Slug::normalize( (string) $sp, $base );
+					if ( ! isset( $norm_sub_order[ $snk ] ) ) {
+						$norm_sub_order[ $snk ] = $sd;
+					}
+				}
+			}
+
 			foreach ( $submenu as $parent => $children ) {
+				// COMPAT-04: a qualified `parent>child` override resolves ONLY this
+				// submenu row, never a same-slug top-level item (level-qualified).
+				// A legacy bare child key (no qualified key stored for this pair)
+				// keeps matching this row too — exactly today's behavior — so an
+				// existing config's effect does not change until it is re-saved.
+				// Both Axis-2 collision guards below are independent: a rendered
+				// collision on the qualified path does not veto the bare path or
+				// vice versa.
+				$norm_parent = Slug::normalize( (string) $parent, $base );
+
+				// COMPAT-10 (REVISED): resolve the PARENT's own override (bare
+				// top-level key only -- child_hidden_roles is a parent concept
+				// and Config::sanitize() never stores it on a qualified submenu
+				// key) so its child_hidden_roles can be unioned into each child
+				// below. Independent of the parent's own hidden_roles (whether
+				// the PARENT itself is hidden) -- that stays exactly the
+				// existing top-level hide, untouched here. The same Axis-1
+				// guard (norm_skip) and the top-level Axis-2 guard
+				// (top_skip_rendered, computed above) apply here too: an
+				// ambiguous parent resolves to no override, so child-hiding
+				// never fires for it.
+				$parent_ovr                = ( '' !== $norm_parent && ! isset( $norm_skip[ $norm_parent ] ) && ! isset( $top_skip_rendered[ $norm_parent ] ) && isset( $norm_items[ $norm_parent ] ) )
+					? $norm_items[ $norm_parent ]
+					: null;
+				$parent_child_hidden_roles = ( null !== $parent_ovr && ! empty( $parent_ovr['child_hidden_roles'] ) ) ? $parent_ovr['child_hidden_roles'] : array();
+
 				// Axis-2 collision guard for this parent's children: pre-scan before mutating.
-				$sub_rendered_matches = array(); // normalized_key => first rendered slug matched.
-				$sub_skip_rendered    = array(); // normalized_key => true (matched 2+ distinct rendered).
+				$sub_rendered_matches  = array(); // bare normalized_key => first rendered slug matched.
+				$sub_skip_rendered     = array(); // bare normalized_key => true (matched 2+ distinct rendered).
+				$qual_rendered_matches = array(); // qualified normalized_key => first rendered slug matched.
+				$qual_skip_rendered    = array(); // qualified normalized_key => true (matched 2+ distinct rendered).
 				foreach ( $children as $row ) {
 					if ( empty( $row[2] ) ) {
 						continue;
 					}
 					$nk = Slug::normalize( (string) $row[2], $base );
-					if ( '' === $nk || isset( $norm_skip[ $nk ] ) || ! isset( $norm_items[ $nk ] ) ) {
+					if ( '' === $nk ) {
 						continue;
 					}
-					if ( ! isset( $sub_rendered_matches[ $nk ] ) ) {
-						$sub_rendered_matches[ $nk ] = $row[2];
-					} elseif ( $sub_rendered_matches[ $nk ] !== $row[2] ) {
-						$sub_skip_rendered[ $nk ] = true;
+
+					if ( ! isset( $norm_skip[ $nk ] ) && isset( $norm_items[ $nk ] ) ) {
+						if ( ! isset( $sub_rendered_matches[ $nk ] ) ) {
+							$sub_rendered_matches[ $nk ] = $row[2];
+						} elseif ( $sub_rendered_matches[ $nk ] !== $row[2] ) {
+							$sub_skip_rendered[ $nk ] = true;
+						}
+					}
+
+					if ( '' !== $norm_parent ) {
+						$qnk = $norm_parent . Slug::QUALIFIED_SEPARATOR . $nk;
+						if ( ! isset( $norm_skip[ $qnk ] ) && isset( $norm_items[ $qnk ] ) ) {
+							if ( ! isset( $qual_rendered_matches[ $qnk ] ) ) {
+								$qual_rendered_matches[ $qnk ] = $row[2];
+							} elseif ( $qual_rendered_matches[ $qnk ] !== $row[2] ) {
+								$qual_skip_rendered[ $qnk ] = true;
+							}
+						}
 					}
 				}
 
@@ -179,33 +243,60 @@ class Replay {
 					}
 
 					$nk = Slug::normalize( (string) $row[2], $base );
-					if ( '' === $nk || isset( $norm_skip[ $nk ] ) || isset( $sub_skip_rendered[ $nk ] ) ) {
+					if ( '' === $nk ) {
 						continue;
 					}
-					if ( isset( $norm_items[ $nk ] ) ) {
+
+					$ovr = null;
+
+					// Qualified key wins first: an unambiguous parent>child override
+					// for THIS rendered parent+child pair. A stored qualified key
+					// whose parent half matches no rendered parent here never builds
+					// a matching $qnk in this loop, so it is skipped silently — no
+					// extra check needed for the parent-half-miss rule.
+					if ( '' !== $norm_parent ) {
+						$qnk = $norm_parent . Slug::QUALIFIED_SEPARATOR . $nk;
+						if ( ! isset( $norm_skip[ $qnk ] ) && ! isset( $qual_skip_rendered[ $qnk ] ) && isset( $norm_items[ $qnk ] ) ) {
+							$ovr = $norm_items[ $qnk ];
+						}
+					}
+
+					// Legacy bare fallback: only when no qualified override applied.
+					if ( null === $ovr && ! isset( $norm_skip[ $nk ] ) && ! isset( $sub_skip_rendered[ $nk ] ) && isset( $norm_items[ $nk ] ) ) {
 						$ovr = $norm_items[ $nk ];
-						if ( isset( $ovr['title'] ) ) {
-							$submenu[ $parent ][ $pos ][0] = $ovr['title']; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: mutating $submenu via admin_menu hook is the documented WP API for submenu customization.
-						}
-						if ( $this->is_hidden_for_current_user( $ovr ) ) {
-							unset( $submenu[ $parent ][ $pos ] ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: unsetting $submenu entries via admin_menu hook is the documented WP API for hiding menu items.
-						}
+					}
+
+					// A child with no override of its own is NOT skipped outright any
+					// more (COMPAT-10): the parent's child_hidden_roles may still hide
+					// it below, even though there is nothing of its own to rename/hide.
+					if ( null !== $ovr && isset( $ovr['title'] ) ) {
+						// COMPAT-07: same live-title text-node swap as the top-level seam
+						// above, applied to the submenu row.
+						$live_title                    = isset( $row[0] ) ? (string) $row[0] : '';
+						$retitled                      = Title::replace_label( $live_title, $ovr['title'] );
+						$submenu[ $parent ][ $pos ][0] = ( null !== $retitled ) ? $retitled : $ovr['title']; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: mutating $submenu via admin_menu hook is the documented WP API for submenu customization.
+					}
+
+					// COMPAT-10 (REVISED): union the child's own hidden_roles with the
+					// parent's child_hidden_roles (Cascade::effective_hidden_roles() is
+					// pure -- it only merges role-slug lists, never touches a
+					// capability). This is fully INDEPENDENT of whether the parent
+					// itself is hidden -- a parent with no child_hidden_roles rule
+					// contributes nothing, so an untouched parent is exactly the
+					// child's own hidden_roles -- zero regression.
+					$child_own_roles = ( null !== $ovr && ! empty( $ovr['hidden_roles'] ) ) ? $ovr['hidden_roles'] : array();
+					$effective_roles = Cascade::effective_hidden_roles( $child_own_roles, $parent_child_hidden_roles );
+					if ( $effective_roles && $this->is_hidden_for_current_user( array( 'hidden_roles' => $effective_roles ) ) ) {
+						unset( $submenu[ $parent ][ $pos ] ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: unsetting $submenu entries via admin_menu hook is the documented WP API for hiding menu items.
 					}
 				}
 
 				// Reorder this parent's surviving children.
-				// Normalize the sub_order parent key so an absolute/encoded stored
-				// key resolves against the (possibly different form) rendered parent.
-				$norm_parent   = Slug::normalize( (string) $parent, $base );
-				$desired_order = null;
-				if ( ! empty( $cfg['sub_order'] ) ) {
-					foreach ( $cfg['sub_order'] as $sp => $sd ) {
-						if ( Slug::normalize( (string) $sp, $base ) === $norm_parent ) {
-							$desired_order = $sd;
-							break;
-						}
-					}
-				}
+				// $norm_parent (computed above) also resolves the sub_order parent
+				// key so an absolute/encoded stored key matches the (possibly
+				// different form) rendered parent. O(1) lookup into the map
+				// precomputed once above.
+				$desired_order = isset( $norm_sub_order[ $norm_parent ] ) ? $norm_sub_order[ $norm_parent ] : null;
 
 				if ( ! empty( $desired_order ) ) {
 					// Normalize desired child slug list.
@@ -357,6 +448,11 @@ class Replay {
 	 * resolve to nothing. Shared by replay() (which applies overrides) and
 	 * get_menu_model() (which shows them in the editor) so the two never drift.
 	 *
+	 * A stored key may be a bare top-level slug or a qualified `parent>child`
+	 * submenu key (COMPAT-04); Slug::normalize_qualified() normalizes each form
+	 * appropriately (bare keys behave exactly as Slug::normalize(), unchanged),
+	 * so the Axis-1 guard applies equally to both key shapes in one pass.
+	 *
 	 * @param array  $items Stored items keyed by raw override key.
 	 * @param string $base  Admin base for Slug::normalize().
 	 * @return array{0: array<string, array>, 1: array<string, bool>} [ norm_items, norm_skip ]
@@ -365,7 +461,7 @@ class Replay {
 		$norm_items = array(); // normalized_key => override.
 		$norm_skip  = array(); // normalized_key => true (ambiguous, skip).
 		foreach ( $items as $stored_key => $override ) {
-			$nk = Slug::normalize( (string) $stored_key, $base );
+			$nk = Slug::normalize_qualified( (string) $stored_key, $base );
 			if ( '' === $nk ) {
 				continue;
 			}
@@ -381,21 +477,61 @@ class Replay {
 
 	/**
 	 * Resolve a rendered slug's stored hidden_roles through the normalized lookup,
-	 * mirroring how replay() decides which override applies. Returns an empty
-	 * array when the slug has no (unambiguous) stored override.
+	 * mirroring how replay() decides which override applies: for a submenu child
+	 * ($parent_slug given), a qualified `parent>child` override wins first, with
+	 * a legacy bare fallback; for a top-level row ($parent_slug null), only the
+	 * bare key is consulted — never a same-slug submenu's qualified override.
+	 * Returns an empty array when nothing (unambiguous) resolves.
 	 *
-	 * @param string $slug       Rendered slug.
+	 * @param string      $slug        Rendered slug (top-level or submenu child).
+	 * @param array       $norm_items  Normalized override map from normalized_items().
+	 * @param array       $norm_skip   Ambiguous normalized keys from normalized_items().
+	 * @param string      $base        Admin base for Slug::normalize().
+	 * @param string|null $parent_slug Rendered parent slug for a submenu child, or
+	 *                                 null for a top-level row.
+	 * @return array
+	 */
+	private function resolved_hidden_roles( $slug, array $norm_items, array $norm_skip, $base, $parent_slug = null ) {
+		$nk = Slug::normalize( (string) $slug, $base );
+		if ( '' === $nk ) {
+			return array();
+		}
+
+		if ( null !== $parent_slug ) {
+			$norm_parent = Slug::normalize( (string) $parent_slug, $base );
+			if ( '' !== $norm_parent ) {
+				$qnk = $norm_parent . Slug::QUALIFIED_SEPARATOR . $nk;
+				if ( ! isset( $norm_skip[ $qnk ] ) && isset( $norm_items[ $qnk ]['hidden_roles'] ) ) {
+					return $norm_items[ $qnk ]['hidden_roles'];
+				}
+			}
+		}
+
+		if ( isset( $norm_skip[ $nk ] ) || ! isset( $norm_items[ $nk ]['hidden_roles'] ) ) {
+			return array();
+		}
+		return $norm_items[ $nk ]['hidden_roles'];
+	}
+
+	/**
+	 * Resolve a top-level rendered slug's stored child_hidden_roles through
+	 * the SAME normalized bare-key lookup replay() consults for the parent's
+	 * own override (child_hidden_roles is a parent-only concept — never
+	 * resolved via a qualified submenu key). Returns an empty array when
+	 * nothing (or something ambiguous) resolves — the untouched, no-op case.
+	 *
+	 * @param string $slug       Rendered top-level slug.
 	 * @param array  $norm_items Normalized override map from normalized_items().
 	 * @param array  $norm_skip  Ambiguous normalized keys from normalized_items().
 	 * @param string $base       Admin base for Slug::normalize().
 	 * @return array
 	 */
-	private function resolved_hidden_roles( $slug, array $norm_items, array $norm_skip, $base ) {
+	private function resolved_child_hidden_roles( $slug, array $norm_items, array $norm_skip, $base ) {
 		$nk = Slug::normalize( (string) $slug, $base );
-		if ( '' === $nk || isset( $norm_skip[ $nk ] ) || ! isset( $norm_items[ $nk ]['hidden_roles'] ) ) {
+		if ( '' === $nk || isset( $norm_skip[ $nk ] ) || empty( $norm_items[ $nk ]['child_hidden_roles'] ) ) {
 			return array();
 		}
-		return $norm_items[ $nk ]['hidden_roles'];
+		return $norm_items[ $nk ]['child_hidden_roles'];
 	}
 
 	/**
@@ -434,23 +570,40 @@ class Replay {
 			$slug = $row[2];
 
 			$node = array(
-				'slug'        => $slug,
-				'liId'        => $this->li_id( $row ),
-				'title'       => isset( $row[0] ) ? wp_strip_all_tags( $row[0] ) : '',
-				'icon'        => isset( $row[6] ) ? $row[6] : '',
-				'hiddenRoles' => $this->resolved_hidden_roles( $slug, $norm_items, $norm_skip, $base ),
-				'submenu'     => array(),
+				'slug'             => $slug,
+				'liId'             => $this->li_id( $row ),
+				'title'            => isset( $row[0] ) ? wp_strip_all_tags( $row[0] ) : '',
+				'icon'             => isset( $row[6] ) ? $row[6] : '',
+				'hiddenRoles'      => $this->resolved_hidden_roles( $slug, $norm_items, $norm_skip, $base ),
+				// COMPAT-10 (REVISED): parent-only child_hidden_roles, resolved via
+				// the SAME normalized bare-key lookup as hiddenRoles above, so the
+				// editor popover reflects exactly what replay() will apply.
+				// Independent of hiddenRoles above (whether the PARENT is hidden).
+				'childHiddenRoles' => $this->resolved_child_hidden_roles( $slug, $norm_items, $norm_skip, $base ),
+				'submenu'          => array(),
 			);
 
 			if ( ! empty( $submenu[ $slug ] ) ) {
+				// Each child's qualified `parent>child` identity (COMPAT-04) — so the
+				// client and the next full-replace save can address this submenu row
+				// independently of a same-slug top-level item. Computed once per
+				// parent since it only depends on the (already normalized) top slug.
+				$norm_parent = Slug::normalize( (string) $slug, $base );
+
 				foreach ( $submenu[ $slug ] as $sub ) {
 					if ( empty( $sub[2] ) ) {
 						continue;
 					}
+					$child_norm    = Slug::normalize( (string) $sub[2], $base );
+					$qualified_key = ( '' !== $norm_parent && '' !== $child_norm )
+						? $norm_parent . Slug::QUALIFIED_SEPARATOR . $child_norm
+						: '';
+
 					$node['submenu'][] = array(
-						'slug'        => $sub[2],
-						'title'       => isset( $sub[0] ) ? wp_strip_all_tags( $sub[0] ) : '',
-						'hiddenRoles' => $this->resolved_hidden_roles( $sub[2], $norm_items, $norm_skip, $base ),
+						'slug'         => $sub[2],
+						'qualifiedKey' => $qualified_key,
+						'title'        => isset( $sub[0] ) ? wp_strip_all_tags( $sub[0] ) : '',
+						'hiddenRoles'  => $this->resolved_hidden_roles( $sub[2], $norm_items, $norm_skip, $base, $slug ),
 					);
 				}
 			}

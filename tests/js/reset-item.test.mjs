@@ -23,6 +23,15 @@ test( 'top-level item: returns title, hiddenRoles=[], icon from pristine', () =>
 	assert.deepEqual( result.hiddenRoles, [] );
 } );
 
+// childHiddenRoles (COMPAT-10 REVISED) has no WP-native pristine state —
+// reset always clears it to [], top-level or submenu.
+test( 'top-level item: childHiddenRoles is always reset to []', () => {
+	const item     = { title: 'My Posts', icon: 'dashicons-admin-home', hiddenRoles: [ 'editor' ], childHiddenRoles: [ 'shop_manager' ] };
+	const pristine = { title: 'Posts', icon: 'dashicons-admin-post' };
+	const result   = resetItem( item, pristine, false );
+	assert.deepEqual( result.childHiddenRoles, [] );
+} );
+
 // Top-level item with empty pristine strings
 test( 'top-level item: empty pristine title/icon -> empty strings in result', () => {
 	const item     = { title: 'Foo', icon: 'dashicons-admin-home', hiddenRoles: [] };

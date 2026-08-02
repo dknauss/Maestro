@@ -289,7 +289,11 @@ test.describe( 'Admin Menu Maestro — editor', () => {
 		const saveResp = page.waitForResponse(
 			r => POST_SAVE( r.url() ) && r.request().method() === 'POST' && r.ok()
 		);
-		await picker.getByLabel( 'Editor' ).check();
+		// Media has children (Library, Add Media File), so the popover now also
+		// shows the "Hide its sub-items from:" group (COMPAT-10 REVISED) with its
+		// own "Editor" checkbox — scope to the item's OWN hide group
+		// (.maestro-vis-own) so this test hides Media itself, not its children.
+		await picker.locator( '.maestro-vis-own' ).getByLabel( 'Editor' ).check();
 		const payload = ( await saveResp ).request().postDataJSON();
 		expect( payload?.config?.items?.[ 'upload.php' ]?.hidden_roles ).toContain( 'editor' );
 

@@ -21,9 +21,9 @@ backlog IDs without renumbering.
 
 ### Third-Party Compatibility (R1 backlog)
 
-- [ ] **COMPAT-04**: A rename or hide override on a top-level slug does **not** also hit a submenu that renders the same slug — match keys are level-qualified (parent vs submenu), verified against the R1 shared-slug fixtures.
-- [ ] **COMPAT-07**: A rename **preserves** a menu item's trailing badge / HTML-in-title (update-count bubble, "NEW"/count spans) instead of stripping it, for the R1 plugins that use them (4/6), verified by fixture.
-- [ ] **COMPAT-10**: An admin can **optionally** cascade a parent hide to its children (subtree-hide), off by default; enabling it hides the children cosmetically without affecting access.
+- [x] **COMPAT-04**: A rename or hide override on a top-level slug does **not** also hit a submenu that renders the same slug — match keys are level-qualified (parent vs submenu), verified against the R1 shared-slug fixtures.
+- [x] **COMPAT-07**: A rename **preserves** a menu item's trailing badge / HTML-in-title (update-count bubble, "NEW"/count spans) instead of stripping it, for the R1 plugins that use them (4/6), verified by fixture.
+- [x] **COMPAT-10**: An admin can **optionally** hide all of a parent's live sub-items from specific roles — independent of whether the parent itself is hidden — cosmetically, without affecting access. *(Revised 2026-08-01: the original "cascade rides the parent hide" design was found inert — WordPress core already hides a hidden parent's whole rendered subtree, so cascading on top of that produced no observable difference. Delivered instead as an independent per-parent `child_hidden_roles` role set, exposed as a second "Hide its sub-items from:" role group in the visibility popover, so hiding sub-items is a genuinely visible, standalone effect.)*
 
 ### Roles (cosmetic only)
 
@@ -72,9 +72,9 @@ Which phases cover which requirements. Populated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | DEMO-01 | Phase 22 | Pending |
-| COMPAT-04 | Phase 20 | Pending |
-| COMPAT-07 | Phase 20 | Pending |
-| COMPAT-10 | Phase 20 | Pending |
+| COMPAT-04 | Phase 20 | ✅ Complete 2026-08-01 |
+| COMPAT-07 | Phase 20 | ✅ Complete 2026-08-01 |
+| COMPAT-10 | Phase 20 | ✅ Complete 2026-08-01 |
 | ROLE-01 | Phase 19 | ✅ Complete (partial-go) 2026-07-05 |
 | ROLE-02 | Phase 21 (unblocked — go, per-user first) | Pending |
 | UX-09 | Phase 23 | ✅ Complete 2026-07-05 |

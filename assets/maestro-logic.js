@@ -61,8 +61,11 @@ function reorderMove( order, slug, direction ) {
  *   - icon is modified iff current.icon is truthy AND !== pristine.icon
  *     (skipped when pristine has no icon key, i.e. submenu items)
  *   - hiddenRoles is modified iff current.hiddenRoles.length > 0
+ *   - childHiddenRoles (COMPAT-10 REVISED, parent-only) is modified iff
+ *     current.childHiddenRoles.length > 0 — same length-only rule as
+ *     hiddenRoles, fully independent of it.
  *
- * @param {{ title: string, icon?: string, hiddenRoles: string[] }} current  Working model item.
+ * @param {{ title: string, icon?: string, hiddenRoles: string[], childHiddenRoles?: string[] }} current  Working model item.
  * @param {{ title: string, icon?: string }}                        pristine Pristine default.
  * @return {{ modified: boolean, fields: string[] }}
  */
@@ -81,6 +84,10 @@ function diffItem( current, pristine ) {
 
 	if ( current.hiddenRoles && current.hiddenRoles.length > 0 ) {
 		fields.push( 'hiddenRoles' );
+	}
+
+	if ( current.childHiddenRoles && current.childHiddenRoles.length > 0 ) {
+		fields.push( 'childHiddenRoles' );
 	}
 
 	return { modified: fields.length > 0, fields: fields };
@@ -112,20 +119,26 @@ function modeStatusLabel( state, strings ) {
  * restored to pristine values. Does NOT mutate the input. Does NOT touch the DOM.
  *
  * Mirrors the inline reset logic in resetSelected() in maestro.js:
- *   m.title       = def.title || '';
- *   m.hiddenRoles = [];
+ *   m.title            = def.title || '';
+ *   m.hiddenRoles      = [];
  *   if ( ! m.isSub ) m.icon = def.icon || '';
+ *   m.childHiddenRoles = [];
  *
- * @param {{ title: string, icon?: string, hiddenRoles: string[] }} item     Current item state.
+ * childHiddenRoles (COMPAT-10 REVISED) has no WP-native pristine state —
+ * reset always clears it to [], top-level or submenu (the field is simply
+ * unused for submenu items).
+ *
+ * @param {{ title: string, icon?: string, hiddenRoles: string[], childHiddenRoles?: string[] }} item     Current item state.
  * @param {{ title: string, icon?: string }}                        pristine Pristine default.
  * @param {boolean}                                                 isSub    True for submenu items.
- * @return {{ title: string, hiddenRoles: string[], icon: string }}
+ * @return {{ title: string, hiddenRoles: string[], icon: string, childHiddenRoles: string[] }}
  */
 function resetItem( item, pristine, isSub ) {
 	var result = {
-		title:       pristine.title || '',
-		hiddenRoles: [],
-		icon:        isSub ? '' : ( pristine.icon || '' ),
+		title:            pristine.title || '',
+		hiddenRoles:      [],
+		icon:             isSub ? '' : ( pristine.icon || '' ),
+		childHiddenRoles: [],
 	};
 	return result;
 }
@@ -149,14 +162,43 @@ function firstRunSeen( storage ) {
 	}
 }
 
+/**
+ * Pure DERIVED-lock predicate for the "Hide its sub-items from:" (COMPAT-10)
+ * role group in the visibility popover: a role is "locked" — rendered
+ * checked+disabled, a display-only state, never a real persisted rule —
+ * exactly when that SAME role is checked in "Hide this item from:" (the
+ * item's own `hiddenRoles`). WordPress core already removes a hidden
+ * parent's whole rendered subtree for that role, so "Hide its sub-items
+ * from:"'s own entry for it would be redundant.
+ *
+ * PAYLOAD PURITY CONTRACT: this function only ever reads `hiddenRoles` — it
+ * never reads or writes `childHiddenRoles`. The caller (maestro.js's
+ * buildRoleGroup#refresh) uses this ONLY to decide the checkbox's rendered
+ * checked/disabled attributes; it must never feed the result back into
+ * `childHiddenRoles`/`setSet`. This is what guarantees the round-trip
+ * property: hiding the parent from a role (which locks that role's
+ * sub-items checkbox) can never itself add that role to the persisted
+ * `child_hidden_roles`, so un-hiding the parent from that role always
+ * restores the children to whatever `childHiddenRoles` genuinely held
+ * before — see tests/js/child-role-lock.test.mjs's round-trip case.
+ *
+ * @param {string[]} hiddenRoles Parent's own hidden_roles (Group 1's current state).
+ * @param {string} roleKey Role slug to test.
+ * @return {boolean} true if roleKey is locked (already hidden via the parent's own hide).
+ */
+function isChildRoleLockedByParent( hiddenRoles, roleKey ) {
+	return hiddenRoles.indexOf( roleKey ) !== -1;
+}
+
 /* ---------- dual-export guard ----------------------------------------- */
 
 var api = {
-	reorderMove:     reorderMove,
-	diffItem:        diffItem,
-	resetItem:       resetItem,
-	modeStatusLabel: modeStatusLabel,
-	firstRunSeen:    firstRunSeen,
+	reorderMove:               reorderMove,
+	diffItem:                  diffItem,
+	resetItem:                 resetItem,
+	modeStatusLabel:           modeStatusLabel,
+	firstRunSeen:              firstRunSeen,
+	isChildRoleLockedByParent: isChildRoleLockedByParent,
 };
 
 if ( typeof module !== 'undefined' && module.exports ) {

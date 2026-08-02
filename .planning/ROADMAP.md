@@ -143,11 +143,12 @@ Full phase details, success criteria, and outcomes are archived in
 ## Phase Details (v1.4 — Compatibility, Roles & Showcase)
 
 - [x] **Phase 19: Cosmetic Hiding Feasibility** — feasibility note determining whether per-user/cloned-role menu hiding can stay strictly cosmetic; gates Phase 21 (completed 2026-07-05)
-- [ ] **Phase 20: Third-Party Compatibility Fixes** — level-qualified match keys, badge/HTML-in-title preservation on rename, optional subtree-hide cascade (R1 backlog)
+- [x] **Phase 20: Third-Party Compatibility Fixes** — level-qualified match keys, badge/HTML-in-title preservation on rename, optional subtree-hide cascade (R1 backlog) (completed 2026-08-02)
 - [ ] **Phase 21: Cosmetic Per-User / Cloned-Role Hiding** — conditional on Phase 19 clearing the cosmetic-only bar
 - [ ] **Phase 22: Slug-Resolution Showcase Demo** — Playground demo that visibly demonstrates the v1.3.0 slug-normalization fixes
 - [x] **Phase 23: Editor UX Polish** — native wp-admin restyle of all edit-mode surfaces (UX-13, added 2026-07-03), semantic-colour borders removed (UX-12 verdict), first-run banner centering (BUG-08) — complete 2026-07-05
 - [ ] **Phase 24: Release v1.4.0** — cut and ship to WordPress.org; recapture editor screenshots for the UX-11 coachmark
+- [ ] **Phase 25: Edit-Mode Toolbar Dark-Surface Polish** — dark-toolbar icon/focus contrast (WCAG 1.4.11), save-indicator layout shift, rename commit feedback (added 2026-08-02; pre-existing v1.3.1 surfaces, non-blocking for v1.4.0)
 
 ### Phase 19: Cosmetic Hiding Feasibility
 **Goal**: It is known, before any implementation, whether per-user and/or cloned-role menu hiding can be delivered without touching capabilities — and if so, how it should be stored and resolved
@@ -168,9 +169,16 @@ Full phase details, success criteria, and outcomes are archived in
 **Success Criteria** (what must be TRUE):
   1. A rename or hide override targeted at a top-level slug does not also apply to a submenu item that happens to render the same slug, and vice versa — verified against the R1 shared-slug fixtures as test cases
   2. Renaming a menu item that carries a trailing badge or HTML fragment in its title (update-count bubble, "NEW"/count span) preserves that badge/HTML instead of stripping it, verified against the 4/6 R1 plugins that use them
-  3. An admin can enable an optional "cascade hide to children" setting on a parent item; with it off (default), hiding a parent leaves children visible; with it on, children are cosmetically hidden too, with no change to their underlying capabilities
+  3. An admin can optionally hide all of a parent's live sub-items from specific roles — independent of whether the parent itself is hidden — with no change to their underlying capabilities. *(Revised 2026-08-01/02: the original "cascade rides the parent hide" design was found inert since WordPress core already hides a hidden parent's whole rendered subtree; delivered instead as an independent `child_hidden_roles` role set, a genuinely visible standalone effect. See `20-CONTEXT.md`'s REVISION NOTE.)*
   4. Existing PHP unit, integration, and Playwright e2e suites stay green; WPCS clean; PHPStan clean; Plugin Check 0 errors
-**Plans**: TBD
+**Plans**: 6 plans in 5 waves
+Plans:
+- [x] 20-01-PLAN.md — COMPAT-04: qualified-key storage foundation (pure key helper + Config::sanitize) [COMPAT-04]
+- [x] 20-02-PLAN.md — COMPAT-04: replay + editor-model qualified resolution with legacy bare fallback [COMPAT-04]
+- [x] 20-03-PLAN.md — COMPAT-04: client A1b (qualified model + stable submenu DOM bind) + shared-slug e2e [COMPAT-04]
+- [x] 20-04-PLAN.md — COMPAT-07: text-node badge/HTML preservation on rename (pure helper + replay wiring) [COMPAT-07]
+- [x] 20-05-PLAN.md — COMPAT-10: cascade-hide server (pure computation + replay + cosmetic-only guardrail) — SUPERSEDED by 20-06's revision (boolean cascade_hide replaced with independent child_hidden_roles) [COMPAT-10]
+- [x] 20-06-PLAN.md — COMPAT-10: independent child_hidden_roles UI in visibility popover + phase zero-regression gate (revised design) [COMPAT-10]
 
 ### Phase 21: Cosmetic Per-User / Cloned-Role Hiding
 **Goal**: An admin can hide menu items for a specific user or a cloned role, purely cosmetically, without ever changing what that user is actually permitted to do — conditional on Phase 19's feasibility verdict
@@ -226,6 +234,19 @@ Plans:
   5. SVN `trunk` is updated and the `1.4.0` SVN tag is cut, following the same pipeline used for v1.2.0/v1.3.0
 **Plans**: TBD
 
+### Phase 25: Edit-Mode Toolbar Dark-Surface Polish
+**Goal**: The edit-mode bottom toolbar reads cleanly on its dark (`#1d2327`) background and meets the accessibility bar Phase 23 held — control icons and focus states clear WCAG non-text contrast, the save-status indicator no longer shifts the layout, and renames give adequate commit feedback — spot-checked on Default + Modern + Midnight admin colour schemes.
+**Depends on**: Phase 23 (builds on the shipped editor-UX toolbar)
+**Requirements**: (none formal — UX/a11y polish; surfaced during Phase 20 verification 2026-08-02. Seed: [.planning/todos/pending/2026-08-01-editor-toolbar-icon-contrast.md](todos/pending/2026-08-01-editor-toolbar-icon-contrast.md))
+**Success Criteria** (what must be TRUE):
+  1. Control **icon glyphs** meet WCAG 1.4.11 (≥3:1) on the dark toolbar — recoloured from WP interactive-blue `#3858e9` (~2.8:1) to WP light gray `#c3c4c7` (~9:1), matching the button labels — confirmed by a contrast check.
+  2. The **focus ring** on toolbar controls is a light/bright indicator (`#fff` or WP blue-30 `#72aee6`, ≥3:1 on `#1d2327`), replacing the dark `#2271b1` ring, mirroring WP's admin bar / Gutenberg dark surfaces — confirmed by a focus-visible contrast check.
+  3. The **save-status indicator** (`.maestro-status`) occupies a persistent fixed-width slot so its appearance/disappearance no longer reflows the rename field — content fades in/out inside a reserved box — confirmed by before/after (no layout shift).
+  4. **Rename commit feedback** is improved (the save-status fires on rename commit and/or an "Enter to apply" hint) so a rename no longer feels unsaved — WITHOUT introducing live as-you-type autosave (keeps the commit-on-Enter/blur + debounced-save model and the HARD-03 save-race behavior intact).
+  5. Existing PHP unit, integration, JS, and Playwright e2e suites stay green; WPCS clean; PHPStan clean; Plugin Check 0 new errors; verified across Default/Modern/Midnight admin colour schemes.
+**Sequencing note**: these are **pre-existing** Phase 23 (v1.3.1) toolbar surfaces, not v1.4 regressions, so they do **not** block the Phase 24 release. Placement is the user's call — ship it *before* Phase 24 (so v1.4.0 carries the fixes and Phase 24's editor-screenshot recapture reflects them), or defer to a v1.4.1 / later follow-up. Currently appended after Phase 24; resequence with `/gsd:insert-phase` if it should precede the release.
+**Plans**: TBD (run /gsd:plan-phase 25 to break down)
+
 ---
 
 ## Progress
@@ -255,9 +276,10 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 | 16. Synthesis | R1 | 2/2 | Complete | 2026-06-29 |
 | 17. Slug Normalization | v1.3.0 | 3/3 | Complete (shipped 2026-06-30) | 2026-06-29 |
 | 18. Release v1.3.0 | v1.3.0 | 3/3 | Complete (shipped 2026-06-30) | 2026-06-30 |
-| 19. Cosmetic Hiding Feasibility | v1.4 | Complete    | 2026-07-05 | - |
-| 20. Third-Party Compatibility Fixes | v1.4 | 0/TBD | Not started | - |
+| 19. Cosmetic Hiding Feasibility | v1.4 | 1/1 | Complete | 2026-07-05 |
+| 20. Third-Party Compatibility Fixes | v1.4 | 6/6 | Complete | 2026-08-02 |
 | 21. Cosmetic Per-User / Cloned-Role Hiding | v1.4 | 0/TBD | Not started (conditional on Phase 19) | - |
 | 22. Slug-Resolution Showcase Demo | v1.4 | 0/TBD | Not started | - |
 | 23. Editor UX Polish | v1.4 | 5/5 | Complete | 2026-07-05 |
 | 24. Release v1.4.0 | v1.4 | 0/TBD | Not started | - |
+| 25. Edit-Mode Toolbar Dark-Surface Polish | v1.4 | 0/TBD | Not started | - |

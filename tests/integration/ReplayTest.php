@@ -666,4 +666,680 @@ class ReplayTest extends WP_UnitTestCase {
 			'Anti-regression: plain slug overrides must still apply unchanged after normalization wiring.'
 		);
 	}
+
+	// -----------------------------------------------------------------------
+	// COMPAT-04: level-qualified submenu resolution (20-02)
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Seed a WooCommerce-style shared-slug fixture: a top-level item and its
+	 * own first submenu child render the SAME slug (e.g. Products top-level +
+	 * "All Products" submenu under itself) — the COMPAT-04 collision surface.
+	 */
+	private function seed_shared_slug_menu() {
+		global $menu, $submenu;
+
+		$menu[20] = array( 'Products', 'manage_woocommerce', 'edit.php?post_type=product', '', 'menu-top', 'menu-posts-product', 'dashicons-tag' );
+
+		$submenu['edit.php?post_type=product'] = array(
+			5  => array( 'All Products', 'manage_woocommerce', 'edit.php?post_type=product', '' ),
+			10 => array( 'Add Product', 'manage_woocommerce', 'post-new.php?post_type=product', '' ),
+		);
+	}
+
+	/**
+	 * A qualified `parent>child` override renames ONLY the submenu row; the
+	 * same-slug top-level item is untouched.
+	 */
+	public function test_qualified_key_renames_only_submenu_not_top() {
+		$this->seed_shared_slug_menu();
+
+		( new Config() )->save(
+			array(
+				'items' => array(
+					'edit.php?post_type=product>edit.php?post_type=product' => array( 'title' => 'All Items' ),
+				),
+			)
+		);
+
+		$this->run_replay();
+
+		global $menu, $submenu;
+		$this->assertSame( 'All Items', $submenu['edit.php?post_type=product'][5][0], 'Qualified key must rename the submenu row.' );
+		$this->assertSame( 'Products', $menu[20][0], 'Qualified submenu key must not touch the same-slug top-level item.' );
+	}
+
+	/**
+	 * A bare top-level override and a qualified submenu override on the SAME
+	 * underlying slug apply independently: each hits only its own scope.
+	 */
+	public function test_bare_top_override_and_qualified_submenu_override_are_independent() {
+		$this->seed_shared_slug_menu();
+
+		( new Config() )->save(
+			array(
+				'items' => array(
+					'edit.php?post_type=product'                             => array( 'title' => 'Shop Items' ),
+					'edit.php?post_type=product>edit.php?post_type=product' => array( 'title' => 'All Items' ),
+				),
+			)
+		);
+
+		$this->run_replay();
+
+		global $menu, $submenu;
+		$this->assertSame( 'Shop Items', $menu[20][0], 'Bare top-level key must rename only the top-level item.' );
+		$this->assertSame( 'All Items', $submenu['edit.php?post_type=product'][5][0], 'Qualified key must win for the submenu row over the bare top key.' );
+	}
+
+	/**
+	 * Zero-regression: a legacy config with ONLY a bare submenu key (no
+	 * qualified key stored) still renames BOTH the top-level item and the
+	 * same-slug submenu row — exactly today's behavior — until re-saved.
+	 */
+	public function test_legacy_bare_submenu_key_still_matches_both_scopes_today() {
+		$this->seed_shared_slug_menu();
+
+		( new Config() )->save(
+			array( 'items' => array( 'edit.php?post_type=product' => array( 'title' => 'Renamed Everywhere' ) ) )
+		);
+
+		$this->run_replay();
+
+		global $menu, $submenu;
+		$this->assertSame( 'Renamed Everywhere', $menu[20][0], 'Legacy bare key must still rename the top-level item.' );
+		$this->assertSame(
+			'Renamed Everywhere',
+			$submenu['edit.php?post_type=product'][5][0],
+			'Legacy bare key with no qualified key present must still rename the same-slug submenu row (zero-regression until re-saved).'
+		);
+	}
+
+	/**
+	 * A qualified key whose parent half matches no rendered parent in this
+	 * pass is skipped and degrades silently — no misapplied override.
+	 */
+	public function test_qualified_key_parent_half_miss_skips_silently() {
+		$this->seed_shared_slug_menu();
+
+		( new Config() )->save(
+			array(
+				'items' => array(
+					'no-such-parent.php>edit.php?post_type=product' => array( 'title' => 'Should Not Apply' ),
+				),
+			)
+		);
+
+		$this->run_replay();
+
+		global $submenu;
+		$this->assertSame(
+			'All Products',
+			$submenu['edit.php?post_type=product'][5][0],
+			'A qualified key whose parent half matches no rendered parent must be skipped silently.'
+		);
+	}
+
+	/**
+	 * Axis-1 collision guard extends to qualified keys: two distinct stored
+	 * qualified keys that normalize (ver= dropped) to the SAME qualified key
+	 * are ambiguous — apply nothing.
+	 */
+	public function test_axis1_guard_extends_to_qualified_keys() {
+		$this->seed_shared_slug_menu();
+
+		( new Config() )->save(
+			array(
+				'items' => array(
+					'edit.php?post_type=product>edit.php?post_type=product&ver=1.0' => array( 'title' => 'Ambiguous A' ),
+					'edit.php?post_type=product>edit.php?post_type=product&ver=2.0' => array( 'title' => 'Ambiguous B' ),
+				),
+			)
+		);
+
+		$this->run_replay();
+
+		global $submenu;
+		$this->assertSame(
+			'All Products',
+			$submenu['edit.php?post_type=product'][5][0],
+			'Axis-1 collision guard must extend to qualified keys: two stored keys normalizing to one apply nothing.'
+		);
+	}
+
+	/**
+	 * Each half of a qualified key normalizes independently: a host-moved
+	 * parent half and a ver=-drifted child half both still resolve to the
+	 * live parent/child pair.
+	 */
+	public function test_qualified_key_normalizes_each_half_independently() {
+		$this->seed_shared_slug_menu();
+
+		$stored_key = 'https://oldhost.test/wp-admin/edit.php?post_type=product>edit.php?post_type=product&ver=9.9';
+
+		( new Config() )->save(
+			array( 'items' => array( $stored_key => array( 'title' => 'All Items Twin' ) ) )
+		);
+
+		$this->run_replay();
+
+		global $menu, $submenu;
+		$this->assertSame(
+			'All Items Twin',
+			$submenu['edit.php?post_type=product'][5][0],
+			'Each half of a qualified key must be normalized independently (host-move parent half + ver-drift child half).'
+		);
+		$this->assertSame( 'Products', $menu[20][0], 'Top-level item must remain untouched by the qualified override.' );
+	}
+
+	/**
+	 * get_menu_model(): each submenu child node carries its qualified
+	 * `parent>child` key alongside its raw slug, so the client and the next
+	 * full-replace save can address it independently of a same-slug top-level.
+	 */
+	public function test_get_menu_model_submenu_node_exposes_qualified_key() {
+		$this->seed_shared_slug_menu();
+
+		$model = ( new Replay( new Config() ) )->get_menu_model();
+
+		$top = null;
+		foreach ( $model as $entry ) {
+			if ( 'edit.php?post_type=product' === $entry['slug'] ) {
+				$top = $entry;
+				break;
+			}
+		}
+		$this->assertNotNull( $top, 'Shared-slug top-level node must appear in the model.' );
+
+		$children = wp_list_pluck( $top['submenu'], 'qualifiedKey', 'slug' );
+		$this->assertSame(
+			'edit.php?post_type=product>edit.php?post_type=product',
+			$children['edit.php?post_type=product'],
+			'Same-slug submenu child must carry its own qualified key.'
+		);
+		$this->assertSame(
+			'edit.php?post_type=product>post-new.php?post_type=product',
+			$children['post-new.php?post_type=product'],
+			'A different-slug submenu child must carry its own qualified key too.'
+		);
+	}
+
+	/**
+	 * get_menu_model(): a submenu child's hiddenRoles resolves through the
+	 * qualified key first — matching exactly what replay() would apply — and
+	 * a same-slug top-level node never reflects a qualified submenu-only rule.
+	 */
+	public function test_get_menu_model_resolves_submenu_hidden_roles_via_qualified_key() {
+		$this->seed_shared_slug_menu();
+
+		( new Config() )->save(
+			array(
+				'items' => array(
+					'edit.php?post_type=product>edit.php?post_type=product' => array( 'hidden_roles' => array( 'editor' ) ),
+				),
+			)
+		);
+
+		$model = ( new Replay( new Config() ) )->get_menu_model();
+
+		$top = null;
+		foreach ( $model as $entry ) {
+			if ( 'edit.php?post_type=product' === $entry['slug'] ) {
+				$top = $entry;
+				break;
+			}
+		}
+		$this->assertSame( array(), $top['hiddenRoles'], 'Top-level node must not reflect the qualified submenu-only rule.' );
+
+		$sub = null;
+		foreach ( $top['submenu'] as $child ) {
+			if ( 'edit.php?post_type=product' === $child['slug'] ) {
+				$sub = $child;
+				break;
+			}
+		}
+		$this->assertSame( array( 'editor' ), $sub['hiddenRoles'], 'Submenu node must resolve hiddenRoles via the qualified key.' );
+	}
+
+	/**
+	 * get_menu_model(): with no qualified key stored, a legacy bare override
+	 * still resolves for BOTH the top-level node and the same-slug submenu
+	 * node — matching replay()'s legacy fallback so the editor never shows a
+	 * rule that the next full-replace save would drop (or vice versa).
+	 */
+	public function test_get_menu_model_submenu_hidden_roles_fallback_to_legacy_bare_key() {
+		$this->seed_shared_slug_menu();
+
+		( new Config() )->save(
+			array( 'items' => array( 'edit.php?post_type=product' => array( 'hidden_roles' => array( 'editor' ) ) ) )
+		);
+
+		$model = ( new Replay( new Config() ) )->get_menu_model();
+
+		$top = null;
+		foreach ( $model as $entry ) {
+			if ( 'edit.php?post_type=product' === $entry['slug'] ) {
+				$top = $entry;
+				break;
+			}
+		}
+		$this->assertSame( array( 'editor' ), $top['hiddenRoles'], 'Legacy bare key must still resolve for the top-level node.' );
+
+		$sub = null;
+		foreach ( $top['submenu'] as $child ) {
+			if ( 'edit.php?post_type=product' === $child['slug'] ) {
+				$sub = $child;
+				break;
+			}
+		}
+		$this->assertSame( array( 'editor' ), $sub['hiddenRoles'], 'Legacy bare key with no qualified key present must still resolve for the same-slug submenu node too.' );
+	}
+
+	// -----------------------------------------------------------------------
+	// COMPAT-07: badge/HTML preservation on rename (20-04)
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Top-level rename over a live title with a trailing badge preserves the
+	 * badge; only the label text is swapped in $menu[pos][0].
+	 */
+	public function test_rename_top_level_preserves_trailing_badge() {
+		global $menu;
+		$menu[5][0] = 'Orders <span class="awaiting-mod count-3"><span class="pending-count">3</span></span>';
+
+		( new Config() )->save(
+			array( 'items' => array( 'edit.php' => array( 'title' => 'Sales' ) ) )
+		);
+
+		$this->run_replay();
+
+		$this->assertSame(
+			'Sales <span class="awaiting-mod count-3"><span class="pending-count">3</span></span>',
+			$menu[5][0],
+			'Top-level rename must preserve the trailing badge markup.'
+		);
+	}
+
+	/**
+	 * Submenu rename over a wrapping-span title preserves the wrapper; only
+	 * the inner label text is swapped in $submenu[parent][pos][0].
+	 */
+	public function test_rename_submenu_preserves_wrapping_span() {
+		global $submenu;
+		$submenu['edit.php'][10][0] = '<span style="color:#f18500">Addons</span>';
+
+		( new Config() )->save(
+			array( 'items' => array( 'post-new.php' => array( 'title' => 'Extras' ) ) )
+		);
+
+		$this->run_replay();
+
+		$this->assertSame(
+			'<span style="color:#f18500">Extras</span>',
+			$submenu['edit.php'][10][0],
+			'Submenu rename must preserve the wrapping markup around the label.'
+		);
+	}
+
+	/**
+	 * When Title::replace_label() finds no replaceable text node (icon + badge
+	 * only), replay must fall back to the wholesale stored title — today's
+	 * behavior — with no fatal and no invented markup.
+	 */
+	public function test_rename_falls_back_to_wholesale_when_no_text_node() {
+		global $menu;
+		$menu[5][0] = '<span class="wp-menu-image"></span><span class="count-2">2</span>';
+
+		( new Config() )->save(
+			array( 'items' => array( 'edit.php' => array( 'title' => 'Articles' ) ) )
+		);
+
+		$this->run_replay();
+
+		$this->assertSame(
+			'Articles',
+			$menu[5][0],
+			'With no replaceable text node, replay must fall back to the wholesale stored title.'
+		);
+	}
+
+	/**
+	 * Counts are current: a badge's count is re-extracted from the LIVE title
+	 * every replay pass, never a stale stored snapshot. Changing the live
+	 * count between two replay passes (same stored override) must show the
+	 * NEW count both times.
+	 */
+	public function test_rename_preserves_current_count_not_stale_snapshot() {
+		global $menu;
+		$menu[5][0] = 'Orders <span class="count-5">5</span>';
+
+		( new Config() )->save(
+			array( 'items' => array( 'edit.php' => array( 'title' => 'Sales' ) ) )
+		);
+
+		$this->run_replay();
+
+		$this->assertSame( 'Sales <span class="count-5">5</span>', $menu[5][0] );
+
+		// Simulate the badge count changing before the NEXT request — same
+		// stored plain-text override, different live title.
+		$menu[5][0] = 'Orders <span class="count-9">9</span>';
+		$this->run_replay();
+
+		$this->assertSame(
+			'Sales <span class="count-9">9</span>',
+			$menu[5][0],
+			'Counts must be re-extracted from the live title each request, not a stale stored snapshot.'
+		);
+	}
+
+	/**
+	 * Stored config is unaffected: after a save+replay round-trip over a
+	 * badge-bearing live title, the stored items[key].title remains plain
+	 * text — badge HTML must never leak into storage.
+	 */
+	public function test_stored_title_stays_plain_text_after_badge_replay_round_trip() {
+		global $menu;
+		$menu[5][0] = 'Orders <span class="count-3">3</span>';
+
+		( new Config() )->save(
+			array( 'items' => array( 'edit.php' => array( 'title' => 'Sales' ) ) )
+		);
+
+		$this->run_replay();
+
+		$cfg = ( new Config() )->get();
+		$this->assertSame(
+			'Sales',
+			$cfg['items']['edit.php']['title'],
+			'Stored config must hold only the plain-text label; badge HTML must never enter storage.'
+		);
+		$this->assertStringNotContainsString( '<span', $cfg['items']['edit.php']['title'] );
+	}
+
+	// -----------------------------------------------------------------------
+	// COMPAT-10 (REVISED 2026-08-01): independent child_hidden_roles.
+	//
+	// The original boolean cascade_hide + "rides the parent hide" model
+	// (20-05) was found INERT: WordPress core's _wp_menu_output() never
+	// renders a parent's <ul class="wp-submenu"> once the parent's own $menu
+	// row is unset(), so hiding the parent already removes the whole subtree
+	// cosmetically — cascading on TOP of that produced no observable
+	// difference. The revised model makes child-hiding INDEPENDENT of parent
+	// visibility: a per-parent child_hidden_roles list hides all live
+	// children from those roles WITH THE PARENT LEFT VISIBLE, unrelated to
+	// the parent's own hidden_roles.
+	//
+	// Parent 'edit.php' from seed_menu() has three live children: 'edit.php'
+	// (All Posts), 'post-new.php' (Add New), 'edit-tags.php?taxonomy=category'
+	// (Categories) — enough to prove "ALL live children" are hidden, not
+	// just one.
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Untouched parent (no child_hidden_roles rule): every child stays
+	 * visible — zero regression, nothing hides by default.
+	 */
+	public function test_no_child_hidden_roles_rule_leaves_children_visible() {
+		$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor );
+
+		( new Config() )->save( array( 'items' => array() ) );
+
+		$this->run_replay();
+
+		global $submenu;
+		$slugs = wp_list_pluck( $submenu['edit.php'], 2 );
+		$this->assertContains( 'post-new.php', $slugs );
+		$this->assertContains( 'edit-tags.php?taxonomy=category', $slugs );
+	}
+
+	/**
+	 * child_hidden_roles hides ALL live children for that role — WITH THE
+	 * PARENT ITSELF LEFT VISIBLE (no hidden_roles set on the parent at all).
+	 * This is the core of the revision: a visible effect independent of
+	 * parent visibility.
+	 */
+	public function test_child_hidden_roles_hides_all_live_children_parent_stays_visible() {
+		$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor );
+
+		( new Config() )->save(
+			array(
+				'items' => array(
+					'edit.php' => array( 'child_hidden_roles' => array( 'editor' ) ),
+				),
+			)
+		);
+
+		$this->run_replay();
+
+		global $menu, $submenu;
+		$top_slugs = wp_list_pluck( $menu, 2 );
+		$this->assertContains( 'edit.php', $top_slugs, 'Parent must remain visible — child_hidden_roles never touches the parent row.' );
+		$this->assertEmpty(
+			$submenu['edit.php'],
+			'child_hidden_roles must hide ALL live children for the targeted role.'
+		);
+	}
+
+	/**
+	 * Independence from the parent's own hide: hiding the PARENT (its own
+	 * hidden_roles) for one role and hiding CHILDREN (child_hidden_roles) for
+	 * a DIFFERENT role are unrelated settings that both take effect for
+	 * their respective, non-overlapping roles.
+	 */
+	public function test_parent_hide_and_child_hidden_roles_are_independent_settings() {
+		$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor );
+
+		( new Config() )->save(
+			array(
+				'items' => array(
+					'edit.php' => array(
+						'hidden_roles'       => array( 'shop_manager' ),
+						'child_hidden_roles' => array( 'editor' ),
+					),
+				),
+			)
+		);
+
+		$this->run_replay();
+
+		global $menu, $submenu;
+		// Editor is not in the parent's OWN hidden_roles (shop_manager only) —
+		// the parent row stays visible for editor.
+		$top_slugs = wp_list_pluck( $menu, 2 );
+		$this->assertContains( 'edit.php', $top_slugs );
+		// But editor IS in child_hidden_roles — every child is gone.
+		$this->assertEmpty( $submenu['edit.php'] );
+	}
+
+	/**
+	 * Role-mirror: child_hidden_roles targets editor ONLY. An administrator
+	 * (not in that list) must still see every child — never broadens beyond
+	 * the exact roles named.
+	 */
+	public function test_child_hidden_roles_role_mirror_other_roles_unaffected() {
+		$admin = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin );
+
+		( new Config() )->save(
+			array(
+				'items' => array(
+					'edit.php' => array( 'child_hidden_roles' => array( 'editor' ) ),
+				),
+			)
+		);
+
+		$this->run_replay();
+
+		global $submenu;
+		$slugs = wp_list_pluck( $submenu['edit.php'], 2 );
+		$this->assertContains( 'post-new.php', $slugs, 'Role-mirror: an administrator must still see children not targeted by child_hidden_roles.' );
+		$this->assertContains( 'edit-tags.php?taxonomy=category', $slugs );
+	}
+
+	/**
+	 * Union: a child's OWN hidden_roles rule keeps working alongside the
+	 * parent's child_hidden_roles, for a DIFFERENT role the parent's rule
+	 * does NOT itself reach. Parent hides children only for 'editor'; the
+	 * child is separately hidden for 'author' via its own rule. An author
+	 * must still lose the child even though the parent's rule contributes
+	 * nothing for author.
+	 */
+	public function test_child_hidden_roles_unions_with_childs_own_hidden_roles_rule() {
+		$author = self::factory()->user->create( array( 'role' => 'author' ) );
+		wp_set_current_user( $author );
+
+		( new Config() )->save(
+			array(
+				'items' => array(
+					'edit.php'     => array( 'child_hidden_roles' => array( 'editor' ) ),
+					'post-new.php' => array( 'hidden_roles' => array( 'author' ) ),
+				),
+			)
+		);
+
+		$this->run_replay();
+
+		global $submenu;
+		$slugs = wp_list_pluck( $submenu['edit.php'], 2 );
+		$this->assertNotContains( 'post-new.php', $slugs, "Union: the child's own hidden_roles rule must still apply." );
+		$this->assertContains( 'edit-tags.php?taxonomy=category', $slugs, 'A sibling with no own rule and no child_hidden_roles match for this role must remain visible.' );
+	}
+
+	/**
+	 * get_menu_model() exposes each parent's child_hidden_roles list so the
+	 * editor popover can reflect it — the stored roles when set, an empty
+	 * array (not merely absent) for an untouched parent.
+	 */
+	public function test_get_menu_model_exposes_child_hidden_roles() {
+		( new Config() )->save(
+			array( 'items' => array( 'edit.php' => array( 'child_hidden_roles' => array( 'editor' ) ) ) )
+		);
+
+		$replay = new Replay( new Config() );
+		$replay->replay();
+		$model = $replay->get_menu_model();
+
+		$edit_node  = null;
+		$index_node = null;
+		foreach ( $model as $node ) {
+			if ( 'edit.php' === $node['slug'] ) {
+				$edit_node = $node;
+			}
+			if ( 'index.php' === $node['slug'] ) {
+				$index_node = $node;
+			}
+		}
+
+		$this->assertNotNull( $edit_node );
+		$this->assertSame( array( 'editor' ), $edit_node['childHiddenRoles'], 'A stored child_hidden_roles must be exposed in the model.' );
+
+		$this->assertNotNull( $index_node );
+		$this->assertSame( array(), $index_node['childHiddenRoles'], 'An untouched parent must expose childHiddenRoles as an empty array, not merely absent.' );
+	}
+
+	/**
+	 * COSMETIC-ONLY GUARDRAIL (mandatory, non-negotiable): applying a
+	 * child_hidden_roles rule must NEVER change current_user_can() for any
+	 * capability — it is pure visibility. Proven two ways: (1) the editor
+	 * role's entire capabilities map is byte-for-byte identical before and
+	 * after the rule is saved and replayed; (2) the exact capability the
+	 * hidden child page itself gates on ('edit_posts', per seed_menu()'s
+	 * post-new.php row) still resolves true for the editor — i.e. the page
+	 * is still directly loadable by URL even though its sidebar row was
+	 * unset() and its parent remains visible.
+	 */
+	public function test_child_hidden_roles_is_cosmetic_only_current_user_can_and_page_capability_unchanged() {
+		$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor );
+
+		$role_before = get_role( 'editor' );
+		$caps_before = $role_before->capabilities;
+
+		$can_edit_posts_before     = current_user_can( 'edit_posts' );
+		$can_manage_options_before = current_user_can( 'manage_options' );
+
+		( new Config() )->save(
+			array(
+				'items' => array(
+					'edit.php' => array( 'child_hidden_roles' => array( 'editor' ) ),
+				),
+			)
+		);
+
+		$this->run_replay();
+
+		// Sidebar row is cosmetically gone, parent stays visible...
+		global $menu, $submenu;
+		$this->assertContains( 'edit.php', wp_list_pluck( $menu, 2 ) );
+		$slugs = wp_list_pluck( $submenu['edit.php'], 2 );
+		$this->assertNotContains( 'post-new.php', $slugs, 'child_hidden_roles must hide the child row cosmetically.' );
+
+		// ...but capabilities are byte-for-byte unchanged: child_hidden_roles
+		// never grants or removes a capability from the role.
+		$role_after = get_role( 'editor' );
+		$this->assertSame(
+			$caps_before,
+			$role_after->capabilities,
+			'Applying a child_hidden_roles rule must never mutate the role capabilities map.'
+		);
+
+		// The exact capability post-new.php itself gates direct access on
+		// ('edit_posts', from seed_menu()'s row) is unchanged — the page is
+		// still directly loadable by URL for a user who holds it. Maestro
+		// only unset() the sidebar row; it never touches capability
+		// resolution.
+		$this->assertSame( $can_edit_posts_before, current_user_can( 'edit_posts' ) );
+		$this->assertTrue( current_user_can( 'edit_posts' ), 'Editor must still hold edit_posts after a child_hidden_roles rule is applied.' );
+		$this->assertSame( $can_manage_options_before, current_user_can( 'manage_options' ) );
+		$this->assertFalse( current_user_can( 'manage_options' ), 'child_hidden_roles must not grant a capability the role never had.' );
+	}
+
+	/**
+	 * Ambiguity guard for child-hiding: child_hidden_roles must NOT fire when the
+	 * parent override is ambiguous. Here two DISTINCT stored keys normalize to the
+	 * same parent key (Axis-1 norm_skip), so the parent's override — including its
+	 * child_hidden_roles — resolves to nothing. The child-hiding path is gated on
+	 * exactly this in class-replay.php (parent_ovr requires the normalized parent
+	 * key be absent from norm_skip AND top_skip_rendered). This locks in that a
+	 * fail-safe "apply nothing" parent never silently hides its children.
+	 */
+	public function test_child_hidden_roles_does_not_fire_on_ambiguous_parent() {
+		global $menu, $submenu;
+
+		$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor );
+
+		$slug_amp   = 'admin.php?page=shop&amp;post_type=product';
+		$slug_plain = 'admin.php?page=shop&post_type=product';
+		// Both normalize to the SAME key: admin.php?page=shop&post_type=product.
+
+		$menu[30]               = array( 'Shop', 'manage_options', $slug_plain, '', 'menu-top', 'menu-shop', 'dashicons-cart' );
+		$submenu[ $slug_plain ] = array(
+			10 => array( 'Products', 'manage_options', 'admin.php?page=products', '' ),
+			20 => array( 'Coupons', 'manage_options', 'admin.php?page=coupons', '' ),
+		);
+
+		// Two DISTINCT stored keys collide to one normalized parent key (Axis-1
+		// norm_skip). One carries child_hidden_roles for the current (editor) user;
+		// because the parent override is ambiguous, child-hiding must NOT fire.
+		( new Config() )->save(
+			array(
+				'items' => array(
+					$slug_amp   => array( 'child_hidden_roles' => array( 'editor' ) ),
+					$slug_plain => array( 'title' => 'Ambiguous' ),
+				),
+			)
+		);
+
+		$this->run_replay();
+
+		$slugs = wp_list_pluck( array_values( $submenu[ $slug_plain ] ), 2 );
+		$this->assertContains( 'admin.php?page=products', $slugs, 'child_hidden_roles must NOT fire when the parent override is ambiguous (Axis-1 norm_skip).' );
+		$this->assertContains( 'admin.php?page=coupons', $slugs, 'Every child stays visible under an ambiguous parent.' );
+		$this->assertCount( 2, $slugs, 'No child may be hidden when the parent override resolves to nothing.' );
+	}
 }
