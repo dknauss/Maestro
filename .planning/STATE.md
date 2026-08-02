@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Compatibility, Roles & Showcase
 status: executing
-stopped_at: Completed 20-05-PLAN.md
-last_updated: "2026-08-02T04:01:49.000Z"
-last_activity: 2026-08-01 — Phase 20 Plan 05 (COMPAT-10 cascade-hide-to-children: pure Cascade::effective_hidden_roles() role-list union + replay/model wiring + cosmetic-only guardrail) executed and committed
+stopped_at: Completed 20-06-PLAN.md (revised COMPAT-10 design) — awaiting human-verify checkpoint
+last_updated: "2026-08-02T13:24:36.856Z"
+last_activity: "2026-08-02 — Phase 20 Plan 06 reworked for revised COMPAT-10 (independent child_hidden_roles replaces the inert cascade_hide boolean); editor UI, e2e, and full zero-regression gate complete; Phase 20 (COMPAT-04/07/10) all 6/6 plans done, awaiting checkpoint sign-off"
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 12
-  completed_plans: 11
-  percent: 33
+  completed_plans: 12
+  percent: 50
 ---
 
 # Project State
@@ -21,17 +21,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-03)
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
-**Current focus:** **v1.3.1 shipped** (Phase 23 editor UX restyle, live on WordPress.org). Back to milestone v1.4 (Compatibility, Roles & Showcase): Phases 19 + 23 done; remaining Phase 20 (COMPAT-04/07/10), Phase 21 (ROLE-02, now unblocked), Phase 22 (DEMO-01), Phase 24 (v1.4.0 release).
+**Current focus:** **v1.3.1 shipped** (Phase 23 editor UX restyle, live on WordPress.org). Back to milestone v1.4 (Compatibility, Roles & Showcase): Phases 19 + 20 + 23 done; remaining Phase 21 (ROLE-02, now unblocked), Phase 22 (DEMO-01), Phase 24 (v1.4.0 release).
 
 ## Current Position
 
 Milestone: v1.4 — Compatibility, Roles & Showcase (interim v1.3.1 patch shipped 2026-07-05)
-Phase: Phase 19 (Cosmetic Hiding Feasibility) ✅ COMPLETE, Phase 23 (Editor UX Polish) ✅ COMPLETE, Phase 20 (Third-Party Compatibility Fixes) IN PROGRESS (5/6 plans complete).
-Plan: 20-05 (COMPAT-10 cascade-hide-to-children server: pure computation + replay/model wiring + cosmetic-only guardrail) COMPLETE — next: 20-06 (cascade editor UI — the "also hide children" popover checkbox)
-Status: Phase 20 executing. 20-05 delivered COMPAT-10's server-side contract: a new pure, WP-free `Maestro\Cascade::effective_hidden_roles()` (`includes/class-cascade.php`) unions a child's own `hidden_roles` with its parent's `hidden_roles` when the parent's new `cascade_hide` flag is on — a plain union alone implements both locked sub-rules ("rides the parent hide": an empty parent set contributes nothing; "role-mirrored": only the roles the parent is actually hidden from are ever added) with zero special-casing, and the function never calls `current_user_can()` or any capability API. `Config::sanitize()` accepts `cascade_hide` as a per-top-level-parent bool (default OFF; dropped on a qualified submenu key, mirroring the icon-drop rule). `Replay::replay()`'s submenu loop resolves the parent's own bare-key override once per parent (reusing the existing Axis-1/Axis-2 collision guards) and unions it into every child — including a child with no override of its own, which is no longer skipped outright — before the existing `is_hidden_for_current_user()` check; when cascade is off (default) the union collapses to exactly the child's own rule, zero regression. `get_menu_model()` exposes each parent's resolved `cascade_hide` flag (`false`, not merely absent, for an untouched parent) so the Plan 20-06 editor popover can reflect it. **Cosmetic-only guardrail (mandatory) verified explicitly:** an integration test snapshots the editor role's entire capabilities map plus `current_user_can('edit_posts')`/`current_user_can('manage_options')`, applies a cascade rule that cosmetically removes a live child from `$submenu`, and asserts both are byte-for-byte identical afterward — cascade never grants or removes a capability, and the hidden child's own page-gating capability still resolves `true` (still directly loadable by URL). Zero regression: PHP unit 114/114→128/128 (141→160 assertions), PHP integration 65/65→72/72 (150→168 assertions), WPCS/PHPStan clean, doc-links clean; e2e not required for this server-side-only plan (UI lands in 20-06). 20-04 (prior) delivered COMPAT-07 badge/HTML preservation on rename via `Maestro\Title::replace_label()`'s text-node swap at both title-write seams. 20-03 (prior) closed out COMPAT-04 client-side with the qualified-key DOM-join and live WooCommerce verification. 20-02/20-01 (prior) built COMPAT-04's server-side qualified-key foundation and replay/editor-model wiring. Phase 19 ROLE-01 signed off — **partial-go** (per-user go + ship first; cloned-role go as an additive `profiles` registry compiling to the same inline `is_hidden_for_current_user()` seam); Phase 21 unblocked. Phase 23 delivered UX-09/UX-12/UX-13/BUG-08 (native wp-admin restyle; 5/5 plans; full-suite gate green) and shipped in v1.3.1. **NOTE for Phase 24:** Plugin Check flagged 4 errors/6 warnings, all pre-existing dev-tree root files — logged to `phases/23-editor-ux-polish/deferred-items.md` for the Phase 24 build-then-check pipeline.
-Last activity: 2026-08-01 — Phase 20 Plan 05 (COMPAT-10 cascade-hide-to-children: pure Cascade::effective_hidden_roles() role-list union + replay/model wiring + cosmetic-only guardrail) executed and committed
+Phase: Phase 19 (Cosmetic Hiding Feasibility) ✅ COMPLETE, Phase 23 (Editor UX Polish) ✅ COMPLETE, Phase 20 (Third-Party Compatibility Fixes) 6/6 plans complete — awaiting human-verify checkpoint sign-off.
+Plan: 20-06 (COMPAT-10 editor UI + full-suite gate) COMPLETE, REWORKED for the revised design — next: checkpoint verification, then Phase 21 or 22.
+Status: Phase 20's COMPAT-10 was reworked mid-checkpoint 2026-08-02: the boolean `cascade_hide` + "rides the parent hide" model built in 20-05/20-06 was found **inert** — WordPress core's `_wp_menu_output()` never renders a hidden parent's `<ul class="wp-submenu">` at all, so hiding the parent already removes the whole subtree cosmetically; cascading on top of that produced no observable difference. Reworked (20-CONTEXT.md REVISION NOTE) into an **independent** per-parent `child_hidden_roles` role set: `Maestro\Cascade::effective_hidden_roles( $child_hidden_roles, $parent_child_hidden_roles )` is now a plain, unconditional role-list union (no flag). `Config::sanitize()` accepts `child_hidden_roles` on a top-level item with the same contract as `hidden_roles` (role-intersect, `MAX_HIDDEN_ROLES` cap, dropped on a qualified submenu key). `Replay::replay()`'s submenu loop unions each child's own `hidden_roles` with its parent's `child_hidden_roles`, fully independent of whether the parent's own `hidden_roles` currently hides the parent row — so a parent can stay visible while its children vanish, a genuinely observable effect the old model could never produce. `get_menu_model()` exposes `childHiddenRoles` (empty array, not merely absent, for an untouched parent). The editor popover now shows TWO independent role-checkbox groups — "Hide this item from:" (existing) and "Hide its sub-items from:" (new, shown only on parents with children) — via a shared `buildRoleGroup()` helper in `assets/maestro.js`. The e2e spec (`cascade-hide.spec.ts`) now asserts the effect DIRECTLY against the rendered sidebar (parent visible, child rows gone, role-mirrored) via a second authenticated browser context, replacing the inert model's wp-cli/`$submenu` dump workaround (`dump-cascade-submenu.php`, deleted). Cosmetic-only guardrail reconfirmed end-to-end. **Full zero-regression gate (final):** PHP unit 127/127 (158 assertions), PHP integration 72/72 (172 assertions), JS 58/58, e2e 35 passed/28 capture-gated skipped/0 failed, WPCS clean, PHPStan 0 errors, Plugin Check 0 errors on the built shippable ZIP (1 pre-existing readme.txt warning) and 0 NEW errors on the dev-tree (7 errors/7 warnings, all pre-existing, confirmed via `git log --diff-filter=A` to predate Phase 20). All three Phase 20 requirements (COMPAT-04/07/10) genuinely complete. 20-04 (prior) delivered COMPAT-07 badge/HTML preservation on rename via `Maestro\Title::replace_label()`'s text-node swap at both title-write seams. 20-03 (prior) closed out COMPAT-04 client-side with the qualified-key DOM-join and live WooCommerce verification. 20-02/20-01 (prior) built COMPAT-04's server-side qualified-key foundation and replay/editor-model wiring. Phase 19 ROLE-01 signed off — **partial-go** (per-user go + ship first; cloned-role go as an additive `profiles` registry compiling to the same inline `is_hidden_for_current_user()` seam); Phase 21 unblocked. Phase 23 delivered UX-09/UX-12/UX-13/BUG-08 (native wp-admin restyle; 5/5 plans; full-suite gate green) and shipped in v1.3.1. **NOTE for Phase 24:** Plugin Check flags 7 errors/7 warnings against pre-existing dev-tree root files — logged to `phases/23-editor-ux-polish/deferred-items.md` for the Phase 24 build-then-check pipeline.
+Last activity: 2026-08-02 — Phase 20 Plan 06 reworked for revised COMPAT-10 (independent child_hidden_roles); editor UI, e2e, and full zero-regression gate complete; Phase 20 (COMPAT-04/07/10) all 6/6 plans done, awaiting human-verify checkpoint
 
-Progress: [███░░░░░░░] 33% (v1.4: 2/6 phases complete — 19, 23; Phase 20 in progress at 5/6 plans; Phase 23's UX shipped as v1.3.1)
+Progress: [█████░░░░░] 50% (v1.4: 3/6 phases complete — 19, 20, 23; Phase 23's UX shipped as v1.3.1; Phase 20 closed pending checkpoint sign-off)
 
 ## Release Binding
 
@@ -187,6 +187,11 @@ Recent decisions affecting current work:
 - [Phase 20]: 20-05: cascade's parent lookup in Replay::replay()'s submenu loop reuses the exact same norm_items/norm_skip (Axis-1) and top_skip_rendered (Axis-2) guards already computed for the top-level pass — an ambiguous parent resolves to no override, so cascade never fires for it, consistent with the "when resolution is ambiguous, apply nothing" collision philosophy
 - [Phase 20]: 20-05: a child with no override of its own is no longer skipped outright in the submenu loop — the parent's cascade may still hide it; is_hidden_for_current_user() now always runs against the unioned effective list, collapsing to exactly the child's own rule when cascade is off (zero regression by construction)
 - [Phase 20]: 20-05: cosmetic-only guardrail proven two ways in one integration test — the editor role's entire capabilities map is byte-for-byte identical before/after a cascade rule, and the exact capability the hidden child's own page gates direct access on (edit_posts) still resolves true, i.e. the page remains directly loadable by URL despite its sidebar row being unset()
+- [Phase 20]: **SUPERSEDED 2026-08-02** — the four 20-05 decisions above describe the boolean `cascade_hide` + "rides the parent hide" model, found INERT during the 20-06 checkpoint (WordPress core already hides a hidden parent's whole rendered subtree, so cascading on top of it produced no observable difference). Reworked into an independent `child_hidden_roles` model — see the 20-06 (revised) entries below.
+- [Phase 20]: 20-06 (revised): `Cascade::effective_hidden_roles()` simplified from a 3-arg flag-gated computation to a 2-arg unconditional union (child's own `hidden_roles`, parent's `child_hidden_roles`) — no flag, no gating on the parent's own hide at all; the two role sets are fully independent by construction, which is what makes a parent stay visible while its children vanish (a genuinely observable effect the superseded model could never produce)
+- [Phase 20]: 20-06 (revised): the visibility popover's two role groups ("Hide this item from:" / "Hide its sub-items from:") share one `buildRoleGroup()` closure in `assets/maestro.js` keyed by `getSet()`/`setSet()` accessors — a toggle in one group never touches the other's model field or the `maestro-has-hidden` class (which reflects only the item's own `hiddenRoles`)
+- [Phase 20]: 20-06 (revised): e2e verification pattern changed with the model — because the revised effect is genuinely visible in the sidebar (parent stays, children vanish), `cascade-hide.spec.ts` asserts it DIRECTLY via a second authenticated browser context instead of the superseded model's wp-cli/`$submenu`-dump workaround (`dump-cascade-submenu.php`, deleted as no longer needed)
+- [Phase 20]: 20-06 (revised): Plugin Check against a differently-named scratch folder (to avoid colliding with the live bind-mounted plugin path) trips `TextDomainMismatch` false positives — `wp plugin check <folder> --slug=<canonical-slug>` tells Plugin Check the correct slug independent of the scratch folder's name; established pattern for any future dev-tree-vs-shippable-ZIP Plugin Check run that can't check the real installed path directly
 
 ### Roadmap Evolution
 
@@ -224,6 +229,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-08-02T04:01:49.000Z
-Stopped at: Completed 20-05-PLAN.md
+Last session: 2026-08-02T13:24:36.856Z
+Stopped at: Completed 20-06-PLAN.md (revised COMPAT-10 design) — Phase 20 (COMPAT-04/07/10) 6/6 plans done, awaiting human-verify checkpoint sign-off. wp-env left running for live verification.
 Resume file: None

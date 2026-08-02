@@ -50,6 +50,20 @@ duration: ~55min
 completed: 2026-08-01
 ---
 
+> **SUPERSEDED (2026-08-01, during 20-06 execution).** This plan's boolean
+> `cascade_hide` + "rides the parent hide" model was found **inert**:
+> WordPress core's `_wp_menu_output()` never renders a hidden parent's
+> `<ul class="wp-submenu">` at all, so hiding the parent already removes the
+> whole subtree cosmetically — cascading on top of that produced no
+> observable difference. It was reworked in the 20-06 rework commits into an
+> **independent** per-parent `child_hidden_roles` role set (hides all live
+> children from those roles, WITH THE PARENT LEFT VISIBLE — a genuinely
+> visible effect). See `20-CONTEXT.md`'s COMPAT-10 REVISION NOTE and
+> `20-06-SUMMARY.md` for the final, shipped design. `Maestro\Cascade`,
+> `Config::sanitize()`'s flag handling, and every test this summary
+> describes were replaced; none of the code below ships as originally
+> written.
+
 # Phase 20 Plan 05: Cascade-Hide-to-Children Server (COMPAT-10) Summary
 
 **A pure `Maestro\Cascade::effective_hidden_roles()` role-list union — gated by a new per-parent `cascade_hide` config flag (default OFF) — is wired into `Replay::replay()`'s submenu loop so hiding a parent optionally hides every live child cosmetically, role-mirrored and unioned with each child's own rule, proven cosmetic-only by an explicit capability-unchanged guardrail test.**

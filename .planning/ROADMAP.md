@@ -143,7 +143,7 @@ Full phase details, success criteria, and outcomes are archived in
 ## Phase Details (v1.4 — Compatibility, Roles & Showcase)
 
 - [x] **Phase 19: Cosmetic Hiding Feasibility** — feasibility note determining whether per-user/cloned-role menu hiding can stay strictly cosmetic; gates Phase 21 (completed 2026-07-05)
-- [ ] **Phase 20: Third-Party Compatibility Fixes** — level-qualified match keys, badge/HTML-in-title preservation on rename, optional subtree-hide cascade (R1 backlog)
+- [x] **Phase 20: Third-Party Compatibility Fixes** — level-qualified match keys, badge/HTML-in-title preservation on rename, optional subtree-hide cascade (R1 backlog) (completed 2026-08-02)
 - [ ] **Phase 21: Cosmetic Per-User / Cloned-Role Hiding** — conditional on Phase 19 clearing the cosmetic-only bar
 - [ ] **Phase 22: Slug-Resolution Showcase Demo** — Playground demo that visibly demonstrates the v1.3.0 slug-normalization fixes
 - [x] **Phase 23: Editor UX Polish** — native wp-admin restyle of all edit-mode surfaces (UX-13, added 2026-07-03), semantic-colour borders removed (UX-12 verdict), first-run banner centering (BUG-08) — complete 2026-07-05
@@ -168,7 +168,7 @@ Full phase details, success criteria, and outcomes are archived in
 **Success Criteria** (what must be TRUE):
   1. A rename or hide override targeted at a top-level slug does not also apply to a submenu item that happens to render the same slug, and vice versa — verified against the R1 shared-slug fixtures as test cases
   2. Renaming a menu item that carries a trailing badge or HTML fragment in its title (update-count bubble, "NEW"/count span) preserves that badge/HTML instead of stripping it, verified against the 4/6 R1 plugins that use them
-  3. An admin can enable an optional "cascade hide to children" setting on a parent item; with it off (default), hiding a parent leaves children visible; with it on, children are cosmetically hidden too, with no change to their underlying capabilities
+  3. An admin can optionally hide all of a parent's live sub-items from specific roles — independent of whether the parent itself is hidden — with no change to their underlying capabilities. *(Revised 2026-08-01/02: the original "cascade rides the parent hide" design was found inert since WordPress core already hides a hidden parent's whole rendered subtree; delivered instead as an independent `child_hidden_roles` role set, a genuinely visible standalone effect. See `20-CONTEXT.md`'s REVISION NOTE.)*
   4. Existing PHP unit, integration, and Playwright e2e suites stay green; WPCS clean; PHPStan clean; Plugin Check 0 errors
 **Plans**: 6 plans in 5 waves
 Plans:
@@ -176,8 +176,8 @@ Plans:
 - [x] 20-02-PLAN.md — COMPAT-04: replay + editor-model qualified resolution with legacy bare fallback [COMPAT-04]
 - [x] 20-03-PLAN.md — COMPAT-04: client A1b (qualified model + stable submenu DOM bind) + shared-slug e2e [COMPAT-04]
 - [x] 20-04-PLAN.md — COMPAT-07: text-node badge/HTML preservation on rename (pure helper + replay wiring) [COMPAT-07]
-- [ ] 20-05-PLAN.md — COMPAT-10: cascade-hide server (pure computation + replay + cosmetic-only guardrail) [COMPAT-10]
-- [ ] 20-06-PLAN.md — COMPAT-10: cascade UI in visibility popover + phase zero-regression gate [COMPAT-10]
+- [x] 20-05-PLAN.md — COMPAT-10: cascade-hide server (pure computation + replay + cosmetic-only guardrail) — SUPERSEDED by 20-06's revision (boolean cascade_hide replaced with independent child_hidden_roles) [COMPAT-10]
+- [x] 20-06-PLAN.md — COMPAT-10: independent child_hidden_roles UI in visibility popover + phase zero-regression gate (revised design) [COMPAT-10]
 
 ### Phase 21: Cosmetic Per-User / Cloned-Role Hiding
 **Goal**: An admin can hide menu items for a specific user or a cloned role, purely cosmetically, without ever changing what that user is actually permitted to do — conditional on Phase 19's feasibility verdict
@@ -262,8 +262,8 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 | 16. Synthesis | R1 | 2/2 | Complete | 2026-06-29 |
 | 17. Slug Normalization | v1.3.0 | 3/3 | Complete (shipped 2026-06-30) | 2026-06-29 |
 | 18. Release v1.3.0 | v1.3.0 | 3/3 | Complete (shipped 2026-06-30) | 2026-06-30 |
-| 19. Cosmetic Hiding Feasibility | v1.4 | Complete    | 2026-07-05 | - |
-| 20. Third-Party Compatibility Fixes | v1.4 | 5/6 | In Progress | - |
+| 19. Cosmetic Hiding Feasibility | v1.4 | 1/1 | Complete | 2026-07-05 |
+| 20. Third-Party Compatibility Fixes | v1.4 | 6/6 | Complete | 2026-08-02 |
 | 21. Cosmetic Per-User / Cloned-Role Hiding | v1.4 | 0/TBD | Not started (conditional on Phase 19) | - |
 | 22. Slug-Resolution Showcase Demo | v1.4 | 0/TBD | Not started | - |
 | 23. Editor UX Polish | v1.4 | 5/5 | Complete | 2026-07-05 |
