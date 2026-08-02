@@ -1297,4 +1297,49 @@ class ReplayTest extends WP_UnitTestCase {
 		$this->assertSame( $can_manage_options_before, current_user_can( 'manage_options' ) );
 		$this->assertFalse( current_user_can( 'manage_options' ), 'child_hidden_roles must not grant a capability the role never had.' );
 	}
+
+	/**
+	 * Ambiguity guard for child-hiding: child_hidden_roles must NOT fire when the
+	 * parent override is ambiguous. Here two DISTINCT stored keys normalize to the
+	 * same parent key (Axis-1 norm_skip), so the parent's override — including its
+	 * child_hidden_roles — resolves to nothing. The child-hiding path is gated on
+	 * exactly this in class-replay.php (parent_ovr requires the normalized parent
+	 * key be absent from norm_skip AND top_skip_rendered). This locks in that a
+	 * fail-safe "apply nothing" parent never silently hides its children.
+	 */
+	public function test_child_hidden_roles_does_not_fire_on_ambiguous_parent() {
+		global $menu, $submenu;
+
+		$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor );
+
+		$slug_amp   = 'admin.php?page=shop&amp;post_type=product';
+		$slug_plain = 'admin.php?page=shop&post_type=product';
+		// Both normalize to the SAME key: admin.php?page=shop&post_type=product.
+
+		$menu[30]               = array( 'Shop', 'manage_options', $slug_plain, '', 'menu-top', 'menu-shop', 'dashicons-cart' );
+		$submenu[ $slug_plain ] = array(
+			10 => array( 'Products', 'manage_options', 'admin.php?page=products', '' ),
+			20 => array( 'Coupons', 'manage_options', 'admin.php?page=coupons', '' ),
+		);
+
+		// Two DISTINCT stored keys collide to one normalized parent key (Axis-1
+		// norm_skip). One carries child_hidden_roles for the current (editor) user;
+		// because the parent override is ambiguous, child-hiding must NOT fire.
+		( new Config() )->save(
+			array(
+				'items' => array(
+					$slug_amp   => array( 'child_hidden_roles' => array( 'editor' ) ),
+					$slug_plain => array( 'title' => 'Ambiguous' ),
+				),
+			)
+		);
+
+		$this->run_replay();
+
+		$slugs = wp_list_pluck( array_values( $submenu[ $slug_plain ] ), 2 );
+		$this->assertContains( 'admin.php?page=products', $slugs, 'child_hidden_roles must NOT fire when the parent override is ambiguous (Axis-1 norm_skip).' );
+		$this->assertContains( 'admin.php?page=coupons', $slugs, 'Every child stays visible under an ambiguous parent.' );
+		$this->assertCount( 2, $slugs, 'No child may be hidden when the parent override resolves to nothing.' );
+	}
 }
