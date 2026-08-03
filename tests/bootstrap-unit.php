@@ -18,6 +18,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', rtrim( sys_get_temp_dir(), '/\\' ) . '/' );
 }
 
+if ( ! defined( 'MAESTRO_OPTION' ) ) {
+	define( 'MAESTRO_OPTION', 'maestro_config' );
+}
+
 /* ---- Minimal WordPress function stubs ------------------------------------ */
 
 if ( ! function_exists( 'wp_roles' ) ) {
@@ -114,6 +118,43 @@ if ( ! function_exists( 'wp_parse_url' ) ) {
 	 */
 	function wp_parse_url( $url, $component = -1 ) {
 		return parse_url( (string) $url, $component );
+	}
+}
+
+/**
+ * In-memory option store so Config::save()/get() are callable without a WP DB.
+ * Lets the pure unit suite exercise the MAX_CONFIG_BYTES aggregate-ceiling guard
+ * in save() (which uses only serialize() + these two functions).
+ */
+$GLOBALS['maestro_unit_options'] = array();
+
+if ( ! function_exists( 'get_option' ) ) {
+	/**
+	 * Stub: read from the in-memory option store.
+	 *
+	 * @param string $name    Option name.
+	 * @param mixed  $default Default when unset.
+	 * @return mixed
+	 */
+	function get_option( $name, $default = false ) {
+		return array_key_exists( $name, $GLOBALS['maestro_unit_options'] )
+			? $GLOBALS['maestro_unit_options'][ $name ]
+			: $default;
+	}
+}
+
+if ( ! function_exists( 'update_option' ) ) {
+	/**
+	 * Stub: write to the in-memory option store.
+	 *
+	 * @param string $name     Option name.
+	 * @param mixed  $value    Option value.
+	 * @param bool   $autoload Ignored in unit context.
+	 * @return bool
+	 */
+	function update_option( $name, $value, $autoload = null ) {
+		$GLOBALS['maestro_unit_options'][ $name ] = $value;
+		return true;
 	}
 }
 

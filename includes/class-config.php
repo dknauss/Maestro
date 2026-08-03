@@ -67,6 +67,24 @@ class Config {
 	const MAX_SUB_ORDER_CHILDREN = 200;
 
 	/**
+	 * Maximum number of parent entries in 'sub_order' (bounds the outer loop the
+	 * same way MAX_ITEMS bounds 'items' — a real admin has well under 200 menus).
+	 *
+	 * @var int
+	 */
+	const MAX_SUB_ORDER_PARENTS = 200;
+
+	/**
+	 * Maximum byte length of any single stored slug (item key, top_order entry,
+	 * or sub_order parent/child). A real WP admin slug — even a query-arg URL —
+	 * is well under 256 bytes; the ceiling is generous headroom while still
+	 * bounding a hostile multi-KB slug.
+	 *
+	 * @var int
+	 */
+	const MAX_SLUG_BYTES = 512;
+
+	/**
 	 * Maximum number of hidden roles per item (far above any real site's role count).
 	 *
 	 * @var int
@@ -81,6 +99,31 @@ class Config {
 	 * @var int
 	 */
 	const MAX_DATA_URI_BYTES = 131072;
+
+	/**
+	 * Maximum byte length of a 'url'-form icon (http(s)/protocol-relative/
+	 * root-relative image URL). 2 KB is above the practical browser URL limit,
+	 * so it never rejects a real image URL while bounding a hostile multi-KB
+	 * string the url branch would otherwise store without any length check.
+	 *
+	 * @var int
+	 */
+	const MAX_ICON_URL_BYTES = 2048;
+
+	/**
+	 * Aggregate ceiling on the serialized size of a stored config (1 MB).
+	 *
+	 * Generous by design: a realistic power-user config with a handful of
+	 * data-URI icons (each capped at MAX_DATA_URI_BYTES = 128 KB) stays well
+	 * under this — five 128 KB icons plus titles/roles is ~0.65 MB. The ceiling
+	 * exists only to refuse the pathological multi-MB payload (e.g. 200 max
+	 * items each carrying a 128 KB icon ≈ 25 MB) that would bloat the option
+	 * and every autoloaded read of it. An over-ceiling save is rejected whole
+	 * rather than truncated — a partial config is worse than the prior one.
+	 *
+	 * @var int
+	 */
+	const MAX_CONFIG_BYTES = 1048576;
 
 	/**
 	 * In-request cache of the option.
@@ -114,6 +157,16 @@ class Config {
 	 */
 	public function save( array $raw ) {
 		$clean = $this->sanitize( $raw );
+
+		// Aggregate ceiling: even with every per-field cap in place, a hostile
+		// payload could combine many large-but-legal fields into a multi-MB
+		// option. Refuse such a save whole (a truncated config is worse than the
+		// prior one) and leave the existing stored config untouched.
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- Byte-size measurement only; $clean is our own sanitized scalar/array data (never unserialized), and serialize() mirrors how WP stores the option, so this is the truthful stored-size check.
+		if ( strlen( serialize( $clean ) ) > self::MAX_CONFIG_BYTES ) {
+			return $this->get();
+		}
+
 		update_option( MAESTRO_OPTION, $clean, false );
 		$this->cache = $clean;
 		return $clean;
@@ -255,6 +308,9 @@ class Config {
 						0,
 						self::MAX_SUB_ORDER_CHILDREN
 					);
+					if ( count( $out['sub_order'] ) >= self::MAX_SUB_ORDER_PARENTS ) {
+						break; // Deterministic: first N parents in incoming object order win.
+					}
 				}
 			}
 		}
@@ -271,8 +327,11 @@ class Config {
 	 * @return string
 	 */
 	private function clean_slug( $slug ) {
-		$slug = wp_strip_all_tags( (string) $slug );
-		return trim( $slug );
+		$slug = trim( wp_strip_all_tags( (string) $slug ) );
+		if ( strlen( $slug ) > self::MAX_SLUG_BYTES ) {
+			$slug = substr( $slug, 0, self::MAX_SLUG_BYTES ); // Bound a hostile multi-KB slug; a real admin slug is far shorter.
+		}
+		return $slug;
 	}
 
 	/**
@@ -352,6 +411,9 @@ class Config {
 				}
 				return $icon; // Format-validated above; safe as a background-image source.
 			case 'url':
+				if ( strlen( $icon ) > self::MAX_ICON_URL_BYTES ) {
+					return ''; // Over-limit: a real image URL is far shorter — reject the hostile string.
+				}
 				$url = esc_url_raw( $icon, array( 'http', 'https' ) );
 				return $url ? $url : '';
 			default:
