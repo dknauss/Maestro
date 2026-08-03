@@ -32,6 +32,8 @@ class ConfigSanitizeTest extends TestCase {
 	protected function set_up() {
 		parent::set_up();
 		$this->config = new Config();
+		// Reset the in-memory option store the unit bootstrap backs save()/get() with.
+		$GLOBALS['maestro_unit_options'] = array();
 	}
 
 	/* -----------------------------------------------------------------------
@@ -540,5 +542,170 @@ class ConfigSanitizeTest extends TestCase {
 		$this->assertSame( 'Shop', $out['items']['woocommerce']['title'] );
 		$this->assertSame( array( 'role-1' ), $out['items']['woocommerce']['hidden_roles'] );
 		$this->assertSame( array( 'role-2' ), $out['items']['woocommerce']['child_hidden_roles'] );
+	}
+
+	/* -----------------------------------------------------------------------
+	 * sub_order PARENT count cap (MAX_SUB_ORDER_PARENTS) — S-2
+	 * --------------------------------------------------------------------- */
+
+	/**
+	 * Exactly MAX_SUB_ORDER_PARENTS parents must all be stored.
+	 */
+	public function test_sub_order_parents_at_limit_all_stored() {
+		$sub = array();
+		for ( $i = 1; $i <= Config::MAX_SUB_ORDER_PARENTS; $i++ ) {
+			$sub[ "parent-$i" ] = array( 'child-a' );
+		}
+		$out = $this->config->sanitize( array( 'sub_order' => $sub ) );
+
+		$this->assertSame( Config::MAX_SUB_ORDER_PARENTS, count( $out['sub_order'] ) );
+	}
+
+	/**
+	 * MAX_SUB_ORDER_PARENTS+1 parents: only the first MAX_SUB_ORDER_PARENTS
+	 * stored (insertion order); the surplus parent is dropped.
+	 */
+	public function test_sub_order_parents_over_by_one_last_dropped() {
+		$sub = array();
+		for ( $i = 1; $i <= Config::MAX_SUB_ORDER_PARENTS + 1; $i++ ) {
+			$sub[ "parent-$i" ] = array( 'child-a' );
+		}
+		$out = $this->config->sanitize( array( 'sub_order' => $sub ) );
+
+		$this->assertSame( Config::MAX_SUB_ORDER_PARENTS, count( $out['sub_order'] ) );
+		$this->assertArrayHasKey( 'parent-1', $out['sub_order'], 'First parent must be kept.' );
+		$this->assertArrayNotHasKey( 'parent-' . ( Config::MAX_SUB_ORDER_PARENTS + 1 ), $out['sub_order'], 'Surplus parent must be dropped.' );
+	}
+
+	/* -----------------------------------------------------------------------
+	 * Slug byte cap (MAX_SLUG_BYTES) — S-2. Applies to item keys, top_order
+	 * entries, and sub_order parent/child slugs (all route through clean_slug).
+	 * --------------------------------------------------------------------- */
+
+	/**
+	 * A bare item-key slug of exactly MAX_SLUG_BYTES bytes is preserved intact.
+	 */
+	public function test_slug_at_limit_item_key_preserved() {
+		$slug = str_repeat( 'a', Config::MAX_SLUG_BYTES );
+		$out  = $this->config->sanitize(
+			array( 'items' => array( $slug => array( 'title' => 'X' ) ) )
+		);
+
+		$this->assertArrayHasKey( $slug, $out['items'], 'An at-limit slug must be stored unchanged.' );
+	}
+
+	/**
+	 * A bare item-key slug over MAX_SLUG_BYTES is truncated to the cap.
+	 */
+	public function test_slug_over_limit_item_key_truncated() {
+		$slug = str_repeat( 'a', Config::MAX_SLUG_BYTES + 100 );
+		$out  = $this->config->sanitize(
+			array( 'items' => array( $slug => array( 'title' => 'X' ) ) )
+		);
+
+		$stored_key = array_key_first( $out['items'] );
+		$this->assertSame( Config::MAX_SLUG_BYTES, strlen( $stored_key ), 'An over-limit item-key slug must be truncated to MAX_SLUG_BYTES.' );
+	}
+
+	/**
+	 * top_order entries over MAX_SLUG_BYTES are truncated to the cap.
+	 */
+	public function test_slug_over_limit_top_order_truncated() {
+		$slug = str_repeat( 'b', Config::MAX_SLUG_BYTES + 100 );
+		$out  = $this->config->sanitize( array( 'top_order' => array( $slug ) ) );
+
+		$this->assertSame( Config::MAX_SLUG_BYTES, strlen( $out['top_order'][0] ), 'An over-limit top_order slug must be truncated.' );
+	}
+
+	/**
+	 * sub_order parent AND child slugs over MAX_SLUG_BYTES are both truncated.
+	 */
+	public function test_slug_over_limit_sub_order_parent_and_child_truncated() {
+		$parent = str_repeat( 'c', Config::MAX_SLUG_BYTES + 100 );
+		$child  = str_repeat( 'd', Config::MAX_SLUG_BYTES + 100 );
+		$out    = $this->config->sanitize(
+			array( 'sub_order' => array( $parent => array( $child ) ) )
+		);
+
+		$stored_parent = array_key_first( $out['sub_order'] );
+		$this->assertSame( Config::MAX_SLUG_BYTES, strlen( $stored_parent ), 'An over-limit sub_order parent slug must be truncated.' );
+		$this->assertSame( Config::MAX_SLUG_BYTES, strlen( $out['sub_order'][ $stored_parent ][0] ), 'An over-limit sub_order child slug must be truncated.' );
+	}
+
+	/* -----------------------------------------------------------------------
+	 * URL-icon byte cap (MAX_ICON_URL_BYTES) — S-2. The 'url' branch of
+	 * sanitize_icon() previously had no length check.
+	 * --------------------------------------------------------------------- */
+
+	/**
+	 * A url-form icon of exactly MAX_ICON_URL_BYTES bytes passes through.
+	 */
+	public function test_icon_url_at_limit_passes_unchanged() {
+		$prefix = 'https://example.com/';
+		$icon   = $prefix . str_repeat( 'a', Config::MAX_ICON_URL_BYTES - strlen( $prefix ) );
+		$this->assertSame( Config::MAX_ICON_URL_BYTES, strlen( $icon ) );
+		$this->assertSame( $icon, Config::sanitize_icon( $icon ), 'An at-limit image URL must be accepted.' );
+	}
+
+	/**
+	 * A url-form icon over MAX_ICON_URL_BYTES is dropped to ''.
+	 */
+	public function test_icon_url_over_limit_dropped() {
+		$prefix = 'https://example.com/';
+		$icon   = $prefix . str_repeat( 'a', Config::MAX_ICON_URL_BYTES + 1 - strlen( $prefix ) );
+		$this->assertSame( Config::MAX_ICON_URL_BYTES + 1, strlen( $icon ) );
+		$this->assertSame( '', Config::sanitize_icon( $icon ), 'An over-limit image URL must be rejected.' );
+	}
+
+	/* -----------------------------------------------------------------------
+	 * Aggregate ceiling (MAX_CONFIG_BYTES) in save() — S-2.
+	 * A payload whose serialized size exceeds the ceiling is rejected whole:
+	 * update_option() is never called and the prior config is returned.
+	 * --------------------------------------------------------------------- */
+
+	/**
+	 * Build N items each carrying a maximal (MAX_DATA_URI_BYTES) valid data-URI
+	 * icon, so serialized size scales ~128 KB per item.
+	 *
+	 * @param int $count Number of items.
+	 * @return array Raw config payload.
+	 */
+	private function config_with_max_icon_items( $count ) {
+		$prefix = 'data:image/png;base64,';
+		$icon   = $prefix . str_repeat( 'A', Config::MAX_DATA_URI_BYTES - strlen( $prefix ) );
+		$items  = array();
+		for ( $i = 1; $i <= $count; $i++ ) {
+			$items[ "slug-$i" ] = array( 'icon' => $icon );
+		}
+		return array( 'items' => $items );
+	}
+
+	/**
+	 * A large-but-in-bounds config (5 maximal icons ≈ 0.64 MB, under the 1 MB
+	 * ceiling) is stored normally.
+	 */
+	public function test_config_under_ceiling_is_stored() {
+		$raw = $this->config_with_max_icon_items( 5 );
+		$this->assertLessThan( Config::MAX_CONFIG_BYTES, strlen( serialize( $this->config->sanitize( $raw ) ) ), 'Fixture must sit under the ceiling.' );
+
+		$stored = $this->config->save( $raw );
+
+		$this->assertCount( 5, $stored['items'], 'An under-ceiling config must be stored intact.' );
+		$this->assertSame( $stored, get_option( MAESTRO_OPTION ), 'The stored option must equal the returned config.' );
+	}
+
+	/**
+	 * An over-ceiling config (10 maximal icons ≈ 1.28 MB, above the 1 MB
+	 * ceiling) is rejected whole: nothing is persisted and the prior (empty)
+	 * config is returned unchanged.
+	 */
+	public function test_config_over_ceiling_rejected_and_prior_kept() {
+		$raw = $this->config_with_max_icon_items( 10 );
+		$this->assertGreaterThan( Config::MAX_CONFIG_BYTES, strlen( serialize( $this->config->sanitize( $raw ) ) ), 'Fixture must exceed the ceiling.' );
+
+		$returned = $this->config->save( $raw );
+
+		$this->assertSame( array(), $returned, 'An over-ceiling save must return the prior (empty) config, not the rejected payload.' );
+		$this->assertFalse( get_option( MAESTRO_OPTION, false ), 'An over-ceiling save must never call update_option().' );
 	}
 }

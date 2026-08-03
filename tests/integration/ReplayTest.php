@@ -1342,4 +1342,88 @@ class ReplayTest extends WP_UnitTestCase {
 		$this->assertContains( 'admin.php?page=coupons', $slugs, 'Every child stays visible under an ambiguous parent.' );
 		$this->assertCount( 2, $slugs, 'No child may be hidden when the parent override resolves to nothing.' );
 	}
+
+	// -------------------------------------------------------------------------
+	// S-1 GUARDRAIL: the top-level hide is capability-bounded so it can never
+	// remove a row the current user could not already reach. Keeping such a row
+	// lets WP core build its own $_wp_menu_nopriv entry, so core's own 403 gate
+	// (user_can_access_admin_page()) still denies — hiding can never *widen*
+	// access. A user who genuinely holds the capability still gets the row
+	// cosmetically hidden (unchanged behavior). Modeled on the cosmetic-only
+	// guardrail for child_hidden_roles above.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * A top-level row whose capability the current user LACKS must NOT be
+	 * removed by a hidden_roles rule targeting that user. Removing it would
+	 * suppress the row core needs to keep in order to build its own nopriv
+	 * denial, so Maestro leaves it in place and defers to core's 403 gate.
+	 * current_user_can() is untouched — the hide never granted the capability.
+	 */
+	public function test_top_level_hidden_row_retained_when_user_lacks_capability() {
+		$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor );
+
+		// A high-privilege top-level page the editor cannot reach. Modeled on an
+		// add_menu_page( ..., 'manage_options', 'sec-test', '' ) registration with
+		// an unconditional toplevel_page_sec-test handler — the exact shape that,
+		// if cosmetically unset(), would drop core's nopriv guard for the row.
+		global $menu;
+		$menu[60] = array( 'Secret', 'manage_options', 'sec-test', '', 'menu-top', 'menu-sec-test', 'dashicons-lock' );
+
+		$this->assertFalse( current_user_can( 'manage_options' ), 'Precondition: editor must lack the row capability.' );
+		$can_edit_posts_before = current_user_can( 'edit_posts' );
+
+		( new Config() )->save(
+			array( 'items' => array( 'sec-test' => array( 'hidden_roles' => array( 'editor' ) ) ) )
+		);
+
+		$this->run_replay();
+
+		$slugs = wp_list_pluck( $menu, 2 );
+		$this->assertContains(
+			'sec-test',
+			$slugs,
+			'A hidden_roles rule must NOT remove a top-level row the user cannot access — core keeps the nopriv 403 gate.'
+		);
+
+		// Cosmetic-only: current_user_can() is byte-for-byte unchanged.
+		$this->assertFalse( current_user_can( 'manage_options' ), 'The hide must never grant a capability the user lacked.' );
+		$this->assertSame( $can_edit_posts_before, current_user_can( 'edit_posts' ) );
+	}
+
+	/**
+	 * The counterpart: a user who genuinely HOLDS the row capability still gets
+	 * the row cosmetically hidden by a hidden_roles rule — the capability gate
+	 * added in S-1 narrows nothing for an authorized user. current_user_can()
+	 * stays unchanged (the removal is purely cosmetic; the page still loads by
+	 * direct URL).
+	 */
+	public function test_top_level_hidden_row_removed_when_user_has_capability() {
+		$admin = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin );
+
+		global $menu;
+		$menu[60] = array( 'Secret', 'manage_options', 'sec-test', '', 'menu-top', 'menu-sec-test', 'dashicons-lock' );
+
+		$this->assertTrue( current_user_can( 'manage_options' ), 'Precondition: admin must hold the row capability.' );
+		$can_manage_before = current_user_can( 'manage_options' );
+
+		( new Config() )->save(
+			array( 'items' => array( 'sec-test' => array( 'hidden_roles' => array( 'administrator' ) ) ) )
+		);
+
+		$this->run_replay();
+
+		$slugs = wp_list_pluck( $menu, 2 );
+		$this->assertNotContains(
+			'sec-test',
+			$slugs,
+			'A capable user still gets the row cosmetically hidden — S-1 narrows nothing for the authorized case.'
+		);
+
+		// Cosmetic-only: hiding the row never revoked the capability.
+		$this->assertSame( $can_manage_before, current_user_can( 'manage_options' ) );
+		$this->assertTrue( current_user_can( 'manage_options' ), 'Admin must still hold manage_options after the row is hidden — page still loadable by URL.' );
+	}
 }

@@ -153,7 +153,14 @@ class Replay {
 						$menu[ $pos ][4] = trim( preg_replace( '/\s+/', ' ', $stripped ) ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: see above.
 					}
 				}
-				if ( $this->is_hidden_for_current_user( $ovr ) ) {
+				// Only ever cosmetically remove a row the current user could ALREADY
+				// reach ($row[1] is the menu capability). Keeping a row the user
+				// cannot access lets WP core build its own $_wp_menu_nopriv entry, so
+				// core's user_can_access_admin_page() 403 gate still fires — hiding
+				// can therefore never *widen* access, making the cosmetic-only
+				// guarantee structural rather than merely conventional. A user who CAN
+				// access still gets the item hidden (unchanged behavior).
+				if ( $this->is_hidden_for_current_user( $ovr ) && current_user_can( $row[1] ) ) {
 					unset( $menu[ $pos ] ); // Cosmetic removal; the page still loads by direct URL.
 				}
 			}
@@ -284,6 +291,13 @@ class Replay {
 					// itself is hidden -- a parent with no child_hidden_roles rule
 					// contributes nothing, so an untouched parent is exactly the
 					// child's own hidden_roles -- zero regression.
+					// No capability gate here (unlike the top-level hide above): core
+					// registers each submenu row's $_wp_submenu_nopriv entry BEFORE
+					// this late admin_menu pass, so removing a submenu row cannot
+					// remove core's own access denial — the nopriv gate is already
+					// built. The top-level $_wp_menu_nopriv table, by contrast, is
+					// finalized after admin_menu, so only the top-level hide needs the
+					// current_user_can() guard to stay strictly cosmetic.
 					$child_own_roles = ( null !== $ovr && ! empty( $ovr['hidden_roles'] ) ) ? $ovr['hidden_roles'] : array();
 					$effective_roles = Cascade::effective_hidden_roles( $child_own_roles, $parent_child_hidden_roles );
 					if ( $effective_roles && $this->is_hidden_for_current_user( array( 'hidden_roles' => $effective_roles ) ) ) {
