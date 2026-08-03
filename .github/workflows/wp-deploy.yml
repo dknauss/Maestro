@@ -25,13 +25,27 @@ jobs:
     steps:
       # Resolve which ref/version to ship. On a release event the tag comes from
       # github.ref_name; on manual dispatch it comes from the `tag` input. This
-      # lets us deploy a tag whose commit predates these workflows (e.g. 1.0.0),
+      # lets us deploy a tag whose commit predates these workflows (e.g. v1.0.0),
       # since the workflow file itself is read from the dispatched ref (main).
       - name: Resolve ref + version
         id: meta
+        env:
+          # Bind the two attacker-influenceable expressions to shell vars instead
+          # of interpolating ${{ }} straight into the script body — GitHub sets
+          # these as env values, so no dispatch input can break out of the string
+          # and inject shell.
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
-          REF="${{ github.event.inputs.tag }}"
-          [ -z "$REF" ] && REF="${{ github.ref_name }}"
+          REF="$INPUT_TAG"
+          [ -z "$REF" ] && REF="$REF_NAME"
+          # Validate the resolved ref BEFORE it feeds actions/checkout: only a
+          # vX.Y.Z release tag is deployable. This both rejects a malformed value
+          # and closes an arbitrary-branch/SHA checkout via the manual dispatch.
+          if [[ ! "$REF" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Refusing to deploy: resolved ref '$REF' is not a vX.Y.Z release tag."
+            exit 1
+          fi
           echo "ref=$REF" >> "$GITHUB_OUTPUT"
           echo "version=${REF#v}" >> "$GITHUB_OUTPUT"
 
@@ -41,8 +55,9 @@ jobs:
           ref: ${{ steps.meta.outputs.ref }}
 
       - name: Verify deploy version
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
         run: |
-          VERSION="${{ steps.meta.outputs.version }}"
           HEADER_VERSION="$(grep -m1 -E '^ \* Version:' maestro-menu-editor.php | sed -E 's/.*Version:[[:space:]]*//')"
           STABLE_TAG="$(grep -m1 -E '^Stable tag:' readme.txt | sed -E 's/^Stable tag:[[:space:]]*//')"
           test "$VERSION" = "$HEADER_VERSION"
@@ -61,7 +76,7 @@ jobs:
             --exclude 'source/'
 
       - name: WordPress.org plugin deploy
-        uses: 10up/action-wordpress-plugin-deploy@stable
+        uses: 10up/action-wordpress-plugin-deploy@54bd289b8525fd23a5c365ec369185f2966529c2 # v2.3.0 (stable)
         env:
           SVN_USERNAME: ${{ secrets.WP_ORG_SVN_USERNAME }}
           SVN_PASSWORD: ${{ secrets.WP_ORG_SVN_PASSWORD }}
