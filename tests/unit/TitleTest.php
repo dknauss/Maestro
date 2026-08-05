@@ -145,4 +145,25 @@ class TitleTest extends TestCase {
 		$this->assertSame( 'Rock &amp; Roll <span class="count-1">1</span>', $result );
 		$this->assertStringNotContainsString( '&amp;amp;', $result, 'The label must not be double-encoded.' );
 	}
+
+	// -------------------------------------------------------------------------
+	// Invalid UTF-8 in the stored label must never blank the menu row. Without
+	// ENT_SUBSTITUTE, htmlspecialchars() returns '' for a malformed sequence, so
+	// the markup-free fast path silently emitted an EMPTY label. Config::sanitize()
+	// now truncates on character boundaries so this should be unreachable in
+	// practice; this is the fast path's own guard.
+	// -------------------------------------------------------------------------
+
+	public function test_invalid_utf8_label_degrades_visibly_instead_of_blanking() {
+		// 200-byte cut of a 3-byte-per-char run splits the final character.
+		$broken = substr( str_repeat( "\xE6\xBC\xA2", 70 ), 0, 200 );
+
+		$fast = Title::replace_label( 'Dashboard', $broken );
+		$this->assertNotSame( '', $fast, 'The fast path must not blank the label on invalid UTF-8.' );
+		$this->assertNotNull( $fast );
+
+		$dom = Title::replace_label( 'Orders <span class="count-3">3</span>', $broken );
+		$this->assertNotSame( '', $dom );
+		$this->assertStringContainsString( '<span class="count-3">3</span>', (string) $dom, 'The badge must still be preserved.' );
+	}
 }

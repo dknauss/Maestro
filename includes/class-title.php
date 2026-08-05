@@ -65,7 +65,13 @@ class Title {
 		 *   - the label HTML-encoded exactly as DOMDocument::saveHTML() would
 		 *     encode a text node under the UTF-8 declaration below
 		 *     (htmlspecialchars ENT_NOQUOTES / UTF-8 == saveHTML: & < > encoded,
-		 *     quotes and multibyte left literal);
+		 *     quotes and multibyte left literal). ENT_SUBSTITUTE is set so an
+		 *     invalid UTF-8 label degrades to U+FFFD instead of htmlspecialchars
+		 *     returning an EMPTY STRING — which would blank the menu label
+		 *     outright. Config::sanitize() truncates on character boundaries so
+		 *     a stored label should never be invalid; this is the second line of
+		 *     defence, and it is strictly closer to the DOM path (which also
+		 *     emits something visible) than the empty-string default;
 		 *   - a purely numeric title (or whitespace-only) has no human-readable
 		 *     label node — find_label_node() would return null — so we return
 		 *     null too, letting the caller fall back to a wholesale set (N3).
@@ -75,7 +81,7 @@ class Title {
 			if ( '' === $trimmed || preg_match( '/^\d+$/', $trimmed ) ) {
 				return null;
 			}
-			$encoded = htmlspecialchars( $plain_label, ENT_NOQUOTES, 'UTF-8' );
+			$encoded = htmlspecialchars( $plain_label, ENT_NOQUOTES | ENT_SUBSTITUTE, 'UTF-8' );
 			if ( preg_match( '/^(\s*).*?(\s*)$/s', $live_html_title, $m ) ) {
 				return $m[1] . $encoded . $m[2];
 			}

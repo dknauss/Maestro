@@ -47,10 +47,18 @@ async function enterEditorAndSelect( page: import( '@playwright/test' ).Page ) {
 	await page.setViewportSize( { width: 1440, height: 980 } );
 	await page.goto( '/wp-admin/index.php?maestro_edit=1' );
 	await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
-	const firstItem = page.locator( 'li.maestro-item' ).first();
+	// Click the top-level row's OWN anchor, not the <li>. On the Dashboard the
+	// current item's submenu is expanded *inside* its <li>, so a plain
+	// `li.maestro-item` click lands on the centre of that box — a submenu child —
+	// and selects a sub-item (which correctly has no icon picker). Targeting the
+	// anchor pins the selection to the top-level item these captures are meant
+	// to show.
+	const firstItem = page.locator( '#adminmenu > li.menu-top.maestro-item' ).first();
 	await expect( firstItem ).toBeVisible();
-	await firstItem.click();
+	await firstItem.locator( '> a' ).first().click();
 	await expect( page.locator( '.maestro-panel' ) ).toBeVisible();
+	// Guard the intent: a top-level selection must expose the icon picker.
+	await expect( page.locator( '.maestro-icon-btn' ) ).toBeVisible();
 }
 
 test.describe( 'Directory screenshots — v1.2 editor UI (MAESTRO_CAPTURE-gated)', () => {
