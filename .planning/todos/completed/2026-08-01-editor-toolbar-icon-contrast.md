@@ -8,7 +8,32 @@ files:
   - includes/class-assets.php (enqueue seam if a colour token needs localizing per admin scheme)
 ---
 
-## Problem
+## RESOLVED — not reproducible (re-measured 2026-08-04, Phase 24 a11y gate)
+
+The contrast failure described below **does not reproduce on `main`**. Measured
+from the v1.4.0 release captures (`.wordpress-org/screenshot-1.png` icon-button
+zone and `tests/e2e/screenshots/surfaces/toolbar-{fresh,modern,midnight}.png`),
+sampling actual glyph pixels against the bar:
+
+| Element | Measured | Ratio vs `#1d2327` | SC 1.4.11 (3:1) |
+|---|---|---|---|
+| Toolbar icon glyphs | `#c3c4c7` (195,196,199) | **9.11:1** | pass |
+| "Reset All" | `#f86368` (248,99,104) | 5.28:1 | pass |
+
+No `#3858e9` pixel appears anywhere in the toolbar on Default, Modern, or
+Midnight. The icons inherit `.maestro-toolbar .button { color: #c3c4c7 }`
+(`assets/maestro.css:133`) via `currentColor`, so they already match the labels
+— which is exactly the fix this todo proposed.
+
+The original 2026-08-01 reading was taken live in the *compat* wp-env with
+WooCommerce active, and appears to have sampled a focus/active state or a WP
+core accent rather than the resting glyph colour. **No code change needed.**
+
+The "Related observation" below (rename commits only on Enter/blur, no
+as-you-type preview) is unaffected and still open — it stays a Phase 25
+candidate.
+
+## Problem (original report — see RESOLVED above)
 
 Measured live in the running editor (compat wp-env, WooCommerce active,
 2026-08-01), the edit-mode bottom toolbar has a dark background

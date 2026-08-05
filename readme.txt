@@ -145,6 +145,7 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 * Hiding a top-level item is now strictly cosmetic by construction: Maestro only removes a row the current user could already reach, so WordPress core's own permission check still fires on every page. Hiding can never widen access.
 * Internal hardening: the stored config is bounded (slug length, icon URL length, sub-order parents, and a 1 MB aggregate ceiling), and an over-size payload is rejected whole rather than partially written.
 * Accessibility: the two role lists in the visibility popover are now programmatically grouped and named, so screen-reader users can tell "hide this item" from "hide its sub-items".
+* Fixed: a very long menu name written in a multibyte script (Japanese, Chinese, emoji) is now shortened on a character boundary instead of being cut mid-character.
 
 = 1.3.1 =
 * Editor restyle: the edit-mode toolbar and controls now look native to wp-admin — quiet, borderless icon buttons replacing the coloured-outline toolbar introduced in 1.2.0. Colour is now reserved for errors and the destructive "Reset All".

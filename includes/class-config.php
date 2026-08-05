@@ -236,10 +236,7 @@ class Config {
 				$entry = array();
 
 				if ( isset( $item['title'] ) && '' !== trim( (string) $item['title'] ) ) {
-					$title = sanitize_text_field( $item['title'] );
-					if ( strlen( $title ) > self::MAX_TITLE_BYTES ) {
-						$title = substr( $title, 0, self::MAX_TITLE_BYTES );
-					}
+					$title          = self::truncate_bytes( sanitize_text_field( $item['title'] ), self::MAX_TITLE_BYTES );
 					$entry['title'] = $title;
 				}
 
@@ -328,10 +325,49 @@ class Config {
 	 */
 	private function clean_slug( $slug ) {
 		$slug = trim( wp_strip_all_tags( (string) $slug ) );
-		if ( strlen( $slug ) > self::MAX_SLUG_BYTES ) {
-			$slug = substr( $slug, 0, self::MAX_SLUG_BYTES ); // Bound a hostile multi-KB slug; a real admin slug is far shorter.
+		// Bound a hostile multi-KB slug; a real admin slug is far shorter.
+		return self::truncate_bytes( $slug, self::MAX_SLUG_BYTES );
+	}
+
+	/**
+	 * Truncate to a BYTE ceiling without splitting a UTF-8 character.
+	 *
+	 * The bounds here are deliberately byte-based (storage-truthful — they cap
+	 * what lands in wp_options), but a bare substr() at a byte offset can cut a
+	 * multibyte character in half and leave invalid UTF-8 in the stored config.
+	 * That is not merely cosmetic downstream: Title::replace_label()'s
+	 * markup-free fast path runs the stored label through htmlspecialchars()
+	 * with an explicit flag set, and htmlspecialchars() returns an EMPTY STRING
+	 * for invalid UTF-8 — so a CJK/emoji label truncated mid-character rendered
+	 * as a BLANK menu item rather than a slightly-clipped one.
+	 *
+	 * mb_strcut() is exactly this operation (byte ceiling, character boundary).
+	 * mbstring is near-universal but not guaranteed by WordPress, so the
+	 * fallback chops back at most three bytes until the string is valid UTF-8,
+	 * tested with a PCRE /u match (no mbstring dependency). The bound keeps an
+	 * already-invalid input from being eaten byte by byte.
+	 *
+	 * @param string $value     Value to truncate.
+	 * @param int    $max_bytes Byte ceiling.
+	 * @return string
+	 */
+	private static function truncate_bytes( $value, $max_bytes ) {
+		if ( strlen( $value ) <= $max_bytes ) {
+			return $value;
 		}
-		return $slug;
+
+		if ( function_exists( 'mb_strcut' ) ) {
+			return mb_strcut( $value, 0, $max_bytes, 'UTF-8' );
+		}
+
+		$cut = substr( $value, 0, $max_bytes );
+		for ( $i = 0; $i < 3 && '' !== $cut; $i++ ) {
+			if ( preg_match( '//u', $cut ) ) {
+				break;
+			}
+			$cut = substr( $cut, 0, -1 );
+		}
+		return $cut;
 	}
 
 	/**

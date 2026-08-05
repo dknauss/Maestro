@@ -80,6 +80,42 @@ class ConfigSanitizeTest extends TestCase {
 	}
 
 	/**
+	 * The byte cap must not split a multibyte character. A 3-byte-per-character
+	 * run straddles MAX_TITLE_BYTES (200 / 3 is not whole), so a bare substr()
+	 * left invalid UTF-8 in storage — which blanked the rendered label via
+	 * Title::replace_label()'s htmlspecialchars() fast path. Truncation must cut
+	 * back to the last whole character and stay at or under the byte ceiling.
+	 */
+	public function test_multibyte_title_is_truncated_on_a_character_boundary() {
+		$title = str_repeat( "\xE6\xBC\xA2", 70 ); // 210 bytes of U+6F22.
+		$raw   = array(
+			'items' => array( 'menu-slug' => array( 'title' => $title ) ),
+		);
+		$out   = $this->config->sanitize( $raw );
+
+		$stored = $out['items']['menu-slug']['title'];
+		$this->assertLessThanOrEqual( Config::MAX_TITLE_BYTES, strlen( $stored ) );
+		$this->assertSame( 1, preg_match( '//u', $stored ), 'The truncated title must remain valid UTF-8.' );
+		$this->assertSame( 198, strlen( $stored ), 'Cutting back to the last whole 3-byte character lands on 198.' );
+	}
+
+	/**
+	 * The same character-boundary rule applies to the slug byte cap.
+	 */
+	public function test_multibyte_slug_is_truncated_on_a_character_boundary() {
+		$slug = str_repeat( "\xE6\xBC\xA2", 200 ); // 600 bytes, over MAX_SLUG_BYTES.
+		$raw  = array(
+			'items' => array( $slug => array( 'title' => 'Renamed' ) ),
+		);
+		$out  = $this->config->sanitize( $raw );
+
+		$keys = array_keys( $out['items'] );
+		$this->assertNotEmpty( $keys );
+		$this->assertLessThanOrEqual( Config::MAX_SLUG_BYTES, strlen( $keys[0] ) );
+		$this->assertSame( 1, preg_match( '//u', $keys[0] ), 'The truncated slug must remain valid UTF-8.' );
+	}
+
+	/**
 	 * An empty/whitespace-only title must not produce a 'title' key (existing behaviour).
 	 */
 	public function test_empty_title_omitted() {
