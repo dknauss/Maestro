@@ -140,7 +140,7 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 = 1.4.0 =
 * **Hide sub-items independently of their parent.** The visibility popover now offers a second role list, "Hide its sub-items from:", on any item that has children — so a parent can stay visible while its sub-items are hidden from the roles you choose. A role already hidden at the parent level shows as implied and is never stored twice.
 * **Renames keep count bubbles and badges.** Renaming an item that carries a count bubble or a "NEW" badge (WooCommerce order counts, plugin notification badges) now preserves that markup instead of stripping it. The stored title stays plain text; the badge is re-read from the live menu on every request.
-* **Shared slugs no longer collide.** When a top-level item and a submenu item register the same slug, a rename or hide applied to one no longer lands on both. Overrides saved by earlier versions continue to work unchanged.
+* **Editing a submenu no longer changes its same-slug parent.** WordPress registers some submenu items under the same slug as their top-level parent (the "All Products" style self-link under a custom post type). Renaming or hiding that submenu row now applies to that row alone. Editing the *top-level* item still carries to a same-slug submenu row until you give that row an edit of its own — that is deliberate, so overrides saved by earlier versions keep behaving exactly as they did.
 * **Better coexistence with other menu plugins.** Maestro no longer overrides another plugin's `custom_menu_order` when it has no ordering of its own to apply.
 * Hiding a top-level item is now strictly cosmetic by construction: Maestro only removes a row the current user could already reach, so WordPress core's own permission check still fires on every page. Hiding can never widen access.
 * Internal hardening: the stored config is bounded (slug length, icon URL length, sub-order parents, and a 1 MB aggregate ceiling), and an over-size payload is rejected whole rather than partially written.
@@ -191,7 +191,7 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 == Upgrade Notice ==
 
 = 1.4.0 =
-Hide a parent's sub-items from chosen roles while the parent stays visible. Renames now keep count bubbles and badges. Fixes rename/hide landing on the wrong item when a top-level item and a submenu share a slug. Existing overrides keep working; no config changes needed.
+Hide a parent's sub-items from chosen roles while the parent stays visible. Renames now keep count bubbles and badges. Editing a submenu that shares its slug with its parent no longer changes the parent too. Existing overrides keep working; no config changes needed.
 
 = 1.3.1 =
 Editor visual refresh: the edit-mode toolbar and controls now match wp-admin's native look (the 1.2.0 coloured-outline system is retired), exit is consolidated onto the admin-bar "Exit Menu Editor" toggle, and dark-scheme contrast is improved. No config changes required.
