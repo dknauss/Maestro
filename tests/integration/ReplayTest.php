@@ -733,15 +733,25 @@ class ReplayTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Zero-regression: a legacy config with ONLY a bare submenu key (no
-	 * qualified key stored) still renames BOTH the top-level item and the
-	 * same-slug submenu row — exactly today's behavior — until re-saved.
+	 * Zero-regression: a config saved by <= 1.4.0 (schema v1 — no
+	 * `schema_version` key) with ONLY a bare submenu key still renames BOTH the
+	 * top-level item and the same-slug submenu row, until it is re-saved.
+	 *
+	 * Written straight to the option rather than through Config::save(), because
+	 * save() stamps SCHEMA_VERSION — this fixture must be a genuine pre-v2
+	 * config, which is exactly what an upgrading site has on disk.
 	 */
-	public function test_legacy_bare_submenu_key_still_matches_both_scopes_today() {
+	public function test_legacy_v1_bare_submenu_key_still_matches_both_scopes() {
 		$this->seed_shared_slug_menu();
 
-		( new Config() )->save(
-			array( 'items' => array( 'edit.php?post_type=product' => array( 'title' => 'Renamed Everywhere' ) ) )
+		update_option(
+			MAESTRO_OPTION,
+			array(
+				'items'     => array( 'edit.php?post_type=product' => array( 'title' => 'Renamed Everywhere' ) ),
+				'top_order' => array(),
+				'sub_order' => array(),
+			),
+			false
 		);
 
 		$this->run_replay();
@@ -751,8 +761,96 @@ class ReplayTest extends WP_UnitTestCase {
 		$this->assertSame(
 			'Renamed Everywhere',
 			$submenu['edit.php?post_type=product'][5][0],
-			'Legacy bare key with no qualified key present must still rename the same-slug submenu row (zero-regression until re-saved).'
+			'A schema-v1 bare key with no qualified key present must still rename the same-slug submenu row (zero-regression until re-saved).'
 		);
+	}
+
+	/**
+	 * COMPAT-04 completion: in a CURRENT (schema v2) config, a bare key is a
+	 * top-level key and nothing else. Renaming only the top-level item must
+	 * leave a same-slug submenu row alone — the propagation that v1.4.0 still
+	 * had, and that its changelog was corrected for.
+	 */
+	public function test_v2_bare_top_level_key_does_not_touch_the_same_slug_submenu() {
+		$this->seed_shared_slug_menu();
+
+		( new Config() )->save(
+			array( 'items' => array( 'edit.php?post_type=product' => array( 'title' => 'Shop Items' ) ) )
+		);
+
+		$this->run_replay();
+
+		global $menu, $submenu;
+		$this->assertSame( 'Shop Items', $menu[20][0], 'The top-level rename must still apply.' );
+		$this->assertSame(
+			'All Products',
+			$submenu['edit.php?post_type=product'][5][0],
+			'A top-level-only rename must NOT propagate to the same-slug submenu row under schema v2.'
+		);
+	}
+
+	/**
+	 * The same isolation for the HIDE axis: a bare top-level hidden_roles rule
+	 * must not cosmetically remove the same-slug submenu row.
+	 */
+	public function test_v2_bare_top_level_hide_does_not_hide_the_same_slug_submenu() {
+		$this->seed_shared_slug_menu();
+		$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor );
+
+		( new Config() )->save(
+			array( 'items' => array( 'edit.php?post_type=product' => array( 'hidden_roles' => array( 'editor' ) ) ) )
+		);
+
+		$this->run_replay();
+
+		global $submenu;
+		$this->assertArrayHasKey(
+			5,
+			$submenu['edit.php?post_type=product'],
+			'A top-level-only hide must NOT remove the same-slug submenu row under schema v2.'
+		);
+	}
+
+	/**
+	 * Migration is self-healing: the editor model is built from the REPLAYED
+	 * globals, so a legacy v1 bare key that is currently retitling both rows
+	 * shows the override on both nodes. That is what lets the next
+	 * full-replace save write a bare top key AND a qualified child key, so
+	 * nothing visible changes when the config crosses to v2.
+	 */
+	public function test_legacy_v1_bare_key_surfaces_on_both_editor_nodes_for_migration() {
+		$this->seed_shared_slug_menu();
+
+		update_option(
+			MAESTRO_OPTION,
+			array(
+				'items'     => array( 'edit.php?post_type=product' => array( 'title' => 'Renamed Everywhere' ) ),
+				'top_order' => array(),
+				'sub_order' => array(),
+			),
+			false
+		);
+
+		$this->run_replay();
+		$model = ( new Replay( new Config() ) )->get_menu_model();
+
+		$top = null;
+		foreach ( $model as $node ) {
+			if ( 'edit.php?post_type=product' === $node['slug'] ) {
+				$top = $node;
+				break;
+			}
+		}
+
+		$this->assertNotNull( $top, 'The shared-slug top-level node must be in the model.' );
+		$this->assertSame( 'Renamed Everywhere', $top['title'], 'Top-level node carries the legacy override.' );
+		$this->assertSame(
+			'Renamed Everywhere',
+			$top['submenu'][0]['title'],
+			'The submenu node must ALSO carry it, so the next save persists it under a qualified key.'
+		);
+		$this->assertNotSame( '', $top['submenu'][0]['qualifiedKey'], 'The submenu node must expose a qualified key to save under.' );
 	}
 
 	/**
@@ -910,8 +1008,16 @@ class ReplayTest extends WP_UnitTestCase {
 	public function test_get_menu_model_submenu_hidden_roles_fallback_to_legacy_bare_key() {
 		$this->seed_shared_slug_menu();
 
-		( new Config() )->save(
-			array( 'items' => array( 'edit.php?post_type=product' => array( 'hidden_roles' => array( 'editor' ) ) ) )
+		// A genuine schema-v1 config (no schema_version) — Config::save() would
+		// stamp v2, under which a parent-colliding bare key is top-level-only.
+		update_option(
+			MAESTRO_OPTION,
+			array(
+				'items'     => array( 'edit.php?post_type=product' => array( 'hidden_roles' => array( 'editor' ) ) ),
+				'top_order' => array(),
+				'sub_order' => array(),
+			),
+			false
 		);
 
 		$model = ( new Replay( new Config() ) )->get_menu_model();
@@ -933,6 +1039,62 @@ class ReplayTest extends WP_UnitTestCase {
 			}
 		}
 		$this->assertSame( array( 'editor' ), $sub['hiddenRoles'], 'Legacy bare key with no qualified key present must still resolve for the same-slug submenu node too.' );
+	}
+
+	/**
+	 * The v2 counterpart: with a current config, the editor model must NOT show
+	 * the parent's bare hidden_roles on the same-slug submenu node. The popover
+	 * has to agree with what replay() applies, or it lies about the state and
+	 * the next full-replace save persists the lie.
+	 */
+	public function test_get_menu_model_v2_bare_parent_key_does_not_surface_on_same_slug_submenu() {
+		$this->seed_shared_slug_menu();
+
+		( new Config() )->save(
+			array( 'items' => array( 'edit.php?post_type=product' => array( 'hidden_roles' => array( 'editor' ) ) ) )
+		);
+
+		$model = ( new Replay( new Config() ) )->get_menu_model();
+
+		$top = null;
+		foreach ( $model as $entry ) {
+			if ( 'edit.php?post_type=product' === $entry['slug'] ) {
+				$top = $entry;
+				break;
+			}
+		}
+		$this->assertSame( array( 'editor' ), $top['hiddenRoles'], 'The bare key still resolves for the top-level node.' );
+
+		$sub = null;
+		foreach ( $top['submenu'] as $child ) {
+			if ( 'edit.php?post_type=product' === $child['slug'] ) {
+				$sub = $child;
+				break;
+			}
+		}
+		$this->assertSame( array(), $sub['hiddenRoles'], 'Under schema v2 the parent-colliding bare key must NOT surface on the submenu node.' );
+	}
+
+	/**
+	 * The narrowing is surgical: a bare key for a submenu child whose slug does
+	 * NOT collide with its parent's is unambiguous (only one rendered row can
+	 * carry it), so it keeps applying under schema v2.
+	 */
+	public function test_v2_bare_key_still_applies_to_a_non_colliding_submenu_child() {
+		$this->seed_shared_slug_menu();
+
+		( new Config() )->save(
+			array( 'items' => array( 'post-new.php?post_type=product' => array( 'title' => 'New Widget' ) ) )
+		);
+
+		$this->run_replay();
+
+		global $submenu;
+		$this->assertSame(
+			'New Widget',
+			$submenu['edit.php?post_type=product'][10][0],
+			'A non-colliding bare submenu key must still apply under schema v2.'
+		);
 	}
 
 	// -----------------------------------------------------------------------

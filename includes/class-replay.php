@@ -183,12 +183,17 @@ class Replay {
 				}
 			}
 
+			// Resolved once for the whole submenu pass: whether the STORED config
+			// predates qualified `parent>child` keys and therefore still expects a
+			// bare key to reach a submenu row. See Config::SCHEMA_VERSION.
+			$legacy_bare_keys = $this->config->is_legacy_bare_key_schema();
+
 			foreach ( $submenu as $parent => $children ) {
 				// COMPAT-04: a qualified `parent>child` override resolves ONLY this
 				// submenu row, never a same-slug top-level item (level-qualified).
-				// A legacy bare child key (no qualified key stored for this pair)
-				// keeps matching this row too — exactly today's behavior — so an
-				// existing config's effect does not change until it is re-saved.
+				// A legacy bare child key (schema v1 only — see $legacy_bare_keys)
+				// keeps matching this row too, so an existing pre-v2 config's
+				// effect does not change until it is re-saved.
 				// Both Axis-2 collision guards below are independent: a rendered
 				// collision on the qualified path does not veto the bare path or
 				// vice versa.
@@ -268,8 +273,35 @@ class Replay {
 						}
 					}
 
-					// Legacy bare fallback: only when no qualified override applied.
-					if ( null === $ovr && ! isset( $norm_skip[ $nk ] ) && ! isset( $sub_skip_rendered[ $nk ] ) && isset( $norm_items[ $nk ] ) ) {
+					// Bare fallback: only when no qualified override applied.
+					//
+					// COMPAT-04 completion — the bare key is ambiguous in exactly one
+					// case: when it is ALSO the parent's own key ($nk === $norm_parent,
+					// WordPress's self-link convention where a CPT's "All Products"
+					// child re-registers the parent's slug). Everywhere else a bare key
+					// names exactly one rendered row and applying it here is correct
+					// and unambiguous, so the fallback stands.
+					//
+					// For that one colliding case the reading depends on who wrote the
+					// config (see Config::SCHEMA_VERSION):
+					// - v1 (<= 1.4.0): the editor of that era stored a submenu edit
+					// under the child's own bare slug, so the key may well have
+					// meant the child. Keep applying it — dropping it would
+					// silently un-apply saved overrides.
+					// - v2 (every later version): every submenu edit carries a qualified
+					// `parent>child` key, so a colliding bare key can only have
+					// meant the top-level row. Applying it here is what used to
+					// drag the child along with a top-level-only rename or hide.
+					//
+					// The v1 -> v2 migration needs no upgrade routine: get_menu_model()
+					// reads the already-replayed globals, so a legacy bare key that is
+					// currently retitling both rows appears on both editor nodes, and
+					// the next full-replace save writes the bare top key AND the
+					// qualified child key. Nothing visible changes at the bump.
+					$bare_collides_with_parent = ( '' !== $norm_parent && $nk === $norm_parent );
+					$bare_fallback_allowed     = $legacy_bare_keys || ! $bare_collides_with_parent;
+
+					if ( $bare_fallback_allowed && null === $ovr && ! isset( $norm_skip[ $nk ] ) && ! isset( $sub_skip_rendered[ $nk ] ) && isset( $norm_items[ $nk ] ) ) {
 						$ovr = $norm_items[ $nk ];
 					}
 
@@ -492,9 +524,11 @@ class Replay {
 	/**
 	 * Resolve a rendered slug's stored hidden_roles through the normalized lookup,
 	 * mirroring how replay() decides which override applies: for a submenu child
-	 * ($parent_slug given), a qualified `parent>child` override wins first, with
-	 * a legacy bare fallback; for a top-level row ($parent_slug null), only the
-	 * bare key is consulted — never a same-slug submenu's qualified override.
+	 * ($parent_slug given), a qualified `parent>child` override wins first, then a
+	 * bare fallback — except a bare key that IS the parent's own key, which under
+	 * schema v2 belongs to the top-level row alone (see Config::SCHEMA_VERSION);
+	 * for a top-level row ($parent_slug null), only the bare key is consulted —
+	 * never a same-slug submenu's qualified override.
 	 * Returns an empty array when nothing (unambiguous) resolves.
 	 *
 	 * @param string      $slug        Rendered slug (top-level or submenu child).
@@ -518,6 +552,14 @@ class Replay {
 				if ( ! isset( $norm_skip[ $qnk ] ) && isset( $norm_items[ $qnk ]['hidden_roles'] ) ) {
 					return $norm_items[ $qnk ]['hidden_roles'];
 				}
+			}
+
+			// A bare key that IS the parent's own key is ambiguous; under schema v2
+			// it belongs to the top-level row only. Must mirror replay()'s
+			// $bare_fallback_allowed gate exactly, or the editor popover would show
+			// roles checked that replay no longer applies.
+			if ( '' !== $norm_parent && $nk === $norm_parent && ! $this->config->is_legacy_bare_key_schema() ) {
+				return array();
 			}
 		}
 
