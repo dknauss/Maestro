@@ -4,7 +4,7 @@ Donate link: https://github.com/sponsors/dknauss
 Tags: admin menu, admin menu editor, menu editor, hide menu items, menu icons
 Requires at least: 6.4
 Tested up to: 7.0
-Stable tag: 1.3.1
+Stable tag: 1.4.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -115,9 +115,9 @@ Maestro is built to stay out of the way:
 * **One extra query on an admin page** — a single, *non-autoloaded* option (`maestro_config`), read once per request and cached. With a persistent object cache (Redis / Memcached) that drops to zero.
 * **Nothing added to `alloptions`.** Because the option is not autoloaded, it adds no weight to the bundle WordPress loads on every request.
 * **Minimal storage.** One `wp_options` row, created only when you first save a change — a fresh install stores nothing. No custom tables, no post or user meta, no transients, no cron jobs. Uninstalling deletes that single row.
-* **Small install** — roughly a 90 KB download. Menu changes are applied in memory during the `admin_menu` pass, not through extra queries.
+* **Small install** — roughly a 110 KB download. Menu changes are applied in memory during the `admin_menu` pass, not through extra queries.
 
-(Figures are a v1.3.1 snapshot.)
+(Figures are a v1.4.0 snapshot.)
 
 == Known limits / deferred to v2 ==
 
@@ -136,6 +136,15 @@ menu grey and embedded as data-URIs; see `bin/generate-bootstrap-icons.mjs`.
 If Maestro saves you time or brings you or your clients the joy of a tidy admin menu, you can support its ongoing maintenance through [GitHub Sponsors](https://github.com/sponsors/dknauss).
 
 == Changelog ==
+
+= 1.4.0 =
+* **Hide sub-items independently of their parent.** The visibility popover now offers a second role list, "Hide its sub-items from:", on any item that has children — so a parent can stay visible while its sub-items are hidden from the roles you choose. A role already hidden at the parent level shows as implied and is never stored twice.
+* **Renames keep count bubbles and badges.** Renaming an item that carries a count bubble or a "NEW" badge (WooCommerce order counts, plugin notification badges) now preserves that markup instead of stripping it. The stored title stays plain text; the badge is re-read from the live menu on every request.
+* **Shared slugs no longer collide.** When a top-level item and a submenu item register the same slug, a rename or hide applied to one no longer lands on both. Overrides saved by earlier versions continue to work unchanged.
+* **Better coexistence with other menu plugins.** Maestro no longer overrides another plugin's `custom_menu_order` when it has no ordering of its own to apply.
+* Hiding a top-level item is now strictly cosmetic by construction: Maestro only removes a row the current user could already reach, so WordPress core's own permission check still fires on every page. Hiding can never widen access.
+* Internal hardening: the stored config is bounded (slug length, icon URL length, sub-order parents, and a 1 MB aggregate ceiling), and an over-size payload is rejected whole rather than partially written.
+* Accessibility: the two role lists in the visibility popover are now programmatically grouped and named, so screen-reader users can tell "hide this item" from "hide its sub-items".
 
 = 1.3.1 =
 * Editor restyle: the edit-mode toolbar and controls now look native to wp-admin — quiet, borderless icon buttons replacing the coloured-outline toolbar introduced in 1.2.0. Colour is now reserved for errors and the destructive "Reset All".
@@ -179,6 +188,9 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 * Editor: click-to-select with a shared panel, debounced single-flight autosave, and folded-mode neutralization.
 
 == Upgrade Notice ==
+
+= 1.4.0 =
+Adds per-parent sub-item hiding (hide a parent's children from chosen roles while the parent stays visible), preserves count bubbles and badges when you rename an item, and fixes rename/hide landing on the wrong item when a top-level item and a submenu share a slug. Existing saved overrides keep working; no configuration changes required.
 
 = 1.3.1 =
 Editor visual refresh: the edit-mode toolbar and controls now match wp-admin's native look (the 1.2.0 coloured-outline system is retired), exit is consolidated onto the admin-bar "Exit Menu Editor" toggle, and dark-scheme contrast is improved. No config changes required.
