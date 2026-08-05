@@ -20,10 +20,17 @@ talk us into writing a legacy config). `Replay` reads it via
 `Config::is_legacy_bare_key_schema()`.
 
 **The gate is narrower than option 1 as originally sketched.** A bare key is
-ambiguous in exactly one case: when it is *also the parent's own key*
-(`$nk === $norm_parent` — WordPress's self-link convention). Everywhere else a
-bare key names exactly one rendered row, so the fallback stands and non-colliding
-bare submenu keys keep working. So:
+ambiguous exactly when it *also names a rendered top-level row*
+(`isset( $top_rendered_matches[ $nk ] )`). Everywhere else a bare key names
+exactly one rendered row, so the fallback stands and non-colliding bare submenu
+keys keep working. So:
+
+> **Widened once during review.** The first cut tested `$nk === $norm_parent`,
+> which only caught WordPress's self-link shape (a CPT's "All Products" child
+> re-registering its own parent's slug). Codex pointed out on PR #115 that a
+> plugin can park a submenu under one parent whose slug equals an *unrelated*
+> top-level row's — same ambiguity, different shape, and the narrow test misses
+> it. Verified with a failing test before widening.
 
 - **v1 config (no stamp)** — unchanged in every case. Full zero-regression.
 - **v2 config** — a parent-colliding bare key applies to the top-level row only.
@@ -41,6 +48,12 @@ AND the qualified child key. Nothing visible changes at the bump — asserted by
 - `test_v2_bare_top_level_key_does_not_touch_the_same_slug_submenu`
 - `test_v2_bare_top_level_hide_does_not_hide_the_same_slug_submenu`
 - `test_get_menu_model_v2_bare_parent_key_does_not_surface_on_same_slug_submenu`
+- `test_v2_bare_top_level_key_does_not_touch_a_submenu_under_a_different_parent`
+- `test_get_menu_model_v2_bare_top_key_does_not_surface_on_a_submenu_under_a_different_parent`
+  — its own test because the two sets are built differently: replay() uses
+  `$top_rendered_matches` (only keys that HAVE a stored override, the same
+  condition its fallback requires) while `get_menu_model()` builds
+  `$top_rendered_keys` from every rendered top-level row
 - `test_v2_bare_key_still_applies_to_a_non_colliding_submenu_child` (guards the narrowing)
 - `test_legacy_v1_bare_submenu_key_still_matches_both_scopes` (rewritten to seed a
   genuine v1 config via `update_option`, since `save()` now stamps v2)

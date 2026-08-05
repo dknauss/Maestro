@@ -1076,6 +1076,74 @@ class ReplayTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The collision is not only the CPT self-link shape. A plugin can register a
+	 * submenu under one parent whose rendered slug equals a DIFFERENT top-level
+	 * row's slug (here a "Media" shortcut parked under Posts). The child slug
+	 * does not equal its own parent's, so a `$nk === $norm_parent` test misses
+	 * it — but under schema v2 the bare key still unambiguously means the
+	 * top-level row, because any submenu edit would have been qualified.
+	 */
+	public function test_v2_bare_top_level_key_does_not_touch_a_submenu_under_a_different_parent() {
+		global $submenu;
+		$this->seed_menu();
+		// A submenu row under Posts that re-uses the top-level Media slug.
+		$submenu['edit.php'][20] = array( 'Media Shortcut', 'upload_files', 'upload.php', '' );
+
+		( new Config() )->save(
+			array( 'items' => array( 'upload.php' => array( 'title' => 'Files' ) ) )
+		);
+
+		$this->run_replay();
+
+		global $menu;
+		$this->assertSame( 'Files', $menu[10][0], 'The top-level rename must still apply.' );
+		$this->assertSame(
+			'Media Shortcut',
+			$submenu['edit.php'][20][0],
+			'A bare key that names a rendered TOP-LEVEL row must not also rename a same-slug submenu under an unrelated parent.'
+		);
+	}
+
+	/**
+	 * The editor-model mirror of the different-parent collision. Worth its own
+	 * test because the two sets are built differently — replay() uses
+	 * $top_rendered_matches (only keys that HAVE a stored override, which is the
+	 * same condition its fallback requires) while get_menu_model() builds
+	 * $top_rendered_keys from every rendered top-level row. They must agree in
+	 * the fallback context or the popover drifts from what replay applies.
+	 */
+	public function test_get_menu_model_v2_bare_top_key_does_not_surface_on_a_submenu_under_a_different_parent() {
+		global $submenu;
+		$this->seed_menu();
+		$submenu['edit.php'][20] = array( 'Media Shortcut', 'upload_files', 'upload.php', '' );
+
+		( new Config() )->save(
+			array( 'items' => array( 'upload.php' => array( 'hidden_roles' => array( 'editor' ) ) ) )
+		);
+
+		$model = ( new Replay( new Config() ) )->get_menu_model();
+
+		$posts = null;
+		foreach ( $model as $entry ) {
+			if ( 'edit.php' === $entry['slug'] ) {
+				$posts = $entry;
+				break;
+			}
+		}
+		$this->assertNotNull( $posts );
+
+		$shortcut = null;
+		foreach ( $posts['submenu'] as $child ) {
+			if ( 'upload.php' === $child['slug'] ) {
+				$shortcut = $child;
+				break;
+			}
+		}
+		$this->assertNotNull( $shortcut, 'The same-slug submenu row must be in the model.' );
+		$this->assertSame( array(), $shortcut['hiddenRoles'], 'The top-level bare key must NOT surface on a submenu under an unrelated parent.' );
+	}
+
+	/**
 	 * The narrowing is surgical: a bare key for a submenu child whose slug does
 	 * NOT collide with its parent's is unambiguous (only one rendered row can
 	 * carry it), so it keeps applying under schema v2.

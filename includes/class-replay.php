@@ -275,14 +275,22 @@ class Replay {
 
 					// Bare fallback: only when no qualified override applied.
 					//
-					// COMPAT-04 completion — the bare key is ambiguous in exactly one
-					// case: when it is ALSO the parent's own key ($nk === $norm_parent,
-					// WordPress's self-link convention where a CPT's "All Products"
-					// child re-registers the parent's slug). Everywhere else a bare key
-					// names exactly one rendered row and applying it here is correct
-					// and unambiguous, so the fallback stands.
+					// COMPAT-04 completion — the bare key is ambiguous exactly when it
+					// ALSO names a rendered TOP-LEVEL row. The common shape is
+					// WordPress's self-link convention (a CPT's "All Products" child
+					// re-registering its own parent's slug), but it is NOT limited to
+					// that: a plugin can park a submenu under one parent whose slug
+					// equals an unrelated top-level row's, so testing
+					// `$nk === $norm_parent` would miss it. $top_rendered_matches is
+					// precisely the right set — it is keyed by normalized rendered
+					// top-level slug and only populated for keys that HAVE a stored
+					// override, which is the same condition this fallback requires.
 					//
-					// For that one colliding case the reading depends on who wrote the
+					// When the bare key names no rendered top-level row it is
+					// unambiguous (only this submenu can carry it), so the fallback
+					// stands untouched.
+					//
+					// For the colliding case the reading depends on who wrote the
 					// config (see Config::SCHEMA_VERSION):
 					// - v1 (<= 1.4.0): the editor of that era stored a submenu edit
 					// under the child's own bare slug, so the key may well have
@@ -298,8 +306,8 @@ class Replay {
 					// currently retitling both rows appears on both editor nodes, and
 					// the next full-replace save writes the bare top key AND the
 					// qualified child key. Nothing visible changes at the bump.
-					$bare_collides_with_parent = ( '' !== $norm_parent && $nk === $norm_parent );
-					$bare_fallback_allowed     = $legacy_bare_keys || ! $bare_collides_with_parent;
+					$bare_names_a_top_row  = isset( $top_rendered_matches[ $nk ] );
+					$bare_fallback_allowed = $legacy_bare_keys || ! $bare_names_a_top_row;
 
 					if ( $bare_fallback_allowed && null === $ovr && ! isset( $norm_skip[ $nk ] ) && ! isset( $sub_skip_rendered[ $nk ] ) && isset( $norm_items[ $nk ] ) ) {
 						$ovr = $norm_items[ $nk ];
@@ -525,21 +533,24 @@ class Replay {
 	 * Resolve a rendered slug's stored hidden_roles through the normalized lookup,
 	 * mirroring how replay() decides which override applies: for a submenu child
 	 * ($parent_slug given), a qualified `parent>child` override wins first, then a
-	 * bare fallback — except a bare key that IS the parent's own key, which under
-	 * schema v2 belongs to the top-level row alone (see Config::SCHEMA_VERSION);
-	 * for a top-level row ($parent_slug null), only the bare key is consulted —
-	 * never a same-slug submenu's qualified override.
+	 * bare fallback — except a bare key that also names a rendered TOP-LEVEL row,
+	 * which under schema v2 belongs to that top-level row alone (see
+	 * Config::SCHEMA_VERSION); for a top-level row ($parent_slug null), only the
+	 * bare key is consulted — never a same-slug submenu's qualified override.
 	 * Returns an empty array when nothing (unambiguous) resolves.
 	 *
-	 * @param string      $slug        Rendered slug (top-level or submenu child).
-	 * @param array       $norm_items  Normalized override map from normalized_items().
-	 * @param array       $norm_skip   Ambiguous normalized keys from normalized_items().
-	 * @param string      $base        Admin base for Slug::normalize().
-	 * @param string|null $parent_slug Rendered parent slug for a submenu child, or
-	 *                                 null for a top-level row.
+	 * @param string      $slug              Rendered slug (top-level or submenu child).
+	 * @param array       $norm_items        Normalized override map from normalized_items().
+	 * @param array       $norm_skip         Ambiguous normalized keys from normalized_items().
+	 * @param string      $base              Admin base for Slug::normalize().
+	 * @param string|null $parent_slug       Rendered parent slug for a submenu child, or
+	 *                                       null for a top-level row.
+	 * @param array       $top_rendered_keys Normalized keys of every rendered top-level
+	 *                                       row, as a set. Mirrors replay()'s
+	 *                                       $top_rendered_matches for the v2 gate.
 	 * @return array
 	 */
-	private function resolved_hidden_roles( $slug, array $norm_items, array $norm_skip, $base, $parent_slug = null ) {
+	private function resolved_hidden_roles( $slug, array $norm_items, array $norm_skip, $base, $parent_slug = null, array $top_rendered_keys = array() ) {
 		$nk = Slug::normalize( (string) $slug, $base );
 		if ( '' === $nk ) {
 			return array();
@@ -554,11 +565,11 @@ class Replay {
 				}
 			}
 
-			// A bare key that IS the parent's own key is ambiguous; under schema v2
-			// it belongs to the top-level row only. Must mirror replay()'s
-			// $bare_fallback_allowed gate exactly, or the editor popover would show
-			// roles checked that replay no longer applies.
-			if ( '' !== $norm_parent && $nk === $norm_parent && ! $this->config->is_legacy_bare_key_schema() ) {
+			// A bare key that also names a rendered TOP-LEVEL row is ambiguous;
+			// under schema v2 it belongs to that top-level row only. Must mirror
+			// replay()'s $bare_fallback_allowed gate exactly, or the editor popover
+			// would show roles checked that replay no longer applies.
+			if ( isset( $top_rendered_keys[ $nk ] ) && ! $this->config->is_legacy_bare_key_schema() ) {
 				return array();
 			}
 		}
@@ -619,6 +630,21 @@ class Replay {
 		$base                           = function_exists( 'admin_url' ) ? admin_url( '' ) : '';
 		list( $norm_items, $norm_skip ) = $this->normalized_items( $items, $base );
 
+		// Normalized keys of every rendered TOP-LEVEL row — the editor-side mirror
+		// of replay()'s $top_rendered_matches. A bare key in this set names a
+		// top-level row, so under schema v2 it must not resolve onto a submenu
+		// child (see the $bare_fallback_allowed gate in replay()).
+		$top_rendered_keys = array();
+		foreach ( $menu as $row ) {
+			if ( empty( $row[2] ) ) {
+				continue;
+			}
+			$tnk = Slug::normalize( (string) $row[2], $base );
+			if ( '' !== $tnk ) {
+				$top_rendered_keys[ $tnk ] = true;
+			}
+		}
+
 		foreach ( $menu as $row ) {
 			if ( empty( $row[2] ) || ( isset( $row[4] ) && false !== strpos( (string) $row[4], 'wp-menu-separator' ) ) ) {
 				continue; // skip separators in v1.
@@ -659,7 +685,7 @@ class Replay {
 						'slug'         => $sub[2],
 						'qualifiedKey' => $qualified_key,
 						'title'        => isset( $sub[0] ) ? wp_strip_all_tags( $sub[0] ) : '',
-						'hiddenRoles'  => $this->resolved_hidden_roles( $sub[2], $norm_items, $norm_skip, $base, $slug ),
+						'hiddenRoles'  => $this->resolved_hidden_roles( $sub[2], $norm_items, $norm_skip, $base, $slug, $top_rendered_keys ),
 					);
 				}
 			}
