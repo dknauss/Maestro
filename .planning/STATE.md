@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Compatibility, Roles & Showcase
 status: shipped
-stopped_at: v1.4.0 released; Phase 21 context gathered, deferred to v1.5
-last_updated: "2026-08-04T00:00:00.000Z"
-last_activity: 2026-08-04 — **v1.4.0 SHIPPED** (PR #113, tag on 482510c, GitHub Release + wp.org SVN trunk/tags/1.4.0/assets confirmed). Phase 24 release gates 8–11 run consolidated over the full v1.3.1..main diff; one defect found and fixed (multibyte truncation blanked labels) and one changelog overclaim corrected (shared-slug isolation is submenu-direction only). ROLE-02 (Phase 21) deferred to v1.5.
+stopped_at: v1.4.1 released; Phase 21 context gathered, deferred to v1.5
+last_updated: "2026-08-05T00:00:00.000Z"
+last_activity: 2026-08-05 — **v1.4.1 SHIPPED** (PR #116, tag on c6cdcbe; wp.org API confirms 1.4.1). Patch for the shared-slug propagation defect (#115): a bare top-level key no longer applies to a submenu row whose slug names a rendered top-level item. Two Codex P2 rounds on #115 — the first cut of the gate tested `$nk === $norm_parent` and missed submenus parked under an unrelated parent; widened to `isset( $top_rendered_matches[ $nk ] )`. Prior: 2026-08-04 — **v1.4.0 SHIPPED** (PR #113, tag on 482510c, GitHub Release + wp.org SVN trunk/tags/1.4.0/assets confirmed). Phase 24 release gates 8–11 run consolidated over the full v1.3.1..main diff; one defect found and fixed (multibyte truncation blanked labels) and one changelog overclaim corrected (shared-slug isolation is submenu-direction only). ROLE-02 (Phase 21) deferred to v1.5.
 progress:
   total_phases: 6
   completed_phases: 4
@@ -59,6 +59,25 @@ and REL-10 ships without it.
 The milestone is the system of record for its release (see the
 `release_checklist` frontmatter). Carrying forward the standing lesson below —
 diff `vLAST..main` for user-facing commits before tagging.
+
+**✅ v1.4.1 SHIPPED 2026-08-05** — patch release for the shared-slug
+propagation defect. PR #116 squash-merged as `c6cdcbe`; tag `v1.4.1`; GitHub
+Release published; SVN `trunk` Stable tag 1.4.1 + `tags/1.4.1/` verified; wp.org
+API confirms `1.4.1`. Not a security release: the propagation could apply an
+unintended rename or hide, but it can neither widen access (it only ever removes
+rows, and the S-1 `current_user_can()` guard keeps core's `$_wp_menu_nopriv` 403
+gate intact) nor revoke it (hiding is cosmetic — the page still loads by URL).
+
+The fix took two Codex P2 rounds on #115. The first gate tested
+`$nk === $norm_parent`, catching only WordPress's self-link shape; a plugin can
+park a submenu under an unrelated parent whose slug matches a top-level row's.
+Widened to `isset( $top_rendered_matches[ $nk ] )`. Both rounds reproduced with a
+failing test before the fix.
+
+**Migration caveat worth remembering:** the v1 → v2 bump deliberately KEEPS a
+submenu label already renamed by propagation, so nothing changes under the user
+unexpectedly — which means a user who considered that rename a bug must use
+Reset Item on the child once. Stated in the 1.4.1 changelog and Upgrade Notice.
 
 **✅ v1.4.0 SHIPPED 2026-08-04** — PR #113 squash-merged as `482510c`; tag
 `v1.4.0`; GitHub Release published with `maestro-menu-editor.zip`; wp.org SVN
