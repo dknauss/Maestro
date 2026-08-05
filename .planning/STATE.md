@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Compatibility, Roles & Showcase
-status: verifying
-stopped_at: Phase 21 context gathered
-last_updated: "2026-08-02T15:43:40.074Z"
-last_activity: 2026-08-02 — Phase 20 Plan 06 reworked for revised COMPAT-10 (independent child_hidden_roles); editor UI, e2e, and full zero-regression gate complete; Phase 20 (COMPAT-04/07/10) all 6/6 plans done, awaiting human-verify checkpoint
+status: shipped
+stopped_at: v1.4.0 released; Phase 21 context gathered, deferred to v1.5
+last_updated: "2026-08-04T00:00:00.000Z"
+last_activity: 2026-08-04 — **v1.4.0 SHIPPED** (PR #113, tag on 482510c, GitHub Release + wp.org SVN trunk/tags/1.4.0/assets confirmed). Phase 24 release gates 8–11 run consolidated over the full v1.3.1..main diff; one defect found and fixed (multibyte truncation blanked labels) and one changelog overclaim corrected (shared-slug isolation is submenu-direction only). ROLE-02 (Phase 21) deferred to v1.5.
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 12
   completed_plans: 12
-  percent: 50
+  percent: 67
 ---
 
 # Project State
@@ -60,19 +60,26 @@ The milestone is the system of record for its release (see the
 `release_checklist` frontmatter). Carrying forward the standing lesson below —
 diff `vLAST..main` for user-facing commits before tagging.
 
+**✅ v1.4.0 SHIPPED 2026-08-04** — PR #113 squash-merged as `482510c`; tag
+`v1.4.0`; GitHub Release published with `maestro-menu-editor.zip`; wp.org SVN
+verified (`trunk` Stable tag 1.4.0, `tags/1.4.0/`, all 6 screenshots + banners +
+icons in `assets/`). The wp.org API's `version` field lags the SVN commit by up
+to ~an hour — SVN is the truth at deploy time. ROLE-02 (Phase 21) did NOT ship;
+deferred to v1.5 per the Release Binding fallback.
+
 | # | Item | Status |
 |---|------|--------|
-| 1 | Zero-regression gate green (CI on the release PR) | Pending |
-| 2 | Version strings bumped via `prep-release.sh` | Pending |
-| 3 | **Changelog covers ALL user-facing changes since last tag** (diff `v1.3.1..main`) | Pending |
-| 4 | Upgrade Notice entry for 1.4.0 | Pending |
-| 5 | **Directory + editor screenshots reflect shipping UI** (recapture for UX-11 coachmark + Phase 23 UX changes) | Pending |
-| 6 | Tag points at a `main` commit with all code + final readme | Pending |
-| 7 | Tag + GitHub Release published; SVN trunk/tag/assets confirmed | Pending |
-| 8 | **Code review clean** — deep review of the release PR; automated-review (Codex) P1/P2 resolved; conversation-resolution gate satisfied | Pending |
-| 9 | **A11y sweep passed** — WCAG 2.2 AA across editor surfaces (Phases 20/21/25), spot-checked Default/Modern/Midnight | Pending |
-| 10 | **Adversarial security pass clean** — cosmetic-only invariant holds (guardrail tests green); no unresolved XSS/authz findings on the release diff | Pending |
-| 11 | **Performance assessment acceptable** — replay hot-path measured (incl. `Title::replace_label` DOMDocument cost); no regressions | Pending |
+| 1 | Zero-regression gate green (CI on the release PR) | ✅ unit 140/140 (189 assertions), integration 75/75 (183), JS 64/64, e2e 36 pass/28 capture-skipped, capture 55/55, WPCS, PHPStan, doc-links |
+| 2 | Version strings bumped via `prep-release.sh` | ✅ |
+| 3 | **Changelog covers ALL user-facing changes since last tag** (diff `v1.3.1..main`) | ✅ (corrected once — see gate 8) |
+| 4 | Upgrade Notice entry for 1.4.0 | ✅ 266 chars (Plugin Check limit 300) |
+| 5 | **Directory + editor screenshots reflect shipping UI** | ✅ 1–6 + per-scheme surfaces recaptured; screenshot 3 now shows the two-group popover |
+| 6 | Tag points at a `main` commit with all code + final readme | ✅ `482510c` |
+| 7 | Tag + GitHub Release published; SVN trunk/tag/assets confirmed | ✅ |
+| 8 | **Code review clean** | ✅ **2 findings, both fixed.** (a) Multibyte titles/slugs were truncated at a byte offset, and the new markup-free fast path's `htmlspecialchars()` returns `''` on invalid UTF-8 — a long CJK/emoji label rendered as a BLANK row. Fixed via `Config::truncate_bytes()` + `ENT_SUBSTITUTE`. (b) Codex P2: the changelog claimed shared-slug collisions were fixed in both directions; only the submenu direction isolates (bare top-level keys still match both scopes by the zero-regression contract). Wording narrowed; gap captured as a todo. |
+| 9 | **A11y sweep passed** — WCAG 2.2 AA, Default/Modern/Midnight | ✅ S1 fix verified (`role=group` + uniquified `aria-labelledby`). Toolbar re-measured from release captures: glyphs `#c3c4c7` = **9.11:1** on `#1d2327`, Reset All 5.28:1 — the 2026-08-01 "2.8:1 blue icons" report does NOT reproduce and was closed as stale. M2/M3 remain deferred to Phase 25. |
+| 10 | **Adversarial security pass clean** | ✅ S-1 capability guard correct + test-enforced; submenu site's unguarded `unset` sound (core registers `$_wp_submenu_nopriv` before this late pass). `Title::replace_label()` not XSS-exploitable (`DOMText::nodeValue` escapes on serialize; label `sanitize_text_field`'d); no XXE (`loadHTML` without `LIBXML_NOENT`/`DTDLOAD`). Config bounds complete. Known LOW: qualified-key entity collision (todo). |
+| 11 | **Performance assessment acceptable** | ✅ `Title::replace_label` benchmarked at 20k iterations: **0.39 µs** markup-free fast path, **6.5–9.4 µs** DOM path. Only stored overrides invoke it; a pathological all-renamed 75-row menu is ~0.7 ms. |
 
 **Gate status note (2026-08-02):** a first a11y + adversarial-security pass ran against the **Phase 20 diff** (not the full release). Security: **safe-to-merge** (Title::replace_label not XSS-exploitable — label double-escaped, preserved markup = WP's own raw-render model; cosmetic-only invariant intact & test-enforced; REST authz/CSRF correct; one optional LOW hardening L1 = entity-smuggled `&gt;` key self-collision, admin-only cosmetic). A11y: **pass-with-issues** — S1 (WCAG 1.3.1 A, serious): the two visibility-popover role groups lack a programmatic group name (no fieldset/legend or role=group+aria-labelledby) so a SR user can't distinguish "hide item" vs "hide sub-items"; M2/M3 minor. Gates 8-11 remain Pending — they re-run consolidated across the full release diff at Phase 24.
 
