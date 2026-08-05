@@ -10,7 +10,61 @@ files:
   - tests/e2e/specs/shared-slug.spec.ts:44 (step 1's "submenu untouched" assertion is a client-side DOM check, pre-reload)
 ---
 
-## Problem
+## ✅ RESOLVED 2026-08-04 — `Config::SCHEMA_VERSION` (v1 → v2)
+
+Fixed by versioning the stored config instead of guessing at intent.
+
+`Config::sanitize()` now stamps `schema_version` on everything Maestro writes
+(the stamp is ours — an incoming payload's value is ignored, so a client cannot
+talk us into writing a legacy config). `Replay` reads it via
+`Config::is_legacy_bare_key_schema()`.
+
+**The gate is narrower than option 1 as originally sketched.** A bare key is
+ambiguous exactly when it *also names a rendered top-level row*
+(`isset( $top_rendered_matches[ $nk ] )`). Everywhere else a bare key names
+exactly one rendered row, so the fallback stands and non-colliding bare submenu
+keys keep working. So:
+
+> **Widened once during review.** The first cut tested `$nk === $norm_parent`,
+> which only caught WordPress's self-link shape (a CPT's "All Products" child
+> re-registering its own parent's slug). Codex pointed out on PR #115 that a
+> plugin can park a submenu under one parent whose slug equals an *unrelated*
+> top-level row's — same ambiguity, different shape, and the narrow test misses
+> it. Verified with a failing test before widening.
+
+- **v1 config (no stamp)** — unchanged in every case. Full zero-regression.
+- **v2 config** — a parent-colliding bare key applies to the top-level row only.
+
+`resolved_hidden_roles()` carries the identical gate so the editor popover cannot
+drift from what replay applies.
+
+**Migration needs no upgrade routine.** `get_menu_model()` builds from the
+already-replayed globals, so a legacy bare key currently retitling both rows
+appears on both editor nodes; the next full-replace save writes the bare top key
+AND the qualified child key. Nothing visible changes at the bump — asserted by
+`test_legacy_v1_bare_key_surfaces_on_both_editor_nodes_for_migration`.
+
+**Coverage added** (each verified to fail with the fix reverted):
+- `test_v2_bare_top_level_key_does_not_touch_the_same_slug_submenu`
+- `test_v2_bare_top_level_hide_does_not_hide_the_same_slug_submenu`
+- `test_get_menu_model_v2_bare_parent_key_does_not_surface_on_same_slug_submenu`
+- `test_v2_bare_top_level_key_does_not_touch_a_submenu_under_a_different_parent`
+- `test_get_menu_model_v2_bare_top_key_does_not_surface_on_a_submenu_under_a_different_parent`
+  — its own test because the two sets are built differently: replay() uses
+  `$top_rendered_matches` (only keys that HAVE a stored override, the same
+  condition its fallback requires) while `get_menu_model()` builds
+  `$top_rendered_keys` from every rendered top-level row
+- `test_v2_bare_key_still_applies_to_a_non_colliding_submenu_child` (guards the narrowing)
+- `test_legacy_v1_bare_submenu_key_still_matches_both_scopes` (rewritten to seed a
+  genuine v1 config via `update_option`, since `save()` now stamps v2)
+- `shared-slug.spec.ts` now re-asserts isolation **after a reload**, closing the
+  blind spot described below. Reverting the fix makes it fail with the submenu
+  reading `"Gadgets•(modified)"`.
+
+The `schema_version` envelope this introduces is also the precursor the
+export/import work wants — see [[2026-07-03-config-presets-export-import]].
+
+## Problem (original report — see RESOLVED above)
 
 COMPAT-04's shared-slug isolation only holds in **one direction**, and the
 v1.4.0 changelog originally overclaimed it (caught by the Codex review on

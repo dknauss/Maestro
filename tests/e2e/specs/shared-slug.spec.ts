@@ -73,6 +73,16 @@ test.describe( 'COMPAT-04 — shared-slug top-level vs submenu independent editi
 		await expect( topLi.locator( '.wp-menu-name' ) ).toContainText( 'Gadgets' );
 		await expect( subLi ).toContainText( 'All Widgets' );
 
+		// ...and it must still be untouched AFTER A RELOAD. The assertion above
+		// only reads the client-side DOM, which repaints just the row the editor
+		// changed — it cannot see whether replay() drags the same-slug child along
+		// on the next request. That blind spot is exactly how the top-level →
+		// submenu propagation survived into v1.4.0: this spec appeared to prove
+		// isolation while the server side still applied the bare key to both rows.
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		await expect( topLi.locator( '.wp-menu-name' ) ).toContainText( 'Gadgets' );
+		await expect( subLi ).toContainText( 'All Widgets' );
+
 		// 2. Select the SUBMENU row and rename it.
 		await subLi.locator( 'a' ).click();
 		await expect( panel ).toBeVisible();

@@ -9,6 +9,7 @@
  *
  * Shape:
  * [
+ *   'schema_version' => 2,                               // see SCHEMA_VERSION
  *   'items'     => [
  *       '<slug>' => [
  *           'title'        => 'Custom Title',          // optional
@@ -126,6 +127,35 @@ class Config {
 	const MAX_CONFIG_BYTES = 1048576;
 
 	/**
+	 * Schema version stamped onto every config this plugin writes.
+	 *
+	 * What it gates (v1 → v2, COMPAT-04 completion):
+	 *
+	 * - **v1 (absent key)** — written by <= 1.4.0. A BARE item key is ambiguous:
+	 *   the editor of that era stored a submenu edit under the child's own bare
+	 *   slug, so replay must keep letting a bare key fall through to a same-slug
+	 *   submenu row. That is the zero-regression contract for configs saved
+	 *   before qualified `parent>child` keys existed.
+	 * - **v2** — written by every later version. The editor addresses every
+	 *   submenu row by its qualified `parent>child` key, so a bare key that
+	 *   COLLIDES with its parent's own key can only ever have meant the
+	 *   top-level row. Replay stops applying such a key to the child, which is
+	 *   what makes a top-level-only edit stop propagating to a same-slug child.
+	 *   A bare key that does NOT collide with its parent names exactly one
+	 *   rendered row and keeps applying — the narrowing is only about ambiguity.
+	 *
+	 * The migration is self-healing and needs no upgrade routine: the editor
+	 * model is built from the ALREADY-REPLAYED globals, so a legacy bare key
+	 * that is currently renaming both rows shows up on both nodes, and the next
+	 * full-replace save writes a bare top-level key AND a qualified submenu key.
+	 * The visible menu is therefore identical across the version bump; only the
+	 * stored representation becomes unambiguous.
+	 *
+	 * @var int
+	 */
+	const SCHEMA_VERSION = 2;
+
+	/**
 	 * In-request cache of the option.
 	 *
 	 * @var array|null
@@ -183,6 +213,27 @@ class Config {
 	}
 
 	/**
+	 * Whether the STORED config predates qualified submenu keys.
+	 *
+	 * A config with no `schema_version` was written by <= 1.4.0, where a submenu
+	 * edit was stored under the child's own bare slug. Replay must keep applying
+	 * bare keys to submenu rows for those. Anything we wrote ourselves carries
+	 * SCHEMA_VERSION and is unambiguous. See SCHEMA_VERSION.
+	 *
+	 * An unrecognised FUTURE version is treated as non-legacy: a newer Maestro
+	 * writes qualified submenu keys too, so the strict reading is the safe one.
+	 *
+	 * @return bool
+	 */
+	public function is_legacy_bare_key_schema() {
+		$cfg = $this->get();
+		if ( ! isset( $cfg['schema_version'] ) ) {
+			return true;
+		}
+		return (int) $cfg['schema_version'] < 2;
+	}
+
+	/**
 	 * Per-item override, or null if untouched.
 	 *
 	 * @param string $slug Menu slug.
@@ -205,9 +256,13 @@ class Config {
 	 */
 	public function sanitize( array $raw ) {
 		$out = array(
-			'items'     => array(),
-			'top_order' => array(),
-			'sub_order' => array(),
+			// Stamped, never read from the incoming payload: the schema of what we
+			// are about to WRITE is decided here, not by the client. See
+			// SCHEMA_VERSION for what the version gates.
+			'schema_version' => self::SCHEMA_VERSION,
+			'items'          => array(),
+			'top_order'      => array(),
+			'sub_order'      => array(),
 		);
 
 		$valid_roles = array_keys( wp_roles()->get_names() );

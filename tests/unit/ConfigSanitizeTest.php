@@ -744,4 +744,50 @@ class ConfigSanitizeTest extends TestCase {
 		$this->assertSame( array(), $returned, 'An over-ceiling save must return the prior (empty) config, not the rejected payload.' );
 		$this->assertFalse( get_option( MAESTRO_OPTION, false ), 'An over-ceiling save must never call update_option().' );
 	}
+
+	/**
+	 * Schema version (COMPAT-04 completion)
+	 * -------------------------------------------------------------------------
+	 * Every config we write is stamped, and the stamp is OURS — a client cannot
+	 * talk us into writing a legacy-schema config (which would re-enable the
+	 * bare-key fallback onto submenu rows).
+	 */
+	public function test_sanitize_stamps_the_current_schema_version() {
+		$out = $this->config->sanitize( array( 'items' => array( 'index.php' => array( 'title' => 'Home' ) ) ) );
+
+		$this->assertSame( Config::SCHEMA_VERSION, $out['schema_version'] );
+	}
+
+	public function test_incoming_schema_version_is_ignored_and_restamped() {
+		$out = $this->config->sanitize(
+			array(
+				'schema_version' => 1,
+				'items'          => array( 'index.php' => array( 'title' => 'Home' ) ),
+			)
+		);
+
+		$this->assertSame( Config::SCHEMA_VERSION, $out['schema_version'], 'A client-supplied schema_version must never be honoured.' );
+	}
+
+	public function test_config_with_no_schema_version_reads_as_legacy() {
+		update_option( MAESTRO_OPTION, array( 'items' => array() ), false );
+
+		$this->assertTrue( ( new Config() )->is_legacy_bare_key_schema() );
+	}
+
+	public function test_saved_config_does_not_read_as_legacy() {
+		$this->config->save( array( 'items' => array( 'index.php' => array( 'title' => 'Home' ) ) ) );
+
+		$this->assertFalse( ( new Config() )->is_legacy_bare_key_schema() );
+	}
+
+	/**
+	 * An unrecognised FUTURE schema is treated as non-legacy — a newer Maestro
+	 * writes qualified submenu keys too, so the strict reading is the safe one.
+	 */
+	public function test_future_schema_version_does_not_read_as_legacy() {
+		update_option( MAESTRO_OPTION, array( 'schema_version' => 99, 'items' => array() ), false );
+
+		$this->assertFalse( ( new Config() )->is_legacy_bare_key_schema() );
+	}
 }
