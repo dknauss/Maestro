@@ -94,7 +94,7 @@ their current parent.
 
 1. The inline editor — select any admin-menu item to edit it in place using the quiet, wp-admin-native toolbar and shared controls panel (rename, icon, visibility, reset). A single admin-bar toggle enters and exits edit mode — labelled "Edit Menu" when idle and "Exit Menu Editor" while editing.
 2. The icon picker: searchable Dashicons and bundled Bootstrap Icons tabs for swapping a top-level admin menu icon.
-3. Per-role visibility — open the visibility selector to hide an item from selected roles (cosmetic declutter, not access control).
+3. Per-role visibility — open the visibility selector to hide an item from selected roles, and (on an item with children) to hide its sub-items independently while the parent stays visible. Cosmetic declutter, not access control.
 4. A renamed item showing the transient "Saved" state — the indicator auto-clears to idle once the autosave settles.
 5. Reordering a top-level menu group by dragging — a live sortable-helper shows the item in motion.
 6. Reordering a submenu item using the ▲/▼ move controls — the OS-independent, keyboard-accessible reorder path.
@@ -190,7 +190,7 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 == Upgrade Notice ==
 
 = 1.4.0 =
-Adds per-parent sub-item hiding (hide a parent's children from chosen roles while the parent stays visible), preserves count bubbles and badges when you rename an item, and fixes rename/hide landing on the wrong item when a top-level item and a submenu share a slug. Existing saved overrides keep working; no configuration changes required.
+Hide a parent's sub-items from chosen roles while the parent stays visible. Renames now keep count bubbles and badges. Fixes rename/hide landing on the wrong item when a top-level item and a submenu share a slug. Existing overrides keep working; no config changes needed.
 
 = 1.3.1 =
 Editor visual refresh: the edit-mode toolbar and controls now match wp-admin's native look (the 1.2.0 coloured-outline system is retired), exit is consolidated onto the admin-bar "Exit Menu Editor" toggle, and dark-scheme contrast is improved. No config changes required.
