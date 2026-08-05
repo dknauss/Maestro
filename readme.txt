@@ -4,7 +4,7 @@ Donate link: https://github.com/sponsors/dknauss
 Tags: admin menu, admin menu editor, menu editor, hide menu items, menu icons
 Requires at least: 6.4
 Tested up to: 7.0
-Stable tag: 1.4.0
+Stable tag: 1.4.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -115,9 +115,9 @@ Maestro is built to stay out of the way:
 * **One extra query on an admin page** — a single, *non-autoloaded* option (`maestro_config`), read once per request and cached. With a persistent object cache (Redis / Memcached) that drops to zero.
 * **Nothing added to `alloptions`.** Because the option is not autoloaded, it adds no weight to the bundle WordPress loads on every request.
 * **Minimal storage.** One `wp_options` row, created only when you first save a change — a fresh install stores nothing. No custom tables, no post or user meta, no transients, no cron jobs. Uninstalling deletes that single row.
-* **Small install** — roughly a 110 KB download. Menu changes are applied in memory during the `admin_menu` pass, not through extra queries.
+* **Small install** — roughly a 115 KB download. Menu changes are applied in memory during the `admin_menu` pass, not through extra queries.
 
-(Figures are a v1.4.0 snapshot.)
+(Figures are a v1.4.1 snapshot.)
 
 == Known limits / deferred to v2 ==
 
@@ -136,6 +136,11 @@ menu grey and embedded as data-URIs; see `bin/generate-bootstrap-icons.mjs`.
 If Maestro saves you time or brings you or your clients the joy of a tidy admin menu, you can support its ongoing maintenance through [GitHub Sponsors](https://github.com/sponsors/dknauss).
 
 == Changelog ==
+
+= 1.4.1 =
+* **Fixed: editing a top-level item no longer changes a submenu item that happens to share its slug.** WordPress and many plugins register a submenu under the same slug as a top-level item — the "All Products" self-link under a custom post type, or a plugin shortcut that points at an existing top-level screen. Renaming or hiding the top-level item could carry to that submenu row as well. It now applies only to the item you edited. This completes the fix started in 1.4.0, which covered the reverse direction (editing a submenu never touched its parent).
+* Configs are now stamped with a schema version, so Maestro can tell an override you saved recently from one saved before submenu items could be addressed individually. Overrides saved by earlier versions keep behaving exactly as they did until you next save.
+* **If a submenu item was already renamed along with its parent**, that name is kept when you upgrade, so nothing changes under you unexpectedly. Select that submenu item and use **Reset Item** once to restore its original label.
 
 = 1.4.0 =
 * **Hide sub-items independently of their parent.** The visibility popover now offers a second role list, "Hide its sub-items from:", on any item that has children — so a parent can stay visible while its sub-items are hidden from the roles you choose. A role already hidden at the parent level shows as implied and is never stored twice.
@@ -189,6 +194,9 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 * Editor: click-to-select with a shared panel, debounced single-flight autosave, and folded-mode neutralization.
 
 == Upgrade Notice ==
+
+= 1.4.1 =
+Fixes editing a top-level item also changing a submenu item that shares its slug (the "All Products" self-link shape, and plugin shortcuts pointing at an existing screen). If a submenu item was already renamed with its parent, that name is kept — select it and use Reset Item once.
 
 = 1.4.0 =
 Hide a parent's sub-items from chosen roles while the parent stays visible. Renames now keep count bubbles and badges. Editing a submenu that shares its slug with its parent no longer changes the parent too. Existing overrides keep working; no config changes needed.
