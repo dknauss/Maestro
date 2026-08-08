@@ -254,6 +254,7 @@ Recent decisions affecting current work:
 
 <!-- Capture-spec output-path follow-up removed 2026-07-04: resolved in 7abe7d1 — all three capture specs (capture-screenshots, capture-directory-screenshots, editor) now write to tests/e2e/screenshots/… instead of archived phase dirs; MAESTRO_CAPTURE gating unchanged. -->
 <!-- Dependabot alert #14 (js-yaml < 3.15.0, GHSA-h67p-54hq-rp68, dev-only via @wordpress/env) resolved 2026-07-04: in-range lockfile bump to 3.15.0. -->
+<!-- js-yaml < 3.15.1 (GHSA-5p4m-2wfm-xmqj / CVE-2026-59870, quadratic CPU in !!omap, high; dev-only via @wordpress/env) resolved 2026-08-08 in #118: in-range lockfile bump to 3.15.1, same shape as the 3.15.0 fix above. Surfaced as a CI failure in "Dependency metadata + audits", not a Dependabot alert. bin/audit-npm.mjs `allowed` set stays empty — no allowlist entry. -->
 
 ### Blockers/Concerns
 
