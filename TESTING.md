@@ -2,7 +2,7 @@
 
 Three layers, smallest and fastest first.
 
-> **Current expected status:** unit 145/145 with 194 assertions, integration 82/82 with 198 assertions, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, (COMPAT-04) independent shared-slug top-level/submenu editing, and (COMPAT-10) the "Hide its sub-items from:" role group's independent child-hiding behavior.
+> **Current expected status:** unit 158/158 with 210 assertions, integration 82/82 with 198 assertions, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, (COMPAT-04) independent shared-slug top-level/submenu editing, and (COMPAT-10) the "Hide its sub-items from:" role group's independent child-hiding behavior.
 
 ## Gotchas (first run)
 
@@ -24,7 +24,12 @@ text-node label-replacement against [`tests/unit/TitleTest.php`](tests/unit/Titl
 badge/wrapping-markup fixtures, and (COMPAT-10) [`Cascade::effective_hidden_roles()`](includes/class-cascade.php)'s
 pure role-list union of a child's own `hidden_roles` with its parent's
 independent `child_hidden_roles`, against [`tests/unit/CascadeTest.php`](tests/unit/CascadeTest.php)'s
-union / dedup / multi-role cases. Fast, runs anywhere with PHP + Composer.
+union / dedup / multi-role cases. (ROLE-02) [`Config::sanitize()`](includes/class-config.php)'s
+per-user `hidden_users` / `child_hidden_users` axes are covered in
+[`tests/unit/ConfigSanitizeTest.php`](tests/unit/ConfigSanitizeTest.php) — coercion,
+intersect-against-live, `MAX_HIDDEN_USERS` cap, the sparse drop-when-empty contract,
+the parent-only rule for the child axis, and a zero-regression guard asserting a
+role-only config sanitizes byte-identically. Fast, runs anywhere with PHP + Composer.
 
 ```bash
 composer install

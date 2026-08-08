@@ -93,6 +93,20 @@ class Config {
 	const MAX_HIDDEN_ROLES = 50;
 
 	/**
+	 * Maximum number of hidden users per item, per axis (ROLE-02).
+	 *
+	 * Deliberately the same ceiling as MAX_HIDDEN_ROLES. Unlike roles, a site can
+	 * legitimately have far more users than this cap — but per-user hiding targets
+	 * named individuals, and a rule naming more than 50 of them is a role rule
+	 * expressed the hard way. The cap bounds the stored payload the same way
+	 * MAX_HIDDEN_ROLES does, and the picker is an async search precisely so it
+	 * never invites bulk-selecting a whole user base.
+	 *
+	 * @var int
+	 */
+	const MAX_HIDDEN_USERS = 50;
+
+	/**
 	 * Maximum byte length of a data-URI icon (128 KB raw string).
 	 * ~57x the largest bundled Bootstrap icon (2,242 bytes). A truncated
 	 * base64 string is corrupt, so over-limit data-URIs are dropped to ''.
@@ -267,6 +281,13 @@ class Config {
 
 		$valid_roles = array_keys( wp_roles()->get_names() );
 
+		// ROLE-02: resolved LAZILY, on first use, and reused for every item.
+		// wp_roles() above is a cheap read of an already-loaded global, but the
+		// live user-ID set costs a query — so a config with no per-user axis
+		// (which is every config written before this feature) must not pay for
+		// one, and a config with fifty of them must not pay fifty times.
+		$valid_users = null;
+
 		if ( ! empty( $raw['items'] ) && is_array( $raw['items'] ) ) {
 			foreach ( $raw['items'] as $slug => $item ) {
 				// Qualified `parent>child` submenu keys: clean each half
@@ -335,6 +356,32 @@ class Config {
 					}
 				}
 
+				// ROLE-02: the per-user analog of hidden_roles. Valid at BOTH key
+				// scopes (bare top-level and qualified submenu), exactly as
+				// hidden_roles is — only the child_* axis below is parent-only.
+				if ( ! empty( $item['hidden_users'] ) && is_array( $item['hidden_users'] ) ) {
+					if ( null === $valid_users ) {
+						$valid_users = $this->live_user_ids();
+					}
+					$users = $this->clean_user_ids( $item['hidden_users'], $valid_users );
+					if ( $users ) {
+						$entry['hidden_users'] = $users;
+					}
+				}
+
+				// ROLE-02: the per-user analog of child_hidden_roles. Per-PARENT
+				// (top-level) only — a qualified submenu key has no children, so
+				// the axis is dropped there under the same guard.
+				if ( ! $is_qualified && ! empty( $item['child_hidden_users'] ) && is_array( $item['child_hidden_users'] ) ) {
+					if ( null === $valid_users ) {
+						$valid_users = $this->live_user_ids();
+					}
+					$users = $this->clean_user_ids( $item['child_hidden_users'], $valid_users );
+					if ( $users ) {
+						$entry['child_hidden_users'] = $users;
+					}
+				}
+
 				if ( $entry ) {
 					$out['items'][ $slug ] = $entry;
 					if ( count( $out['items'] ) >= self::MAX_ITEMS ) {
@@ -382,6 +429,57 @@ class Config {
 		$slug = trim( wp_strip_all_tags( (string) $slug ) );
 		// Bound a hostile multi-KB slug; a real admin slug is far shorter.
 		return self::truncate_bytes( $slug, self::MAX_SLUG_BYTES );
+	}
+
+	/**
+	 * The site's live user IDs, as ints (ROLE-02).
+	 *
+	 * Isolated behind a method so sanitize() reads the same way for both user
+	 * axes and the query has exactly one call site to audit.
+	 *
+	 * @return int[]
+	 */
+	private function live_user_ids() {
+		return array_map( 'intval', (array) get_users( array( 'fields' => 'ID' ) ) );
+	}
+
+	/**
+	 * Clean a raw per-user axis into stored form (ROLE-02).
+	 *
+	 * Mirrors the hidden_roles pipeline — coerce, intersect against what is live,
+	 * then cap — so both axes self-heal identically: an ID whose user is deleted
+	 * simply stops matching, and nothing is ever written to the user.
+	 *
+	 * Order matters. The intersect runs BEFORE the cap so the ceiling counts
+	 * usable IDs; capping first could spend all 50 slots on IDs that resolve to
+	 * nobody and silently drop the real targets.
+	 *
+	 * @param array $raw_ids     Incoming IDs (ints or numeric strings).
+	 * @param int[] $valid_users Live user IDs from live_user_ids().
+	 * @return int[]
+	 */
+	private function clean_user_ids( $raw_ids, array $valid_users ) {
+		$ids = array();
+		foreach ( (array) $raw_ids as $id ) {
+			// Arrays/objects/null never coerce meaningfully — (int) would turn
+			// them into 1 or 0 and invent a target the client never sent.
+			if ( ! is_scalar( $id ) ) {
+				continue;
+			}
+			$id = (int) $id;
+			if ( $id > 0 ) {
+				$ids[] = $id;
+			}
+		}
+
+		$ids = array_values( array_unique( $ids ) );
+		$ids = array_values( array_intersect( $ids, $valid_users ) );
+
+		if ( count( $ids ) > self::MAX_HIDDEN_USERS ) {
+			$ids = array_slice( $ids, 0, self::MAX_HIDDEN_USERS );
+		}
+
+		return $ids;
 	}
 
 	/**

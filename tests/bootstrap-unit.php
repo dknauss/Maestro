@@ -44,6 +44,25 @@ if ( ! function_exists( 'wp_roles' ) ) {
 	}
 }
 
+if ( ! function_exists( 'get_users' ) ) {
+	/**
+	 * Stub: returns 60 user IDs (1 … 60) — enough for MAX_HIDDEN_USERS cap
+	 * tests, mirroring the 60-role wp_roles() stub above.
+	 *
+	 * Only the `fields => ID` shape Config::sanitize() asks for is supported;
+	 * the stub ignores every other query arg deliberately, so a future caller
+	 * that needs richer behaviour has to extend it consciously rather than
+	 * silently receive a wrong answer.
+	 *
+	 * @param array $args Query args (only 'fields' => 'ID' is honoured).
+	 * @return int[]
+	 */
+	function get_users( $args = array() ) {
+		unset( $args );
+		return range( 1, 60 );
+	}
+}
+
 if ( ! function_exists( 'sanitize_text_field' ) ) {
 	/**
 	 * Stub: returns trimmed string (unit-safe approximation).
