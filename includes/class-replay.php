@@ -530,15 +530,25 @@ class Replay {
 	}
 
 	/**
-	 * Resolve a rendered slug's stored hidden_roles through the normalized lookup,
-	 * mirroring how replay() decides which override applies: for a submenu child
-	 * ($parent_slug given), a qualified `parent>child` override wins first, then a
-	 * bare fallback — except a bare key that also names a rendered TOP-LEVEL row,
-	 * which under schema v2 belongs to that top-level row alone (see
-	 * Config::SCHEMA_VERSION); for a top-level row ($parent_slug null), only the
-	 * bare key is consulted — never a same-slug submenu's qualified override.
-	 * Returns an empty array when nothing (unambiguous) resolves.
+	 * Resolve a rendered slug's stored visibility list for a NAMED field, through
+	 * the normalized lookup, mirroring how replay() decides which override applies:
+	 * for a submenu child ($parent_slug given), a qualified `parent>child` override
+	 * wins first, then a bare fallback — except a bare key that also names a
+	 * rendered TOP-LEVEL row, which under schema v2 belongs to that top-level row
+	 * alone (see Config::SCHEMA_VERSION); for a top-level row ($parent_slug null),
+	 * only the bare key is consulted — never a same-slug submenu's qualified
+	 * override. Returns an empty array when nothing (unambiguous) resolves.
 	 *
+	 * PARAMETERIZED BY FIELD (ROLE-02), deliberately. This function encodes three
+	 * rules the per-user axis must inherit *identically* — qualified-first lookup,
+	 * the schema-v2 bare-key gate (the v1.4.1 fix from PR #115), and the Axis-1
+	 * ambiguity guard. A parallel resolved_hidden_users() would be a second place
+	 * for all three to drift out of sync, which is exactly the defect class already
+	 * logged against the editor model in
+	 * `todos/pending/2026-08-02-editor-model-replay-axis2-drift.md`. One
+	 * implementation, one audit point — per the feasibility note's §2 seam argument.
+	 *
+	 * @param string      $field             Override field to read ('hidden_roles' | 'hidden_users').
 	 * @param string      $slug              Rendered slug (top-level or submenu child).
 	 * @param array       $norm_items        Normalized override map from normalized_items().
 	 * @param array       $norm_skip         Ambiguous normalized keys from normalized_items().
@@ -550,7 +560,7 @@ class Replay {
 	 *                                       $top_rendered_matches for the v2 gate.
 	 * @return array
 	 */
-	private function resolved_hidden_roles( $slug, array $norm_items, array $norm_skip, $base, $parent_slug = null, array $top_rendered_keys = array() ) {
+	private function resolved_override_list( $field, $slug, array $norm_items, array $norm_skip, $base, $parent_slug = null, array $top_rendered_keys = array() ) {
 		$nk = Slug::normalize( (string) $slug, $base );
 		if ( '' === $nk ) {
 			return array();
@@ -560,45 +570,49 @@ class Replay {
 			$norm_parent = Slug::normalize( (string) $parent_slug, $base );
 			if ( '' !== $norm_parent ) {
 				$qnk = $norm_parent . Slug::QUALIFIED_SEPARATOR . $nk;
-				if ( ! isset( $norm_skip[ $qnk ] ) && isset( $norm_items[ $qnk ]['hidden_roles'] ) ) {
-					return $norm_items[ $qnk ]['hidden_roles'];
+				if ( ! isset( $norm_skip[ $qnk ] ) && isset( $norm_items[ $qnk ][ $field ] ) ) {
+					return $norm_items[ $qnk ][ $field ];
 				}
 			}
 
 			// A bare key that also names a rendered TOP-LEVEL row is ambiguous;
 			// under schema v2 it belongs to that top-level row only. Must mirror
 			// replay()'s $bare_fallback_allowed gate exactly, or the editor popover
-			// would show roles checked that replay no longer applies.
+			// would show targets checked that replay no longer applies.
 			if ( isset( $top_rendered_keys[ $nk ] ) && ! $this->config->is_legacy_bare_key_schema() ) {
 				return array();
 			}
 		}
 
-		if ( isset( $norm_skip[ $nk ] ) || ! isset( $norm_items[ $nk ]['hidden_roles'] ) ) {
+		if ( isset( $norm_skip[ $nk ] ) || ! isset( $norm_items[ $nk ][ $field ] ) ) {
 			return array();
 		}
-		return $norm_items[ $nk ]['hidden_roles'];
+		return $norm_items[ $nk ][ $field ];
 	}
 
 	/**
-	 * Resolve a top-level rendered slug's stored child_hidden_roles through
-	 * the SAME normalized bare-key lookup replay() consults for the parent's
-	 * own override (child_hidden_roles is a parent-only concept — never
-	 * resolved via a qualified submenu key). Returns an empty array when
-	 * nothing (or something ambiguous) resolves — the untouched, no-op case.
+	 * Resolve a top-level rendered slug's stored child-axis list for a NAMED field,
+	 * through the SAME normalized bare-key lookup replay() consults for the parent's
+	 * own override (the child axes are a parent-only concept — never resolved via a
+	 * qualified submenu key). Returns an empty array when nothing (or something
+	 * ambiguous) resolves — the untouched, no-op case.
 	 *
+	 * Parameterized by field for the same reason resolved_override_list() is: the
+	 * per-user child axis must resolve through one implementation, not a copy.
+	 *
+	 * @param string $field      Override field to read ('child_hidden_roles' | 'child_hidden_users').
 	 * @param string $slug       Rendered top-level slug.
 	 * @param array  $norm_items Normalized override map from normalized_items().
 	 * @param array  $norm_skip  Ambiguous normalized keys from normalized_items().
 	 * @param string $base       Admin base for Slug::normalize().
 	 * @return array
 	 */
-	private function resolved_child_hidden_roles( $slug, array $norm_items, array $norm_skip, $base ) {
+	private function resolved_child_override_list( $field, $slug, array $norm_items, array $norm_skip, $base ) {
 		$nk = Slug::normalize( (string) $slug, $base );
-		if ( '' === $nk || isset( $norm_skip[ $nk ] ) || empty( $norm_items[ $nk ]['child_hidden_roles'] ) ) {
+		if ( '' === $nk || isset( $norm_skip[ $nk ] ) || empty( $norm_items[ $nk ][ $field ] ) ) {
 			return array();
 		}
-		return $norm_items[ $nk ]['child_hidden_roles'];
+		return $norm_items[ $nk ][ $field ];
 	}
 
 	/**
@@ -656,12 +670,12 @@ class Replay {
 				'liId'             => $this->li_id( $row ),
 				'title'            => isset( $row[0] ) ? wp_strip_all_tags( $row[0] ) : '',
 				'icon'             => isset( $row[6] ) ? $row[6] : '',
-				'hiddenRoles'      => $this->resolved_hidden_roles( $slug, $norm_items, $norm_skip, $base ),
+				'hiddenRoles'      => $this->resolved_override_list( 'hidden_roles', $slug, $norm_items, $norm_skip, $base ),
 				// COMPAT-10 (REVISED): parent-only child_hidden_roles, resolved via
 				// the SAME normalized bare-key lookup as hiddenRoles above, so the
 				// editor popover reflects exactly what replay() will apply.
 				// Independent of hiddenRoles above (whether the PARENT is hidden).
-				'childHiddenRoles' => $this->resolved_child_hidden_roles( $slug, $norm_items, $norm_skip, $base ),
+				'childHiddenRoles' => $this->resolved_child_override_list( 'child_hidden_roles', $slug, $norm_items, $norm_skip, $base ),
 				'submenu'          => array(),
 			);
 
@@ -685,7 +699,7 @@ class Replay {
 						'slug'         => $sub[2],
 						'qualifiedKey' => $qualified_key,
 						'title'        => isset( $sub[0] ) ? wp_strip_all_tags( $sub[0] ) : '',
-						'hiddenRoles'  => $this->resolved_hidden_roles( $sub[2], $norm_items, $norm_skip, $base, $slug, $top_rendered_keys ),
+						'hiddenRoles'  => $this->resolved_override_list( 'hidden_roles', $sub[2], $norm_items, $norm_skip, $base, $slug, $top_rendered_keys ),
 					);
 				}
 			}
