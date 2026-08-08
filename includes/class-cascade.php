@@ -47,6 +47,43 @@ class Cascade {
 	 * @return array Effective hidden-roles list for the child (deduplicated, reindexed).
 	 */
 	public static function effective_hidden_roles( array $child_hidden_roles, array $parent_child_hidden_roles ) {
-		return array_values( array_unique( array_merge( $child_hidden_roles, $parent_child_hidden_roles ) ) );
+		return self::merge_lists( $child_hidden_roles, $parent_child_hidden_roles );
+	}
+
+	/**
+	 * Compute the effective hidden-USERS list for a child menu item (ROLE-02),
+	 * given its own stored hidden_users and its parent's child_hidden_users.
+	 *
+	 * The per-user analog of effective_hidden_roles(), with identical semantics:
+	 * the two lists are fully independent, so a parent can stay visible while its
+	 * children vanish for the targeted users. Named separately rather than folded
+	 * into one generic call so the axis is explicit at the call site; both delegate
+	 * to the same union, which is where the actual behaviour lives.
+	 *
+	 * PURE VISIBILITY ONLY: merges two ID lists, never touches a capability.
+	 *
+	 * @param array $child_hidden_users        The child's own stored hidden_users (may be empty).
+	 * @param array $parent_child_hidden_users The parent's stored child_hidden_users (may be empty).
+	 * @return array Effective hidden-users list for the child (deduplicated, reindexed).
+	 */
+	public static function effective_hidden_users( array $child_hidden_users, array $parent_child_hidden_users ) {
+		return self::merge_lists( $child_hidden_users, $parent_child_hidden_users );
+	}
+
+	/**
+	 * The union itself — type-agnostic by construction.
+	 *
+	 * It never inspects what its members mean, which is exactly why the same
+	 * implementation serves role slugs and user IDs: merge, dedupe, reindex.
+	 * Merging with an empty list is naturally a no-op, so an untouched parent
+	 * contributes nothing and the child's own list passes through unchanged —
+	 * that property is what makes the cascade zero-regression by construction.
+	 *
+	 * @param array $own      The child's own list.
+	 * @param array $inherited The parent's child-axis list.
+	 * @return array
+	 */
+	private static function merge_lists( array $own, array $inherited ) {
+		return array_values( array_unique( array_merge( $own, $inherited ) ) );
 	}
 }

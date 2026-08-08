@@ -2,7 +2,7 @@
 
 Three layers, smallest and fastest first.
 
-> **Current expected status:** unit 158/158 with 210 assertions, integration 82/82 with 198 assertions, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, (COMPAT-04) independent shared-slug top-level/submenu editing, and (COMPAT-10) the "Hide its sub-items from:" role group's independent child-hiding behavior.
+> **Current expected status:** unit 165/165 with 218 assertions, integration 96/96 with 215 assertions, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, (COMPAT-04) independent shared-slug top-level/submenu editing, and (COMPAT-10) the "Hide its sub-items from:" role group's independent child-hiding behavior.
 
 ## Gotchas (first run)
 
@@ -29,7 +29,11 @@ per-user `hidden_users` / `child_hidden_users` axes are covered in
 [`tests/unit/ConfigSanitizeTest.php`](tests/unit/ConfigSanitizeTest.php) — coercion,
 intersect-against-live, `MAX_HIDDEN_USERS` cap, the sparse drop-when-empty contract,
 the parent-only rule for the child axis, and a zero-regression guard asserting a
-role-only config sanitizes byte-identically. Fast, runs anywhere with PHP + Composer.
+role-only config sanitizes byte-identically. `Cascade::effective_hidden_users()`'s
+per-user union is covered alongside the role union in
+[`tests/unit/CascadeTest.php`](tests/unit/CascadeTest.php), including a case
+asserting the two axes never bleed into one another. Fast, runs anywhere with
+PHP + Composer.
 
 ```bash
 composer install

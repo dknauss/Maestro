@@ -214,6 +214,10 @@ class Replay {
 					? $norm_items[ $norm_parent ]
 					: null;
 				$parent_child_hidden_roles = ( null !== $parent_ovr && ! empty( $parent_ovr['child_hidden_roles'] ) ) ? $parent_ovr['child_hidden_roles'] : array();
+				// ROLE-02: the per-user child axis rides the SAME $parent_ovr —
+				// so it inherits the Axis-1 and Axis-2 guards above for free, and
+				// an ambiguous parent cascades nothing on either axis.
+				$parent_child_hidden_users = ( null !== $parent_ovr && ! empty( $parent_ovr['child_hidden_users'] ) ) ? $parent_ovr['child_hidden_users'] : array();
 
 				// Axis-2 collision guard for this parent's children: pre-scan before mutating.
 				$sub_rendered_matches  = array(); // bare normalized_key => first rendered slug matched.
@@ -340,7 +344,18 @@ class Replay {
 					// current_user_can() guard to stay strictly cosmetic.
 					$child_own_roles = ( null !== $ovr && ! empty( $ovr['hidden_roles'] ) ) ? $ovr['hidden_roles'] : array();
 					$effective_roles = Cascade::effective_hidden_roles( $child_own_roles, $parent_child_hidden_roles );
-					if ( $effective_roles && $this->is_hidden_for_current_user( array( 'hidden_roles' => $effective_roles ) ) ) {
+					// ROLE-02: the per-user axis unions identically and is OR'd into
+					// the SAME single drop decision below — one unset(), one audit
+					// point, regardless of which axis matched.
+					$child_own_users = ( null !== $ovr && ! empty( $ovr['hidden_users'] ) ) ? $ovr['hidden_users'] : array();
+					$effective_users = Cascade::effective_hidden_users( $child_own_users, $parent_child_hidden_users );
+					if ( ( $effective_roles || $effective_users )
+						&& $this->is_hidden_for_current_user(
+							array(
+								'hidden_roles' => $effective_roles,
+								'hidden_users' => $effective_users,
+							)
+						) ) {
 						unset( $submenu[ $parent ][ $pos ] ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: unsetting $submenu entries via admin_menu hook is the documented WP API for hiding menu items.
 					}
 				}
@@ -438,20 +453,76 @@ class Replay {
 	}
 
 	/**
-	 * Does the current user fall into a role this item is hidden from?
+	 * Does the current user fall into a role OR a user this item is hidden from?
+	 *
+	 * The single hide-resolution seam (feasibility note §2): one drop path, one
+	 * audit point. Deliberately structured as independent OR'd terms rather than
+	 * one fused condition, so ROLE-02's deferred `hidden_profiles` axis lands as a
+	 * third term rather than a rewrite.
+	 *
+	 * PURELY COSMETIC: this decides only what a user SEES. It never calls
+	 * current_user_can() and never consults a capability — it matches stored
+	 * identity lists against the current user's live roles and ID, both re-read
+	 * every request (the intersect-against-live invariant: nothing is ever written
+	 * to the user, so deleting a role or user self-heals the rule).
 	 *
 	 * @param array $ovr Item override.
 	 * @return bool
 	 */
 	private function is_hidden_for_current_user( array $ovr ) {
-		if ( empty( $ovr['hidden_roles'] ) ) {
+		$hidden_roles = empty( $ovr['hidden_roles'] ) ? array() : (array) $ovr['hidden_roles'];
+		$hidden_users = empty( $ovr['hidden_users'] ) ? array() : (array) $ovr['hidden_users'];
+
+		// No rule of any kind — the path every pre-ROLE-02 config takes. Costs
+		// nothing, and in particular never resolves the current user.
+		if ( ! $hidden_roles && ! $hidden_users ) {
 			return false;
 		}
+
 		$user = wp_get_current_user();
-		if ( ! $user || empty( $user->roles ) ) {
-			return false;
+		if ( ! $user || ! $user->ID ) {
+			return false; // Logged out: nothing to match against.
 		}
-		return (bool) array_intersect( (array) $user->roles, (array) $ovr['hidden_roles'] );
+
+		// Term 1 — role axis. Shipped v1.4.1 behaviour, unchanged.
+		if ( $hidden_roles && ! empty( $user->roles )
+			&& array_intersect( (array) $user->roles, $hidden_roles ) ) {
+			return true;
+		}
+
+		// Term 2 — per-user axis (ROLE-02).
+		if ( $hidden_users && ! $this->is_exempt_from_user_axis( $user )
+			&& in_array( (int) $user->ID, array_map( 'intval', $hidden_users ), true ) ) {
+			return true;
+		}
+
+		// Term 3 — hidden_profiles (cloned-role half of ROLE-02) slots in here,
+		// resolving profile membership live. Deferred; see
+		// `.planning/todos/pending/2026-08-02-cloned-role-hiding-profiles.md`.
+
+		return false;
+	}
+
+	/**
+	 * Is this user exempt from the per-user hide axis? (ROLE-02)
+	 *
+	 * MULTISITE-SCOPED DELIBERATELY. The feasibility note (§12) raises super-admin
+	 * exemption as a *multisite* concern, and scoping it there is the only reading
+	 * that holds together: on single-site is_super_admin() is true for any
+	 * administrator, so an unscoped exemption would make administrators
+	 * un-hideable — contradicting the locked "self-target = warn but allow"
+	 * decision and breaking the feature on its primary target.
+	 *
+	 * The exemption covers the USER axis only. Ruled 2026-08-08: the shipped
+	 * hidden_roles / child_hidden_roles axes keep their v1.4.1 behaviour exactly,
+	 * so a role rule still applies to a super admin as it always has. See
+	 * 21-03-PLAN.md for the ruling and its rationale.
+	 *
+	 * @param \WP_User $user Current user.
+	 * @return bool
+	 */
+	private function is_exempt_from_user_axis( $user ) {
+		return is_multisite() && is_super_admin( $user->ID );
 	}
 
 	/**
