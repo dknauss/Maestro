@@ -11,10 +11,19 @@ files:
 
 ## Problem
 
-ROLE-02 = "hide menu items for a specific user **or a cloned role**." Phase 21 (v1.4.0)
-ships the **per-user** half only; the **cloned-role "profiles"** half is deferred here as a
-**v1.5 candidate**. ROLE-02 is therefore partially delivered in v1.4.0 — mark it accordingly
-(per-user done; profiles pending).
+ROLE-02 = "hide menu items for a specific user **or a cloned role**." Phase 21 ships the
+**per-user** half only; the **cloned-role "profiles"** half is deferred here as a
+**v1.5 candidate**. Once Phase 21 lands, ROLE-02 is partially delivered — mark it
+accordingly (per-user done; profiles pending).
+
+> **CORRECTION 2026-08-08.** This todo originally read "Phase 21 (v1.4.0) ships the
+> per-user half" and "ROLE-02 is therefore partially delivered in v1.4.0". That is
+> **not what happened.** It was written 2026-08-02, anticipating Phase 21 would make the
+> v1.4.0 cut; on 2026-08-04 the release deferred **all** of Phase 21 to v1.5 (see STATE.md
+> Release Binding). Neither half of ROLE-02 shipped in v1.4.0 or v1.4.1 — the per-user half
+> is delivered by Phase 21 under **v1.5**, and this profiles half remains queued behind it.
+> The "seam is already 3-way-OR-ready after Phase 21" note below is a statement about
+> Phase 21's design requirement, and only becomes true once Phase 21 has actually landed.
 
 ## What it is (vetted in Phase 19 — verdict: go, as a thin layer over per-user)
 
