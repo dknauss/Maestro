@@ -2,7 +2,7 @@
 
 Three layers, smallest and fastest first.
 
-> **Current expected status:** unit 165/165 with 218 assertions, integration 96/96 with 215 assertions, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, (COMPAT-04) independent shared-slug top-level/submenu editing, and (COMPAT-10) the "Hide its sub-items from:" role group's independent child-hiding behavior.
+> **Current expected status:** unit 165/165 with 218 assertions, integration 102/102 with 246 assertions, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, (COMPAT-04) independent shared-slug top-level/submenu editing, and (COMPAT-10) the "Hide its sub-items from:" role group's independent child-hiding behavior.
 
 ## Gotchas (first run)
 
@@ -54,7 +54,22 @@ the parent stays visible, independence from the parent's own hide, role-mirror,
 union-with-a-child's-own-rule, and the mandatory cosmetic-only guardrail
 (`current_user_can()` byte-for-byte unchanged; the hidden child's own
 capability requirement still resolves true) in
-[`tests/integration/ReplayTest.php`](tests/integration/ReplayTest.php). Uses Docker.
+[`tests/integration/ReplayTest.php`](tests/integration/ReplayTest.php).
+
+(ROLE-02) the per-user axes are covered in
+[`tests/integration/ReplayHiddenUsersTest.php`](tests/integration/ReplayHiddenUsersTest.php)
+— `hidden_users`, the `child_hidden_users` cascade, OR-independence between the
+role and user axes, the multisite-scoped super-admin exemption, and a tripwire
+asserting Maestro owns no `$menu` row a hide could remove. Their cosmetic-only
+proof lives in
+[`tests/integration/CosmeticInvariantUsersTest.php`](tests/integration/CosmeticInvariantUsersTest.php),
+which implements the feasibility note's §6 six-step invariant literally: the
+capability set is read off the LIVE role object (so a future WordPress
+capability cannot escape it), the whole cap map is asserted at once across
+apply/remove, the menu model is asserted to actually change, and the direct-URL
+escape hatch is asserted. Note `snapshot_caps()` deliberately rebuilds the
+current user before reading — without that, `current_user_can()` answers from a
+cached allcaps array and the guardrail would pass a broken seam. Uses Docker.
 
 ```bash
 npm install
