@@ -3,9 +3,9 @@
 **Completed:** 2026-08-09
 **Status:** Gates 9, 10, 11 complete. **Gate 8 (code review) awaiting the Codex pass.**
 
-## Gate 10 — Adversarial security: **one real defect found and fixed**
+## Gate 10 — Adversarial security: **two real defects found and fixed**
 
-Probed the authorization boundary rather than reasoning about it. Four questions,
+Probed the authorization boundary rather than reasoning about it. Five questions,
 asked as tests against a delegated Maestro editor (`maestro_capability` role
 without `list_users`):
 
