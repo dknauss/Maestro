@@ -13,6 +13,7 @@
 		"compat:stop": "cd tests/compat && npx wp-env stop",
 		"env:clean": "wp-env clean all",
 		"test:php": "wp-env run tests-cli --env-cwd=wp-content/plugins/maestro-menu-editor vendor/bin/phpunit -c phpunit-integration.xml.dist",
+		"test:php:multisite": "wp-env run tests-cli --env-cwd=wp-content/plugins/maestro-menu-editor bash -c 'WP_MULTISITE=1 vendor/bin/phpunit -c phpunit-integration.xml.dist'",
 		"pretest:e2e": "wp-env run tests-cli wp plugin activate maestro-menu-editor/maestro-menu-editor.php",
 		"test:e2e": "playwright test",
 		"test:e2e:headed": "playwright test --headed",
@@ -23,6 +24,7 @@
 		"assets:banners": "OUT_DIR=.wordpress-org python3 .wordpress-org/source/build_final.py"
 	},
 	"devDependencies": {
+		"@axe-core/playwright": "^4.12.1",
 		"@playwright/test": "^1.62.1",
 		"@wordpress/env": "^11.10.0",
 		"bootstrap-icons": "^1.13.1"
