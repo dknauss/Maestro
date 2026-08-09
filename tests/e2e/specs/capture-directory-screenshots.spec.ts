@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { execFileSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -32,6 +33,20 @@ const SCREENSHOTS_DIR = path.join(
 	'directory'
 );
 const WP_ORG_DIR = path.join( process.cwd(), '.wordpress-org' );
+
+// ROLE-02: a fixture person for the screenshot-3 picker. Deliberately fictional
+// — a directory screenshot must never expose a real site's user list.
+const SHOT_USER_LOGIN = 'maestro_shot_user';
+const SHOT_USER_NAME = 'Robin Example';
+
+function wp( args: string[] ): void {
+	try {
+		execFileSync( 'npx', [ 'wp-env', 'run', 'tests-cli', 'wp', ...args ], { stdio: 'ignore' } );
+	} catch ( e ) {
+		// Creating a user that already survives an interrupted run, or deleting
+		// one that is already gone, exits non-zero — both are the desired state.
+	}
+}
 
 async function dualShot(
 	page: import( '@playwright/test' ).Page,
@@ -101,20 +116,48 @@ test.describe( 'Directory screenshots — v1.2 editor UI (MAESTRO_CAPTURE-gated)
 	} );
 
 	// 3 — Visibility selector, cropped to the bottom area (menu + popover + toolbar).
-	test( 'screenshot 3 — per-role visibility (cropped to menu + selector)', async ( { page } ) => {
-		await enterEditorAndSelect( page );
-		await expect( page.locator( '.maestro-vis-btn' ) ).toBeVisible();
-		await page.locator( '.maestro-vis-btn' ).click();
-		const pop = page.locator( '.maestro-vis-popover' );
-		await expect( pop ).toBeVisible();
+	test( 'screenshot 3 — visibility: role AND person groups (cropped to menu + selector)', async ( { page } ) => {
+		// ROLE-02: the popover now carries FOUR groups — hide-by-role and
+		// hide-by-person, each in an "this item" and "its sub-items" variant.
+		// The person groups are captured POPULATED: an empty search box
+		// photographs as a text field, whereas a chip photographs as a feature.
+		// The fixture name is obviously fictional so the listing never shows a
+		// real site's user list.
+		wp( [ 'user', 'create', SHOT_USER_LOGIN, `${ SHOT_USER_LOGIN }@example.com`,
+			'--role=editor', `--display_name=${ SHOT_USER_NAME }`, '--user_pass=password' ] );
 
-		const tb = ( await page.locator( '.maestro-toolbar' ).boundingBox() )!;
-		const pb = ( await pop.boundingBox() )!;
-		const top = Math.max( 0, Math.min( pb.y, tb.y ) - 30 );
-		const right = Math.min( 1440, Math.max( pb.x + pb.width + 30, 1000 ) );
-		await dualShot( page, 3, {
-			clip: { x: 0, y: top, width: right, height: 980 - top },
-		} );
+		try {
+			await enterEditorAndSelect( page );
+			await expect( page.locator( '.maestro-vis-btn' ) ).toBeVisible();
+			await page.locator( '.maestro-vis-btn' ).click();
+			const pop = page.locator( '.maestro-vis-popover' );
+			await expect( pop ).toBeVisible();
+
+			// Populate the item-level person group so a chip renders.
+			const ownUsers = pop.locator( '.maestro-vis-own-users' );
+			await ownUsers.locator( '.maestro-user-search' ).fill( SHOT_USER_NAME.split( ' ' )[ 0 ] );
+			const hit = ownUsers.locator( '.maestro-user-result' )
+				.filter( { hasText: SHOT_USER_NAME } ).first();
+			await expect( hit ).toBeVisible( { timeout: 15000 } );
+			await hit.click();
+			await expect( ownUsers.locator( '.maestro-user-chip' ) ).toContainText( SHOT_USER_NAME );
+
+			// Let the search field settle back to its placeholder so the capture
+			// shows the resting state rather than a half-typed query.
+			await expect( ownUsers.locator( '.maestro-user-results' ) ).toBeHidden();
+
+			const tb = ( await page.locator( '.maestro-toolbar' ).boundingBox() )!;
+			const pb = ( await pop.boundingBox() )!;
+			const top = Math.max( 0, Math.min( pb.y, tb.y ) - 30 );
+			const right = Math.min( 1440, Math.max( pb.x + pb.width + 30, 1000 ) );
+			await dualShot( page, 3, {
+				clip: { x: 0, y: top, width: right, height: 980 - top },
+			} );
+		} finally {
+			// Always clean up, even if the capture throws — a leftover fixture
+			// user would otherwise surface in an unrelated spec's picker.
+			wp( [ 'user', 'delete', SHOT_USER_LOGIN, '--yes' ] );
+		}
 	} );
 
 	// 4 — Renamed item + "Saved", cropped to the left half (menu + toolbar).
