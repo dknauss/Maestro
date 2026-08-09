@@ -46,20 +46,44 @@ if ( ! function_exists( 'wp_roles' ) ) {
 
 if ( ! function_exists( 'get_users' ) ) {
 	/**
-	 * Stub: returns 60 user IDs (1 … 60) — enough for MAX_HIDDEN_USERS cap
+	 * Stub: the site has 60 users (IDs 1 … 60) — enough for MAX_HIDDEN_USERS cap
 	 * tests, mirroring the 60-role wp_roles() stub above.
 	 *
-	 * Only the `fields => ID` shape Config::sanitize() asks for is supported;
-	 * the stub ignores every other query arg deliberately, so a future caller
-	 * that needs richer behaviour has to extend it consciously rather than
-	 * silently receive a wrong answer.
+	 * Honours `include` (which Config::valid_user_ids() uses to bound the query)
+	 * by intersecting against that population, and `fields => ID`. Any other
+	 * query arg is ignored deliberately, so a future caller needing richer
+	 * behaviour has to extend this consciously rather than silently receive a
+	 * wrong answer.
 	 *
-	 * @param array $args Query args (only 'fields' => 'ID' is honoured).
+	 * @param array $args Query args ('include' and 'fields' => 'ID' honoured).
 	 * @return int[]
 	 */
 	function get_users( $args = array() ) {
-		unset( $args );
-		return range( 1, 60 );
+		$population = range( 1, 60 );
+		if ( ! empty( $args['include'] ) ) {
+			return array_values( array_intersect( $population, array_map( 'intval', (array) $args['include'] ) ) );
+		}
+		return $population;
+	}
+}
+
+if ( ! function_exists( 'current_user_can' ) ) {
+	/**
+	 * Stub: capability answers for the pure unit suite.
+	 *
+	 * Defaults to TRUE so the existing sanitize() tests keep exercising the
+	 * normal authoring path. Set $GLOBALS['maestro_unit_caps'] to a
+	 * capability => bool map to model a user who lacks one — ConfigSanitizeTest
+	 * uses that to cover the `list_users` gate on the per-user axes.
+	 *
+	 * @param string $cap Capability being checked.
+	 * @return bool
+	 */
+	function current_user_can( $cap ) {
+		if ( isset( $GLOBALS['maestro_unit_caps'][ $cap ] ) ) {
+			return (bool) $GLOBALS['maestro_unit_caps'][ $cap ];
+		}
+		return true;
 	}
 }
 

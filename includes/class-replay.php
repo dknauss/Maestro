@@ -822,6 +822,22 @@ class Replay {
 	 * @return array Model with id/name pair lists on the user axes.
 	 */
 	private function decorate_user_axes( array $model ) {
+		// Defence in depth for the same gate Config::sanitize() enforces on the
+		// write side: a viewer who cannot `list_users` never receives user IDs
+		// or display names, so the model can't become a back door to enumerating
+		// users that core would not enumerate for them. They also cannot see the
+		// person groups in the editor, so there is nothing to render anyway.
+		if ( ! current_user_can( 'list_users' ) ) {
+			foreach ( $model as $i => $node ) {
+				$model[ $i ]['hiddenUsers']      = array();
+				$model[ $i ]['childHiddenUsers'] = array();
+				foreach ( $node['submenu'] as $j => $child ) {
+					$model[ $i ]['submenu'][ $j ]['hiddenUsers'] = array();
+				}
+			}
+			return $model;
+		}
+
 		$ids = array();
 		foreach ( $model as $node ) {
 			$ids = array_merge( $ids, $node['hiddenUsers'], $node['childHiddenUsers'] );

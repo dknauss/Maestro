@@ -51,6 +51,27 @@ class ReplayHiddenUsersTest extends WP_UnitTestCase {
 		( new Replay( new Config() ) )->replay();
 	}
 
+	/**
+	 * Author a config AS AN ADMINISTRATOR, then restore the acting user.
+	 *
+	 * Per-user rules can only be written by someone with `list_users`, so a test
+	 * that saves them while acting as the targeted editor is not just unrealistic
+	 * — it silently stores nothing and then asserts against an empty config.
+	 * Several tests here did exactly that and passed vacuously until the
+	 * server-side gate landed. Authoring as an admin and observing as the target
+	 * mirrors how the feature is actually used.
+	 *
+	 * @param array $config Raw config payload.
+	 * @return void
+	 */
+	private function save_as_admin( array $config ) {
+		$acting = get_current_user_id();
+		$admin  = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin );
+		( new Config() )->save( $config );
+		wp_set_current_user( $acting );
+	}
+
 	private function top_slugs() {
 		global $menu;
 		return wp_list_pluck( $menu, 2 );
@@ -69,7 +90,7 @@ class ReplayHiddenUsersTest extends WP_UnitTestCase {
 		$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( $editor );
 
-		( new Config() )->save(
+		$this->save_as_admin(
 			array( 'items' => array( 'upload.php' => array( 'hidden_users' => array( $editor ) ) ) )
 		);
 
@@ -83,7 +104,7 @@ class ReplayHiddenUsersTest extends WP_UnitTestCase {
 		$other    = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( $other );
 
-		( new Config() )->save(
+		$this->save_as_admin(
 			array( 'items' => array( 'upload.php' => array( 'hidden_users' => array( $targeted ) ) ) )
 		);
 
@@ -100,7 +121,7 @@ class ReplayHiddenUsersTest extends WP_UnitTestCase {
 		$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( $editor );
 
-		( new Config() )->save(
+		$this->save_as_admin(
 			array(
 				'items' => array(
 					'upload.php' => array(
@@ -121,7 +142,7 @@ class ReplayHiddenUsersTest extends WP_UnitTestCase {
 		$other  = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( $editor );
 
-		( new Config() )->save(
+		$this->save_as_admin(
 			array(
 				'items' => array(
 					'upload.php' => array(
@@ -142,7 +163,7 @@ class ReplayHiddenUsersTest extends WP_UnitTestCase {
 		$other  = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( $editor );
 
-		( new Config() )->save(
+		$this->save_as_admin(
 			array(
 				'items' => array(
 					'upload.php' => array(
@@ -166,7 +187,7 @@ class ReplayHiddenUsersTest extends WP_UnitTestCase {
 		$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( $editor );
 
-		( new Config() )->save(
+		$this->save_as_admin(
 			array( 'items' => array( 'upload.php' => array( 'title' => 'Files' ) ) )
 		);
 
@@ -181,7 +202,7 @@ class ReplayHiddenUsersTest extends WP_UnitTestCase {
 	public function test_logged_out_user_is_never_hidden_and_does_not_fatal() {
 		wp_set_current_user( 0 );
 
-		( new Config() )->save(
+		$this->save_as_admin(
 			array( 'items' => array( 'upload.php' => array( 'hidden_users' => array( 1 ) ) ) )
 		);
 
@@ -198,7 +219,7 @@ class ReplayHiddenUsersTest extends WP_UnitTestCase {
 		$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( $editor );
 
-		( new Config() )->save(
+		$this->save_as_admin(
 			array( 'items' => array( 'edit.php' => array( 'child_hidden_users' => array( $editor ) ) ) )
 		);
 
@@ -213,7 +234,7 @@ class ReplayHiddenUsersTest extends WP_UnitTestCase {
 		$other    = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( $other );
 
-		( new Config() )->save(
+		$this->save_as_admin(
 			array( 'items' => array( 'edit.php' => array( 'child_hidden_users' => array( $targeted ) ) ) )
 		);
 
@@ -230,7 +251,7 @@ class ReplayHiddenUsersTest extends WP_UnitTestCase {
 		$by_own    = self::factory()->user->create( array( 'role' => 'editor' ) );
 		$by_parent = self::factory()->user->create( array( 'role' => 'editor' ) );
 
-		( new Config() )->save(
+		$this->save_as_admin(
 			array(
 				'items' => array(
 					'edit.php'                 => array( 'child_hidden_users' => array( $by_parent ) ),
@@ -258,7 +279,7 @@ class ReplayHiddenUsersTest extends WP_UnitTestCase {
 		$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( $editor );
 
-		( new Config() )->save(
+		$this->save_as_admin(
 			array( 'items' => array( 'edit.php' => array( 'title' => 'Writing' ) ) )
 		);
 
@@ -286,7 +307,7 @@ class ReplayHiddenUsersTest extends WP_UnitTestCase {
 		$admin = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $admin );
 
-		( new Config() )->save(
+		$this->save_as_admin(
 			array( 'items' => array( 'upload.php' => array( 'hidden_users' => array( $admin ) ) ) )
 		);
 
@@ -304,13 +325,101 @@ class ReplayHiddenUsersTest extends WP_UnitTestCase {
 		$admin = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $admin );
 
-		( new Config() )->save(
+		$this->save_as_admin(
 			array( 'items' => array( 'upload.php' => array( 'hidden_roles' => array( 'administrator' ) ) ) )
 		);
 
 		$this->run_replay();
 
 		$this->assertNotContains( 'upload.php', $this->top_slugs(), 'The shipped role axis must be untouched by the exemption.' );
+	}
+
+	/* -----------------------------------------------------------------------
+	 * SERVER-SIDE gate on the per-user axes (Codex P2, 2026-08-09)
+	 *
+	 * Hiding the picker in the editor is not a control — the REST save is gated
+	 * by capability(), not list_users, so a delegated editor could POST guessed
+	 * IDs and read the names back out of the model. These pin the real gate.
+	 * --------------------------------------------------------------------- */
+
+	/**
+	 * A saver without `list_users` cannot ADD a per-user rule, however the
+	 * payload is constructed.
+	 */
+	public function test_saver_without_list_users_cannot_add_a_user_rule() {
+		$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
+		$victim = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor );
+		$this->assertFalse( current_user_can( 'list_users' ), 'Precondition: an editor lacks list_users.' );
+
+		$config = new Config();
+		$config->save(
+			array( 'items' => array( 'upload.php' => array( 'hidden_users' => array( $victim ) ) ) )
+		);
+
+		$stored = $config->get();
+		$this->assertArrayNotHasKey(
+			'hidden_users',
+			isset( $stored['items']['upload.php'] ) ? $stored['items']['upload.php'] : array(),
+			'A saver without list_users must not be able to write a per-user rule.'
+		);
+	}
+
+	/**
+	 * ...and cannot DESTROY one either. The autosave is full-replace, so simply
+	 * dropping the axes would let any unrelated edit by such a user wipe an
+	 * administrator's per-user rules.
+	 */
+	public function test_saver_without_list_users_preserves_existing_user_rules() {
+		$admin  = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$target = self::factory()->user->create( array( 'role' => 'editor' ) );
+		$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
+
+		// An administrator authors the rule.
+		wp_set_current_user( $admin );
+		( new Config() )->save(
+			array( 'items' => array( 'upload.php' => array( 'hidden_users' => array( $target ) ) ) )
+		);
+
+		// A delegated editor then saves an unrelated rename.
+		wp_set_current_user( $editor );
+		$config = new Config();
+		$config->save(
+			array( 'items' => array( 'upload.php' => array( 'title' => 'Files' ) ) )
+		);
+
+		$stored = $config->get();
+		$this->assertSame( 'Files', $stored['items']['upload.php']['title'], 'The rename must apply.' );
+		$this->assertSame(
+			array( $target ),
+			$stored['items']['upload.php']['hidden_users'],
+			"An unrelated save must not destroy an administrator's per-user rule."
+		);
+	}
+
+	/**
+	 * The editor MODEL must not leak IDs or display names to a viewer who
+	 * cannot list users — otherwise the model becomes the back door the
+	 * server-side write gate just closed.
+	 */
+	public function test_menu_model_hides_user_axes_from_viewers_without_list_users() {
+		$admin  = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$target = self::factory()->user->create( array( 'role' => 'editor', 'display_name' => 'Secret Person' ) );
+		$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
+
+		wp_set_current_user( $admin );
+		( new Config() )->save(
+			array( 'items' => array( 'upload.php' => array( 'hidden_users' => array( $target ) ) ) )
+		);
+
+		wp_set_current_user( $editor );
+		$replay = new Replay( new Config() );
+		$replay->replay();
+		$model = $replay->get_menu_model();
+
+		$json = wp_json_encode( $model );
+		$this->assertStringNotContainsString( 'Secret Person', $json, 'Display names must not reach a viewer without list_users.' );
+		$this->assertStringNotContainsString( (string) $target, $json, 'Targeted user IDs must not reach them either.' );
 	}
 
 	/* -----------------------------------------------------------------------
@@ -384,7 +493,7 @@ class ReplayHiddenUsersTest extends WP_UnitTestCase {
 		$target = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( $target );
 
-		( new Config() )->save(
+		$this->save_as_admin(
 			array( 'items' => array( 'upload.php' => array( 'hidden_users' => array( $target ) ) ) )
 		);
 

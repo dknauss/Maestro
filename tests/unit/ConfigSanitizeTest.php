@@ -34,6 +34,8 @@ class ConfigSanitizeTest extends TestCase {
 		$this->config = new Config();
 		// Reset the in-memory option store the unit bootstrap backs save()/get() with.
 		$GLOBALS['maestro_unit_options'] = array();
+		// Full capabilities by default; the list_users gate cases opt out below.
+		$GLOBALS['maestro_unit_caps'] = array();
 	}
 
 	/* -----------------------------------------------------------------------
@@ -1007,6 +1009,56 @@ class ConfigSanitizeTest extends TestCase {
 		$this->assertSame( array( 'role-2' ), $entry['child_hidden_roles'] );
 		$this->assertSame( array( 11 ), $entry['hidden_users'] );
 		$this->assertSame( array( 12 ), $entry['child_hidden_users'] );
+	}
+
+	/**
+	 * SERVER-SIDE GATE: a saver without `list_users` cannot write a per-user
+	 * rule, no matter what the payload says. Hiding the picker client-side is
+	 * cosmetic — this is the control.
+	 */
+	public function test_user_axes_are_refused_without_list_users() {
+		$GLOBALS['maestro_unit_caps'] = array( 'list_users' => false );
+
+		$out = $this->config->sanitize(
+			array(
+				'items' => array(
+					'menu-slug' => array(
+						'title'              => 'Kept',
+						'hidden_users'       => array( 3 ),
+						'child_hidden_users' => array( 4 ),
+					),
+				),
+			)
+		);
+
+		$this->assertSame( 'Kept', $out['items']['menu-slug']['title'], 'Other fields must still save.' );
+		$this->assertArrayNotHasKey( 'hidden_users', $out['items']['menu-slug'] );
+		$this->assertArrayNotHasKey( 'child_hidden_users', $out['items']['menu-slug'] );
+	}
+
+	/**
+	 * ...and such a saver does not DESTROY existing rules either. The autosave is
+	 * full-replace, so dropping the axes outright would let any unrelated edit
+	 * wipe an administrator's per-user rules.
+	 */
+	public function test_user_axes_are_preserved_across_a_save_without_list_users() {
+		// An authorised author writes the rule.
+		$this->config->save(
+			array( 'items' => array( 'menu-slug' => array( 'hidden_users' => array( 3 ) ) ) )
+		);
+
+		// A delegated editor then saves an unrelated rename.
+		$GLOBALS['maestro_unit_caps'] = array( 'list_users' => false );
+		$out = $this->config->sanitize(
+			array( 'items' => array( 'menu-slug' => array( 'title' => 'Renamed' ) ) )
+		);
+
+		$this->assertSame( 'Renamed', $out['items']['menu-slug']['title'] );
+		$this->assertSame(
+			array( 3 ),
+			$out['items']['menu-slug']['hidden_users'],
+			'An unrelated save must carry an existing per-user rule through untouched.'
+		);
 	}
 
 	/**

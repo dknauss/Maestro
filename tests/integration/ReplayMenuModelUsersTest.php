@@ -40,6 +40,14 @@ class ReplayMenuModelUsersTest extends WP_UnitTestCase {
 		parent::set_up();
 		$this->seed_menu();
 		delete_option( 'maestro_config' );
+
+		// The editor model is only ever built in edit mode, for a user who can
+		// run Maestro — and per-user rules can only be written by someone with
+		// `list_users`. Acting as an administrator here matches how this code is
+		// reached in production; without it every save below would be refused by
+		// the server-side gate and these tests would assert against an empty
+		// config.
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 	}
 
 	private function model() {

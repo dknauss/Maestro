@@ -244,7 +244,12 @@
 			if ( ! li ) { return; }
 			li.dataset.maestroSlug = node.slug;
 			li.classList.add( 'maestro-item' );
-			if ( node.hiddenRoles.length ) { li.classList.add( 'maestro-has-hidden' ); }
+			// Seeded from BOTH own-hide axes, matching what the popover's setSet
+			// toggles it to. Seeding from roles alone meant a saved person-hide
+			// looked like an ordinary row after every reload, until someone
+			// happened to open its popover — the marker disagreeing with the
+			// rule it exists to advertise.
+			if ( node.hiddenRoles.length || node.hiddenUsers.length ) { li.classList.add( 'maestro-has-hidden' ); }
 
 			// Submenu children: each gets its OWN model entry keyed by its
 			// qualified `parent>child` identity (from get_menu_model(),
@@ -277,7 +282,7 @@
 				sli.dataset.maestroSlug = child.slug; // bare: sub_order + legacy consumers
 				sli.dataset.maestroKey  = key;         // qualified: model identity / selection
 				sli.classList.add( 'maestro-subitem' );
-				if ( child.hiddenRoles.length ) { sli.classList.add( 'maestro-has-hidden' ); }
+				if ( child.hiddenRoles.length || ( child.hiddenUsers || [] ).length ) { sli.classList.add( 'maestro-has-hidden' ); }
 			} );
 		} );
 
@@ -1340,8 +1345,15 @@
 					// separator has to be chosen, not assumed — appending a second
 					// "?" silently 404s the search on exactly those sites.
 					var sep = ( D.usersUrl.indexOf( '?' ) === -1 ) ? '?' : '&';
+					// Exclude already-chosen people SERVER-side. Filtering them
+					// out of a 10-row page after the fact means that when the
+					// first ten matches for a common name are all already chips,
+					// the picker reports "no matching people" while valid targets
+					// sit on page two, unreachable without guessing a narrower query.
+					var chosen = window.maestroLogic.userTargetIds( getSet() );
+					var exclude = chosen.length ? '&exclude=' + chosen.join( ',' ) : '';
 					window.fetch(
-						D.usersUrl + sep + 'per_page=10&search=' + encodeURIComponent( q ),
+						D.usersUrl + sep + 'per_page=10' + exclude + '&search=' + encodeURIComponent( q ),
 						{
 							credentials: 'same-origin',
 							headers: { 'X-WP-Nonce': D.nonce },

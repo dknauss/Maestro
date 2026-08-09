@@ -281,12 +281,34 @@ class Config {
 
 		$valid_roles = array_keys( wp_roles()->get_names() );
 
-		// ROLE-02: resolved LAZILY, on first use, and reused for every item.
-		// wp_roles() above is a cheap read of an already-loaded global, but the
-		// live user-ID set costs a query — so a config with no per-user axis
-		// (which is every config written before this feature) must not pay for
-		// one, and a config with fifty of them must not pay fifty times.
-		$valid_users = null;
+		// ROLE-02 — SERVER-SIDE gate on the per-user axes.
+		//
+		// Hiding the picker in the editor is not a control: the REST save is
+		// gated by capability(), not by `list_users`, so a delegated editor
+		// without `list_users` could POST guessed IDs directly and then read the
+		// display names back out of the decorated editor model — enumerating
+		// users through Maestro that core would not let them enumerate. The gate
+		// therefore lives here, where the write actually happens.
+		//
+		// Such a saver does not have their existing rules DELETED either: the
+		// autosave is full-replace, so silently dropping the axes would let any
+		// unrelated edit wipe an administrator's per-user rules. Stored values
+		// are preserved verbatim instead — the saver can neither add nor destroy.
+		$can_target_users = current_user_can( 'list_users' );
+		$stored_items     = array();
+		if ( ! $can_target_users ) {
+			$existing     = $this->get();
+			$stored_items = isset( $existing['items'] ) ? $existing['items'] : array();
+		}
+
+		// Validate the incoming IDs with ONE bounded query rather than loading
+		// every user ID on the site. The payload caps each axis at
+		// MAX_HIDDEN_USERS, so `include` stays small — whereas an unbounded
+		// get_users() would make every later autosave pay for a full user-table
+		// scan on a large site, forever, once a single per-user rule exists.
+		$valid_users = $can_target_users
+			? $this->valid_user_ids( self::candidate_user_ids( $raw ) )
+			: array();
 
 		if ( ! empty( $raw['items'] ) && is_array( $raw['items'] ) ) {
 			foreach ( $raw['items'] as $slug => $item ) {
@@ -359,26 +381,32 @@ class Config {
 				// ROLE-02: the per-user analog of hidden_roles. Valid at BOTH key
 				// scopes (bare top-level and qualified submenu), exactly as
 				// hidden_roles is — only the child_* axis below is parent-only.
-				if ( ! empty( $item['hidden_users'] ) && is_array( $item['hidden_users'] ) ) {
-					if ( null === $valid_users ) {
-						$valid_users = $this->live_user_ids();
+				if ( ! $can_target_users ) {
+					// Saver cannot target users: carry any stored axes through
+					// untouched so an unrelated edit cannot destroy them, and
+					// ignore whatever the payload claims.
+					if ( ! empty( $stored_items[ $slug ]['hidden_users'] ) ) {
+						$entry['hidden_users'] = $stored_items[ $slug ]['hidden_users'];
 					}
-					$users = $this->clean_user_ids( $item['hidden_users'], $valid_users );
-					if ( $users ) {
-						$entry['hidden_users'] = $users;
+					if ( ! $is_qualified && ! empty( $stored_items[ $slug ]['child_hidden_users'] ) ) {
+						$entry['child_hidden_users'] = $stored_items[ $slug ]['child_hidden_users'];
 					}
-				}
+				} else {
+					if ( ! empty( $item['hidden_users'] ) && is_array( $item['hidden_users'] ) ) {
+						$users = $this->clean_user_ids( $item['hidden_users'], $valid_users );
+						if ( $users ) {
+							$entry['hidden_users'] = $users;
+						}
+					}
 
-				// ROLE-02: the per-user analog of child_hidden_roles. Per-PARENT
-				// (top-level) only — a qualified submenu key has no children, so
-				// the axis is dropped there under the same guard.
-				if ( ! $is_qualified && ! empty( $item['child_hidden_users'] ) && is_array( $item['child_hidden_users'] ) ) {
-					if ( null === $valid_users ) {
-						$valid_users = $this->live_user_ids();
-					}
-					$users = $this->clean_user_ids( $item['child_hidden_users'], $valid_users );
-					if ( $users ) {
-						$entry['child_hidden_users'] = $users;
+					// ROLE-02: the per-user analog of child_hidden_roles. Per-PARENT
+					// (top-level) only — a qualified submenu key has no children, so
+					// the axis is dropped there under the same guard.
+					if ( ! $is_qualified && ! empty( $item['child_hidden_users'] ) && is_array( $item['child_hidden_users'] ) ) {
+						$users = $this->clean_user_ids( $item['child_hidden_users'], $valid_users );
+						if ( $users ) {
+							$entry['child_hidden_users'] = $users;
+						}
 					}
 				}
 
@@ -432,15 +460,63 @@ class Config {
 	}
 
 	/**
-	 * The site's live user IDs, as ints (ROLE-02).
+	 * Every user ID the incoming payload mentions on either per-user axis.
 	 *
-	 * Isolated behind a method so sanitize() reads the same way for both user
-	 * axes and the query has exactly one call site to audit.
+	 * Read straight off the raw payload so the validating query below can be
+	 * bounded by what was actually submitted (at most MAX_HIDDEN_USERS per axis
+	 * per item) instead of by the size of the site's user table.
 	 *
+	 * @param array $raw Raw payload.
 	 * @return int[]
 	 */
-	private function live_user_ids() {
-		return array_map( 'intval', (array) get_users( array( 'fields' => 'ID' ) ) );
+	private static function candidate_user_ids( array $raw ) {
+		$ids = array();
+		if ( empty( $raw['items'] ) || ! is_array( $raw['items'] ) ) {
+			return $ids;
+		}
+		foreach ( $raw['items'] as $item ) {
+			if ( ! is_array( $item ) ) {
+				continue;
+			}
+			foreach ( array( 'hidden_users', 'child_hidden_users' ) as $axis ) {
+				if ( empty( $item[ $axis ] ) || ! is_array( $item[ $axis ] ) ) {
+					continue;
+				}
+				foreach ( $item[ $axis ] as $id ) {
+					if ( is_scalar( $id ) && (int) $id > 0 ) {
+						$ids[] = (int) $id;
+					}
+				}
+			}
+		}
+		return array_values( array_unique( $ids ) );
+	}
+
+	/**
+	 * Which of the given candidate IDs belong to a live user (ROLE-02).
+	 *
+	 * Bounded by the candidate list via `include`, NOT a full user-ID scan. The
+	 * autosave is full-replace and preserves existing per-user axes, so an
+	 * unbounded query would make every later save on a large site pay for a
+	 * whole-user-table read once a single per-user rule exists anywhere.
+	 *
+	 * @param int[] $candidates IDs mentioned by the payload.
+	 * @return int[]
+	 */
+	private function valid_user_ids( array $candidates ) {
+		if ( ! $candidates ) {
+			return array(); // No per-user axis in the payload — no query at all.
+		}
+		return array_map(
+			'intval',
+			(array) get_users(
+				array(
+					'include' => $candidates,
+					'fields'  => 'ID',
+					'number'  => count( $candidates ),
+				)
+			)
+		);
 	}
 
 	/**

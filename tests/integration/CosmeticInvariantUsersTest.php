@@ -68,6 +68,26 @@ class CosmeticInvariantUsersTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Author a config AS AN ADMINISTRATOR, then restore the acting user.
+	 *
+	 * The per-user axes are gated server-side on `list_users`, which an editor
+	 * lacks — so a rule saved while acting as the target would store nothing and
+	 * this guardrail would then "prove" the invariant against a config that was
+	 * never written. Authoring as an admin and measuring as the target is both
+	 * realistic and the only way these assertions mean anything.
+	 *
+	 * @param array $config Raw config payload.
+	 * @return void
+	 */
+	private function save_as_admin( array $config ) {
+		$acting = get_current_user_id();
+		$admin  = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin );
+		( new Config() )->save( $config );
+		wp_set_current_user( $acting );
+	}
+
+	/**
 	 * Fresh model from the current globals.
 	 */
 	private function menu_model() {
@@ -150,7 +170,7 @@ class CosmeticInvariantUsersTest extends WP_UnitTestCase {
 		$this->assertContains( 'upload.php', $this->top_slugs_in_model(), 'Precondition: the row is visible before the rule.' );
 
 		// STEP 2 — apply.
-		( new Config() )->save(
+		$this->save_as_admin(
 			array( 'items' => array( 'upload.php' => array( 'hidden_users' => array( $editor ) ) ) )
 		);
 		$this->seed_menu();
@@ -198,7 +218,7 @@ class CosmeticInvariantUsersTest extends WP_UnitTestCase {
 		$this->run_replay();
 		$this->assertContains( 'post-new.php', $this->child_slugs_in_model( 'edit.php' ), 'Precondition: the child is visible.' );
 
-		( new Config() )->save(
+		$this->save_as_admin(
 			array( 'items' => array( 'edit.php' => array( 'child_hidden_users' => array( $editor ) ) ) )
 		);
 		$this->seed_menu();
@@ -238,7 +258,7 @@ class CosmeticInvariantUsersTest extends WP_UnitTestCase {
 
 		$caps_before = get_role( 'editor' )->capabilities;
 
-		( new Config() )->save(
+		$this->save_as_admin(
 			array(
 				'items' => array(
 					'upload.php' => array( 'hidden_users' => array( $editor ) ),
@@ -268,7 +288,7 @@ class CosmeticInvariantUsersTest extends WP_UnitTestCase {
 		// upload.php gates on upload_files; post-new.php on edit_posts.
 		$this->assertTrue( current_user_can( 'upload_files' ), 'Precondition: an editor may upload.' );
 
-		( new Config() )->save(
+		$this->save_as_admin(
 			array(
 				'items' => array(
 					'upload.php' => array( 'hidden_users' => array( $editor ) ),
@@ -304,7 +324,7 @@ class CosmeticInvariantUsersTest extends WP_UnitTestCase {
 			$this->assertFalse( $before[ $cap ], "Precondition: an editor lacks {$cap}." );
 		}
 
-		( new Config() )->save(
+		$this->save_as_admin(
 			array( 'items' => array( 'upload.php' => array( 'hidden_users' => array( $editor ) ) ) )
 		);
 		$this->run_replay();
@@ -327,7 +347,7 @@ class CosmeticInvariantUsersTest extends WP_UnitTestCase {
 		$caps     = $this->capability_set( 'editor' );
 		$baseline = $this->snapshot_caps( $caps );
 
-		( new Config() )->save(
+		$this->save_as_admin(
 			array( 'items' => array( 'upload.php' => array( 'hidden_users' => array( $targeted ) ) ) )
 		);
 		$this->run_replay();
