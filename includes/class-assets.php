@@ -94,23 +94,37 @@ class Assets {
 			'maestro',
 			'maestroData',
 			array(
-				'restUrl'  => esc_url_raw( rest_url( Rest::NS . '/config' ) ),
-				'nonce'    => wp_create_nonce( 'wp_rest' ),
-				'exitUrl'  => esc_url_raw( remove_query_arg( 'maestro_edit' ) ),
+				'restUrl'        => esc_url_raw( rest_url( Rest::NS . '/config' ) ),
+				'nonce'          => wp_create_nonce( 'wp_rest' ),
+				'exitUrl'        => esc_url_raw( remove_query_arg( 'maestro_edit' ) ),
 				// ROLE-02: the per-user picker searches CORE's users endpoint
 				// rather than a Maestro route — it is already capability-gated by
 				// `list_users`, so we inherit core's authorization instead of
 				// re-implementing it. The `nonce` above is a `wp_rest` nonce and
 				// authenticates this endpoint too; no second nonce is needed.
-				'usersUrl' => esc_url_raw( rest_url( 'wp/v2/users' ) ),
+				'usersUrl'       => esc_url_raw( rest_url( 'wp/v2/users' ) ),
 				// Drives the self-target caution only. Never a permission check.
-				'userId'   => get_current_user_id(),
-				'roles'    => wp_roles()->get_names(),
-				'iconSets' => $this->icon_sets(),
-				'config'   => $this->config->get(),
-				'menu'     => $this->replay->get_menu_model(),
-				'pristine' => $this->replay->get_pristine(),
-				'i18n'     => array(
+				'userId'         => get_current_user_id(),
+				// ROLE-02: `maestro_capability` lets a site hand Maestro to a
+				// custom role that may NOT hold `list_users`. Core's users
+				// collection would then return only published authors — so the
+				// picker would silently offer an incomplete, confusing set. The
+				// person axes are hidden entirely for such a user rather than
+				// shown broken, and rather than routing around core's gate with a
+				// Maestro endpoint: widening who can enumerate site users would
+				// trade away exactly the "zero risk to access" property the
+				// plugin exists to protect. Role-based hiding still works.
+				'canPickUsers'   => current_user_can( 'list_users' ),
+				// Mirrors Config::MAX_HIDDEN_USERS so the picker can stop AT the
+				// cap instead of letting the server silently truncate a save the
+				// editor reported as successful.
+				'maxHiddenUsers' => Config::MAX_HIDDEN_USERS,
+				'roles'          => wp_roles()->get_names(),
+				'iconSets'       => $this->icon_sets(),
+				'config'         => $this->config->get(),
+				'menu'           => $this->replay->get_menu_model(),
+				'pristine'       => $this->replay->get_pristine(),
+				'i18n'           => array(
 					'saving'             => __( 'Saving…', 'maestro-menu-editor' ),
 					'saved'              => __( 'Saved', 'maestro-menu-editor' ),
 					'saveError'          => __( 'Save failed. Retrying on next change.', 'maestro-menu-editor' ),
@@ -144,6 +158,8 @@ class Assets {
 					'userRemove'         => esc_html__( 'Remove %s', 'maestro-menu-editor' ),
 					/* translators: Inline caution shown when an admin adds a hide rule against their OWN account. The rule is still permitted — this only warns. */
 					'userSelfWarning'    => __( 'This hides the item from your own account. You can still reach the page by URL, and the editor stays available.', 'maestro-menu-editor' ),
+					/* translators: %d: maximum number of people allowed per hide list. Shown when the editor tries to add one more than the limit. */
+					'userLimitReached'   => esc_html__( 'Limit reached — up to %d people per list. Remove someone to add another.', 'maestro-menu-editor' ),
 					'confirmAll'         => __( 'Reset ALL menu customizations to WordPress defaults? This cannot be undone.', 'maestro-menu-editor' ),
 					'drag'               => __( 'Drag to reorder', 'maestro-menu-editor' ),
 					/* translators: 1: item title, 2: direction ("up"/"down"), 3: new position number, 4: total items. */

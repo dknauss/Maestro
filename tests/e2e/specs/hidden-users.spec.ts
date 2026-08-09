@@ -35,12 +35,6 @@ const TARGET_NAME  = 'Tilly Target';
 const OTHER_LOGIN  = 'maestro_bystander';
 
 /**
- * Fixture users are created here rather than assumed to exist: running the
- * PHP integration suite reinstalls the shared tests database and wipes every
- * user except admin, so a spec that depends on a pre-existing account is
- * order-dependent in a way that is painful to debug.
- */
-/**
  * Create a fixture user and PROVE it exists.
  *
  * `wp user create` exits non-zero when the account already survives from an
@@ -73,11 +67,12 @@ function deleteUsers(): void {
 /**
  * Sign in as a fixture user in a fresh context.
  *
- * The generous navigation timeout is deliberate and matches the reasoning in
- * auth.setup.ts: a cold or loaded wp-env can exceed Playwright's default 30s
- * nav budget, and that is a slow environment rather than a broken feature.
- * Without it this spec fails in CI while passing locally every time — which it
- * did, on all three attempts, before this was added.
+ * The navigation budget comes from `navigationTimeout` in playwright.config.ts
+ * rather than being set here — a wp-env login can exceed Playwright's 30s
+ * default on a loaded machine, and that ceiling now protects every secondary
+ * login in the suite instead of just this one. This spec originally failed in
+ * CI on all three attempts for exactly that reason while passing locally every
+ * time.
  */
 async function signInAs( browser, login: string ) {
 	const context = await browser.newContext();
@@ -86,7 +81,7 @@ async function signInAs( browser, login: string ) {
 	await page.fill( '#user_login', login );
 	await page.fill( '#user_pass', 'password' );
 	await Promise.all( [
-		page.waitForURL( /wp-admin/, { timeout: 60000 } ),
+		page.waitForURL( /wp-admin/ ),
 		page.click( '#wp-submit' ),
 	] );
 	return { context, page };
@@ -121,20 +116,34 @@ async function pickPerson( page, groupSelector: string, name: string ) {
 
 test.describe( 'ROLE-02 — per-user cosmetic hiding', () => {
 
-	// Created ONCE for the file, not per test. The fixture users are read-only —
-	// no test mutates them — so per-test create/delete only added six wp-cli
-	// round trips and a window for them to race the browser contexts. Config
-	// isolation, which genuinely IS needed per test, comes from the
-	// maestroCleanConfig auto-fixture in ../fixtures.
-	test.beforeAll( () => { createUsers(); } );
-	test.afterAll( () => { deleteUsers(); } );
+	// Fixture users AND their authenticated sessions are created ONCE for the
+	// file. The users are read-only and the sessions are only ever used to read
+	// a rendered sidebar after a fresh goto(), so sharing them is safe — and it
+	// matters: signing in per test added roughly seven full logins to a suite
+	// that previously did two, which was enough extra load to start flaking
+	// UNRELATED specs on a busy machine. Config isolation, which genuinely is
+	// needed per test, still comes from the maestroCleanConfig auto-fixture.
+	let target: { context: any; page: any };
+	let other: { context: any; page: any };
+
+	test.beforeAll( async ( { browser } ) => {
+		createUsers();
+		target = await signInAs( browser, TARGET_LOGIN );
+		other = await signInAs( browser, OTHER_LOGIN );
+	} );
+
+	test.afterAll( async () => {
+		await target?.context.close();
+		await other?.context.close();
+		deleteUsers();
+	} );
 
 	// Each test signs in as up to two additional users on top of the admin
 	// session; on a loaded CI runner that is comfortably more than the default
 	// per-test budget allows.
 	test.slow();
 
-	test( 'hiding an item from one person removes it for them only, leaves a same-role bystander untouched, and keeps the page reachable by URL', async ( { page, browser } ) => {
+	test( 'hiding an item from one person removes it for them only, leaves a same-role bystander untouched, and keeps the page reachable by URL', async ( { page } ) => {
 		const picker = await openPostsVisibility( page );
 
 		// All four target groups are present on a parent with children.
@@ -174,7 +183,6 @@ test.describe( 'ROLE-02 — per-user cosmetic hiding', () => {
 		await expect( page.locator( '#menu-posts' ) ).toBeVisible();
 
 		// --- The targeted person: the row is GONE from their real sidebar. ---
-		const target = await signInAs( browser, TARGET_LOGIN );
 		await target.page.goto( '/wp-admin/index.php' );
 		await expect( target.page.locator( '#menu-posts' ) ).toHaveCount( 0 );
 
@@ -186,15 +194,11 @@ test.describe( 'ROLE-02 — per-user cosmetic hiding', () => {
 		// --- A bystander with the SAME ROLE keeps the row. This is the
 		// assertion that proves the rule is per-user and did not widen to the
 		// whole role — every other assertion here would pass if it had. ---
-		const other = await signInAs( browser, OTHER_LOGIN );
 		await other.page.goto( '/wp-admin/index.php' );
 		await expect( other.page.locator( '#menu-posts' ) ).toBeVisible();
-
-		await target.context.close();
-		await other.context.close();
 	} );
 
-	test( 'hiding sub-items from one person leaves the parent visible and their children gone, and removing the rule restores them', async ( { page, browser } ) => {
+	test( 'hiding sub-items from one person leaves the parent visible and their children gone, and removing the rule restores them', async ( { page } ) => {
 		const picker = await openPostsVisibility( page );
 
 		const payload = await pickPerson( page, '.maestro-vis-children-users', TARGET_NAME );
@@ -208,7 +212,6 @@ test.describe( 'ROLE-02 — per-user cosmetic hiding', () => {
 		// --- Parent VISIBLE, children GONE. An inert implementation would
 		// either drop the parent too or change nothing at all; this is the
 		// assertion that distinguishes a real cascade from both. ---
-		const target = await signInAs( browser, TARGET_LOGIN );
 		await target.page.goto( '/wp-admin/index.php' );
 		await expect( target.page.locator( '#menu-posts' ) ).toBeVisible();
 		await expect( target.page.locator( '#menu-posts .wp-submenu a[href*="post-new.php"]' ) ).toHaveCount( 0 );
@@ -220,7 +223,6 @@ test.describe( 'ROLE-02 — per-user cosmetic hiding', () => {
 		await expect( target.page.locator( 'body' ) ).not.toContainText( 'Sorry, you are not allowed' );
 
 		// A same-role bystander keeps every child.
-		const other = await signInAs( browser, OTHER_LOGIN );
 		await other.page.goto( '/wp-admin/index.php' );
 		await expect( other.page.locator( '#menu-posts .wp-submenu a[href*="post-new.php"]' ) ).toBeVisible();
 
@@ -238,9 +240,6 @@ test.describe( 'ROLE-02 — per-user cosmetic hiding', () => {
 
 		await target.page.goto( '/wp-admin/index.php' );
 		await expect( target.page.locator( '#menu-posts .wp-submenu a[href*="post-new.php"]' ) ).toBeVisible();
-
-		await target.context.close();
-		await other.context.close();
 	} );
 
 	test( 'targeting your own account warns inline but is permitted, and never removes the editor entry point', async ( { page } ) => {
@@ -258,14 +257,66 @@ test.describe( 'ROLE-02 — per-user cosmetic hiding', () => {
 		await expect( ownUsers.locator( '.maestro-user-chip' ) ).toContainText( 'admin' );
 		await page.keyboard.press( 'Escape' );
 
-		// The admin-bar toggle — Maestro's ONLY entry point, and the thing the
-		// §11 anti-lockout rail protects — survives a self-hide. Re-entering
-		// edit mode still works, so the admin can undo what they just did.
+		// Normal browsing: the self-hide applies, and the admin-bar toggle —
+		// Maestro's ONLY entry point, and what the §11 rail protects — survives.
 		await page.goto( '/wp-admin/index.php' );
 		await expect( page.locator( '#menu-posts' ) ).toHaveCount( 0 );
 		await expect( page.locator( '#wp-admin-bar-maestro-toggle' ) ).toBeVisible();
 
+		// AND THE RULE IS ACTUALLY UNDOABLE (Codex P2, 2026-08-09). Re-entering
+		// edit mode is not enough on its own: if replay dropped the row before
+		// get_menu_model() ran, there would be no row to click and "warn but
+		// allow" would strand the admin on Reset All. The row must come BACK in
+		// edit mode, still carrying its chip, and removing the chip must restore
+		// it everywhere. My original test asserted only that edit mode opened —
+		// which would have passed against the broken behaviour.
 		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
 		await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
+		await expect( page.locator( '#menu-posts' ) ).toBeVisible();
+
+		const reopened = await openPostsVisibility( page );
+		const chip = reopened.locator( '.maestro-vis-own-users .maestro-user-chip' );
+		await expect( chip ).toContainText( 'admin' );
+
+		const saveResp = page.waitForResponse(
+			( r ) => POST_SAVE( r.url() ) && r.request().method() === 'POST' && r.ok()
+		);
+		await reopened.locator( '.maestro-vis-own-users .maestro-user-chip-remove' ).first().click();
+		await saveResp;
+		await page.keyboard.press( 'Escape' );
+
+		// Undone: the row is back during normal browsing too.
+		await page.goto( '/wp-admin/index.php' );
+		await expect( page.locator( '#menu-posts' ) ).toBeVisible();
+	} );
+
+	test( 'the person picker is hidden entirely when the editor lacks list_users', async ( { page } ) => {
+		// `maestro_capability` can hand Maestro to a role without `list_users`.
+		// Core's users collection would then return only published authors, so a
+		// picker would offer a quietly incomplete set of people. The person axes
+		// are withheld rather than shown broken — and the ROLE axes must keep
+		// working, since that is the whole fallback. (Codex P2, 2026-08-09.)
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		const canPick = await page.evaluate( () => window.maestroData.canPickUsers );
+		expect( canPick, 'an administrator holds list_users, so the picker should be offered' ).toBeTruthy();
+
+		const picker = await openPostsVisibility( page );
+		await expect( picker.locator( '.maestro-vis-own-users' ) ).toHaveCount( 1 );
+
+		// Simulate the capability-less editor by rebuilding the popover with the
+		// flag off — the gate is a pure read of localized data, so this exercises
+		// the real branch without needing a second custom role in the fixture.
+		// NB: the popover must be reopened WITHOUT navigating; a reload would
+		// re-localize maestroData from the server and silently restore the flag.
+		await page.keyboard.press( 'Escape' );
+		await page.evaluate( () => { window.maestroData.canPickUsers = false; } );
+		await page.locator( '.maestro-toolbar .maestro-panel .maestro-vis-btn' ).click();
+		const gated = page.locator( '.maestro-vis-popover' );
+		await expect( gated ).toBeVisible();
+		await expect( gated.locator( '.maestro-vis-own-users' ) ).toHaveCount( 0 );
+		await expect( gated.locator( '.maestro-vis-children-users' ) ).toHaveCount( 0 );
+		// The role groups survive — hiding by role still works without list_users.
+		await expect( gated.locator( '.maestro-vis-own' ) ).toHaveCount( 1 );
+		await expect( gated.locator( '.maestro-vis-children' ) ).toHaveCount( 1 );
 	} );
 } );

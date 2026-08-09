@@ -1253,12 +1253,26 @@
 				} );
 			}
 
+			function atLimit() {
+				return getSet().length >= Number( D.maxHiddenUsers );
+			}
+
 			function pick( user ) {
+				// Stop AT the server's cap rather than letting Config::sanitize()
+				// truncate silently: without this the editor reports a successful
+				// autosave and the extra targets vanish on the next reload, which
+				// contradicts the round-trip guarantee the popover implies.
+				if ( atLimit() ) {
+					results.hidden = true;
+					results.textContent = '';
+					say( I.userLimitReached.replace( '%d', String( D.maxHiddenUsers ) ) );
+					return;
+				}
 				setSet( window.maestroLogic.addUserTarget( getSet(), user ) );
 				results.hidden = true;
 				results.textContent = '';
 				search.value = '';
-				say( '' );
+				say( atLimit() ? I.userLimitReached.replace( '%d', String( D.maxHiddenUsers ) ) : '' );
 				afterChange();
 				search.focus();
 			}
@@ -1297,6 +1311,14 @@
 			search.addEventListener( 'input', function () {
 				var q = search.value.trim();
 				if ( timer ) { window.clearTimeout( timer ); }
+
+				// Say so before the round trip rather than after a pointless one.
+				if ( atLimit() ) {
+					results.hidden = true;
+					results.textContent = '';
+					say( I.userLimitReached.replace( '%d', String( D.maxHiddenUsers ) ) );
+					return;
+				}
 
 				// Abort any in-flight request. Without this a fast typist can get
 				// results for a stale prefix whenever an earlier response lands
@@ -1350,8 +1372,16 @@
 			return { refresh: renderChips };
 		}
 
-		// Group 3 (ROLE-02): "Hide this item from specific people:" — the
-		// per-user analog of group 1. Valid on any row, parent or submenu.
+		// Groups 3 and 4 (ROLE-02) require `list_users`. A site that points
+		// `maestro_capability` at a custom role without it can still use Maestro
+		// — and still gets the role groups above — but core's users collection
+		// would hand that role only published authors, so a picker would quietly
+		// offer an incomplete set of people. Showing nothing beats showing a
+		// wrong-looking something, and we do NOT route around core's gate.
+		if ( D.canPickUsers ) {
+
+		// Group 3: "Hide this item from specific people:" — the per-user analog
+		// of group 1. Valid on any row, parent or submenu.
 		buildUserGroup(
 			I.hideFromUsers,
 			'maestro-vis-own-users',
@@ -1384,6 +1414,8 @@
 				function ( arr ) { model[ slug ].childHiddenUsers = arr; }
 			);
 		}
+
+		} // end if ( D.canPickUsers )
 
 		pop.addEventListener( 'keydown', function ( e ) {
 			if ( e.key === 'Escape' ) {

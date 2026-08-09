@@ -314,6 +314,85 @@ class ReplayHiddenUsersTest extends WP_UnitTestCase {
 	}
 
 	/* -----------------------------------------------------------------------
+	 * Self-target must stay UNDOABLE (Codex P2, 2026-08-09)
+	 * --------------------------------------------------------------------- */
+
+	/**
+	 * In EDIT MODE the per-user axis is suspended, so a self-targeted row stays
+	 * in $menu — and therefore in get_menu_model() — where the admin can click
+	 * it and remove the rule.
+	 *
+	 * Without this, replay drops the row before the editor model is built and
+	 * "warn but allow" degrades into "warn, allow, and strand them on Reset
+	 * All". The rule is still honoured during normal browsing; only editing is
+	 * exempt, and only for this axis.
+	 */
+	public function test_self_targeted_row_remains_editable_in_edit_mode() {
+		$admin = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin );
+
+		( new Config() )->save(
+			array( 'items' => array( 'upload.php' => array( 'hidden_users' => array( $admin ) ) ) )
+		);
+
+		// Normal browsing: the rule applies.
+		$this->run_replay();
+		$this->assertNotContains( 'upload.php', $this->top_slugs(), 'Outside edit mode the self-hide must apply.' );
+
+		// Edit mode: the row comes back so it can be un-hidden.
+		$_GET['maestro_edit'] = '1';
+		$this->seed_menu();
+		$this->run_replay();
+		unset( $_GET['maestro_edit'] );
+
+		$this->assertContains(
+			'upload.php',
+			$this->top_slugs(),
+			'A self-targeted row must remain visible in edit mode so the rule can be removed.'
+		);
+	}
+
+	/**
+	 * The suspension is scoped to the USER axis. A role rule that matches the
+	 * acting user still hides in edit mode, exactly as it did in v1.4.1 —
+	 * this fix must not quietly change the shipped role behaviour.
+	 */
+	public function test_role_axis_still_applies_in_edit_mode() {
+		$admin = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin );
+
+		( new Config() )->save(
+			array( 'items' => array( 'upload.php' => array( 'hidden_roles' => array( 'administrator' ) ) ) )
+		);
+
+		$_GET['maestro_edit'] = '1';
+		$this->run_replay();
+		unset( $_GET['maestro_edit'] );
+
+		$this->assertNotContains(
+			'upload.php',
+			$this->top_slugs(),
+			'The role axis must keep its v1.4.1 edit-mode behaviour.'
+		);
+	}
+
+	/**
+	 * Someone ELSE's hide is unaffected by the acting admin being in edit mode —
+	 * the suspension only ever spares the person doing the editing.
+	 */
+	public function test_edit_mode_suspension_does_not_leak_to_other_users() {
+		$target = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $target );
+
+		( new Config() )->save(
+			array( 'items' => array( 'upload.php' => array( 'hidden_users' => array( $target ) ) ) )
+		);
+
+		$this->run_replay();
+		$this->assertNotContains( 'upload.php', $this->top_slugs() );
+	}
+
+	/* -----------------------------------------------------------------------
 	 * Anti-lockout rail (§11)
 	 * --------------------------------------------------------------------- */
 

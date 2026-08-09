@@ -491,7 +491,18 @@ class Replay {
 		}
 
 		// Term 2 — per-user axis (ROLE-02).
-		if ( $hidden_users && ! $this->is_exempt_from_user_axis( $user )
+		//
+		// Suspended in EDIT MODE, deliberately. This term can only ever match the
+		// user who is looking — so in edit mode it is, by definition, a
+		// self-target. Applying it there removes the row from $menu BEFORE
+		// get_menu_model() runs, leaving the admin no row to click and therefore
+		// no way to undo the rule they just made: "warn but allow" would degrade
+		// into "warn, allow, and strand them on Reset All". Keeping the row
+		// visible while editing is what makes the rule reversible.
+		//
+		// Scoped to edit mode and to this axis only: normal admin browsing still
+		// honours the hide, and the shipped role axes are untouched.
+		if ( $hidden_users && ! is_edit_mode() && ! $this->is_exempt_from_user_axis( $user )
 			&& in_array( (int) $user->ID, array_map( 'intval', $hidden_users ), true ) ) {
 			return true;
 		}
