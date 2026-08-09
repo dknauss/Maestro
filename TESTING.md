@@ -2,7 +2,7 @@
 
 Three layers, smallest and fastest first.
 
-> **Current expected status:** unit 145/145 with 194 assertions, integration 82/82 with 198 assertions, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, (COMPAT-04) independent shared-slug top-level/submenu editing, and (COMPAT-10) the "Hide its sub-items from:" role group's independent child-hiding behavior.
+> **Current expected status:** unit 167/167 with 223 assertions, integration 115/115 with 267 assertions, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, (COMPAT-04) independent shared-slug top-level/submenu editing, (COMPAT-10) the "Hide its sub-items from:" role group's independent child-hiding behavior, and (ROLE-02) per-user hiding asserted in a targeted user's own authenticated session — including a same-role bystander who must keep every row, which is the assertion that proves the rule did not widen to the whole role.
 
 ## Gotchas (first run)
 
@@ -24,7 +24,16 @@ text-node label-replacement against [`tests/unit/TitleTest.php`](tests/unit/Titl
 badge/wrapping-markup fixtures, and (COMPAT-10) [`Cascade::effective_hidden_roles()`](includes/class-cascade.php)'s
 pure role-list union of a child's own `hidden_roles` with its parent's
 independent `child_hidden_roles`, against [`tests/unit/CascadeTest.php`](tests/unit/CascadeTest.php)'s
-union / dedup / multi-role cases. Fast, runs anywhere with PHP + Composer.
+union / dedup / multi-role cases. (ROLE-02) [`Config::sanitize()`](includes/class-config.php)'s
+per-user `hidden_users` / `child_hidden_users` axes are covered in
+[`tests/unit/ConfigSanitizeTest.php`](tests/unit/ConfigSanitizeTest.php) — coercion,
+intersect-against-live, `MAX_HIDDEN_USERS` cap, the sparse drop-when-empty contract,
+the parent-only rule for the child axis, and a zero-regression guard asserting a
+role-only config sanitizes byte-identically. `Cascade::effective_hidden_users()`'s
+per-user union is covered alongside the role union in
+[`tests/unit/CascadeTest.php`](tests/unit/CascadeTest.php), including a case
+asserting the two axes never bleed into one another. Fast, runs anywhere with
+PHP + Composer.
 
 ```bash
 composer install
@@ -45,7 +54,22 @@ the parent stays visible, independence from the parent's own hide, role-mirror,
 union-with-a-child's-own-rule, and the mandatory cosmetic-only guardrail
 (`current_user_can()` byte-for-byte unchanged; the hidden child's own
 capability requirement still resolves true) in
-[`tests/integration/ReplayTest.php`](tests/integration/ReplayTest.php). Uses Docker.
+[`tests/integration/ReplayTest.php`](tests/integration/ReplayTest.php).
+
+(ROLE-02) the per-user axes are covered in
+[`tests/integration/ReplayHiddenUsersTest.php`](tests/integration/ReplayHiddenUsersTest.php)
+— `hidden_users`, the `child_hidden_users` cascade, OR-independence between the
+role and user axes, the multisite-scoped super-admin exemption, and a tripwire
+asserting Maestro owns no `$menu` row a hide could remove. Their cosmetic-only
+proof lives in
+[`tests/integration/CosmeticInvariantUsersTest.php`](tests/integration/CosmeticInvariantUsersTest.php),
+which implements the feasibility note's §6 six-step invariant literally: the
+capability set is read off the LIVE role object (so a future WordPress
+capability cannot escape it), the whole cap map is asserted at once across
+apply/remove, the menu model is asserted to actually change, and the direct-URL
+escape hatch is asserted. Note `snapshot_caps()` deliberately rebuilds the
+current user before reading — without that, `current_user_can()` answers from a
+cached allcaps array and the guardrail would pass a broken seam. Uses Docker.
 
 ```bash
 npm install

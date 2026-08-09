@@ -407,6 +407,98 @@ body.maestro-editing.auto-fold #wpfooter {
 	border-top: 1px solid #dcdcde;
 }
 
+/* ROLE-02 — per-user target sections ("Hide this item from specific people:" /
+ * "Hide its sub-items from specific people:"). Set apart from the role groups
+ * above with the same #dcdcde divider token the sub-items group uses, so all
+ * four groups read as one stack of peers rather than two unrelated UIs. The
+ * popover widens because a person's display name is far longer than a role
+ * name and would otherwise wrap on every chip. */
+.maestro-vis-popover { min-width: 240px; }
+.maestro-user-group {
+	padding-top: 9px;
+	border-top: 1px solid #dcdcde;
+}
+.maestro-user-chips {
+	margin: 0 0 6px;
+	padding: 0;
+	list-style: none;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+}
+.maestro-user-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	max-width: 100%;
+	padding: 1px 4px 1px 8px;
+	border: 1px solid #c3c4c7;
+	border-radius: 2px;
+	background: #f6f7f7;
+	font-size: 12px;
+	line-height: 1.8;
+	word-break: break-word;
+}
+.maestro-user-chip-remove {
+	border: 0;
+	padding: 0 2px;
+	background: none;
+	color: #50575e;
+	cursor: pointer;
+	font-size: 14px;
+	line-height: 1;
+}
+.maestro-user-chip-remove:hover { color: #b32d2e; }
+.maestro-user-chip-remove:focus-visible,
+.maestro-user-search:focus-visible,
+.maestro-user-result:focus-visible {
+	outline: 2px solid #2271b1;
+	outline-offset: 1px;
+}
+.maestro-user-search {
+	width: 100%;
+	box-sizing: border-box;
+}
+/* Bounded so a long result list scrolls inside the popover instead of pushing
+ * it past the viewport edge. */
+.maestro-user-results {
+	margin: 4px 0 0;
+	padding: 0;
+	list-style: none;
+	max-height: 160px;
+	overflow-y: auto;
+	border: 1px solid #c3c4c7;
+	border-radius: 2px;
+	background: #fff;
+}
+.maestro-user-result {
+	display: block;
+	width: 100%;
+	padding: 4px 8px;
+	border: 0;
+	background: none;
+	text-align: left;
+	cursor: pointer;
+	font-size: 13px;
+}
+.maestro-user-result:hover { background: #f0f0f1; }
+.maestro-user-status {
+	margin: 4px 0 0;
+	color: #50575e;
+	font-size: 12px;
+	font-style: italic;
+}
+/* The self-target caution warns without blocking — the rule is permitted, so
+ * this is core's notice-warning amber rather than an error red. */
+.maestro-user-selfwarn {
+	margin: 6px 0 0;
+	padding: 4px 8px;
+	border-left: 3px solid #dba617;
+	background: #fcf9e8;
+	color: #50575e;
+	font-size: 12px;
+}
+
 /* ---------- toolbar + shared controls panel ----------------------------- */
 .maestro-toolbar {
 	position: fixed;

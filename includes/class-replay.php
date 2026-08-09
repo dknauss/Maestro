@@ -214,6 +214,10 @@ class Replay {
 					? $norm_items[ $norm_parent ]
 					: null;
 				$parent_child_hidden_roles = ( null !== $parent_ovr && ! empty( $parent_ovr['child_hidden_roles'] ) ) ? $parent_ovr['child_hidden_roles'] : array();
+				// ROLE-02: the per-user child axis rides the SAME $parent_ovr —
+				// so it inherits the Axis-1 and Axis-2 guards above for free, and
+				// an ambiguous parent cascades nothing on either axis.
+				$parent_child_hidden_users = ( null !== $parent_ovr && ! empty( $parent_ovr['child_hidden_users'] ) ) ? $parent_ovr['child_hidden_users'] : array();
 
 				// Axis-2 collision guard for this parent's children: pre-scan before mutating.
 				$sub_rendered_matches  = array(); // bare normalized_key => first rendered slug matched.
@@ -340,7 +344,18 @@ class Replay {
 					// current_user_can() guard to stay strictly cosmetic.
 					$child_own_roles = ( null !== $ovr && ! empty( $ovr['hidden_roles'] ) ) ? $ovr['hidden_roles'] : array();
 					$effective_roles = Cascade::effective_hidden_roles( $child_own_roles, $parent_child_hidden_roles );
-					if ( $effective_roles && $this->is_hidden_for_current_user( array( 'hidden_roles' => $effective_roles ) ) ) {
+					// ROLE-02: the per-user axis unions identically and is OR'd into
+					// the SAME single drop decision below — one unset(), one audit
+					// point, regardless of which axis matched.
+					$child_own_users = ( null !== $ovr && ! empty( $ovr['hidden_users'] ) ) ? $ovr['hidden_users'] : array();
+					$effective_users = Cascade::effective_hidden_users( $child_own_users, $parent_child_hidden_users );
+					if ( ( $effective_roles || $effective_users )
+						&& $this->is_hidden_for_current_user(
+							array(
+								'hidden_roles' => $effective_roles,
+								'hidden_users' => $effective_users,
+							)
+						) ) {
 						unset( $submenu[ $parent ][ $pos ] ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: unsetting $submenu entries via admin_menu hook is the documented WP API for hiding menu items.
 					}
 				}
@@ -438,20 +453,87 @@ class Replay {
 	}
 
 	/**
-	 * Does the current user fall into a role this item is hidden from?
+	 * Does the current user fall into a role OR a user this item is hidden from?
+	 *
+	 * The single hide-resolution seam (feasibility note §2): one drop path, one
+	 * audit point. Deliberately structured as independent OR'd terms rather than
+	 * one fused condition, so ROLE-02's deferred `hidden_profiles` axis lands as a
+	 * third term rather than a rewrite.
+	 *
+	 * PURELY COSMETIC: this decides only what a user SEES. It never calls
+	 * current_user_can() and never consults a capability — it matches stored
+	 * identity lists against the current user's live roles and ID, both re-read
+	 * every request (the intersect-against-live invariant: nothing is ever written
+	 * to the user, so deleting a role or user self-heals the rule).
 	 *
 	 * @param array $ovr Item override.
 	 * @return bool
 	 */
 	private function is_hidden_for_current_user( array $ovr ) {
-		if ( empty( $ovr['hidden_roles'] ) ) {
+		$hidden_roles = empty( $ovr['hidden_roles'] ) ? array() : (array) $ovr['hidden_roles'];
+		$hidden_users = empty( $ovr['hidden_users'] ) ? array() : (array) $ovr['hidden_users'];
+
+		// No rule of any kind — the path every pre-ROLE-02 config takes. Costs
+		// nothing, and in particular never resolves the current user.
+		if ( ! $hidden_roles && ! $hidden_users ) {
 			return false;
 		}
+
 		$user = wp_get_current_user();
-		if ( ! $user || empty( $user->roles ) ) {
-			return false;
+		if ( ! $user || ! $user->ID ) {
+			return false; // Logged out: nothing to match against.
 		}
-		return (bool) array_intersect( (array) $user->roles, (array) $ovr['hidden_roles'] );
+
+		// Term 1 — role axis. Shipped v1.4.1 behaviour, unchanged.
+		if ( $hidden_roles && ! empty( $user->roles )
+			&& array_intersect( (array) $user->roles, $hidden_roles ) ) {
+			return true;
+		}
+
+		// Term 2 — per-user axis (ROLE-02).
+		//
+		// Suspended in EDIT MODE, deliberately. This term can only ever match the
+		// user who is looking — so in edit mode it is, by definition, a
+		// self-target. Applying it there removes the row from $menu BEFORE
+		// get_menu_model() runs, leaving the admin no row to click and therefore
+		// no way to undo the rule they just made: "warn but allow" would degrade
+		// into "warn, allow, and strand them on Reset All". Keeping the row
+		// visible while editing is what makes the rule reversible.
+		//
+		// Scoped to edit mode and to this axis only: normal admin browsing still
+		// honours the hide, and the shipped role axes are untouched.
+		if ( $hidden_users && ! is_edit_mode() && ! $this->is_exempt_from_user_axis( $user )
+			&& in_array( (int) $user->ID, array_map( 'intval', $hidden_users ), true ) ) {
+			return true;
+		}
+
+		// Term 3 — hidden_profiles (cloned-role half of ROLE-02) slots in here,
+		// resolving profile membership live. Deferred; see
+		// `.planning/todos/pending/2026-08-02-cloned-role-hiding-profiles.md`.
+
+		return false;
+	}
+
+	/**
+	 * Is this user exempt from the per-user hide axis? (ROLE-02)
+	 *
+	 * MULTISITE-SCOPED DELIBERATELY. The feasibility note (§12) raises super-admin
+	 * exemption as a *multisite* concern, and scoping it there is the only reading
+	 * that holds together: on single-site is_super_admin() is true for any
+	 * administrator, so an unscoped exemption would make administrators
+	 * un-hideable — contradicting the locked "self-target = warn but allow"
+	 * decision and breaking the feature on its primary target.
+	 *
+	 * The exemption covers the USER axis only. Ruled 2026-08-08: the shipped
+	 * hidden_roles / child_hidden_roles axes keep their v1.4.1 behaviour exactly,
+	 * so a role rule still applies to a super admin as it always has. See
+	 * 21-03-PLAN.md for the ruling and its rationale.
+	 *
+	 * @param \WP_User $user Current user.
+	 * @return bool
+	 */
+	private function is_exempt_from_user_axis( $user ) {
+		return is_multisite() && is_super_admin( $user->ID );
 	}
 
 	/**
@@ -530,15 +612,25 @@ class Replay {
 	}
 
 	/**
-	 * Resolve a rendered slug's stored hidden_roles through the normalized lookup,
-	 * mirroring how replay() decides which override applies: for a submenu child
-	 * ($parent_slug given), a qualified `parent>child` override wins first, then a
-	 * bare fallback — except a bare key that also names a rendered TOP-LEVEL row,
-	 * which under schema v2 belongs to that top-level row alone (see
-	 * Config::SCHEMA_VERSION); for a top-level row ($parent_slug null), only the
-	 * bare key is consulted — never a same-slug submenu's qualified override.
-	 * Returns an empty array when nothing (unambiguous) resolves.
+	 * Resolve a rendered slug's stored visibility list for a NAMED field, through
+	 * the normalized lookup, mirroring how replay() decides which override applies:
+	 * for a submenu child ($parent_slug given), a qualified `parent>child` override
+	 * wins first, then a bare fallback — except a bare key that also names a
+	 * rendered TOP-LEVEL row, which under schema v2 belongs to that top-level row
+	 * alone (see Config::SCHEMA_VERSION); for a top-level row ($parent_slug null),
+	 * only the bare key is consulted — never a same-slug submenu's qualified
+	 * override. Returns an empty array when nothing (unambiguous) resolves.
 	 *
+	 * PARAMETERIZED BY FIELD (ROLE-02), deliberately. This function encodes three
+	 * rules the per-user axis must inherit *identically* — qualified-first lookup,
+	 * the schema-v2 bare-key gate (the v1.4.1 fix from PR #115), and the Axis-1
+	 * ambiguity guard. A parallel resolved_hidden_users() would be a second place
+	 * for all three to drift out of sync, which is exactly the defect class already
+	 * logged against the editor model in
+	 * `todos/pending/2026-08-02-editor-model-replay-axis2-drift.md`. One
+	 * implementation, one audit point — per the feasibility note's §2 seam argument.
+	 *
+	 * @param string      $field             Override field to read ('hidden_roles' | 'hidden_users').
 	 * @param string      $slug              Rendered slug (top-level or submenu child).
 	 * @param array       $norm_items        Normalized override map from normalized_items().
 	 * @param array       $norm_skip         Ambiguous normalized keys from normalized_items().
@@ -550,7 +642,7 @@ class Replay {
 	 *                                       $top_rendered_matches for the v2 gate.
 	 * @return array
 	 */
-	private function resolved_hidden_roles( $slug, array $norm_items, array $norm_skip, $base, $parent_slug = null, array $top_rendered_keys = array() ) {
+	private function resolved_override_list( $field, $slug, array $norm_items, array $norm_skip, $base, $parent_slug = null, array $top_rendered_keys = array() ) {
 		$nk = Slug::normalize( (string) $slug, $base );
 		if ( '' === $nk ) {
 			return array();
@@ -560,45 +652,49 @@ class Replay {
 			$norm_parent = Slug::normalize( (string) $parent_slug, $base );
 			if ( '' !== $norm_parent ) {
 				$qnk = $norm_parent . Slug::QUALIFIED_SEPARATOR . $nk;
-				if ( ! isset( $norm_skip[ $qnk ] ) && isset( $norm_items[ $qnk ]['hidden_roles'] ) ) {
-					return $norm_items[ $qnk ]['hidden_roles'];
+				if ( ! isset( $norm_skip[ $qnk ] ) && isset( $norm_items[ $qnk ][ $field ] ) ) {
+					return $norm_items[ $qnk ][ $field ];
 				}
 			}
 
 			// A bare key that also names a rendered TOP-LEVEL row is ambiguous;
 			// under schema v2 it belongs to that top-level row only. Must mirror
 			// replay()'s $bare_fallback_allowed gate exactly, or the editor popover
-			// would show roles checked that replay no longer applies.
+			// would show targets checked that replay no longer applies.
 			if ( isset( $top_rendered_keys[ $nk ] ) && ! $this->config->is_legacy_bare_key_schema() ) {
 				return array();
 			}
 		}
 
-		if ( isset( $norm_skip[ $nk ] ) || ! isset( $norm_items[ $nk ]['hidden_roles'] ) ) {
+		if ( isset( $norm_skip[ $nk ] ) || ! isset( $norm_items[ $nk ][ $field ] ) ) {
 			return array();
 		}
-		return $norm_items[ $nk ]['hidden_roles'];
+		return $norm_items[ $nk ][ $field ];
 	}
 
 	/**
-	 * Resolve a top-level rendered slug's stored child_hidden_roles through
-	 * the SAME normalized bare-key lookup replay() consults for the parent's
-	 * own override (child_hidden_roles is a parent-only concept — never
-	 * resolved via a qualified submenu key). Returns an empty array when
-	 * nothing (or something ambiguous) resolves — the untouched, no-op case.
+	 * Resolve a top-level rendered slug's stored child-axis list for a NAMED field,
+	 * through the SAME normalized bare-key lookup replay() consults for the parent's
+	 * own override (the child axes are a parent-only concept — never resolved via a
+	 * qualified submenu key). Returns an empty array when nothing (or something
+	 * ambiguous) resolves — the untouched, no-op case.
 	 *
+	 * Parameterized by field for the same reason resolved_override_list() is: the
+	 * per-user child axis must resolve through one implementation, not a copy.
+	 *
+	 * @param string $field      Override field to read ('child_hidden_roles' | 'child_hidden_users').
 	 * @param string $slug       Rendered top-level slug.
 	 * @param array  $norm_items Normalized override map from normalized_items().
 	 * @param array  $norm_skip  Ambiguous normalized keys from normalized_items().
 	 * @param string $base       Admin base for Slug::normalize().
 	 * @return array
 	 */
-	private function resolved_child_hidden_roles( $slug, array $norm_items, array $norm_skip, $base ) {
+	private function resolved_child_override_list( $field, $slug, array $norm_items, array $norm_skip, $base ) {
 		$nk = Slug::normalize( (string) $slug, $base );
-		if ( '' === $nk || isset( $norm_skip[ $nk ] ) || empty( $norm_items[ $nk ]['child_hidden_roles'] ) ) {
+		if ( '' === $nk || isset( $norm_skip[ $nk ] ) || empty( $norm_items[ $nk ][ $field ] ) ) {
 			return array();
 		}
-		return $norm_items[ $nk ]['child_hidden_roles'];
+		return $norm_items[ $nk ][ $field ];
 	}
 
 	/**
@@ -656,12 +752,18 @@ class Replay {
 				'liId'             => $this->li_id( $row ),
 				'title'            => isset( $row[0] ) ? wp_strip_all_tags( $row[0] ) : '',
 				'icon'             => isset( $row[6] ) ? $row[6] : '',
-				'hiddenRoles'      => $this->resolved_hidden_roles( $slug, $norm_items, $norm_skip, $base ),
+				'hiddenRoles'      => $this->resolved_override_list( 'hidden_roles', $slug, $norm_items, $norm_skip, $base ),
 				// COMPAT-10 (REVISED): parent-only child_hidden_roles, resolved via
 				// the SAME normalized bare-key lookup as hiddenRoles above, so the
 				// editor popover reflects exactly what replay() will apply.
 				// Independent of hiddenRoles above (whether the PARENT is hidden).
-				'childHiddenRoles' => $this->resolved_child_hidden_roles( $slug, $norm_items, $norm_skip, $base ),
+				'childHiddenRoles' => $this->resolved_child_override_list( 'child_hidden_roles', $slug, $norm_items, $norm_skip, $base ),
+				// ROLE-02: the per-user axes, resolved through the SAME shared
+				// resolvers — so the popover can never show a target replay would
+				// not honour. Emitted as raw ID lists here and decorated with
+				// display names in ONE batched pass below.
+				'hiddenUsers'      => $this->resolved_override_list( 'hidden_users', $slug, $norm_items, $norm_skip, $base ),
+				'childHiddenUsers' => $this->resolved_child_override_list( 'child_hidden_users', $slug, $norm_items, $norm_skip, $base ),
 				'submenu'          => array(),
 			);
 
@@ -685,7 +787,8 @@ class Replay {
 						'slug'         => $sub[2],
 						'qualifiedKey' => $qualified_key,
 						'title'        => isset( $sub[0] ) ? wp_strip_all_tags( $sub[0] ) : '',
-						'hiddenRoles'  => $this->resolved_hidden_roles( $sub[2], $norm_items, $norm_skip, $base, $slug, $top_rendered_keys ),
+						'hiddenRoles'  => $this->resolved_override_list( 'hidden_roles', $sub[2], $norm_items, $norm_skip, $base, $slug, $top_rendered_keys ),
+						'hiddenUsers'  => $this->resolved_override_list( 'hidden_users', $sub[2], $norm_items, $norm_skip, $base, $slug, $top_rendered_keys ),
 					);
 				}
 			}
@@ -693,7 +796,101 @@ class Replay {
 			$model[] = $node;
 		}
 
+		return $this->decorate_user_axes( $model );
+	}
+
+	/**
+	 * Replace every raw user-ID list in the model with id + display-name pairs,
+	 * using ONE query for the whole model. (ROLE-02)
+	 *
+	 * Two decisions worth keeping:
+	 *
+	 * Names are resolved server-side rather than left to the client. The editor
+	 * already needs a label for every stored target the moment the popover opens;
+	 * shipping bare IDs would mean a request per target just to render what is
+	 * already known here, with raw numbers visible during the round-trip.
+	 *
+	 * The lookup is batched across the WHOLE model, not per item. A per-item
+	 * query is the shape that turns a large menu with many rules into a
+	 * page-load problem — and edit mode is exactly where menus are largest.
+	 *
+	 * An ID with no live user is dropped, so a deleted account self-heals out of
+	 * the display instead of rendering as a dangling number. This mirrors the
+	 * intersect-against-live invariant the resolver already applies.
+	 *
+	 * @param array $model Model with raw ID lists on the user axes.
+	 * @return array Model with id/name pair lists on the user axes.
+	 */
+	private function decorate_user_axes( array $model ) {
+		// Defence in depth for the same gate Config::sanitize() enforces on the
+		// write side: a viewer who cannot `list_users` never receives user IDs
+		// or display names, so the model can't become a back door to enumerating
+		// users that core would not enumerate for them. They also cannot see the
+		// person groups in the editor, so there is nothing to render anyway.
+		if ( ! current_user_can( 'list_users' ) ) {
+			foreach ( $model as $i => $node ) {
+				$model[ $i ]['hiddenUsers']      = array();
+				$model[ $i ]['childHiddenUsers'] = array();
+				foreach ( $node['submenu'] as $j => $child ) {
+					$model[ $i ]['submenu'][ $j ]['hiddenUsers'] = array();
+				}
+			}
+			return $model;
+		}
+
+		$ids = array();
+		foreach ( $model as $node ) {
+			$ids = array_merge( $ids, $node['hiddenUsers'], $node['childHiddenUsers'] );
+			foreach ( $node['submenu'] as $child ) {
+				$ids = array_merge( $ids, $child['hiddenUsers'] );
+			}
+		}
+
+		$ids = array_values( array_unique( array_map( 'intval', $ids ) ) );
+		if ( ! $ids ) {
+			return $model; // Nothing targeted anywhere — no query at all.
+		}
+
+		$names = array();
+		foreach ( get_users(
+			array(
+				'include' => $ids,
+				'fields'  => array( 'ID', 'display_name' ),
+			)
+		) as $user ) {
+			$names[ (int) $user->ID ] = $user->display_name;
+		}
+
+		foreach ( $model as $i => $node ) {
+			$model[ $i ]['hiddenUsers']      = $this->pair_users( $node['hiddenUsers'], $names );
+			$model[ $i ]['childHiddenUsers'] = $this->pair_users( $node['childHiddenUsers'], $names );
+			foreach ( $node['submenu'] as $j => $child ) {
+				$model[ $i ]['submenu'][ $j ]['hiddenUsers'] = $this->pair_users( $child['hiddenUsers'], $names );
+			}
+		}
+
 		return $model;
+	}
+
+	/**
+	 * Map an ID list onto id/name pairs, dropping IDs with no live user.
+	 *
+	 * @param array              $ids   Raw user IDs.
+	 * @param array<int, string> $names id => display_name lookup.
+	 * @return array
+	 */
+	private function pair_users( array $ids, array $names ) {
+		$out = array();
+		foreach ( $ids as $id ) {
+			$id = (int) $id;
+			if ( isset( $names[ $id ] ) ) {
+				$out[] = array(
+					'id'   => $id,
+					'name' => $names[ $id ],
+				);
+			}
+		}
+		return $out;
 	}
 
 	/**

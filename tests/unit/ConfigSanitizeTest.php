@@ -34,6 +34,8 @@ class ConfigSanitizeTest extends TestCase {
 		$this->config = new Config();
 		// Reset the in-memory option store the unit bootstrap backs save()/get() with.
 		$GLOBALS['maestro_unit_options'] = array();
+		// Full capabilities by default; the list_users gate cases opt out below.
+		$GLOBALS['maestro_unit_caps'] = array();
 	}
 
 	/* -----------------------------------------------------------------------
@@ -789,5 +791,315 @@ class ConfigSanitizeTest extends TestCase {
 		update_option( MAESTRO_OPTION, array( 'schema_version' => 99, 'items' => array() ), false );
 
 		$this->assertFalse( ( new Config() )->is_legacy_bare_key_schema() );
+	}
+
+	/* -----------------------------------------------------------------------
+	 * ROLE-02 per-user axes: hidden_users / child_hidden_users
+	 *
+	 * The get_users() stub in bootstrap-unit.php returns 60 valid IDs (1 … 60),
+	 * mirroring the 60-role wp_roles() stub, so array_intersect passes them all
+	 * through and the MAX_HIDDEN_USERS slice cap is exercised cleanly. IDs at or
+	 * above 61 are "not a live user" for these tests.
+	 * --------------------------------------------------------------------- */
+
+	/**
+	 * A list of live user IDs survives on a bare top-level key.
+	 */
+	public function test_hidden_users_stored_on_top_level_key() {
+		$out = $this->config->sanitize(
+			array(
+				'items' => array(
+					'menu-slug' => array( 'hidden_users' => array( 3, 7 ) ),
+				),
+			)
+		);
+
+		$this->assertSame( array( 3, 7 ), $out['items']['menu-slug']['hidden_users'] );
+	}
+
+	/**
+	 * Unlike child_hidden_users, the item-level axis is valid at BOTH scopes —
+	 * a qualified submenu key carries it exactly as hidden_roles does.
+	 */
+	public function test_hidden_users_stored_on_qualified_submenu_key() {
+		$out = $this->config->sanitize(
+			array(
+				'items' => array(
+					'parent.php>child.php' => array( 'hidden_users' => array( 5 ) ),
+				),
+			)
+		);
+
+		$this->assertSame( array( 5 ), $out['items']['parent.php>child.php']['hidden_users'] );
+	}
+
+	/**
+	 * Members are coerced to positive ints; numeric strings are accepted (a JSON
+	 * payload round-trips IDs as strings), while zero, negatives and non-numeric
+	 * junk are dropped.
+	 */
+	public function test_hidden_users_coerces_to_positive_ints() {
+		$out = $this->config->sanitize(
+			array(
+				'items' => array(
+					'menu-slug' => array(
+						'hidden_users' => array( '4', 0, -2, 'abc', 9, null, array( 1 ) ),
+					),
+				),
+			)
+		);
+
+		$this->assertSame( array( 4, 9 ), $out['items']['menu-slug']['hidden_users'] );
+	}
+
+	/**
+	 * IDs that do not belong to a live user are dropped — the intersect-against-live
+	 * invariant, mirroring hidden_roles' intersect against valid roles.
+	 */
+	public function test_hidden_users_drops_ids_with_no_live_user() {
+		$out = $this->config->sanitize(
+			array(
+				'items' => array(
+					'menu-slug' => array( 'hidden_users' => array( 5, 61, 999 ) ),
+				),
+			)
+		);
+
+		$this->assertSame( array( 5 ), $out['items']['menu-slug']['hidden_users'] );
+	}
+
+	/**
+	 * Duplicate IDs collapse to one.
+	 */
+	public function test_hidden_users_collapses_duplicates() {
+		$out = $this->config->sanitize(
+			array(
+				'items' => array(
+					'menu-slug' => array( 'hidden_users' => array( 6, 6, 6, 2 ) ),
+				),
+			)
+		);
+
+		$this->assertSame( array( 6, 2 ), $out['items']['menu-slug']['hidden_users'] );
+	}
+
+	/**
+	 * Exactly MAX_HIDDEN_USERS IDs must all be stored.
+	 */
+	public function test_hidden_users_at_limit_all_stored() {
+		$users = range( 1, Config::MAX_HIDDEN_USERS );
+		$out   = $this->config->sanitize(
+			array(
+				'items' => array(
+					'menu-slug' => array( 'hidden_users' => $users ),
+				),
+			)
+		);
+
+		$this->assertSame( Config::MAX_HIDDEN_USERS, count( $out['items']['menu-slug']['hidden_users'] ) );
+	}
+
+	/**
+	 * MAX_HIDDEN_USERS+1 IDs: only the first MAX_HIDDEN_USERS stored.
+	 */
+	public function test_hidden_users_over_by_one_truncated() {
+		$users = range( 1, Config::MAX_HIDDEN_USERS + 1 );
+		$out   = $this->config->sanitize(
+			array(
+				'items' => array(
+					'menu-slug' => array( 'hidden_users' => $users ),
+				),
+			)
+		);
+
+		$this->assertSame( Config::MAX_HIDDEN_USERS, count( $out['items']['menu-slug']['hidden_users'] ) );
+	}
+
+	/**
+	 * Sparse contract: an empty list produces NO key at all, so a reset leaves
+	 * nothing behind to resolve.
+	 */
+	public function test_hidden_users_empty_list_omits_key() {
+		$out = $this->config->sanitize(
+			array(
+				'items' => array(
+					'menu-slug' => array(
+						'title'        => 'Kept',
+						'hidden_users' => array(),
+					),
+				),
+			)
+		);
+
+		$this->assertArrayNotHasKey( 'hidden_users', $out['items']['menu-slug'] );
+	}
+
+	/**
+	 * An all-invalid list is indistinguishable from an empty one — also no key.
+	 */
+	public function test_hidden_users_all_invalid_omits_key() {
+		$out = $this->config->sanitize(
+			array(
+				'items' => array(
+					'menu-slug' => array(
+						'title'        => 'Kept',
+						'hidden_users' => array( 61, 'abc', -1 ),
+					),
+				),
+			)
+		);
+
+		$this->assertArrayNotHasKey( 'hidden_users', $out['items']['menu-slug'] );
+	}
+
+	/**
+	 * child_hidden_users survives on a bare top-level key with the same rules.
+	 */
+	public function test_child_hidden_users_stored_on_top_level_key() {
+		$out = $this->config->sanitize(
+			array(
+				'items' => array(
+					'menu-slug' => array( 'child_hidden_users' => array( 8, 61 ) ),
+				),
+			)
+		);
+
+		$this->assertSame( array( 8 ), $out['items']['menu-slug']['child_hidden_users'] );
+	}
+
+	/**
+	 * child_hidden_users is a per-PARENT concept: a qualified submenu key has no
+	 * children, so the axis is dropped there — exactly as child_hidden_roles is.
+	 */
+	public function test_child_hidden_users_dropped_on_qualified_key() {
+		$out = $this->config->sanitize(
+			array(
+				'items' => array(
+					'parent.php>child.php' => array(
+						'title'              => 'Kept',
+						'child_hidden_users' => array( 3 ),
+					),
+				),
+			)
+		);
+
+		$this->assertArrayNotHasKey( 'child_hidden_users', $out['items']['parent.php>child.php'] );
+	}
+
+	/**
+	 * All four visibility axes coexist on one entry, independently.
+	 */
+	public function test_all_four_visibility_axes_coexist() {
+		$out = $this->config->sanitize(
+			array(
+				'items' => array(
+					'menu-slug' => array(
+						'hidden_roles'       => array( 'role-1' ),
+						'child_hidden_roles' => array( 'role-2' ),
+						'hidden_users'       => array( 11 ),
+						'child_hidden_users' => array( 12 ),
+					),
+				),
+			)
+		);
+
+		$entry = $out['items']['menu-slug'];
+
+		$this->assertSame( array( 'role-1' ), $entry['hidden_roles'] );
+		$this->assertSame( array( 'role-2' ), $entry['child_hidden_roles'] );
+		$this->assertSame( array( 11 ), $entry['hidden_users'] );
+		$this->assertSame( array( 12 ), $entry['child_hidden_users'] );
+	}
+
+	/**
+	 * SERVER-SIDE GATE: a saver without `list_users` cannot write a per-user
+	 * rule, no matter what the payload says. Hiding the picker client-side is
+	 * cosmetic — this is the control.
+	 */
+	public function test_user_axes_are_refused_without_list_users() {
+		$GLOBALS['maestro_unit_caps'] = array( 'list_users' => false );
+
+		$out = $this->config->sanitize(
+			array(
+				'items' => array(
+					'menu-slug' => array(
+						'title'              => 'Kept',
+						'hidden_users'       => array( 3 ),
+						'child_hidden_users' => array( 4 ),
+					),
+				),
+			)
+		);
+
+		$this->assertSame( 'Kept', $out['items']['menu-slug']['title'], 'Other fields must still save.' );
+		$this->assertArrayNotHasKey( 'hidden_users', $out['items']['menu-slug'] );
+		$this->assertArrayNotHasKey( 'child_hidden_users', $out['items']['menu-slug'] );
+	}
+
+	/**
+	 * ...and such a saver does not DESTROY existing rules either. The autosave is
+	 * full-replace, so dropping the axes outright would let any unrelated edit
+	 * wipe an administrator's per-user rules.
+	 */
+	public function test_user_axes_are_preserved_across_a_save_without_list_users() {
+		// An authorised author writes the rule.
+		$this->config->save(
+			array( 'items' => array( 'menu-slug' => array( 'hidden_users' => array( 3 ) ) ) )
+		);
+
+		// A delegated editor then saves an unrelated rename.
+		$GLOBALS['maestro_unit_caps'] = array( 'list_users' => false );
+		$out = $this->config->sanitize(
+			array( 'items' => array( 'menu-slug' => array( 'title' => 'Renamed' ) ) )
+		);
+
+		$this->assertSame( 'Renamed', $out['items']['menu-slug']['title'] );
+		$this->assertSame(
+			array( 3 ),
+			$out['items']['menu-slug']['hidden_users'],
+			'An unrelated save must carry an existing per-user rule through untouched.'
+		);
+	}
+
+	/**
+	 * ZERO-REGRESSION GUARD: a config carrying only the shipped role axes must
+	 * sanitize to a byte-identical result after the user axes were added. This is
+	 * the cheapest possible guard on v1.4.1 behaviour, and the phase's whole
+	 * safety story depends on the role axes being untouched.
+	 */
+	public function test_role_only_config_is_unchanged_by_the_user_axes() {
+		$raw = array(
+			'items'     => array(
+				'index.php'            => array(
+					'title'              => 'Home',
+					'hidden_roles'       => array( 'role-1', 'role-2' ),
+					'child_hidden_roles' => array( 'role-3' ),
+				),
+				'parent.php>child.php' => array(
+					'title'        => 'Child',
+					'hidden_roles' => array( 'role-4' ),
+				),
+			),
+			'top_order' => array( 'index.php' ),
+		);
+
+		$expected = array(
+			'schema_version' => Config::SCHEMA_VERSION,
+			'items'          => array(
+				'index.php'            => array(
+					'title'              => 'Home',
+					'hidden_roles'       => array( 'role-1', 'role-2' ),
+					'child_hidden_roles' => array( 'role-3' ),
+				),
+				'parent.php>child.php' => array(
+					'title'        => 'Child',
+					'hidden_roles' => array( 'role-4' ),
+				),
+			),
+			'top_order'      => array( 'index.php' ),
+			'sub_order'      => array(),
+		);
+
+		$this->assertSame( $expected, $this->config->sanitize( $raw ) );
 	}
 }

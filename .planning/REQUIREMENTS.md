@@ -28,7 +28,7 @@ backlog IDs without renumbering.
 ### Roles (cosmetic only)
 
 - [x] **ROLE-01**: A feasibility note determines whether per-user and/or cloned-role cosmetic menu hiding can be delivered **without** touching capabilities (stays cosmetic per the core value) within WordPress's role/user model, and specifies the storage shape + resolution seam. **Gates ROLE-02** — if it can't stay cosmetic, ROLE-02 defers. *(Complete 2026-07-05 — Phase 19. Verdict: **partial-go**; both branches clear the cosmetic-only bar. Storage: inline `items[slug].hidden_users` axis + a `profiles` registry compiling onto `items[slug].hidden_profiles`; seam: widen `is_hidden_for_current_user()`. Phase 21 unblocked, per-user first. See `phases/19-cosmetic-hiding-feasibility/19-FEASIBILITY-NOTE.md`.)*
-- [ ] **ROLE-02**: An admin can apply cosmetic menu-hiding rules scoped to a **specific user** (or a cloned role), intersected against that user's live roles. The rules never grant or remove a capability; a hidden page still loads by URL for a user who has the capability. *(conditional on ROLE-01)*
+- [~] **ROLE-02**: An admin can apply cosmetic menu-hiding rules scoped to a **specific user** (or a cloned role), intersected against that user's live roles. The rules never grant or remove a capability; a hidden page still loads by URL for a user who has the capability. *(conditional on ROLE-01)* — **PARTIALLY DELIVERED (Phase 21, v1.5).** The **per-user** half is complete: `items[slug].hidden_users` + `child_hidden_users`, resolved through the same single `is_hidden_for_current_user()` seam as the role axes, with the cosmetic invariant enforced by `tests/integration/CosmeticInvariantUsersTest.php` and the effect proven in a targeted user's real sidebar by `tests/e2e/specs/hidden-users.spec.ts`. The **cloned-role "profiles"** half is NOT delivered and remains a v1.5 backlog item — see `todos/pending/2026-08-02-cloned-role-hiding-profiles.md`; the seam is built as an OR of independent terms so `hidden_profiles` lands as a third term without rework. Known limitation: on multisite, network super admins are exempt from the per-user axis only (the role axes keep their v1.4.1 behaviour); that exempt branch is not covered by the single-site test suite.
 
 ### Editor UX
 
@@ -39,7 +39,7 @@ backlog IDs without renumbering.
 
 ### Release
 
-- [ ] **REL-10**: v1.4 is cut and shipped — runtime zip builds clean, Plugin Check 0 errors, full PHP/JS/e2e suites green, tagged `v1.4.0`, deployed to WordPress.org SVN `trunk` following the v1.2/v1.3 pipeline; **directory/editor screenshots recaptured** to show the shipped UX-11 coachmark "?" control and any v1.4 UX changes.
+- [x] **REL-10**: v1.4 is cut and shipped — runtime zip builds clean, Plugin Check 0 errors, full PHP/JS/e2e suites green, tagged `v1.4.0`, deployed to WordPress.org SVN `trunk` following the v1.2/v1.3 pipeline; **directory/editor screenshots recaptured** to show the shipped UX-11 coachmark "?" control and any v1.4 UX changes. *(Complete 2026-08-04 — Phase 24. Tag `v1.4.0` on `482510c` (PR #113), GitHub Release published, SVN `trunk` + `tags/1.4.0/` + assets verified; all 11 release gates recorded in STATE.md. Patch **v1.4.1** followed 2026-08-05 (PR #116, tag on `c6cdcbe`) for the shared-slug propagation defect. Shipped without Phases 21/22 per the Release Binding fallback — ROLE-02 deferred to v1.5.)*
 
 ### Cross-cutting (non-functional — applies to every phase)
 
@@ -47,6 +47,20 @@ backlog IDs without renumbering.
 - **Non-destructive:** stored configs are never rewritten at resolve time (same contract as v1.3.0).
 - **Zero regression:** existing PHP unit + integration + Playwright e2e stay green; Plugin Check 0 errors; WPCS clean; PHPStan clean.
 - **TDD:** pure logic (match-key qualification, badge extraction, role/user resolution) is tested `expect(fn(in)).toBe(out)` before wiring.
+
+---
+
+## v1.5 Requirements
+
+**Milestone framing:** v1.4 shipped without ROLE-02, which deferred to v1.5 under
+the Release Binding fallback. Phase 21 then built ROLE-02's per-user half
+(2026-08-08) — so v1.5 exists primarily to **release work that already exists**
+rather than to build new scope. Phases 22 and 25 may ride along if they land
+first; neither blocks the cut.
+
+### Release
+
+- [ ] **REL-11**: v1.5 is cut and shipped — runtime zip builds clean, Plugin Check 0 errors, full PHP/JS/e2e suites green, tagged `v1.5.0`, deployed to WordPress.org SVN `trunk` following the v1.2/v1.3/v1.4 pipeline (**including the manual `wp-deploy.yml` dispatch**, which has never been automatic); changelog verified against the `v1.4.1..main` diff rather than the phase list; **screenshot 3 recaptured** to show the visibility popover's four groups instead of two; and the multisite super-admin exemption stated as a known limitation.
 
 ---
 
@@ -76,12 +90,13 @@ Which phases cover which requirements. Populated during roadmap creation.
 | COMPAT-07 | Phase 20 | ✅ Complete 2026-08-01 |
 | COMPAT-10 | Phase 20 | ✅ Complete 2026-08-01 |
 | ROLE-01 | Phase 19 | ✅ Complete (partial-go) 2026-07-05 |
-| ROLE-02 | Phase 21 (unblocked — go, per-user first) | Pending |
+| ROLE-02 | Phase 21 | 🟡 Partial — per-user ✅ (Phase 21, v1.5); cloned-role profiles ⬜ deferred to backlog |
 | UX-09 | Phase 23 | ✅ Complete 2026-07-05 |
 | UX-12 | Phase 23 | ✅ Complete 2026-07-05 |
 | UX-13 | Phase 23 | ✅ Complete 2026-07-05 |
 | BUG-08 | Phase 23 | ✅ Complete 2026-07-05 |
-| REL-10 | Phase 24 | Pending |
+| REL-10 | Phase 24 | ✅ Complete 2026-08-04 (v1.4.0; patch v1.4.1 2026-08-05) |
+| REL-11 | Phase 26 (v1.5) | Pending — ships Phase 21's per-user hiding |
 
 **Coverage:**
 - v1.4 requirements: 11 total

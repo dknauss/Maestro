@@ -93,6 +93,20 @@ class Config {
 	const MAX_HIDDEN_ROLES = 50;
 
 	/**
+	 * Maximum number of hidden users per item, per axis (ROLE-02).
+	 *
+	 * Deliberately the same ceiling as MAX_HIDDEN_ROLES. Unlike roles, a site can
+	 * legitimately have far more users than this cap — but per-user hiding targets
+	 * named individuals, and a rule naming more than 50 of them is a role rule
+	 * expressed the hard way. The cap bounds the stored payload the same way
+	 * MAX_HIDDEN_ROLES does, and the picker is an async search precisely so it
+	 * never invites bulk-selecting a whole user base.
+	 *
+	 * @var int
+	 */
+	const MAX_HIDDEN_USERS = 50;
+
+	/**
 	 * Maximum byte length of a data-URI icon (128 KB raw string).
 	 * ~57x the largest bundled Bootstrap icon (2,242 bytes). A truncated
 	 * base64 string is corrupt, so over-limit data-URIs are dropped to ''.
@@ -267,6 +281,35 @@ class Config {
 
 		$valid_roles = array_keys( wp_roles()->get_names() );
 
+		// ROLE-02 — SERVER-SIDE gate on the per-user axes.
+		//
+		// Hiding the picker in the editor is not a control: the REST save is
+		// gated by capability(), not by `list_users`, so a delegated editor
+		// without `list_users` could POST guessed IDs directly and then read the
+		// display names back out of the decorated editor model — enumerating
+		// users through Maestro that core would not let them enumerate. The gate
+		// therefore lives here, where the write actually happens.
+		//
+		// Such a saver does not have their existing rules DELETED either: the
+		// autosave is full-replace, so silently dropping the axes would let any
+		// unrelated edit wipe an administrator's per-user rules. Stored values
+		// are preserved verbatim instead — the saver can neither add nor destroy.
+		$can_target_users = current_user_can( 'list_users' );
+		$stored_items     = array();
+		if ( ! $can_target_users ) {
+			$existing     = $this->get();
+			$stored_items = isset( $existing['items'] ) ? $existing['items'] : array();
+		}
+
+		// Validate the incoming IDs with ONE bounded query rather than loading
+		// every user ID on the site. The payload caps each axis at
+		// MAX_HIDDEN_USERS, so `include` stays small — whereas an unbounded
+		// get_users() would make every later autosave pay for a full user-table
+		// scan on a large site, forever, once a single per-user rule exists.
+		$valid_users = $can_target_users
+			? $this->valid_user_ids( self::candidate_user_ids( $raw ) )
+			: array();
+
 		if ( ! empty( $raw['items'] ) && is_array( $raw['items'] ) ) {
 			foreach ( $raw['items'] as $slug => $item ) {
 				// Qualified `parent>child` submenu keys: clean each half
@@ -335,6 +378,38 @@ class Config {
 					}
 				}
 
+				// ROLE-02: the per-user analog of hidden_roles. Valid at BOTH key
+				// scopes (bare top-level and qualified submenu), exactly as
+				// hidden_roles is — only the child_* axis below is parent-only.
+				if ( ! $can_target_users ) {
+					// Saver cannot target users: carry any stored axes through
+					// untouched so an unrelated edit cannot destroy them, and
+					// ignore whatever the payload claims.
+					if ( ! empty( $stored_items[ $slug ]['hidden_users'] ) ) {
+						$entry['hidden_users'] = $stored_items[ $slug ]['hidden_users'];
+					}
+					if ( ! $is_qualified && ! empty( $stored_items[ $slug ]['child_hidden_users'] ) ) {
+						$entry['child_hidden_users'] = $stored_items[ $slug ]['child_hidden_users'];
+					}
+				} else {
+					if ( ! empty( $item['hidden_users'] ) && is_array( $item['hidden_users'] ) ) {
+						$users = $this->clean_user_ids( $item['hidden_users'], $valid_users );
+						if ( $users ) {
+							$entry['hidden_users'] = $users;
+						}
+					}
+
+					// ROLE-02: the per-user analog of child_hidden_roles. Per-PARENT
+					// (top-level) only — a qualified submenu key has no children, so
+					// the axis is dropped there under the same guard.
+					if ( ! $is_qualified && ! empty( $item['child_hidden_users'] ) && is_array( $item['child_hidden_users'] ) ) {
+						$users = $this->clean_user_ids( $item['child_hidden_users'], $valid_users );
+						if ( $users ) {
+							$entry['child_hidden_users'] = $users;
+						}
+					}
+				}
+
 				if ( $entry ) {
 					$out['items'][ $slug ] = $entry;
 					if ( count( $out['items'] ) >= self::MAX_ITEMS ) {
@@ -382,6 +457,105 @@ class Config {
 		$slug = trim( wp_strip_all_tags( (string) $slug ) );
 		// Bound a hostile multi-KB slug; a real admin slug is far shorter.
 		return self::truncate_bytes( $slug, self::MAX_SLUG_BYTES );
+	}
+
+	/**
+	 * Every user ID the incoming payload mentions on either per-user axis.
+	 *
+	 * Read straight off the raw payload so the validating query below can be
+	 * bounded by what was actually submitted (at most MAX_HIDDEN_USERS per axis
+	 * per item) instead of by the size of the site's user table.
+	 *
+	 * @param array $raw Raw payload.
+	 * @return int[]
+	 */
+	private static function candidate_user_ids( array $raw ) {
+		$ids = array();
+		if ( empty( $raw['items'] ) || ! is_array( $raw['items'] ) ) {
+			return $ids;
+		}
+		foreach ( $raw['items'] as $item ) {
+			if ( ! is_array( $item ) ) {
+				continue;
+			}
+			foreach ( array( 'hidden_users', 'child_hidden_users' ) as $axis ) {
+				if ( empty( $item[ $axis ] ) || ! is_array( $item[ $axis ] ) ) {
+					continue;
+				}
+				foreach ( $item[ $axis ] as $id ) {
+					if ( is_scalar( $id ) && (int) $id > 0 ) {
+						$ids[] = (int) $id;
+					}
+				}
+			}
+		}
+		return array_values( array_unique( $ids ) );
+	}
+
+	/**
+	 * Which of the given candidate IDs belong to a live user (ROLE-02).
+	 *
+	 * Bounded by the candidate list via `include`, NOT a full user-ID scan. The
+	 * autosave is full-replace and preserves existing per-user axes, so an
+	 * unbounded query would make every later save on a large site pay for a
+	 * whole-user-table read once a single per-user rule exists anywhere.
+	 *
+	 * @param int[] $candidates IDs mentioned by the payload.
+	 * @return int[]
+	 */
+	private function valid_user_ids( array $candidates ) {
+		if ( ! $candidates ) {
+			return array(); // No per-user axis in the payload — no query at all.
+		}
+		return array_map(
+			'intval',
+			(array) get_users(
+				array(
+					'include' => $candidates,
+					'fields'  => 'ID',
+					'number'  => count( $candidates ),
+				)
+			)
+		);
+	}
+
+	/**
+	 * Clean a raw per-user axis into stored form (ROLE-02).
+	 *
+	 * Mirrors the hidden_roles pipeline — coerce, intersect against what is live,
+	 * then cap — so both axes self-heal identically: an ID whose user is deleted
+	 * simply stops matching, and nothing is ever written to the user.
+	 *
+	 * Order matters. The intersect runs BEFORE the cap so the ceiling counts
+	 * usable IDs; capping first could spend all 50 slots on IDs that resolve to
+	 * nobody and silently drop the real targets.
+	 *
+	 * @param array $raw_ids     Incoming IDs (ints or numeric strings).
+	 * @param int[] $valid_users Live user IDs from live_user_ids().
+	 * @return int[]
+	 */
+	private function clean_user_ids( $raw_ids, array $valid_users ) {
+		$ids = array();
+		foreach ( (array) $raw_ids as $id ) {
+			// Arrays/objects/null never coerce meaningfully — (int) would turn
+			// them into 1 or 0 and invent a target the client never sent.
+			if ( ! is_scalar( $id ) ) {
+				continue;
+			}
+			$id = (int) $id;
+			if ( $id > 0 ) {
+				$ids[] = $id;
+			}
+		}
+
+		$ids = array_values( array_unique( $ids ) );
+		$ids = array_values( array_intersect( $ids, $valid_users ) );
+
+		if ( count( $ids ) > self::MAX_HIDDEN_USERS ) {
+			$ids = array_slice( $ids, 0, self::MAX_HIDDEN_USERS );
+		}
+
+		return $ids;
 	}
 
 	/**

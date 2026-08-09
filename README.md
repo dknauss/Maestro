@@ -45,6 +45,11 @@ Hiding a menu item only declutters the menu — the underlying page still loads 
    Bootstrap Icons, "No icon", or a valid WordPress icon value.
 6. Hide an item from selected roles with the visibility control. This only
    changes what those roles see in the menu; it does not block the page URL.
+7. Hide an item from **named individuals** in the same popover — search for a
+   person and add them. Useful when a role is the wrong unit (one person on a
+   shared role who doesn't need a tool). A parent's sub-items can be hidden per
+   person too, with the parent left visible. Same cosmetic-only guarantee: the
+   page still loads by URL for anyone authorized to see it.
 7. Use **Reset this item** to discard one item's customizations, or **Reset
    all** to delete the saved configuration and return to WordPress defaults.
 8. Choose **Exit Menu Editing** when finished. Pending autosaves are flushed
@@ -57,7 +62,9 @@ For the longer walkthrough, see [`docs/user-guide.md`](docs/user-guide.md).
 **v1.3.1 is live on the WordPress.org plugin directory** ([maestro-menu-editor](https://wordpress.org/plugins/maestro-menu-editor/)) — it includes the v1.1 through v1.3 polish and fix releases over the 1.0.0 base (roadmap in [`.planning/ROADMAP.md`](.planning/ROADMAP.md)). The server core (replay engine, REST API, sanitization) and the editor are done, and all test layers are expected to stay green (unit 90, integration 47, E2E coverage, JavaScript unit tests, phpcs, PHPStan, and Plugin Check on the runtime build). The editor uses the click-to-select model with debounced autosave:
 
 - **Debounced autosave (~500 ms)** on reorder, rename, icon pick, visibility toggle, and per-item reset — no manual Save button; a "Saving… / Saved" status indicator (dashicon + text) instead. Saves are serialized (single-flight) so a slow request can't overwrite newer edits. Reload only on Exit (which flushes any pending save) and on Reset all.
-- **Click-to-select with one shared controls panel.** No edit chrome until an item is selected: each row shows only a hover/focus-revealed drag handle. Selecting an item opens the shared panel (rename, icon picker for top-level items, per-role visibility, reset-this-item).
+- **Click-to-select with one shared controls panel.** No edit chrome until an item is selected: each row shows only a hover/focus-revealed drag handle. Selecting an item opens the shared panel (rename, icon picker for top-level items, per-role and per-person visibility, reset-this-item).
+
+- **Visibility on four independent axes.** The popover carries hide-by-role and hide-by-person, each in an "this item" and a "its sub-items" variant, so a parent can stay visible while its children vanish for exactly the roles or people you choose. The person picker searches core's `wp/v2/users` endpoint (already gated by `list_users`), so it scales past a few hundred users instead of dumping the whole user base into the page. Every axis is cosmetic: a hidden page still loads by URL, and `current_user_can()` is provably unchanged — asserted by a dedicated guardrail test that snapshots the target role's entire capability map before, during, and after a rule.
 - **Stable expanded menu while editing.** Folded/auto-fold mode is neutralized on entry and re-stripped if `common.js` reapplies it, so editing always happens against the expanded menu.
 - **Icons: all four native WordPress forms** (dashicon, `none`, base64 image data-URI, image URL), validated server-side. The picker bundles two sets — dashicons and ~87 curated [Bootstrap Icons](https://icons.getbootstrap.com/) — with a search filter and a "No icon" option, and is keyboard-accessible (dialog/tablist roles, arrow-key navigation, focus trap) and mobile-sized. Icon changes persist via autosave (covered by E2E: pick → POST carries the icon → survives reload).
 

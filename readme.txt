@@ -27,6 +27,7 @@ Maestro's enhancements are only activated for logged-in users with an Administra
 * **Reorder** items by dragging (top-level items among themselves, submenu items within their parent), or with the keyboard (`Alt`+`Arrow`).
 * **Swap icons** on top-level items. The icon picker offers Dashicons and bundled Bootstrap Icons with search. It accepts any of WordPress's four native icon forms (dashicon, "none", base64 image data-URI, or an image URL).
 * **Hide** items from chosen roles — including administrators. Custom roles registered by other plugins ([User Role Editor](https://wordpress.org/plugins/user-role-editor/), [Members](https://wordpress.org/plugins/members/), etc.) appear automatically.
+* **Hide items from specific people**, by name, when a role is the wrong unit — one person on a shared role who doesn't need a particular tool. Search for someone in the visibility popover and add them; a parent's sub-items can be hidden per person too, with the parent left visible. Like every other hide in Maestro, this is cosmetic only: the page still loads by URL for anyone authorized to see it.
 * **Reset** a single item to its WordPress default, or reset everything at once.
 
 Changes are **global** — one configuration applies to everyone. Your custom menu configuration is stored as a sparse delta (just the differences) layered over the menu WordPress builds on each load. Nothing is rebuilt or duplicated, so a reset simply removes the delta, and the original menu returns. 
@@ -63,8 +64,26 @@ bookmarking its URL. Real access is governed by each page's registered capabilit
 
 = Do my changes affect everyone, or just me? =
 
-Everyone. Maestro stores one global configuration that applies to all users; it is not per-user. Per-role *visibility* lets you hide items from specific roles,
-but the rename/reorder/icon changes themselves are global.
+Everyone. Maestro stores one global configuration that applies to all users. *Visibility* is the exception: you can hide items from chosen roles, or from
+named individuals, so what each person sees can differ. The rename/reorder/icon changes themselves are global.
+
+= Can I hide something from just one person? =
+
+Yes. Alongside the role lists, the visibility popover has a search box for
+people. Type a name, pick them, and the item disappears from that person's menu
+only — everyone else with the same role still sees it. You can target several
+people, and on an item with children you can hide the sub-items per person while
+the parent stays visible.
+
+Use it when a role is the wrong unit: one editor on a team of editors who
+doesn't need a particular tool. If you find yourself adding the same person list
+to many items, a role is probably the better fit.
+
+Two notes. Targeting your own account is allowed — Maestro warns you, and you
+can always get back in, because the Edit Menu control lives in the admin bar and
+no hide rule can remove it. And on a multisite network, network super admins are
+exempt from person-targeted hides (role-targeted hides still apply to them, as
+they always have).
 
 = Can I hide items from administrators, too? =
 

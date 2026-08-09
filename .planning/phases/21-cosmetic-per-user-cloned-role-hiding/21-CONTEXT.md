@@ -12,10 +12,24 @@ removes a capability**; a page hidden this way still loads by direct URL for a u
 independently holds the capability (ROLE-02).
 
 **Scope decision (this phase = per-user only):** the cloned-role "profiles" registry half
-of ROLE-02 is **deferred** to a v1.5 backlog item (see Deferred). ROLE-02 is therefore
-**partially delivered** in v1.4.0 (per-user shipped; cloned-role later) — this is the
+of ROLE-02 is **deferred** to a v1.5 backlog item (see Deferred). Once this phase lands,
+ROLE-02 is **partially delivered** (per-user shipped; cloned-role later) — this is the
 feasibility note's recommended per-user-first slice. The seam must be designed to
 accommodate profiles later without rework.
+
+> **CORRECTION 2026-08-08 — release target.** This context was gathered 2026-08-02 and
+> assumed Phase 21 would ship in **v1.4.0**. It did not: on 2026-08-04 the v1.4.0 release
+> deferred the whole phase to **v1.5** (STATE.md Release Binding), and v1.4.1 was a patch.
+> Phase 21 therefore ships under **v1.5**, and no part of ROLE-02 is in a released build
+> today. Nothing else in this context is affected — the scope, decisions, and design inputs
+> below all still stand.
+>
+> **Also stale: the line numbers in `<code_context>` below.** They predate v1.4.1's
+> shared-slug fix (PR #115), which shifted `class-replay.php`. Verified against
+> `main @ 81d7ef8` on 2026-08-08: `is_hidden_for_current_user()` is at **~L446** (not L384),
+> `resolved_hidden_roles()` at **~L553** (not L486), `resolved_child_hidden_roles()` at
+> **~L596** (not L521), `get_menu_model()` at **~L614**. The plans carry the corrected
+> numbers; prefer them over this section.
 
 Out of scope: real WordPress role clones (`add_role`/`add_cap` — explicitly rejected in
 the feasibility note); any access enforcement (Maestro stays cosmetic-only); the profiles
@@ -147,9 +161,10 @@ See `phases/19-cosmetic-hiding-feasibility/19-FEASIBILITY-NOTE.md` (authoritativ
 - **Cloned-role "profiles" registry (ROLE-02 second half)** — a named `profiles` map
   (label + hides + user/role assignment) compiling onto an inline `hidden_profiles` axis via
   the same seam (feasibility note §5c/§7). **Deferred to a v1.5 backlog todo**, seeded from
-  the feasibility note. ROLE-02 is partially delivered (per-user) in v1.4.0; mark ROLE-02
-  accordingly and note the profiles half as pending. Design the per-user seam to extend to
-  the third OR term without rework.
+  the feasibility note. ROLE-02 becomes partially delivered (per-user) when this phase ships
+  under v1.5 — not in v1.4.0, per the correction at the top of this file; mark ROLE-02
+  accordingly then and note the profiles half as pending. Design the per-user seam to extend
+  to the third OR term without rework.
 - **Unified "who sees this" target model** (folding role+user+profile into one list per item,
   redesigning the popover) — explicitly out of scope (§5 "not recommended for Phase 21").
 - **Enforced per-user access tier** — a categorically different, capability-mutating feature;

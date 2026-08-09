@@ -33,6 +33,17 @@ export default defineConfig( {
 	use: {
 		baseURL: `http://localhost:${ testsPort }`,
 		trace: 'on-first-retry',
+		// Several specs sign in as a SECOND user mid-test (cascade-hide,
+		// editor.spec, hidden-users) to assert what that user's own sidebar
+		// renders. A wp-env login is the slowest navigation in the suite, and on
+		// a loaded machine it can exceed Playwright's 30s default — which
+		// presents as an unrelated spec failing, moving between runs.
+		// auth.setup.ts already carried a 90s budget for exactly this reason;
+		// this extends the same protection to every navigation instead of
+		// leaving each secondary login to rediscover it. Raising a ceiling does
+		// not mask a genuine failure — a login that is actually broken still
+		// fails, just later.
+		navigationTimeout: 60000,
 	},
 	projects: [
 		// Runs first (every spec depends on it) and unauthenticated — it is what

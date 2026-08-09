@@ -95,7 +95,17 @@ test.describe( 'COMPAT-10 — independent child_hidden_roles ("Hide its sub-item
 		await panel.locator( '.maestro-vis-btn' ).click();
 		picker = page.locator( '.maestro-vis-popover' );
 		await expect( picker ).toBeVisible();
-		await expect( picker.locator( '.maestro-vis-head' ) ).toHaveText( [ 'Hide this item from:', 'Hide its sub-items from:' ] );
+		// ROLE-02 (Phase 21) added two more groups to this same popover — the
+		// per-user analogs of the two role groups. This assertion enumerates
+		// EVERY heading, so it legitimately grows when a group is added; the
+		// COMPAT-10 behaviour it guards (the role groups, their order, and the
+		// gating rules asserted above/below) is unchanged.
+		await expect( picker.locator( '.maestro-vis-head' ) ).toHaveText( [
+			'Hide this item from:',
+			'Hide its sub-items from:',
+			'Hide this item from specific people:',
+			'Hide its sub-items from specific people:',
+		] );
 		const childrenGroup = picker.locator( '.maestro-vis-children' );
 		await expect( childrenGroup ).toBeVisible();
 

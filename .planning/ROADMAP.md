@@ -9,7 +9,8 @@
 - ✅ **v1.2 Editor UX Polish** — Phases 9–12 (shipped 2026-06-22; release tag `v1.2.0`) → [archive](milestones/v1.2-ROADMAP.md)
 - ✅ **R1 Third-Party Compatibility Research** — Phases 13–16 (completed 2026-06-29; non-versioned research — no plugin code, no release tag, no SVN deploy) → [archive](milestones/R1-ROADMAP.md)
 - ✅ **v1.3.0 Slug-Resolution Hardening** — Phases 17–18 (shipped 2026-06-30; release tag `v1.3.0`) → [archive](milestones/v1.3.0-ROADMAP.md)
-- 🚧 **v1.4 Compatibility, Roles & Showcase** — Phases 19–24 (in progress; release tag `v1.4.0`)
+- ✅ **v1.4 Compatibility, Roles & Showcase** — Phases 19–24 (shipped 2026-08-04; release tag `v1.4.0`, patch `v1.4.1` 2026-08-05). Shipped **without** Phase 21 (ROLE-02, deferred to v1.5 under the Release Binding fallback) and Phase 22 (not reached; still open).
+- 🚧 **v1.5 Per-User Visibility** — Phase 21 (built under the v1.4 roadmap, ships here) + Phase 26 (release). Phases 22 and 25 are **optional inclusions**: they ship in v1.5 if they land before the cut, and otherwise slip without blocking it.
 
 ## Phases
 
@@ -144,10 +145,10 @@ Full phase details, success criteria, and outcomes are archived in
 
 - [x] **Phase 19: Cosmetic Hiding Feasibility** — feasibility note determining whether per-user/cloned-role menu hiding can stay strictly cosmetic; gates Phase 21 (completed 2026-07-05)
 - [x] **Phase 20: Third-Party Compatibility Fixes** — level-qualified match keys, badge/HTML-in-title preservation on rename, optional subtree-hide cascade (R1 backlog) (completed 2026-08-02)
-- [ ] **Phase 21: Cosmetic Per-User / Cloned-Role Hiding** — conditional on Phase 19 clearing the cosmetic-only bar
+- [~] **Phase 21: Cosmetic Per-User / Cloned-Role Hiding** — per-user half COMPLETE (5/5 plans, 2026-08-08, shipping under v1.5); cloned-role profiles deferred to backlog
 - [ ] **Phase 22: Slug-Resolution Showcase Demo** — Playground demo that visibly demonstrates the v1.3.0 slug-normalization fixes
 - [x] **Phase 23: Editor UX Polish** — native wp-admin restyle of all edit-mode surfaces (UX-13, added 2026-07-03), semantic-colour borders removed (UX-12 verdict), first-run banner centering (BUG-08) — complete 2026-07-05
-- [ ] **Phase 24: Release v1.4.0** — cut and ship to WordPress.org; recapture editor screenshots for the UX-11 coachmark
+- [x] **Phase 24: Release v1.4.0** — cut and shipped to WordPress.org 2026-08-04 (tag `v1.4.0` on `482510c`, PR #113); editor + directory screenshots recaptured. Patch **v1.4.1** followed 2026-08-05 (tag on `c6cdcbe`, PR #116) for the shared-slug propagation defect. Shipped WITHOUT Phases 21 and 22 — see the outcome note below
 - [ ] **Phase 25: Edit-Mode Toolbar Dark-Surface Polish** — dark-toolbar icon/focus contrast (WCAG 1.4.11), save-indicator layout shift, rename commit feedback (added 2026-08-02; pre-existing v1.3.1 surfaces, non-blocking for v1.4.0)
 
 ### Phase 19: Cosmetic Hiding Feasibility
@@ -190,7 +191,14 @@ Plans:
   3. A page hidden for a user by this feature still loads successfully by direct URL if that user independently holds the capability for it — hiding is proven to be visibility-only, not access control
   4. An explicit automated test asserts the cosmetic-only guardrail: applying/removing a ROLE-02 rule does not change `current_user_can()` results for any capability
   5. Existing PHP unit, integration, and Playwright e2e suites stay green; WPCS clean; PHPStan clean; Plugin Check 0 errors
-**Plans**: TBD
+**Plans**: 21-01 storage · 21-02 seam + cascade · 21-03 guardrail · 21-04 editor + picker · 21-05 e2e + gate + close (5/5 complete 2026-08-08)
+**Outcome**: Criteria 1–5 all met for the **per-user** half, which is what this
+phase scoped (the cloned-role "profiles" half was deferred to a backlog todo at
+context-gathering time and remains so). Criterion 4's guardrail is
+`tests/integration/CosmeticInvariantUsersTest.php`; criterion 3 is additionally
+proven in a real browser in `tests/e2e/specs/hidden-users.spec.ts`. Known
+limitation carried forward: on multisite, network super admins are exempt from
+the per-user axis only — that branch is untested, as the suite runs single-site.
 
 ### Phase 22: Slug-Resolution Showcase Demo
 **Goal**: A visitor to the Playground demo can see, concretely, that Maestro's v1.3.0 slug-normalization fixes work — not just a busier menu, but a saved override that visibly still applies despite a slug-form mismatch
@@ -232,7 +240,33 @@ Plans:
   3. Directory and editor screenshots are recaptured to show the shipped UX-11 coachmark "?" control and any v1.4 UX changes (Phase 23), replacing stale v1.2/v1.3 captures
   4. The git tag `v1.4.0` exists and points to the release commit; the GitHub release is published
   5. SVN `trunk` is updated and the `1.4.0` SVN tag is cut, following the same pipeline used for v1.2.0/v1.3.0
-**Plans**: TBD
+**Plans**: executed directly as the release PR (#113), not as numbered plan files
+**Outcome**: ✅ **SHIPPED 2026-08-04.** All five criteria met; 11 release gates
+recorded in STATE.md's v1.4.0 checklist. Tag `v1.4.0` on `482510c`, GitHub
+Release published, wp.org SVN `trunk` + `tags/1.4.0/` + assets verified.
+
+**Two deviations worth knowing, because the dependency line above does not
+reflect what happened:**
+
+1. **Shipped without Phase 21 and Phase 22.** The stated dependencies list both,
+   but the Release Binding's documented fallback allowed ROLE-02 (Phase 21) to
+   defer if it wasn't ready, and it was — deferred to v1.5, where Phase 21
+   executed on 2026-08-08. Phase 22 (the demo) was simply not reached and remains
+   open. So this phase's completion does NOT imply 21 or 22 were done at the time.
+2. **Criterion 2's "documented absence" path was taken for a different reason
+   than written.** The criterion anticipated Phase 19 deferring the guardrail;
+   in fact Phase 19 gave a go verdict and it was the *release* that deferred
+   Phase 21. The guardrail now exists —
+   `tests/integration/CosmeticInvariantUsersTest.php`, added by Phase 21 —
+   but it was not present at the v1.4.0 tag.
+
+**Follow-up patch:** v1.4.1 shipped 2026-08-05 (PR #116, tag on `c6cdcbe`) for
+the shared-slug top-level→submenu propagation defect (#115). Not a security
+release; the propagation could apply an unintended rename or hide but could
+neither widen nor revoke access.
+
+**Successor:** the v1.5 release phase — **Phase 26** — was created 2026-08-09 to
+ship Phase 21's per-user hiding. See "Phase Details (v1.5 — Per-User Visibility)".
 
 ### Phase 25: Edit-Mode Toolbar Dark-Surface Polish
 **Goal**: The edit-mode bottom toolbar reads cleanly on its dark (`#1d2327`) background and meets the accessibility bar Phase 23 held — control icons and focus states clear WCAG non-text contrast, the save-status indicator no longer shifts the layout, and renames give adequate commit feedback — spot-checked on Default + Modern + Midnight admin colour schemes.
@@ -245,14 +279,58 @@ Plans:
   4. **Rename commit feedback** is improved (the save-status fires on rename commit and/or an "Enter to apply" hint) so a rename no longer feels unsaved — WITHOUT introducing live as-you-type autosave (keeps the commit-on-Enter/blur + debounced-save model and the HARD-03 save-race behavior intact).
   5. Existing PHP unit, integration, JS, and Playwright e2e suites stay green; WPCS clean; PHPStan clean; Plugin Check 0 new errors; verified across Default/Modern/Midnight admin colour schemes.
 **Sequencing note**: these are **pre-existing** Phase 23 (v1.3.1) toolbar surfaces, not v1.4 regressions, so they do **not** block the Phase 24 release. Placement is the user's call — ship it *before* Phase 24 (so v1.4.0 carries the fixes and Phase 24's editor-screenshot recapture reflects them), or defer to a v1.4.1 / later follow-up. Currently appended after Phase 24; resequence with `/gsd:insert-phase` if it should precede the release.
+
+**Resolved 2026-08-08:** the question is moot as posed — v1.4.0 shipped on
+2026-08-04 without this phase, so it did not precede that release. It is now a
+candidate for the (not yet created) v1.5 release, alongside the deferred a11y
+M2/M3 items from `todos/pending/2026-08-02-a11y-locked-checkbox-refinements.md`.
 **Plans**: TBD (run /gsd:plan-phase 25 to break down)
+
+---
+
+## Phase Details (v1.5 — Per-User Visibility)
+
+**Milestone goal:** ship ROLE-02's per-user cosmetic hiding to WordPress.org. The
+feature is built (Phase 21, 5/5 plans, 2026-08-08) but unreleased — v1.4.0 was
+cut before it landed. This milestone exists to get it to users.
+
+- [~] **Phase 21: Cosmetic Per-User Hiding** — built under the v1.4 roadmap (details in the v1.4 section above); ships here. Per-user half complete; cloned-role profiles remain a backlog item.
+- [ ] **Phase 26: Release v1.5.0** — cut and ship to WordPress.org
+- [ ] *(optional)* **Phase 22: Slug-Resolution Showcase Demo** — ships in v1.5 if it lands before the cut
+- [ ] *(optional)* **Phase 25: Edit-Mode Toolbar Dark-Surface Polish** — ships in v1.5 if it lands before the cut
+
+### Phase 26: Release v1.5.0
+**Goal**: v1.5 is cut and live on WordPress.org — per-user cosmetic hiding reaches users, the runtime zip builds clean, all suites pass, the tag exists, SVN trunk is updated, and the directory screenshots show the four-group visibility popover
+**Depends on**: Phase 21 (hard — it is the entire reason this milestone exists). Phases 22 and 25 are **optional inclusions**, not dependencies: if either is complete at cut time it ships, otherwise it slips to a later release without blocking this one. This mirrors the Release Binding fallback that let v1.4.0 ship without Phase 21, which worked.
+**Requirements**: REL-11
+**Success Criteria** (what must be TRUE):
+  1. `bin/build.sh` produces a clean runtime zip and Plugin Check reports 0 errors on it (the pre-existing `readme.txt` upgrade-notice warning is acceptable, unchanged since v1.4.0)
+  2. Full zero-regression gate green at the release commit: PHP unit, PHP integration, JS unit, Playwright e2e, WPCS, PHPStan, doc-links
+  3. **The changelog covers every user-facing change since `v1.4.1`** — verified by diffing `v1.4.1..main`, not by trusting the phase list (the standing lesson from v1.4.0, where an overclaim was caught only at gate 8)
+  4. An Upgrade Notice for 1.5.0 exists and is under Plugin Check's 300-character limit
+  5. **Directory + editor screenshots reflect the shipping UI** — screenshot 3 (the visibility picker) now shows FOUR groups, not two, so it must be recaptured; the per-scheme editor surfaces are re-checked
+  6. The git tag `v1.5.0` exists on a `main` commit carrying all code plus the final readme; the GitHub Release is published
+  7. SVN `trunk` is updated and the `1.5.0` SVN tag is cut — **remembering the deploy is NOT automatic**: a Release created via `GITHUB_TOKEN` does not fire `release: published`, so `wp-deploy.yml` must be dispatched manually (`gh workflow run wp-deploy.yml -f tag=v1.5.0`). This has been true for every release since v1.3.0; plan the manual step in.
+  8. **Code review clean** over the full `v1.4.1..main` diff
+  9. **A11y sweep passed** — WCAG 2.2 AA across Default/Modern/Midnight. The new person-picker surfaces (search field, results list, chips, self-target caution) have never had an independent a11y pass; they were written to the bar but not audited against it.
+  10. **Adversarial security pass clean** — with specific attention to the new user axis: the picker consumes core's `wp/v2/users` (gated by `list_users`), stored IDs are intersected against live users, and the cosmetic-only invariant must be re-confirmed to hold for the per-user path exactly as it does for roles
+  11. **Performance assessment acceptable** — the per-user axis adds an id-list intersect to the hide seam and one batched `get_users()` call to the editor model; confirm both are negligible against the config-size benchmark in [docs/performance/config-size-and-page-load.md](../docs/performance/config-size-and-page-load.md)
+**Known limitation to state in the release notes**: on multisite, network super
+admins are exempt from the per-user axis only (role axes keep their v1.4.1
+behaviour). That branch is untested — the suite runs single-site. Already
+documented in `readme.txt`; the release should not quietly drop it.
+**Plans**: TBD (run /gsd:plan-phase 26 to break down)
 
 ---
 
 ## Progress
 
 **Execution Order:**
-v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). v1.2 complete (Phases 9–12, archived 2026-06-22; Phase 10 was a non-blocking research spike not shipped in v1.2). R1 complete (Phases 13–16, archived 2026-06-29; non-versioned research). v1.3.0 complete (Phases 17–18, shipped 2026-06-30; release tag `v1.3.0`, archived). v1.4 in progress (Phases 19–24; release tag `v1.4.0`; Phases 19 + 23 complete 2026-07-05, merged via PR #87). Phase 23's editor UX restyle shipped early as an interim **v1.3.1** patch (PR #88; tag `v1.3.1`, GitHub Release + WordPress.org SVN, 2026-07-05).
+v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). v1.2 complete (Phases 9–12, archived 2026-06-22; Phase 10 was a non-blocking research spike not shipped in v1.2). R1 complete (Phases 13–16, archived 2026-06-29; non-versioned research). v1.3.0 complete (Phases 17–18, shipped 2026-06-30; release tag `v1.3.0`, archived). Phase 23's editor UX restyle shipped early as an interim **v1.3.1** patch (PR #88; tag `v1.3.1`, 2026-07-05).
+
+**v1.4 complete** (Phases 19–24) — shipped 2026-08-04 as `v1.4.0`, patched 2026-08-05 as `v1.4.1`. It shipped **without** Phase 21 (deferred under the Release Binding fallback) and Phase 22 (not reached).
+
+**v1.5 in progress** (created 2026-08-09) — Phase 21 built 2026-08-08 and awaiting verification/merge, then Phase 26 cuts the release. Phases 22 and 25 are optional inclusions that do not block the cut. Note the phase numbers are non-contiguous by design: 21, 22 and 25 were planned under the v1.4 roadmap and are not renumbered when they slip, matching how the R1 `COMPAT-xx` IDs were reused without renumbering.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -278,8 +356,9 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 | 18. Release v1.3.0 | v1.3.0 | 3/3 | Complete (shipped 2026-06-30) | 2026-06-30 |
 | 19. Cosmetic Hiding Feasibility | v1.4 | 1/1 | Complete | 2026-07-05 |
 | 20. Third-Party Compatibility Fixes | v1.4 | 6/6 | Complete | 2026-08-02 |
-| 21. Cosmetic Per-User / Cloned-Role Hiding | v1.4 | 0/TBD | Not started (conditional on Phase 19) | - |
-| 22. Slug-Resolution Showcase Demo | v1.4 | 0/TBD | Not started | - |
-| 23. Editor UX Polish | v1.4 | 5/5 | Complete | 2026-07-05 |
-| 24. Release v1.4.0 | v1.4 | 0/TBD | Not started | - |
-| 25. Edit-Mode Toolbar Dark-Surface Polish | v1.4 | 0/TBD | Not started | - |
+| 21. Cosmetic Per-User Hiding | built under v1.4, **ships in v1.5** | 5/5 | Per-user half complete; awaiting human verification, unmerged (PR #120). Cloned-role profiles deferred to backlog | 2026-08-08 |
+| 22. Slug-Resolution Showcase Demo | v1.5 (optional inclusion) | 0/TBD | Not started | - |
+| 23. Editor UX Polish | v1.4 | 5/5 | Complete (shipped as v1.3.1) | 2026-07-05 |
+| 24. Release v1.4.0 | v1.4 | n/a (shipped as PR #113, not numbered plans) | Complete — v1.4.0 shipped; patch v1.4.1 2026-08-05 | 2026-08-04 |
+| 25. Edit-Mode Toolbar Dark-Surface Polish | v1.5 (optional inclusion) | 0/TBD | Not started | - |
+| 26. Release v1.5.0 | v1.5 | 0/TBD | Not started — created 2026-08-09; depends on Phase 21 | - |
