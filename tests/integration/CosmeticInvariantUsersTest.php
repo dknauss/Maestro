@@ -188,7 +188,10 @@ class CosmeticInvariantUsersTest extends WP_UnitTestCase {
 		$this->assertNotContains( 'upload.php', $this->top_slugs_in_model(), 'The hide must actually change visibility.' );
 
 		// STEP 5 — remove (sparse contract: reset deletes the key).
-		( new Config() )->save( array( 'items' => array() ) );
+		// Removed AS ADMIN, matching how the rule was authored: an editor without
+		// `list_users` deliberately CANNOT destroy a per-user rule, so removing as
+		// the measured user would silently no-op and this step would prove nothing.
+		$this->save_as_admin( array( 'items' => array() ) );
 		$stored = ( new Config() )->get();
 		$this->assertArrayNotHasKey( 'upload.php', $stored['items'], 'Reset must delete the key, not blank it.' );
 
@@ -235,7 +238,10 @@ class CosmeticInvariantUsersTest extends WP_UnitTestCase {
 		$this->assertContains( 'edit.php', $this->top_slugs_in_model(), 'The parent must stay visible.' );
 		$this->assertSame( array(), $this->child_slugs_in_model( 'edit.php' ), 'Every child must be hidden.' );
 
-		( new Config() )->save( array( 'items' => array() ) );
+		// Removed AS ADMIN, matching how the rule was authored: an editor without
+		// `list_users` deliberately CANNOT destroy a per-user rule, so removing as
+		// the measured user would silently no-op and this step would prove nothing.
+		$this->save_as_admin( array( 'items' => array() ) );
 		$this->seed_menu();
 		$this->run_replay();
 

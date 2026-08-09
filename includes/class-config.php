@@ -419,6 +419,68 @@ class Config {
 			}
 		}
 
+		// ROLE-02 — restore per-user axes the saver was not allowed to touch.
+		//
+		// The per-item preserve above only fires for items PRESENT in the
+		// payload, which is not enough. get_menu_model() withholds the user axes
+		// from a saver without `list_users`, so diffItem() never flags them
+		// client-side, so an item whose ONLY override is a per-user rule is
+		// omitted from that saver's full-replace autosave entirely — and a rule
+		// omitted from a full replace is a rule deleted. That made any edit by a
+		// delegated editor silently wipe every per-user rule they could not see:
+		// ordinary data loss, not an exotic hand-crafted POST.
+		//
+		// So the restore runs over the STORED items, not the submitted ones.
+		if ( ! $can_target_users ) {
+			// Index what we are about to write by NORMALIZED key. Matching on the
+			// raw key is not enough: the payload may name the same item in a
+			// different-but-equivalent form (`upload.php?ver=9` for a rule stored
+			// under `upload.php`), which is not contrived — slug drift is the
+			// exact problem Slug::normalize() exists to solve, so it is the
+			// expected state after a plugin update. Re-attaching under the stored
+			// key would then leave TWO keys normalizing to the same item, which
+			// the Axis-1 collision guard resolves to "apply nothing" — silently
+			// neutralising both the preserved rule and the saver's own edit while
+			// the stored config still looks healthy.
+			$base     = function_exists( 'admin_url' ) ? admin_url( '' ) : '';
+			$norm_out = array();
+			foreach ( array_keys( $out['items'] ) as $written_key ) {
+				$nk = Slug::normalize_qualified( (string) $written_key, $base );
+				if ( '' !== $nk && ! isset( $norm_out[ $nk ] ) ) {
+					$norm_out[ $nk ] = $written_key;
+				}
+			}
+
+			foreach ( $stored_items as $stored_slug => $stored_entry ) {
+				$keep = array();
+				if ( ! empty( $stored_entry['hidden_users'] ) ) {
+					$keep['hidden_users'] = $stored_entry['hidden_users'];
+				}
+				if ( ! empty( $stored_entry['child_hidden_users'] ) ) {
+					$keep['child_hidden_users'] = $stored_entry['child_hidden_users'];
+				}
+				if ( ! $keep ) {
+					continue;
+				}
+
+				$nk = Slug::normalize_qualified( (string) $stored_slug, $base );
+
+				if ( '' !== $nk && isset( $norm_out[ $nk ] ) ) {
+					// Same item under either spelling — merge into the key that is
+					// actually being written, never add a second one.
+					$target                  = $norm_out[ $nk ];
+					$out['items'][ $target ] = array_merge( $out['items'][ $target ], $keep );
+				} elseif ( count( $out['items'] ) < self::MAX_ITEMS ) {
+					// Nothing equivalent is being written; the item exists only to
+					// hold the rule, so re-create it rather than let it vanish.
+					$out['items'][ $stored_slug ] = $keep;
+					if ( '' !== $nk ) {
+						$norm_out[ $nk ] = $stored_slug;
+					}
+				}
+			}
+		}
+
 		if ( ! empty( $raw['top_order'] ) && is_array( $raw['top_order'] ) ) {
 			$out['top_order'] = array_slice(
 				array_values( array_map( array( $this, 'clean_slug' ), $raw['top_order'] ) ),
