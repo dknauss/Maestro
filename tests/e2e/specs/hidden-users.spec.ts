@@ -40,11 +40,29 @@ const OTHER_LOGIN  = 'maestro_bystander';
  * user except admin, so a spec that depends on a pre-existing account is
  * order-dependent in a way that is painful to debug.
  */
+/**
+ * Create a fixture user and PROVE it exists.
+ *
+ * `wp user create` exits non-zero when the account already survives from an
+ * interrupted run, which is a fine end state — so that error is swallowed. But
+ * swallowing every error means a genuinely failed fixture surfaces later as an
+ * inscrutable login timeout, which is exactly how this spec first failed in CI.
+ * The explicit `user get` turns that into a named failure at the point of cause.
+ */
+function ensureUser( login: string, displayName: string ): void {
+	wp( [ 'user', 'create', login, `${ login }@example.com`,
+		'--role=editor', `--display_name=${ displayName }`, '--user_pass=password' ] );
+	try {
+		execFileSync( 'npx', [ 'wp-env', 'run', 'tests-cli', 'wp', 'user', 'get', login, '--field=ID' ],
+			{ stdio: 'ignore' } );
+	} catch ( e ) {
+		throw new Error( `Fixture user "${ login }" could not be created — the spec cannot sign in as them.` );
+	}
+}
+
 function createUsers(): void {
-	wp( [ 'user', 'create', TARGET_LOGIN, `${ TARGET_LOGIN }@example.com`,
-		'--role=editor', `--display_name=${ TARGET_NAME }`, '--user_pass=password' ] );
-	wp( [ 'user', 'create', OTHER_LOGIN, `${ OTHER_LOGIN }@example.com`,
-		'--role=editor', '--display_name=Barry Bystander', '--user_pass=password' ] );
+	ensureUser( TARGET_LOGIN, TARGET_NAME );
+	ensureUser( OTHER_LOGIN, 'Barry Bystander' );
 }
 
 function deleteUsers(): void {
@@ -52,14 +70,25 @@ function deleteUsers(): void {
 	wp( [ 'user', 'delete', OTHER_LOGIN, '--yes' ] );
 }
 
+/**
+ * Sign in as a fixture user in a fresh context.
+ *
+ * The generous navigation timeout is deliberate and matches the reasoning in
+ * auth.setup.ts: a cold or loaded wp-env can exceed Playwright's default 30s
+ * nav budget, and that is a slow environment rather than a broken feature.
+ * Without it this spec fails in CI while passing locally every time — which it
+ * did, on all three attempts, before this was added.
+ */
 async function signInAs( browser, login: string ) {
 	const context = await browser.newContext();
 	const page = await context.newPage();
 	await page.goto( '/wp-login.php' );
 	await page.fill( '#user_login', login );
 	await page.fill( '#user_pass', 'password' );
-	await page.click( '#wp-submit' );
-	await page.waitForURL( /wp-admin/ );
+	await Promise.all( [
+		page.waitForURL( /wp-admin/, { timeout: 60000 } ),
+		page.click( '#wp-submit' ),
+	] );
 	return { context, page };
 }
 
@@ -92,8 +121,18 @@ async function pickPerson( page, groupSelector: string, name: string ) {
 
 test.describe( 'ROLE-02 — per-user cosmetic hiding', () => {
 
-	test.beforeEach( () => { createUsers(); } );
-	test.afterEach( () => { deleteUsers(); } );
+	// Created ONCE for the file, not per test. The fixture users are read-only —
+	// no test mutates them — so per-test create/delete only added six wp-cli
+	// round trips and a window for them to race the browser contexts. Config
+	// isolation, which genuinely IS needed per test, comes from the
+	// maestroCleanConfig auto-fixture in ../fixtures.
+	test.beforeAll( () => { createUsers(); } );
+	test.afterAll( () => { deleteUsers(); } );
+
+	// Each test signs in as up to two additional users on top of the admin
+	// session; on a loaded CI runner that is comfortably more than the default
+	// per-test budget allows.
+	test.slow();
 
 	test( 'hiding an item from one person removes it for them only, leaves a same-role bystander untouched, and keeps the page reachable by URL', async ( { page, browser } ) => {
 		const picker = await openPostsVisibility( page );
