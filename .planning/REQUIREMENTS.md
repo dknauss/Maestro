@@ -39,7 +39,7 @@ backlog IDs without renumbering.
 
 ### Release
 
-- [ ] **REL-10**: v1.4 is cut and shipped — runtime zip builds clean, Plugin Check 0 errors, full PHP/JS/e2e suites green, tagged `v1.4.0`, deployed to WordPress.org SVN `trunk` following the v1.2/v1.3 pipeline; **directory/editor screenshots recaptured** to show the shipped UX-11 coachmark "?" control and any v1.4 UX changes.
+- [x] **REL-10**: v1.4 is cut and shipped — runtime zip builds clean, Plugin Check 0 errors, full PHP/JS/e2e suites green, tagged `v1.4.0`, deployed to WordPress.org SVN `trunk` following the v1.2/v1.3 pipeline; **directory/editor screenshots recaptured** to show the shipped UX-11 coachmark "?" control and any v1.4 UX changes. *(Complete 2026-08-04 — Phase 24. Tag `v1.4.0` on `482510c` (PR #113), GitHub Release published, SVN `trunk` + `tags/1.4.0/` + assets verified; all 11 release gates recorded in STATE.md. Patch **v1.4.1** followed 2026-08-05 (PR #116, tag on `c6cdcbe`) for the shared-slug propagation defect. Shipped without Phases 21/22 per the Release Binding fallback — ROLE-02 deferred to v1.5.)*
 
 ### Cross-cutting (non-functional — applies to every phase)
 
@@ -81,7 +81,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | UX-12 | Phase 23 | ✅ Complete 2026-07-05 |
 | UX-13 | Phase 23 | ✅ Complete 2026-07-05 |
 | BUG-08 | Phase 23 | ✅ Complete 2026-07-05 |
-| REL-10 | Phase 24 | Pending |
+| REL-10 | Phase 24 | ✅ Complete 2026-08-04 (v1.4.0; patch v1.4.1 2026-08-05) |
 
 **Coverage:**
 - v1.4 requirements: 11 total

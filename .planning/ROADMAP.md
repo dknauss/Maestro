@@ -147,7 +147,7 @@ Full phase details, success criteria, and outcomes are archived in
 - [~] **Phase 21: Cosmetic Per-User / Cloned-Role Hiding** — per-user half COMPLETE (5/5 plans, 2026-08-08, shipping under v1.5); cloned-role profiles deferred to backlog
 - [ ] **Phase 22: Slug-Resolution Showcase Demo** — Playground demo that visibly demonstrates the v1.3.0 slug-normalization fixes
 - [x] **Phase 23: Editor UX Polish** — native wp-admin restyle of all edit-mode surfaces (UX-13, added 2026-07-03), semantic-colour borders removed (UX-12 verdict), first-run banner centering (BUG-08) — complete 2026-07-05
-- [ ] **Phase 24: Release v1.4.0** — cut and ship to WordPress.org; recapture editor screenshots for the UX-11 coachmark
+- [x] **Phase 24: Release v1.4.0** — cut and shipped to WordPress.org 2026-08-04 (tag `v1.4.0` on `482510c`, PR #113); editor + directory screenshots recaptured. Patch **v1.4.1** followed 2026-08-05 (tag on `c6cdcbe`, PR #116) for the shared-slug propagation defect. Shipped WITHOUT Phases 21 and 22 — see the outcome note below
 - [ ] **Phase 25: Edit-Mode Toolbar Dark-Surface Polish** — dark-toolbar icon/focus contrast (WCAG 1.4.11), save-indicator layout shift, rename commit feedback (added 2026-08-02; pre-existing v1.3.1 surfaces, non-blocking for v1.4.0)
 
 ### Phase 19: Cosmetic Hiding Feasibility
@@ -239,7 +239,33 @@ Plans:
   3. Directory and editor screenshots are recaptured to show the shipped UX-11 coachmark "?" control and any v1.4 UX changes (Phase 23), replacing stale v1.2/v1.3 captures
   4. The git tag `v1.4.0` exists and points to the release commit; the GitHub release is published
   5. SVN `trunk` is updated and the `1.4.0` SVN tag is cut, following the same pipeline used for v1.2.0/v1.3.0
-**Plans**: TBD
+**Plans**: executed directly as the release PR (#113), not as numbered plan files
+**Outcome**: ✅ **SHIPPED 2026-08-04.** All five criteria met; 11 release gates
+recorded in STATE.md's v1.4.0 checklist. Tag `v1.4.0` on `482510c`, GitHub
+Release published, wp.org SVN `trunk` + `tags/1.4.0/` + assets verified.
+
+**Two deviations worth knowing, because the dependency line above does not
+reflect what happened:**
+
+1. **Shipped without Phase 21 and Phase 22.** The stated dependencies list both,
+   but the Release Binding's documented fallback allowed ROLE-02 (Phase 21) to
+   defer if it wasn't ready, and it was — deferred to v1.5, where Phase 21
+   executed on 2026-08-08. Phase 22 (the demo) was simply not reached and remains
+   open. So this phase's completion does NOT imply 21 or 22 were done at the time.
+2. **Criterion 2's "documented absence" path was taken for a different reason
+   than written.** The criterion anticipated Phase 19 deferring the guardrail;
+   in fact Phase 19 gave a go verdict and it was the *release* that deferred
+   Phase 21. The guardrail now exists —
+   `tests/integration/CosmeticInvariantUsersTest.php`, added by Phase 21 —
+   but it was not present at the v1.4.0 tag.
+
+**Follow-up patch:** v1.4.1 shipped 2026-08-05 (PR #116, tag on `c6cdcbe`) for
+the shared-slug top-level→submenu propagation defect (#115). Not a security
+release; the propagation could apply an unintended rename or hide but could
+neither widen nor revoke access.
+
+**Note:** a v1.5 release phase does not exist yet. Phase 21's per-user hiding is
+unreleased, so one will be needed — it is not this phase.
 
 ### Phase 25: Edit-Mode Toolbar Dark-Surface Polish
 **Goal**: The edit-mode bottom toolbar reads cleanly on its dark (`#1d2327`) background and meets the accessibility bar Phase 23 held — control icons and focus states clear WCAG non-text contrast, the save-status indicator no longer shifts the layout, and renames give adequate commit feedback — spot-checked on Default + Modern + Midnight admin colour schemes.
@@ -252,6 +278,11 @@ Plans:
   4. **Rename commit feedback** is improved (the save-status fires on rename commit and/or an "Enter to apply" hint) so a rename no longer feels unsaved — WITHOUT introducing live as-you-type autosave (keeps the commit-on-Enter/blur + debounced-save model and the HARD-03 save-race behavior intact).
   5. Existing PHP unit, integration, JS, and Playwright e2e suites stay green; WPCS clean; PHPStan clean; Plugin Check 0 new errors; verified across Default/Modern/Midnight admin colour schemes.
 **Sequencing note**: these are **pre-existing** Phase 23 (v1.3.1) toolbar surfaces, not v1.4 regressions, so they do **not** block the Phase 24 release. Placement is the user's call — ship it *before* Phase 24 (so v1.4.0 carries the fixes and Phase 24's editor-screenshot recapture reflects them), or defer to a v1.4.1 / later follow-up. Currently appended after Phase 24; resequence with `/gsd:insert-phase` if it should precede the release.
+
+**Resolved 2026-08-08:** the question is moot as posed — v1.4.0 shipped on
+2026-08-04 without this phase, so it did not precede that release. It is now a
+candidate for the (not yet created) v1.5 release, alongside the deferred a11y
+M2/M3 items from `todos/pending/2026-08-02-a11y-locked-checkbox-refinements.md`.
 **Plans**: TBD (run /gsd:plan-phase 25 to break down)
 
 ---
