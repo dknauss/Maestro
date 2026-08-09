@@ -113,7 +113,7 @@ their current parent.
 
 1. The inline editor — select any admin-menu item to edit it in place using the quiet, wp-admin-native toolbar and shared controls panel (rename, icon, visibility, reset). A single admin-bar toggle enters and exits edit mode — labelled "Edit Menu" when idle and "Exit Menu Editor" while editing.
 2. The icon picker: searchable Dashicons and bundled Bootstrap Icons tabs for swapping a top-level admin menu icon.
-3. Per-role visibility — open the visibility selector to hide an item from selected roles, and (on an item with children) to hide its sub-items independently while the parent stays visible. Cosmetic declutter, not access control.
+3. Visibility — open the selector to hide an item from selected roles or from named individuals, and (on an item with children) to hide its sub-items independently while the parent stays visible. Cosmetic declutter, not access control.
 4. A renamed item showing the transient "Saved" state — the indicator auto-clears to idle once the autosave settles.
 5. Reordering a top-level menu group by dragging — a live sortable-helper shows the item in motion.
 6. Reordering a submenu item using the ▲/▼ move controls — the OS-independent, keyboard-accessible reorder path.
