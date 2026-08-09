@@ -319,7 +319,7 @@ cut before it landed. This milestone exists to get it to users.
 admins are exempt from the per-user axis only (role axes keep their v1.4.1
 behaviour). That branch is untested — the suite runs single-site. Already
 documented in `readme.txt`; the release should not quietly drop it.
-**Plans**: TBD (run /gsd:plan-phase 26 to break down)
+**Plans**: 26-01 version + changelog · 26-02 screenshot recapture · 26-03 gates 8–11 · 26-04 tag, deploy, record (planned 2026-08-09; all four are `autonomous: false` — a release is judgement calls end to end)
 
 ---
 
