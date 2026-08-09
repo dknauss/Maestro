@@ -110,6 +110,49 @@ class PerUserAxisAuthorizationTest extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * A5: the delegate saves a NORMALIZING-EQUIVALENT key for the same item.
+	 *
+	 * This is realistic rather than contrived, because slug drift is the exact
+	 * problem Slug::normalize() exists to solve: an admin stores a rule while the
+	 * rendered slug is `upload.php`, a plugin update later renders it as
+	 * `upload.php?ver=9`, and the delegate's client emits the NEW form. The
+	 * restore re-attaches under the OLD stored key, so the config can end up
+	 * holding two keys that normalize to the same thing — which the Axis-1
+	 * collision guard resolves to "apply nothing", silently neutralising BOTH
+	 * the admin's rule and the delegate's own edit while storage still looks
+	 * healthy.
+	 */
+	public function test_delegate_save_with_a_normalizing_equivalent_key() {
+		$this->seed_admin_rule();
+		wp_set_current_user( $this->delegate );
+
+		( new Config() )->save(
+			array( 'items' => array( 'upload.php?ver=9' => array( 'title' => 'Files' ) ) )
+		);
+
+		$cfg   = ( new Config() )->get();
+		$items = $cfg['items'];
+
+		// Whatever the storage shape, the RULE MUST STILL APPLY — that is the
+		// property that matters, not which key it lives under.
+		global $menu, $submenu;
+		$menu = array(
+			10 => array( 'Media', 'upload_files', 'upload.php', '', 'menu-top', 'menu-media', '' ),
+		);
+		$submenu = array();
+
+		wp_set_current_user( $this->victim );
+		( new Replay( new Config() ) )->replay();
+
+		$this->assertNotContains(
+			'upload.php',
+			wp_list_pluck( $menu, 2 ),
+			'A5: the per-user rule must survive a normalizing-equivalent save. Stored keys: '
+				. implode( ', ', array_keys( $items ) )
+		);
+	}
+
 	/** A4: does the model leak display names to a delegate? Expected: no. */
 	public function test_model_does_not_leak_display_names_to_delegate() {
 		$this->seed_admin_rule();

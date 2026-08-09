@@ -15,6 +15,7 @@ without `list_users`):
 | A2 · Does saving the same item **preserve** an admin's rule? | ✅ Yes |
 | A3 · Does **omitting** the item preserve it? | ❌ **NO — rule destroyed** |
 | A4 · Does the model leak **display names** to them? | ✅ No |
+| A5 · Does a **normalizing-equivalent** key preserve it? | ❌ **NO — rule neutralised** |
 
 **A3 was not a hand-crafted-attack edge case — it was ordinary data loss.**
 `get_menu_model()` withholds the user axes from a saver without `list_users`
@@ -31,6 +32,29 @@ carrying a per-user axis the saver was not allowed to touch.
 
 My own code comment had claimed "the saver can neither add nor destroy". Half of
 that was true.
+
+**A5 — the fix for A3 had its own hole, and it was worse.** Re-attaching under
+the *stored* key is wrong when the payload names the same item in a different
+but equivalent form (`upload.php?ver=9` for a rule stored under `upload.php`).
+That is not contrived: slug drift is the exact problem `Slug::normalize()` exists
+to solve, so it is the expected state after a plugin bumps a `ver=` string.
+
+The config then held BOTH keys. They normalize to the same item, so the Axis-1
+collision guard resolved to "apply nothing" — silently neutralising the admin's
+rule *and* the delegate's own edit, while the stored config still looked
+perfectly healthy. A rule that is present but inert is worse than one that is
+missing, because nothing looks wrong.
+
+The restore now indexes what is about to be written by NORMALIZED key and merges
+into the equivalent entry rather than adding a second one.
+
+Worth stating plainly: this is the **third** iteration on the same function.
+Round 2 fixed round 1's client-only gate; A3 fixed round 2's payload-scoped
+preserve; A5 fixed A3's raw-key matching. Each fix was correct about the case it
+addressed and blind to the next one. `Config::sanitize()`'s per-user path now
+carries four interacting behaviours (reject-on-add, preserve-on-submit,
+restore-on-omit, merge-on-equivalent-key) and deserves an independent read
+rather than another round of my own.
 
 The probe is kept as `tests/integration/PerUserAxisAuthorizationTest.php` rather
 than deleted — the symptom is a rule quietly disappearing, not anything failing
@@ -116,7 +140,7 @@ live bugs anyway.
 | Check | Result |
 |---|---|
 | `composer test:unit` | ✅ 167/167, 223 assertions |
-| `npm run test:php` | ✅ 119/119, 275 assertions |
+| `npm run test:php` | ✅ 120/120, 277 assertions |
 | `npm run test:js` | ✅ 83/83 |
 | `npm run test:e2e` | ✅ 46 passed, 28 capture-skipped, 0 failed |
 | `composer lint` / `analyse:phpstan` | ✅ clean / 0 errors |

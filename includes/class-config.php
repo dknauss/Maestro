@@ -432,6 +432,25 @@ class Config {
 		//
 		// So the restore runs over the STORED items, not the submitted ones.
 		if ( ! $can_target_users ) {
+			// Index what we are about to write by NORMALIZED key. Matching on the
+			// raw key is not enough: the payload may name the same item in a
+			// different-but-equivalent form (`upload.php?ver=9` for a rule stored
+			// under `upload.php`), which is not contrived — slug drift is the
+			// exact problem Slug::normalize() exists to solve, so it is the
+			// expected state after a plugin update. Re-attaching under the stored
+			// key would then leave TWO keys normalizing to the same item, which
+			// the Axis-1 collision guard resolves to "apply nothing" — silently
+			// neutralising both the preserved rule and the saver's own edit while
+			// the stored config still looks healthy.
+			$base     = function_exists( 'admin_url' ) ? admin_url( '' ) : '';
+			$norm_out = array();
+			foreach ( array_keys( $out['items'] ) as $written_key ) {
+				$nk = Slug::normalize_qualified( (string) $written_key, $base );
+				if ( '' !== $nk && ! isset( $norm_out[ $nk ] ) ) {
+					$norm_out[ $nk ] = $written_key;
+				}
+			}
+
 			foreach ( $stored_items as $stored_slug => $stored_entry ) {
 				$keep = array();
 				if ( ! empty( $stored_entry['hidden_users'] ) ) {
@@ -444,12 +463,20 @@ class Config {
 					continue;
 				}
 
-				if ( isset( $out['items'][ $stored_slug ] ) ) {
-					$out['items'][ $stored_slug ] = array_merge( $out['items'][ $stored_slug ], $keep );
+				$nk = Slug::normalize_qualified( (string) $stored_slug, $base );
+
+				if ( '' !== $nk && isset( $norm_out[ $nk ] ) ) {
+					// Same item under either spelling — merge into the key that is
+					// actually being written, never add a second one.
+					$target                  = $norm_out[ $nk ];
+					$out['items'][ $target ] = array_merge( $out['items'][ $target ], $keep );
 				} elseif ( count( $out['items'] ) < self::MAX_ITEMS ) {
-					// The item carried nothing else; it exists only to hold the
-					// rule, so re-create it rather than let the rule vanish.
+					// Nothing equivalent is being written; the item exists only to
+					// hold the rule, so re-create it rather than let it vanish.
 					$out['items'][ $stored_slug ] = $keep;
+					if ( '' !== $nk ) {
+						$norm_out[ $nk ] = $stored_slug;
+					}
 				}
 			}
 		}
