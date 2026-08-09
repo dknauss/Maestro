@@ -2,7 +2,7 @@
 
 Three layers, smallest and fastest first.
 
-> **Current expected status:** unit 165/165 with 218 assertions, integration 109/109 with 257 assertions, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, (COMPAT-04) independent shared-slug top-level/submenu editing, and (COMPAT-10) the "Hide its sub-items from:" role group's independent child-hiding behavior.
+> **Current expected status:** unit 165/165 with 218 assertions, integration 109/109 with 257 assertions, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, (COMPAT-04) independent shared-slug top-level/submenu editing, (COMPAT-10) the "Hide its sub-items from:" role group's independent child-hiding behavior, and (ROLE-02) per-user hiding asserted in a targeted user's own authenticated session — including a same-role bystander who must keep every row, which is the assertion that proves the rule did not widen to the whole role.
 
 ## Gotchas (first run)
 

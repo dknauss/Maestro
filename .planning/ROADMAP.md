@@ -144,7 +144,7 @@ Full phase details, success criteria, and outcomes are archived in
 
 - [x] **Phase 19: Cosmetic Hiding Feasibility** — feasibility note determining whether per-user/cloned-role menu hiding can stay strictly cosmetic; gates Phase 21 (completed 2026-07-05)
 - [x] **Phase 20: Third-Party Compatibility Fixes** — level-qualified match keys, badge/HTML-in-title preservation on rename, optional subtree-hide cascade (R1 backlog) (completed 2026-08-02)
-- [ ] **Phase 21: Cosmetic Per-User / Cloned-Role Hiding** — conditional on Phase 19 clearing the cosmetic-only bar
+- [~] **Phase 21: Cosmetic Per-User / Cloned-Role Hiding** — per-user half COMPLETE (5/5 plans, 2026-08-08, shipping under v1.5); cloned-role profiles deferred to backlog
 - [ ] **Phase 22: Slug-Resolution Showcase Demo** — Playground demo that visibly demonstrates the v1.3.0 slug-normalization fixes
 - [x] **Phase 23: Editor UX Polish** — native wp-admin restyle of all edit-mode surfaces (UX-13, added 2026-07-03), semantic-colour borders removed (UX-12 verdict), first-run banner centering (BUG-08) — complete 2026-07-05
 - [ ] **Phase 24: Release v1.4.0** — cut and ship to WordPress.org; recapture editor screenshots for the UX-11 coachmark
@@ -190,7 +190,14 @@ Plans:
   3. A page hidden for a user by this feature still loads successfully by direct URL if that user independently holds the capability for it — hiding is proven to be visibility-only, not access control
   4. An explicit automated test asserts the cosmetic-only guardrail: applying/removing a ROLE-02 rule does not change `current_user_can()` results for any capability
   5. Existing PHP unit, integration, and Playwright e2e suites stay green; WPCS clean; PHPStan clean; Plugin Check 0 errors
-**Plans**: TBD
+**Plans**: 21-01 storage · 21-02 seam + cascade · 21-03 guardrail · 21-04 editor + picker · 21-05 e2e + gate + close (5/5 complete 2026-08-08)
+**Outcome**: Criteria 1–5 all met for the **per-user** half, which is what this
+phase scoped (the cloned-role "profiles" half was deferred to a backlog todo at
+context-gathering time and remains so). Criterion 4's guardrail is
+`tests/integration/CosmeticInvariantUsersTest.php`; criterion 3 is additionally
+proven in a real browser in `tests/e2e/specs/hidden-users.spec.ts`. Known
+limitation carried forward: on multisite, network super admins are exempt from
+the per-user axis only — that branch is untested, as the suite runs single-site.
 
 ### Phase 22: Slug-Resolution Showcase Demo
 **Goal**: A visitor to the Playground demo can see, concretely, that Maestro's v1.3.0 slug-normalization fixes work — not just a busier menu, but a saved override that visibly still applies despite a slug-form mismatch
