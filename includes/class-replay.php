@@ -747,6 +747,12 @@ class Replay {
 				// editor popover reflects exactly what replay() will apply.
 				// Independent of hiddenRoles above (whether the PARENT is hidden).
 				'childHiddenRoles' => $this->resolved_child_override_list( 'child_hidden_roles', $slug, $norm_items, $norm_skip, $base ),
+				// ROLE-02: the per-user axes, resolved through the SAME shared
+				// resolvers — so the popover can never show a target replay would
+				// not honour. Emitted as raw ID lists here and decorated with
+				// display names in ONE batched pass below.
+				'hiddenUsers'      => $this->resolved_override_list( 'hidden_users', $slug, $norm_items, $norm_skip, $base ),
+				'childHiddenUsers' => $this->resolved_child_override_list( 'child_hidden_users', $slug, $norm_items, $norm_skip, $base ),
 				'submenu'          => array(),
 			);
 
@@ -771,6 +777,7 @@ class Replay {
 						'qualifiedKey' => $qualified_key,
 						'title'        => isset( $sub[0] ) ? wp_strip_all_tags( $sub[0] ) : '',
 						'hiddenRoles'  => $this->resolved_override_list( 'hidden_roles', $sub[2], $norm_items, $norm_skip, $base, $slug, $top_rendered_keys ),
+						'hiddenUsers'  => $this->resolved_override_list( 'hidden_users', $sub[2], $norm_items, $norm_skip, $base, $slug, $top_rendered_keys ),
 					);
 				}
 			}
@@ -778,7 +785,85 @@ class Replay {
 			$model[] = $node;
 		}
 
+		return $this->decorate_user_axes( $model );
+	}
+
+	/**
+	 * Replace every raw user-ID list in the model with id + display-name pairs,
+	 * using ONE query for the whole model. (ROLE-02)
+	 *
+	 * Two decisions worth keeping:
+	 *
+	 * Names are resolved server-side rather than left to the client. The editor
+	 * already needs a label for every stored target the moment the popover opens;
+	 * shipping bare IDs would mean a request per target just to render what is
+	 * already known here, with raw numbers visible during the round-trip.
+	 *
+	 * The lookup is batched across the WHOLE model, not per item. A per-item
+	 * query is the shape that turns a large menu with many rules into a
+	 * page-load problem — and edit mode is exactly where menus are largest.
+	 *
+	 * An ID with no live user is dropped, so a deleted account self-heals out of
+	 * the display instead of rendering as a dangling number. This mirrors the
+	 * intersect-against-live invariant the resolver already applies.
+	 *
+	 * @param array $model Model with raw ID lists on the user axes.
+	 * @return array Model with id/name pair lists on the user axes.
+	 */
+	private function decorate_user_axes( array $model ) {
+		$ids = array();
+		foreach ( $model as $node ) {
+			$ids = array_merge( $ids, $node['hiddenUsers'], $node['childHiddenUsers'] );
+			foreach ( $node['submenu'] as $child ) {
+				$ids = array_merge( $ids, $child['hiddenUsers'] );
+			}
+		}
+
+		$ids = array_values( array_unique( array_map( 'intval', $ids ) ) );
+		if ( ! $ids ) {
+			return $model; // Nothing targeted anywhere — no query at all.
+		}
+
+		$names = array();
+		foreach ( get_users(
+			array(
+				'include' => $ids,
+				'fields'  => array( 'ID', 'display_name' ),
+			)
+		) as $user ) {
+			$names[ (int) $user->ID ] = $user->display_name;
+		}
+
+		foreach ( $model as $i => $node ) {
+			$model[ $i ]['hiddenUsers']      = $this->pair_users( $node['hiddenUsers'], $names );
+			$model[ $i ]['childHiddenUsers'] = $this->pair_users( $node['childHiddenUsers'], $names );
+			foreach ( $node['submenu'] as $j => $child ) {
+				$model[ $i ]['submenu'][ $j ]['hiddenUsers'] = $this->pair_users( $child['hiddenUsers'], $names );
+			}
+		}
+
 		return $model;
+	}
+
+	/**
+	 * Map an ID list onto id/name pairs, dropping IDs with no live user.
+	 *
+	 * @param array              $ids   Raw user IDs.
+	 * @param array<int, string> $names id => display_name lookup.
+	 * @return array
+	 */
+	private function pair_users( array $ids, array $names ) {
+		$out = array();
+		foreach ( $ids as $id ) {
+			$id = (int) $id;
+			if ( isset( $names[ $id ] ) ) {
+				$out[] = array(
+					'id'   => $id,
+					'name' => $names[ $id ],
+				);
+			}
+		}
+		return $out;
 	}
 
 	/**

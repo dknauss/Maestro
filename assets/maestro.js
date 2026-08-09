@@ -232,6 +232,11 @@
 				// hasChildren gates the second popover role group to parents that
 				// actually have a submenu (20-CONTEXT.md locked UI).
 				childHiddenRoles: ( node.childHiddenRoles || [] ).slice(),
+				// ROLE-02: per-user axes, seeded from the resolved id+name pairs
+				// get_menu_model() already computed. Held as pair objects (not bare
+				// ids) so a chip can render its label without a lookup.
+				hiddenUsers: ( node.hiddenUsers || [] ).slice(),
+				childHiddenUsers: ( node.childHiddenUsers || [] ).slice(),
 				hasChildren: node.submenu.length > 0
 			};
 
@@ -261,6 +266,7 @@
 					title: child.title,
 					icon: '',
 					hiddenRoles: child.hiddenRoles.slice(),
+					hiddenUsers: ( child.hiddenUsers || [] ).slice(),
 					isSub: true,
 					parent: node.slug
 				};
@@ -1150,6 +1156,235 @@
 			);
 		}
 
+		// ROLE-02: one shared builder for BOTH per-user sections, for the same
+		// reason buildRoleGroup() is shared — four hand-rolled groups in one
+		// popover is where "toggling one group edits another's model field"
+		// bugs come from. getSet/setSet bind the section to its model field.
+		function buildUserGroup( heading, groupClass, getSet, setSet, opts ) {
+			opts = opts || {};
+			var group = el( 'div', 'maestro-vis-group maestro-user-group ' + groupClass );
+
+			// Same programmatic-group treatment the role groups get (WCAG 1.3.1):
+			// all four groups list similar-looking controls, so without a name an
+			// AT user cannot tell which axis they are operating.
+			var headEl = el( 'p', 'maestro-vis-head', heading );
+			headEl.id = 'maestro-vis-head-' + ( ++groupIdSeq );
+			group.setAttribute( 'role', 'group' );
+			group.setAttribute( 'aria-labelledby', headEl.id );
+			group.appendChild( headEl );
+
+			var chips = el( 'ul', 'maestro-user-chips' );
+			group.appendChild( chips );
+
+			var searchId = 'maestro-user-search-' + groupIdSeq;
+			var srLabel  = el( 'label', 'screen-reader-text', I.userSearch );
+			srLabel.setAttribute( 'for', searchId );
+			var search = el( 'input', 'maestro-user-search' );
+			search.type = 'search';
+			search.id = searchId;
+			search.placeholder = I.userSearch;
+			search.setAttribute( 'autocomplete', 'off' );
+			group.appendChild( srLabel );
+			group.appendChild( search );
+
+			// Results are a list of real buttons rather than a datalist so they
+			// stay keyboard-operable and styleable across browsers.
+			var results = el( 'ul', 'maestro-user-results' );
+			results.hidden = true;
+			group.appendChild( results );
+
+			var status = el( 'p', 'maestro-user-status' );
+			status.setAttribute( 'aria-live', 'polite' );
+			status.hidden = true;
+			group.appendChild( status );
+
+			var warn = el( 'p', 'maestro-user-selfwarn' );
+			warn.hidden = true;
+			group.appendChild( warn );
+
+			function say( text ) {
+				status.textContent = text;
+				status.hidden = ! text;
+			}
+
+			function refreshSelfWarning() {
+				var isSelf = false;
+				getSet().forEach( function ( t ) {
+					if ( window.maestroLogic.isSelfTarget( t.id, D.userId ) ) { isSelf = true; }
+				} );
+				warn.textContent = isSelf ? I.userSelfWarning : '';
+				warn.hidden = ! isSelf;
+			}
+
+			function afterChange() {
+				renderChips();
+				refreshSelfWarning();
+				if ( opts.onChange ) { opts.onChange(); }
+				refreshModifiedIndicator( slug );
+				scheduleAutosave();
+			}
+
+			function renderChips() {
+				chips.textContent = '';
+				getSet().forEach( function ( target ) {
+					var li = el( 'li', 'maestro-user-chip' );
+					li.appendChild( document.createTextNode( target.name ) );
+
+					var rm = el( 'button', 'maestro-user-chip-remove' );
+					rm.type = 'button';
+					rm.textContent = '×';
+					// The visible label is a bare glyph, so the accessible name has
+					// to carry WHO is being removed — otherwise a screen-reader user
+					// hears a list of identical "remove" buttons.
+					rm.setAttribute( 'aria-label', I.userRemove.replace( '%s', target.name ) );
+					rm.addEventListener( 'click', function ( e ) {
+						// MUST stop propagation. placePopover()'s outside-click
+						// handler closes the popover when the clicked node is not
+						// inside it — and re-rendering the chips below detaches
+						// THIS button before that handler runs, so the click would
+						// read as "outside" and close the whole popover.
+						e.stopPropagation();
+						setSet( window.maestroLogic.removeUserTarget( getSet(), target.id ) );
+						afterChange();
+						search.focus();
+					} );
+					li.appendChild( rm );
+					chips.appendChild( li );
+				} );
+			}
+
+			function pick( user ) {
+				setSet( window.maestroLogic.addUserTarget( getSet(), user ) );
+				results.hidden = true;
+				results.textContent = '';
+				search.value = '';
+				say( '' );
+				afterChange();
+				search.focus();
+			}
+
+			function renderResults( users ) {
+				results.textContent = '';
+				var shown = users.filter( function ( u ) {
+					return ! window.maestroLogic.isUserTargeted( getSet(), u.id );
+				} );
+				if ( ! shown.length ) {
+					results.hidden = true;
+					say( I.userSearchNone );
+					return;
+				}
+				shown.forEach( function ( u ) {
+					var li  = el( 'li' );
+					var btn = el( 'button', 'maestro-user-result' );
+					btn.type = 'button';
+					btn.textContent = u.name;
+					// Same detach-before-outside-click hazard as the chip remove
+					// button above: pick() empties this list synchronously.
+					btn.addEventListener( 'click', function ( e ) {
+						e.stopPropagation();
+						pick( u );
+					} );
+					li.appendChild( btn );
+					results.appendChild( li );
+				} );
+				results.hidden = false;
+				say( '' );
+			}
+
+			var timer    = null;
+			var inflight = null;
+
+			search.addEventListener( 'input', function () {
+				var q = search.value.trim();
+				if ( timer ) { window.clearTimeout( timer ); }
+
+				// Abort any in-flight request. Without this a fast typist can get
+				// results for a stale prefix whenever an earlier response lands
+				// after a later one.
+				if ( inflight ) { inflight.abort(); inflight = null; }
+
+				if ( q.length < 2 ) {
+					results.hidden = true;
+					results.textContent = '';
+					say( '' );
+					return;
+				}
+
+				timer = window.setTimeout( function () {
+					var ctrl = ( typeof AbortController !== 'undefined' ) ? new AbortController() : null;
+					inflight = ctrl;
+					// On a site with plain permalinks rest_url() already carries a
+					// query string (index.php?rest_route=/wp/v2/users), so the
+					// separator has to be chosen, not assumed — appending a second
+					// "?" silently 404s the search on exactly those sites.
+					var sep = ( D.usersUrl.indexOf( '?' ) === -1 ) ? '?' : '&';
+					window.fetch(
+						D.usersUrl + sep + 'per_page=10&search=' + encodeURIComponent( q ),
+						{
+							credentials: 'same-origin',
+							headers: { 'X-WP-Nonce': D.nonce },
+							signal: ctrl ? ctrl.signal : undefined
+						}
+					).then( function ( r ) {
+						if ( ! r.ok ) { throw new Error( 'search failed' ); }
+						return r.json();
+					} ).then( function ( json ) {
+						inflight = null;
+						renderResults( json.map( function ( u ) {
+							return { id: u.id, name: u.name };
+						} ) );
+					} ).catch( function ( err ) {
+						if ( err && err.name === 'AbortError' ) { return; }
+						inflight = null;
+						results.hidden = true;
+						// An explicit failure message: a picker that silently shows
+						// nothing is indistinguishable from a broken one.
+						say( I.userSearchError );
+					} );
+				}, 250 );
+			} );
+
+			renderChips();
+			refreshSelfWarning();
+			pop.appendChild( group );
+			return { refresh: renderChips };
+		}
+
+		// Group 3 (ROLE-02): "Hide this item from specific people:" — the
+		// per-user analog of group 1. Valid on any row, parent or submenu.
+		buildUserGroup(
+			I.hideFromUsers,
+			'maestro-vis-own-users',
+			function () { return model[ slug ].hiddenUsers; },
+			function ( arr ) {
+				model[ slug ].hiddenUsers = arr;
+				var li = liForKey( slug );
+				if ( li ) {
+					// The row badge means "this row has a hide rule of its own",
+					// which is now satisfied by either axis.
+					li.classList.toggle(
+						'maestro-has-hidden',
+						model[ slug ].hiddenRoles.length > 0 || model[ slug ].hiddenUsers.length > 0
+					);
+				}
+			}
+		);
+
+		// Group 4 (ROLE-02): "Hide its sub-items from specific people:" — the
+		// per-user analog of group 2, gated to parents with children exactly as
+		// that group is. No derived-lock affordance here: the role lock exists
+		// because core drops a hidden parent's whole subtree for that ROLE, and
+		// that has no per-user equivalent — a parent hidden from one person is
+		// still rendered for everyone else, so its children are not implied gone.
+		if ( ! model[ slug ].isSub && model[ slug ].hasChildren ) {
+			buildUserGroup(
+				I.hideChildrenUsers,
+				'maestro-vis-children-users',
+				function () { return model[ slug ].childHiddenUsers; },
+				function ( arr ) { model[ slug ].childHiddenUsers = arr; }
+			);
+		}
+
 		pop.addEventListener( 'keydown', function ( e ) {
 			if ( e.key === 'Escape' ) {
 				e.preventDefault();
@@ -1200,6 +1435,10 @@
 		// reset always clears it to []; harmless no-op on a submenu entry (field
 		// unused there).
 		m.childHiddenRoles = [];
+		// ROLE-02: same reasoning — a per-user hide has no WP-native pristine
+		// state, so Reset Item clears both user axes to the sparse empty list.
+		m.hiddenUsers      = [];
+		m.childHiddenUsers = [];
 
 		var li = liForKey( selectedKey );
 		if ( li ) { li.classList.remove( 'maestro-has-hidden' ); }
@@ -1293,6 +1532,12 @@
 			// hiddenRoles), so a child_hidden_roles-only toggle with no other
 			// change still produces a diff.modified entry and persists.
 			if ( diff.fields.indexOf( 'childHiddenRoles' ) !== -1 ) { entry.child_hidden_roles = m.childHiddenRoles; }
+			// ROLE-02: the model holds { id, name } pairs so chips can render
+			// without a lookup, but the wire format is the bare id list the
+			// server stores. Emitted only when non-empty, so the sparse contract
+			// (reset = absent key) holds on this side too.
+			if ( diff.fields.indexOf( 'hiddenUsers' ) !== -1 )      { entry.hidden_users = window.maestroLogic.userTargetIds( m.hiddenUsers ); }
+			if ( diff.fields.indexOf( 'childHiddenUsers' ) !== -1 ) { entry.child_hidden_users = window.maestroLogic.userTargetIds( m.childHiddenUsers ); }
 			if ( diff.modified )                                     { cfg.items[ slug ] = entry; }
 
 			var subLis = li.querySelectorAll( '.wp-submenu > li.maestro-subitem[data-maestro-slug]' );
@@ -1318,6 +1563,7 @@
 					var se    = {};
 					if ( sdiff.fields.indexOf( 'title' ) !== -1 )       { se.title = sm.title; }
 					if ( sdiff.fields.indexOf( 'hiddenRoles' ) !== -1 ) { se.hidden_roles = sm.hiddenRoles; }
+					if ( sdiff.fields.indexOf( 'hiddenUsers' ) !== -1 ) { se.hidden_users = window.maestroLogic.userTargetIds( sm.hiddenUsers ); }
 					if ( sdiff.modified )                                { cfg.items[ skey ] = se; }
 				} );
 			}

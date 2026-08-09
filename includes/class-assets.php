@@ -97,6 +97,14 @@ class Assets {
 				'restUrl'  => esc_url_raw( rest_url( Rest::NS . '/config' ) ),
 				'nonce'    => wp_create_nonce( 'wp_rest' ),
 				'exitUrl'  => esc_url_raw( remove_query_arg( 'maestro_edit' ) ),
+				// ROLE-02: the per-user picker searches CORE's users endpoint
+				// rather than a Maestro route — it is already capability-gated by
+				// `list_users`, so we inherit core's authorization instead of
+				// re-implementing it. The `nonce` above is a `wp_rest` nonce and
+				// authenticates this endpoint too; no second nonce is needed.
+				'usersUrl' => esc_url_raw( rest_url( 'wp/v2/users' ) ),
+				// Drives the self-target caution only. Never a permission check.
+				'userId'   => get_current_user_id(),
 				'roles'    => wp_roles()->get_names(),
 				'iconSets' => $this->icon_sets(),
 				'config'   => $this->config->get(),
@@ -122,6 +130,20 @@ class Assets {
 					'hideChildrenFrom'   => __( 'Hide its sub-items from:', 'maestro-menu-editor' ),
 					/* translators: %s: role display name. Explains why a "Hide its sub-items from:" checkbox is shown checked and disabled — the parent is already hidden from this role in the "Hide this item from:" group above, so its sub-items are already gone too (WordPress core removes a hidden parent's whole rendered subtree). */
 					'hideChildrenLocked' => esc_html__( 'Already hidden because this item is hidden from %s.', 'maestro-menu-editor' ),
+					/* translators: Heading for the group that cosmetically hides THIS menu item from named individual people (ROLE-02), as opposed to whole roles. */
+					'hideFromUsers'      => __( 'Hide this item from specific people:', 'maestro-menu-editor' ),
+					/* translators: Heading for the group that cosmetically hides ALL of a parent's sub-items from named individual people (ROLE-02). Shown only for parents that have children. */
+					'hideChildrenUsers'  => __( 'Hide its sub-items from specific people:', 'maestro-menu-editor' ),
+					/* translators: Accessible label and placeholder for the type-ahead field used to find a person to hide a menu item from. */
+					'userSearch'         => __( 'Search for a person', 'maestro-menu-editor' ),
+					/* translators: Shown in the person picker when a search returns nobody. */
+					'userSearchNone'     => __( 'No matching people found.', 'maestro-menu-editor' ),
+					/* translators: Shown in the person picker when the search request fails. */
+					'userSearchError'    => __( 'Could not search people. Please try again.', 'maestro-menu-editor' ),
+					/* translators: %s: person's display name. Accessible label for the button that removes that person from a hide rule. */
+					'userRemove'         => esc_html__( 'Remove %s', 'maestro-menu-editor' ),
+					/* translators: Inline caution shown when an admin adds a hide rule against their OWN account. The rule is still permitted — this only warns. */
+					'userSelfWarning'    => __( 'This hides the item from your own account. You can still reach the page by URL, and the editor stays available.', 'maestro-menu-editor' ),
 					'confirmAll'         => __( 'Reset ALL menu customizations to WordPress defaults? This cannot be undone.', 'maestro-menu-editor' ),
 					'drag'               => __( 'Drag to reorder', 'maestro-menu-editor' ),
 					/* translators: 1: item title, 2: direction ("up"/"down"), 3: new position number, 4: total items. */

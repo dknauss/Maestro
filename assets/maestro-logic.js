@@ -90,6 +90,16 @@ function diffItem( current, pristine ) {
 		fields.push( 'childHiddenRoles' );
 	}
 
+	// ROLE-02: the per-user axes mark an item modified on exactly the same terms
+	// as the role axes — a non-empty list is a rule, an empty one is not.
+	if ( current.hiddenUsers && current.hiddenUsers.length > 0 ) {
+		fields.push( 'hiddenUsers' );
+	}
+
+	if ( current.childHiddenUsers && current.childHiddenUsers.length > 0 ) {
+		fields.push( 'childHiddenUsers' );
+	}
+
 	return { modified: fields.length > 0, fields: fields };
 }
 
@@ -190,6 +200,98 @@ function isChildRoleLockedByParent( hiddenRoles, roleKey ) {
 	return hiddenRoles.indexOf( roleKey ) !== -1;
 }
 
+/* ---------- ROLE-02 per-user target axes -------------------------------- */
+
+/**
+ * Is this user id already targeted on the given axis?
+ *
+ * The axis is a list of { id, name } pairs as the editor model emits them, so
+ * membership is an id comparison — never an object identity one, which would
+ * silently fail after any re-render replaced the objects.
+ *
+ * @param {Array<{id:number}>} targets Current axis list.
+ * @param {number} userId User id to test.
+ * @return {boolean} true if the user is already targeted.
+ */
+function isUserTargeted( targets, userId ) {
+	var i;
+	for ( i = 0; i < targets.length; i++ ) {
+		if ( Number( targets[ i ].id ) === Number( userId ) ) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * Add a user to an axis, returning a NEW list. Adding an already-targeted user
+ * is a no-op rather than a duplicate — the server dedupes too, but a duplicate
+ * chip in the popover would be visible long before the save round-trip.
+ *
+ * @param {Array<{id:number,name:string}>} targets Current axis list.
+ * @param {{id:number,name:string}} user User to add.
+ * @return {Array<{id:number,name:string}>} New axis list.
+ */
+function addUserTarget( targets, user ) {
+	if ( isUserTargeted( targets, user.id ) ) {
+		return targets.slice();
+	}
+	return targets.concat( [ { id: Number( user.id ), name: String( user.name ) } ] );
+}
+
+/**
+ * Remove a user from an axis, returning a NEW list.
+ *
+ * Removing the last entry yields an empty array, which buildConfig() must then
+ * omit from the payload entirely — the sparse contract (reset = absent key)
+ * lives on both sides of the wire.
+ *
+ * @param {Array<{id:number}>} targets Current axis list.
+ * @param {number} userId User id to remove.
+ * @return {Array} New axis list.
+ */
+function removeUserTarget( targets, userId ) {
+	var out = [];
+	var i;
+	for ( i = 0; i < targets.length; i++ ) {
+		if ( Number( targets[ i ].id ) !== Number( userId ) ) {
+			out.push( targets[ i ] );
+		}
+	}
+	return out;
+}
+
+/**
+ * Reduce an axis list to the bare id array the server stores.
+ *
+ * @param {Array<{id:number}>} targets Axis list.
+ * @return {number[]} User ids.
+ */
+function userTargetIds( targets ) {
+	var out = [];
+	var i;
+	for ( i = 0; i < targets.length; i++ ) {
+		out.push( Number( targets[ i ].id ) );
+	}
+	return out;
+}
+
+/**
+ * Is this target the user currently doing the editing?
+ *
+ * Drives the inline self-target caution. Self-targeting is PERMITTED — a
+ * legitimate self-declutter — so this only decides whether to warn, never
+ * whether to allow. Kept here rather than inline in the popover so it is
+ * unit-testable without a DOM.
+ *
+ * @param {number} userId Target user id.
+ * @param {number} currentUserId The acting user's id.
+ * @return {boolean} true when they are the same person.
+ */
+function isSelfTarget( userId, currentUserId ) {
+	return Number( userId ) === Number( currentUserId );
+}
+
 /* ---------- dual-export guard ----------------------------------------- */
 
 var api = {
@@ -199,6 +301,11 @@ var api = {
 	modeStatusLabel:           modeStatusLabel,
 	firstRunSeen:              firstRunSeen,
 	isChildRoleLockedByParent: isChildRoleLockedByParent,
+	isUserTargeted:            isUserTargeted,
+	addUserTarget:             addUserTarget,
+	removeUserTarget:          removeUserTarget,
+	userTargetIds:             userTargetIds,
+	isSelfTarget:              isSelfTarget,
 };
 
 if ( typeof module !== 'undefined' && module.exports ) {
