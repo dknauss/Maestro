@@ -419,6 +419,41 @@ class Config {
 			}
 		}
 
+		// ROLE-02 — restore per-user axes the saver was not allowed to touch.
+		//
+		// The per-item preserve above only fires for items PRESENT in the
+		// payload, which is not enough. get_menu_model() withholds the user axes
+		// from a saver without `list_users`, so diffItem() never flags them
+		// client-side, so an item whose ONLY override is a per-user rule is
+		// omitted from that saver's full-replace autosave entirely — and a rule
+		// omitted from a full replace is a rule deleted. That made any edit by a
+		// delegated editor silently wipe every per-user rule they could not see:
+		// ordinary data loss, not an exotic hand-crafted POST.
+		//
+		// So the restore runs over the STORED items, not the submitted ones.
+		if ( ! $can_target_users ) {
+			foreach ( $stored_items as $stored_slug => $stored_entry ) {
+				$keep = array();
+				if ( ! empty( $stored_entry['hidden_users'] ) ) {
+					$keep['hidden_users'] = $stored_entry['hidden_users'];
+				}
+				if ( ! empty( $stored_entry['child_hidden_users'] ) ) {
+					$keep['child_hidden_users'] = $stored_entry['child_hidden_users'];
+				}
+				if ( ! $keep ) {
+					continue;
+				}
+
+				if ( isset( $out['items'][ $stored_slug ] ) ) {
+					$out['items'][ $stored_slug ] = array_merge( $out['items'][ $stored_slug ], $keep );
+				} elseif ( count( $out['items'] ) < self::MAX_ITEMS ) {
+					// The item carried nothing else; it exists only to hold the
+					// rule, so re-create it rather than let the rule vanish.
+					$out['items'][ $stored_slug ] = $keep;
+				}
+			}
+		}
+
 		if ( ! empty( $raw['top_order'] ) && is_array( $raw['top_order'] ) ) {
 			$out['top_order'] = array_slice(
 				array_values( array_map( array( $this, 'clean_slug' ), $raw['top_order'] ) ),
