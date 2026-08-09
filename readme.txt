@@ -4,7 +4,7 @@ Donate link: https://github.com/sponsors/dknauss
 Tags: admin menu, admin menu editor, menu editor, hide menu items, menu icons
 Requires at least: 6.4
 Tested up to: 7.0
-Stable tag: 1.4.1
+Stable tag: 1.5.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -156,6 +156,13 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 
 == Changelog ==
 
+= 1.5.0 =
+* **New: hide menu items from specific people, not just roles.** The visibility popover now has a search box for people alongside the role lists. Type a name, pick them, and the item disappears from that person's admin menu only — everyone else with the same role still sees it. You can target several people, and on an item with sub-items you can hide the sub-items per person while the parent stays visible. Use it when a role is the wrong unit: one editor on a team of editors who doesn't need a particular tool.
+* **Still cosmetic, exactly like hiding by role.** This changes what someone sees, never what they can do. A hidden page still opens normally for anyone who types its URL and holds the capability it requires, and no capability is added or removed by any rule. If you need to actually restrict access, pair Maestro with a capability manager — hiding a menu item is not a security measure.
+* Targeting your own account is allowed. Maestro warns you inline, and you can always undo it: the Edit Menu control lives in the WordPress toolbar where no rule can reach it, and a row you have hidden from yourself still appears while you are editing so you can remove the rule.
+* Targeting people requires the ability to list users. If you have handed Maestro to a custom role via the `maestro_capability` filter and that role cannot list users, the person search is hidden and hiding by role continues to work as before.
+* Known limitation: on a multisite network, network super admins are not affected by person-targeted hides. Role-targeted hides still apply to them, unchanged.
+
 = 1.4.1 =
 * **Fixed: editing a top-level item no longer changes a submenu item that happens to share its slug.** WordPress and many plugins register a submenu under the same slug as a top-level item — the "All Products" self-link under a custom post type, or a plugin shortcut that points at an existing top-level screen. Renaming or hiding the top-level item could carry to that submenu row as well. It now applies only to the item you edited. This completes the fix started in 1.4.0, which covered the reverse direction (editing a submenu never touched its parent).
 * Configs are now stamped with a schema version, so Maestro can tell an override you saved recently from one saved before submenu items could be addressed individually. Overrides saved by earlier versions keep behaving exactly as they did until you next save.
@@ -213,6 +220,9 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 * Editor: click-to-select with a shared panel, debounced single-flight autosave, and folded-mode neutralization.
 
 == Upgrade Notice ==
+
+= 1.5.0 =
+Adds hiding menu items from specific people, alongside hiding by role — on items and their sub-items. Still cosmetic only: a hidden page still opens by URL for anyone allowed to see it, and no capability changes. Existing role rules are untouched.
 
 = 1.4.1 =
 Fixes editing a top-level item also changing a submenu item that shares its slug (the "All Products" self-link shape, and plugin shortcuts pointing at an existing screen). If a submenu item was already renamed with its parent, that name is kept — select it and use Reset Item once.
