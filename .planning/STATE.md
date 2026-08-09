@@ -1,7 +1,7 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.4
-milestone_name: Compatibility, Roles & Showcase
+milestone: v1.5
+milestone_name: Per-User Visibility
 status: in-progress
 stopped_at: Phase 21 plans 1-5 complete (per-user hiding); awaiting human verification checkpoint
 last_updated: "2026-08-08T00:00:00.000Z"
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-07-03)
 
 ## Current Position
 
-Milestone: v1.4 SHIPPED (v1.4.0 + v1.4.1). Now building toward **v1.5**, opened by Phase 21.
+Milestone: **v1.5 Per-User Visibility** (active) — Phase 21 (built, unmerged) + Phase 26 (release, created 2026-08-09); Phases 22/25 optional inclusions. v1.4 SHIPPED (v1.4.0 + v1.4.1).
 Phase: Phase 19 ✅, Phase 20 ✅, Phase 23 ✅ (shipped as v1.3.1). **Phase 21 (Cosmetic Per-User Hiding) — 5/5 plans executed 2026-08-08, awaiting the human-verify checkpoint (21-05 Task 5).**
 Plan: Phase 21 delivered ROLE-02's **per-user half** on branch `phase/21-cosmetic-per-user-hiding` (PR #120, unmerged): 21-01 storage → 21-02 seam + cascade → 21-03 guardrail → 21-04 editor + picker → 21-05 e2e + gate + docs. The cloned-role **profiles** half stays deferred to the backlog todo. Next: human verification, then merge; after that Phase 22 (demo), Phase 25 (toolbar polish), and a new v1.5 release phase (Phase 24 was the v1.4.0 release and is already shipped).
 Status: Phase 20's COMPAT-10 was reworked mid-checkpoint 2026-08-02: the boolean `cascade_hide` + "rides the parent hide" model built in 20-05/20-06 was found **inert** — WordPress core's `_wp_menu_output()` never renders a hidden parent's `<ul class="wp-submenu">` at all, so hiding the parent already removes the whole subtree cosmetically; cascading on top of that produced no observable difference. Reworked (20-CONTEXT.md REVISION NOTE) into an **independent** per-parent `child_hidden_roles` role set: `Maestro\Cascade::effective_hidden_roles( $child_hidden_roles, $parent_child_hidden_roles )` is now a plain, unconditional role-list union (no flag). `Config::sanitize()` accepts `child_hidden_roles` on a top-level item with the same contract as `hidden_roles` (role-intersect, `MAX_HIDDEN_ROLES` cap, dropped on a qualified submenu key). `Replay::replay()`'s submenu loop unions each child's own `hidden_roles` with its parent's `child_hidden_roles`, fully independent of whether the parent's own `hidden_roles` currently hides the parent row — so a parent can stay visible while its children vanish, a genuinely observable effect the old model could never produce. `get_menu_model()` exposes `childHiddenRoles` (empty array, not merely absent, for an untouched parent). The editor popover now shows TWO independent role-checkbox groups — "Hide this item from:" (existing) and "Hide its sub-items from:" (new, shown only on parents with children) — via a shared `buildRoleGroup()` helper in `assets/maestro.js`. The e2e spec (`cascade-hide.spec.ts`) now asserts the effect DIRECTLY against the rendered sidebar (parent visible, child rows gone, role-mirrored) via a second authenticated browser context, replacing the inert model's wp-cli/`$submenu` dump workaround (`dump-cascade-submenu.php`, deleted). Cosmetic-only guardrail reconfirmed end-to-end. **Full zero-regression gate (final):** PHP unit 127/127 (158 assertions), PHP integration 72/72 (172 assertions), JS 58/58, e2e 35 passed/28 capture-gated skipped/0 failed, WPCS clean, PHPStan 0 errors, Plugin Check 0 errors on the built shippable ZIP (1 pre-existing readme.txt warning) and 0 NEW errors on the dev-tree (7 errors/7 warnings, all pre-existing, confirmed via `git log --diff-filter=A` to predate Phase 20). All three Phase 20 requirements (COMPAT-04/07/10) genuinely complete. 20-04 (prior) delivered COMPAT-07 badge/HTML preservation on rename via `Maestro\Title::replace_label()`'s text-node swap at both title-write seams. 20-03 (prior) closed out COMPAT-04 client-side with the qualified-key DOM-join and live WooCommerce verification. 20-02/20-01 (prior) built COMPAT-04's server-side qualified-key foundation and replay/editor-model wiring. Phase 19 ROLE-01 signed off — **partial-go** (per-user go + ship first; cloned-role go as an additive `profiles` registry compiling to the same inline `is_hidden_for_current_user()` seam); Phase 21 unblocked. Phase 23 delivered UX-09/UX-12/UX-13/BUG-08 (native wp-admin restyle; 5/5 plans; full-suite gate green) and shipped in v1.3.1. **NOTE for Phase 24:** Plugin Check flags 7 errors/7 warnings against pre-existing dev-tree root files — logged to `phases/23-editor-ux-polish/deferred-items.md` for the Phase 24 build-then-check pipeline.
@@ -41,9 +41,48 @@ as a known risk, not a solved case). Covering it properly needs a second CI lane
 `readme.txt` as a known behaviour rather than carried silently. Revisit if
 multisite becomes a supported target.
 
-Progress: [███████░░░] 67% (v1.4 shipped; Phase 21 executed and awaiting verification). Remaining: Phase 22 (demo), Phase 25 (toolbar polish, added 2026-08-02), and a **v1.5 release phase that does not exist yet** — Phase 21's per-user hiding is unreleased and Phase 24 was the v1.4.0 release, already shipped.
+Progress: [███████░░░] 67% (v1.4 shipped; Phase 21 executed and awaiting verification). Remaining: **Phase 26 (Release v1.5.0, created 2026-08-09 — REL-11)**, plus Phase 22 (demo) and Phase 25 (toolbar polish) as optional inclusions that do not block the cut.
 
 ## Release Binding
+
+### Active milestone — v1.5 Per-User Visibility (Phase 26)
+
+**Target version `1.5.0`, tag `v1.5.0`**, SVN deploy to WordPress.org `trunk`
+following the v1.2/v1.3/v1.4 pipeline. A **minor** bump, not a patch: per-user
+hiding is a new user-facing capability with a new stored config shape
+(`hidden_users` / `child_hidden_users`).
+
+**Why this milestone exists:** to release work that already exists. Phase 21
+built ROLE-02's per-user half on 2026-08-08 and it is unreleased — v1.4.0 was cut
+before it landed, under the documented fallback. v1.5 is a release vehicle first
+and a scope container second.
+
+**Cut condition:** Phase 21 merged and verified. Phases 22 (demo) and 25
+(toolbar polish) are **optional inclusions** — each ships if complete at cut
+time, otherwise slips without blocking. This is the same fallback shape that let
+v1.4.0 ship cleanly without Phase 21, and it worked.
+
+**Carried forward into the Phase 26 checklist (all learned the hard way):**
+
+1. **Diff `v1.4.1..main` for user-facing commits before tagging** — do not trust
+   the phase list. v1.4.0's changelog carried an overclaim caught only at gate 8.
+2. **The SVN deploy is NOT auto-triggered.** A GitHub Release created via
+   `GITHUB_TOKEN` does not fire `release: published`, so `wp-deploy.yml` needs a
+   manual `workflow_dispatch` (`gh workflow run wp-deploy.yml -f tag=v1.5.0`).
+   True for v1.3.0, v1.4.0, and v1.4.1 — plan the step in rather than rediscover it.
+3. **Screenshot 3 is now stale.** It shows the visibility picker with two groups;
+   the shipping UI has four. Recapture is mandatory, not optional.
+4. **The wp.org API `version` field lags the SVN commit** by up to ~an hour. SVN
+   is the truth at deploy time; do not treat an unchanged API response as failure.
+5. **Gates 8–11 (review, a11y, security, performance) run consolidated over the
+   full release diff**, not per-phase. The person-picker surfaces have never had
+   an independent a11y pass — they were written to the bar, not audited against it.
+
+**Known limitation to carry into the release notes:** on multisite, network
+super admins are exempt from the per-user axis only; role axes keep their v1.4.1
+behaviour. That branch is untested (single-site suite). Already in `readme.txt`.
+
+
 
 **Interim patch — v1.3.1 ✅ SHIPPED 2026-07-05 (PR #88).** Phase 23's editor UX
 restyle shipped early as a `1.3.1` patch (the only user-facing code on `main`

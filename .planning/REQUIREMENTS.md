@@ -50,6 +50,20 @@ backlog IDs without renumbering.
 
 ---
 
+## v1.5 Requirements
+
+**Milestone framing:** v1.4 shipped without ROLE-02, which deferred to v1.5 under
+the Release Binding fallback. Phase 21 then built ROLE-02's per-user half
+(2026-08-08) — so v1.5 exists primarily to **release work that already exists**
+rather than to build new scope. Phases 22 and 25 may ride along if they land
+first; neither blocks the cut.
+
+### Release
+
+- [ ] **REL-11**: v1.5 is cut and shipped — runtime zip builds clean, Plugin Check 0 errors, full PHP/JS/e2e suites green, tagged `v1.5.0`, deployed to WordPress.org SVN `trunk` following the v1.2/v1.3/v1.4 pipeline (**including the manual `wp-deploy.yml` dispatch**, which has never been automatic); changelog verified against the `v1.4.1..main` diff rather than the phase list; **screenshot 3 recaptured** to show the visibility popover's four groups instead of two; and the multisite super-admin exemption stated as a known limitation.
+
+---
+
 ## Deferred (future milestone)
 
 - **COMPAT-05/06/08/09/11/12/13** — documented WordPress menu-model limitations from R1; docs-only, correct by design (carried as user-guidance, not code).
@@ -82,6 +96,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | UX-13 | Phase 23 | ✅ Complete 2026-07-05 |
 | BUG-08 | Phase 23 | ✅ Complete 2026-07-05 |
 | REL-10 | Phase 24 | ✅ Complete 2026-08-04 (v1.4.0; patch v1.4.1 2026-08-05) |
+| REL-11 | Phase 26 (v1.5) | Pending — ships Phase 21's per-user hiding |
 
 **Coverage:**
 - v1.4 requirements: 11 total
