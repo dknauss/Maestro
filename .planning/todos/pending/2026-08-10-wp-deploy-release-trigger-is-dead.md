@@ -18,12 +18,32 @@ with `needs: release` + `secrets: inherit`. No new credential.
 **This todo stays PENDING until a real release fires it**, per the verification
 bar below. Until then, keep treating the manual dispatch as the live path.
 
-**One behaviour change worth knowing:** pushing a `v*` tag now deploys to
-WordPress.org automatically, with no human step between tag and publish. That is
-the point of the fix, but it removes a checkpoint that existed by accident for six
-releases. `needs: release` is the guard — a failed build, a failed tag/version
-match, or a failed Release publish all stop the deploy before wp.org is touched.
-`workflow_dispatch` is deliberately retained for re-deploys and recovery.
+**The human gate is preserved, deliberately.** An earlier cut of this fix let a
+tag push publish straight to wp.org. That traded a forgotten step for an
+unattended one, which was the wrong trade: the ask was automation *with* a final
+confirm, not without one.
+
+The deploy job now runs in the **`wordpress-org` environment** (created
+2026-08-10, required reviewer `dknauss`). Tag push → build → version check →
+Release publish → the deploy job **pauses for approval** → SVN. Nothing is
+forgettable, because the run is sitting there and GitHub notifies; nothing ships
+unattended, because it will not proceed unapproved.
+
+`needs: release` is the other guard — a failed build, a failed tag/version match,
+or a failed Release publish all stop the deploy before wp.org is touched.
+`workflow_dispatch` is retained for re-deploys and recovery, and it hits the same
+gate.
+
+**⚠️ The gate is only real while the environment exists WITH a required reviewer.**
+GitHub auto-creates a missing environment with **no protection rules** and the job
+sails through — no error, it just stops asking. Deleting or recreating
+`wordpress-org` without reviewers silently converts `environment:` into a no-op.
+Worth re-checking if deploys ever stop prompting.
+
+**Optional hardening, not done:** `WP_ORG_SVN_USERNAME` / `WP_ORG_SVN_PASSWORD`
+are still repo-level secrets, readable by any workflow in the repo. Moving them
+into the `wordpress-org` environment would scope them to approved deploy runs
+only. Requires re-entering the values by hand in Settings → Environments.
 
 ## Problem
 
