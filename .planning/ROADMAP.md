@@ -284,7 +284,25 @@ ship Phase 21's per-user hiding. See "Phase Details (v1.5 — Per-User Visibilit
 2026-08-04 without this phase, so it did not precede that release. It is now a
 candidate for the (not yet created) v1.5 release, alongside the deferred a11y
 M2/M3 items from `todos/pending/2026-08-02-a11y-locked-checkbox-refinements.md`.
-**Plans**: TBD (run /gsd:plan-phase 25 to break down)
+**Plans**: 25-01 audit + re-scope · 25-02 implement, prove, close (planned 2026-08-09; both `autonomous: false`)
+
+> **⚠️ SCOPE IS STALE — 25-01 exists to fix that before any code is written.**
+> Measured against `main` @ `2f21818` on 2026-08-09:
+>
+> - **Criterion 1 is already satisfied.** The glyphs are `#c3c4c7` at **9.11:1**,
+>   not the reported blue `#3858e9` at 2.83:1 — which no longer appears in the
+>   CSS at all. v1.4.0's a11y gate reached the same conclusion independently and
+>   recorded it as "does not reproduce, closed as stale"; this entry was never
+>   updated to match.
+> - **Criterion 2 rests on a false premise.** The `#2271b1` focus ring measures
+>   **3.07:1** on `#1d2327` — it PASSES the 3:1 bar. Widening the margin to
+>   `#72aee6` (6.74:1) is defensible on robustness grounds, but it is a choice,
+>   not a fix.
+> - **Criteria 3 and 4 are unverified.** `.maestro-status` sets `flex-shrink: 0`
+>   but `min-width: 0`, so whether it actually reflows is an empirical question.
+>
+> If fewer than two criteria survive the audit, 25-01 is instructed to recommend
+> closing the phase as overtaken by events rather than executing a token version.
 
 ---
 
