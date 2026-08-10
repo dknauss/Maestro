@@ -24,6 +24,19 @@ go/no-go question with an explicit verdict, a storage recommendation, a named
 resolution seam, and invariants that must hold. That note is why Phase 21 could
 be planned confidently, and why its cosmetic-only claim was provable.
 
+## Sequencing note (added 2026-08-10)
+
+**AME ships a Toolbar add-on**, and it has never been looked at.
+[[2026-08-10-ame-feature-surface-research]] covers both add-ons as part of its
+sweep, so its matrix will say what AME's toolbar product actually does — which is
+directly relevant prior art for the questions below, particularly which nodes it
+treats as safely hideable and whether it makes any cosmetic-vs-access distinction
+at all.
+
+Doing the sweep first is cheaper than answering these blind. Not a hard
+dependency — this note can proceed without it — but if both are queued, take the
+AME matrix first.
+
 ## Questions the note must answer
 
 - **`WP_Admin_Bar` node registration** — how nodes are added, when, and whether

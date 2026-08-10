@@ -460,13 +460,18 @@ Recent decisions affecting current work:
   stay on the old version. Recommended fix is to have `release.yml` call the deploy
   directly rather than to add a PAT.
   `todos/pending/2026-08-10-wp-deploy-release-trigger-is-dead.md`
-- **AME feature-surface research** — the 2026-08-01 prior-art spike was
-  *architectural*, scoped to Phase 20; its four-bullet market-gap list is now spent
-  (import/export queued, reparenting out of scope, per-role deny shipped, inline UX
-  is the premise). A second pass would inventory AME free/Pro/add-ons as a **product**
-  and sort each feature into have-it / deliberately-not / already-queued /
-  unclaimed / anti-feature. Deliverable is a NOTE, and "nothing worth adopting" is a
-  legitimate verdict. Worth doing because after Phases 27/28 there is no milestone.
+- **AME comprehensive feature sweep → an AME↔Maestro MATRIX** — the 2026-08-01
+  prior-art spike was *architectural*, scoped to Phase 20; AME's feature surface has
+  never been enumerated at all, and the four-bullet market-gap list it did produce
+  is now spent (import/export queued, reparenting out of scope, per-role deny
+  shipped, inline UX is the premise). Deliverable is a **row-per-feature matrix**
+  on the R1 `compat/SCHEMA.md` conventions — fixed cell vocabulary (have / partial /
+  deliberately-not / queued / unclaimed / anti-feature), evidence as its own column
+  (free is source-readable, Pro and the add-ons are only claims), and a completion
+  check so "comprehensive" is verifiable. Coverage must include the free build's
+  `modules/` dir (skipped in 2026-08-01), Pro, and BOTH add-ons — the Toolbar
+  add-on overlaps the toolbar-editing research directly. Recommendations are a
+  column that falls out, not the point. Scope clarified 2026-08-10.
   `todos/pending/2026-08-10-ame-feature-surface-research.md`
 - **Named config presets + JSON export/import** — v1.5 candidate; supersedes/extends V2-06 (SPEC.md Roadmap item 6). Research captured in `todos/pending/2026-07-03-config-presets-export-import.md`
 - **Declutter switch (non-core menu items → bottom section)** — v1.5 candidate; needs discuss/feasibility pass (top_order precedence, CPT handling). Research captured in `todos/pending/2026-07-03-declutter-switch-non-core-menu-items.md`
