@@ -329,6 +329,17 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
+- **Toolbar height + `#collapse-menu` parity** — the edit-mode bar is ~56px of
+  fixed real estate around icon-only controls, and more importantly
+  `forceUnfold()` (`maestro.js` ~L197) NEUTERS the Collapse menu control with a
+  capture-phase `preventDefault()` + `stopImmediatePropagation()`: it still
+  renders and takes focus but does nothing at all. The intent is sound (you
+  cannot edit a menu you cannot read) but it reads as "collapse is broken".
+  **This gates `configurable-admin-menu-width`**, which must "respect folded
+  mode" while edit mode currently refuses it — design those together or the
+  width work inherits an unstated conflict. Captured in
+  `todos/pending/2026-08-10-toolbar-height-and-collapse-menu-parity.md`
+
 - **Persistent saved-state indicator** — the save status is event feedback that
   self-erases after 2s (`maestro.js` ~L1748), so seconds after a rename commits
   there is no on-screen answer to "did that save?". Core's pattern is persistent
