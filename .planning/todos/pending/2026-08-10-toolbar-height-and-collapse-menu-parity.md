@@ -60,10 +60,12 @@ Phase 25's criterion 1).
 - **Allow folding, and adapt.** Editing in a 36px rail needs a different
   affordance — possibly the toolbar becomes the whole editing surface. Much
   larger, but it is the honest answer if people actually want to edit folded.
-- **Auto-restore on exit.** Whatever is chosen, check whether the user's folded
-  preference survives leaving edit mode. `forceUnfold()` strips the class; core
-  stores the preference in user meta, so it likely returns on reload — but that
-  is worth verifying rather than assuming.
+- **Auto-restore on exit — VERIFIED 2026-08-10, no action needed.** The folded
+  preference DOES return. `forceUnfold()` only ever runs from `init()`, which is
+  reached solely in edit mode, and it strips the class client-side. Leaving edit
+  mode is a page navigation, so core re-renders `body.folded` from user meta on
+  the next load and the `MutationObserver` dies with the page. Nothing to undo
+  and nothing leaks — this option is closed, not open.
 
 ## Not urgent
 
@@ -71,3 +73,42 @@ Nothing is broken in the sense of losing data, and the toolbar works. But the
 silently-dead control is a small, real papercut on a plugin whose whole pitch is
 that editing happens in place with zero ceremony — and the fold decision gates a
 feature already in the backlog.
+
+
+## Verified findings (2026-08-10)
+
+Recorded so the next person does not re-derive them:
+
+1. **The control is inert, not merely overridden.** `forceUnfold()`
+   (`assets/maestro.js` ~L197-215) removes `folded`/`auto-fold`, installs a
+   `MutationObserver` to re-remove them if `common.js` writes them back, and
+   registers a **capture-phase** listener on `#collapse-menu` calling
+   `preventDefault()` + `stopImmediatePropagation()`. Nothing downstream ever
+   sees the click.
+2. **There is a CSS backstop too.** `maestro.css` ~L11-29 forces
+   `width: 160px !important` on `#adminmenu`/`#adminmenuwrap`/`#adminmenuback`
+   and a matching `margin-left` on `#wpcontent`/`#wpfooter`, for
+   `body.maestro-editing.folded` and `.auto-fold`. So even if the class survives
+   a frame, the layout holds. Any fold decision has to change BOTH layers.
+3. **The user's preference is safe** — see the verified note above.
+4. **It is undocumented outside the code.** The behaviour is explained in
+   `maestro.js`'s file header (~L13-16) and at the function, but appears nowhere
+   in `README.md`, `readme.txt`, or `docs/` — the only other mentions are in
+   `docs/archive/FIXES.md`, which is an archived record of a *historical* folded-mode
+   bug and actively misleading if found while searching for this one.
+
+   **Open question for whoever takes this:** should a `readme.txt` FAQ entry be
+   added NOW, or only once the fold behaviour is settled? Documenting
+   "collapse does nothing while editing" as intended, and then changing it,
+   costs a second doc edit and a changelog line. Deliberately not added here.
+
+## Why the conflict matters, restated concretely
+
+`configurable-admin-menu-width` stores a global width and applies it on **every**
+admin page. Edit mode forces 160px via `!important`. So with both shipped, a
+site with `menu_width: 240` would render 240px while browsing and snap to 160px
+the moment edit mode opens — the editor showing a different width than the thing
+it is editing. That is not a minor inconsistency; it is the editor lying about
+its own subject.
+
+Deciding the fold story first is what prevents that.
