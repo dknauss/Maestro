@@ -1188,7 +1188,17 @@
 				function ( arr ) { model[ slug ].childHiddenRoles = arr; },
 				{
 					isLocked: function ( roleKey ) {
-						return model[ slug ].hiddenRoles.indexOf( roleKey ) !== -1;
+						// Call the TESTED predicate rather than re-inlining it.
+						// maestro-logic.js exports isChildRoleLockedByParent() and
+						// child-role-lock.test.mjs exercises it, but the popover
+						// used to duplicate the expression here — so the covered
+						// implementation and the running one were separate copies
+						// that could drift silently. Same pattern the rest of this
+						// file already uses for diffItem/reorderMove/resetItem.
+						return window.maestroLogic.isChildRoleLockedByParent(
+							model[ slug ].hiddenRoles,
+							roleKey
+						);
 					},
 					lockedHint: function ( roleKey ) {
 						return I.hideChildrenLocked.replace( '%s', D.roles[ roleKey ] );

@@ -411,9 +411,25 @@ class Config {
 				// independently and recompose, rather than tag/trim-cleaning
 				// the raw string as a whole (Slug::is_qualified() is the same
 				// '>' contract used at resolve time in class-slug.php).
-				$is_qualified = Slug::is_qualified( $slug );
+				// Decide qualification on the ENTITY-DECODED key, and split that.
+				//
+				// Slug::is_qualified() looks for a literal '>', but Slug::normalize()
+				// html_entity_decodes before it does anything else. So a key written
+				// as `a&gt;b` used to be stored as a BARE key here and then resolve
+				// as a QUALIFIED one later — silently becoming a different kind of
+				// key than the one that was validated, and able to collide with a
+				// genuine `a>b`. Deciding on the decoded form makes storage and
+				// resolution agree, which is the property the Axis-1 guard assumes.
+				//
+				// Only the DECISION and the SPLIT use the decoded value. A bare key
+				// is still stored exactly as sent — "storage stays raw" is the
+				// contract normalize() is written against, and widening the decode
+				// to every key would rewrite `&amp;` slugs that FIX-03 already
+				// resolves correctly in either form.
+				$decoded_key  = html_entity_decode( (string) $slug, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+				$is_qualified = Slug::is_qualified( $decoded_key );
 				if ( $is_qualified ) {
-					list( $parent_half, $child_half ) = Slug::split_qualified( $slug );
+					list( $parent_half, $child_half ) = Slug::split_qualified( $decoded_key );
 					$parent_half                      = $this->clean_slug( $parent_half );
 					$child_half                       = $this->clean_slug( $child_half );
 

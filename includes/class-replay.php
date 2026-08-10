@@ -731,6 +731,10 @@ class Replay {
 		// top-level row, so under schema v2 it must not resolve onto a submenu
 		// child (see the $bare_fallback_allowed gate in replay()).
 		$top_rendered_keys = array();
+		// Axis-2 (rendered-collision) tracking, mirroring replay()'s
+		// $top_rendered_matches / $top_skip_rendered pair.
+		$top_rendered_first = array();
+		$axis2_skip         = array();
 		foreach ( $menu as $row ) {
 			if ( empty( $row[2] ) ) {
 				continue;
@@ -738,7 +742,27 @@ class Replay {
 			$tnk = Slug::normalize( (string) $row[2], $base );
 			if ( '' !== $tnk ) {
 				$top_rendered_keys[ $tnk ] = true;
+
+				// A normalized key matching 2+ DISTINCT rendered rows is ambiguous.
+				// replay() resolves that to "apply nothing"; until now the editor
+				// model did not, so on a rendered collision the popover showed
+				// roles checked that replay was NOT applying. Display-only — the
+				// apply path was already fail-safe — but the popover was lying,
+				// and a full-replace autosave then writes back what it displayed.
+				if ( ! isset( $top_rendered_first[ $tnk ] ) ) {
+					$top_rendered_first[ $tnk ] = $row[2];
+				} elseif ( $top_rendered_first[ $tnk ] !== $row[2] ) {
+					$axis2_skip[ $tnk ] = true;
+				}
 			}
+		}
+
+		// Fold the Axis-2 skips into the map the resolvers ALREADY honour, rather
+		// than widening their signatures: an ambiguous key now resolves to nothing
+		// in the editor for exactly the reason it does in replay(). Union order is
+		// irrelevant — both sides map to `true`.
+		if ( $axis2_skip ) {
+			$norm_skip = $norm_skip + $axis2_skip;
 		}
 
 		foreach ( $menu as $row ) {
