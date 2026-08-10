@@ -1472,6 +1472,44 @@ class ReplayTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * AXIS-2 PARITY: on a RENDERED collision — two distinct live top-level rows
+	 * whose slugs normalize to the same key — replay() applies nothing ("when
+	 * resolution is ambiguous, apply nothing"). The editor model must agree.
+	 *
+	 * It used to apply only the Axis-1 guard (two distinct STORED keys), so the
+	 * popover showed the stored roles checked while replay applied none of them.
+	 * Display-only in isolation, but the editor autosaves a FULL REPLACE built
+	 * from what it displayed — so a lying popover is one save away from becoming
+	 * the stored truth.
+	 */
+	public function test_get_menu_model_applies_the_axis2_rendered_collision_guard() {
+		global $menu;
+
+		// Two DISTINCT rendered rows that normalize to one key: `ver=` is
+		// stripped by Slug::normalize(), so both collapse to `upload.php`.
+		$menu[90] = array( 'Media A', 'upload_files', 'upload.php?ver=1', '', 'menu-top', 'menu-media-a', '' );
+		$menu[91] = array( 'Media B', 'upload_files', 'upload.php?ver=2', '', 'menu-top', 'menu-media-b', '' );
+
+		( new Config() )->save(
+			array( 'items' => array( 'upload.php' => array( 'hidden_roles' => array( 'editor' ) ) ) )
+		);
+
+		$replay = new Replay( new Config() );
+		$replay->replay();
+		$model = $replay->get_menu_model();
+
+		foreach ( $model as $node ) {
+			if ( 'upload.php?ver=1' === $node['slug'] || 'upload.php?ver=2' === $node['slug'] ) {
+				$this->assertSame(
+					array(),
+					$node['hiddenRoles'],
+					'An Axis-2-ambiguous row must show NOTHING checked — replay applies nothing for it.'
+				);
+			}
+		}
+	}
+
+	/**
 	 * COSMETIC-ONLY GUARDRAIL (mandatory, non-negotiable): applying a
 	 * child_hidden_roles rule must NEVER change current_user_can() for any
 	 * capability — it is pure visibility. Proven two ways: (1) the editor
