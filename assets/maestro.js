@@ -1122,7 +1122,15 @@
 				model[ slug ].hiddenRoles = arr;
 				var li = liForKey( slug );
 				if ( li ) {
-					li.classList.toggle( 'maestro-has-hidden', model[ slug ].hiddenRoles.length > 0 );
+					// The marker means "this row has a hide rule of its own", which
+					// is EITHER axis. Testing hiddenRoles alone would clear it when
+					// the last role is unchecked while a person rule is still in
+					// force — the row would look untouched until a reload rebuilt
+					// it. Matches initModel() and the user group's own setSet.
+					li.classList.toggle(
+						'maestro-has-hidden',
+						model[ slug ].hiddenRoles.length > 0 || ( model[ slug ].hiddenUsers || [] ).length > 0
+					);
 				}
 			},
 			{

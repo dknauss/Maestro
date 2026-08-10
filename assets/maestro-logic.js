@@ -133,15 +133,23 @@ function modeStatusLabel( state, strings ) {
  *   m.hiddenRoles      = [];
  *   if ( ! m.isSub ) m.icon = def.icon || '';
  *   m.childHiddenRoles = [];
+ *   m.hiddenUsers      = [];
+ *   m.childHiddenUsers = [];
  *
- * childHiddenRoles (COMPAT-10 REVISED) has no WP-native pristine state —
- * reset always clears it to [], top-level or submenu (the field is simply
+ * None of the four visibility axes has a WP-native pristine state — reset
+ * always clears them to [], top-level or submenu (the child_* fields are simply
  * unused for submenu items).
  *
- * @param {{ title: string, icon?: string, hiddenRoles: string[], childHiddenRoles?: string[] }} item     Current item state.
+ * KEEP THIS IN STEP WITH resetSelected(). The docblock above claims to mirror
+ * it, and that claim is the only thing making this the readable spec for the
+ * operation — production resets inline, so nothing here fails when the two
+ * drift. The round-trip test does not catch it either: diffItem() short-circuits
+ * on ABSENT keys, so a reset result missing an axis passes vacuously.
+ *
+ * @param {{ title: string, icon?: string, hiddenRoles: string[], childHiddenRoles?: string[], hiddenUsers?: object[], childHiddenUsers?: object[] }} item     Current item state.
  * @param {{ title: string, icon?: string }}                        pristine Pristine default.
  * @param {boolean}                                                 isSub    True for submenu items.
- * @return {{ title: string, hiddenRoles: string[], icon: string, childHiddenRoles: string[] }}
+ * @return {{ title: string, hiddenRoles: string[], icon: string, childHiddenRoles: string[], hiddenUsers: object[], childHiddenUsers: object[] }}
  */
 function resetItem( item, pristine, isSub ) {
 	var result = {
@@ -149,6 +157,8 @@ function resetItem( item, pristine, isSub ) {
 		hiddenRoles:      [],
 		icon:             isSub ? '' : ( pristine.icon || '' ),
 		childHiddenRoles: [],
+		hiddenUsers:      [],
+		childHiddenUsers: [],
 	};
 	return result;
 }
