@@ -151,6 +151,7 @@ Full phase details, success criteria, and outcomes are archived in
 - [x] **Phase 24: Release v1.4.0** — cut and shipped to WordPress.org 2026-08-04 (tag `v1.4.0` on `482510c`, PR #113); editor + directory screenshots recaptured. Patch **v1.4.1** followed 2026-08-05 (tag on `c6cdcbe`, PR #116) for the shared-slug propagation defect. Shipped WITHOUT Phases 21 and 22 — see the outcome note below
 - [x] **Phase 25: Edit-Mode Toolbar Dark-Surface Polish** — ✅ COMPLETE 2026-08-09 (2/2 plans; human-verified). Audit struck 1 of 5 criteria as already satisfied, downgraded 1 from fix to choice, absorbed 1. Shipped: reserved status slot, focus ring 3.07:1 → 6.74:1, a11y M2/M3. Original text follows — dark-toolbar icon/focus contrast (WCAG 1.4.11), save-indicator layout shift, rename commit feedback (added 2026-08-02; pre-existing v1.3.1 surfaces, non-blocking for v1.4.0)
 - [ ] **Phase 27: Cloned-Role Hiding Profiles** — completes ROLE-02's deferred half: a named, Maestro-internal hiding profile that compiles onto an inline `hidden_profiles` axis and resolves through the seam slot Phase 21 reserved at `class-replay.php:510` (planned 2026-08-10)
+- [ ] **Phase 28: Configurable Admin Menu Width** — a global `menu_width` so a renamed item no longer wraps at 160px, plus the fold decision it depends on: edit mode keeps forcing unfold but the collapse control stops pretending to work (planned 2026-08-10)
 
 ### Phase 19: Cosmetic Hiding Feasibility
 **Goal**: It is known, before any implementation, whether per-user and/or cloned-role menu hiding can be delivered without touching capabilities — and if so, how it should be stored and resolved
@@ -318,6 +319,35 @@ M2/M3 items from `todos/pending/2026-08-02-a11y-locked-checkbox-refinements.md`.
 > shipped: the note cites line numbers from before v1.4.1 and Phase 21 both moved
 > things, and its assumption that term 3 is a list-intersect may not survive
 > contact, since membership is a property of the USER rather than the item.
+
+### Phase 28: Configurable Admin Menu Width
+**Goal**: A renamed menu item that used to wrap at WordPress's hardcoded 160px no longer has to — a global width, applied while browsing, with folding still working everywhere it should
+**Depends on**: nothing (28-01 is independently shippable)
+**Requirements**: (none formal — V2-09, extracted from SPEC.md item 9 during the 2026-08-09 backlog reconciliation)
+**Success Criteria** (what must be TRUE):
+  1. `#collapse-menu` is VISIBLY disabled during edit mode with a programmatic reason, not silently swallowed by a capture-phase handler
+  2. The menu column width resolves from ONE source, not three hardcoded `160px` literals (`maestro.css` :22, :28, :523)
+  3. `menu_width` is stored bounded and sparse — the default is never written, and reset means absent
+  4. The width applies on ORDINARY admin pages, not only in edit mode — and a site that never set one loads nothing new and pays no new page cost
+  5. `body.folded` still folds to core's 36px outside edit mode, and the `<782px` overlay is unaffected
+  6. Zero regression across both integration lanes, JS, e2e, WPCS, PHPStan, Plugin Check
+**Plans**: 28-01 fold honesty + de-hardcode · 28-02 storage + the always-loaded seam · 28-03 control, docs, close
+
+> **The fold story was DECIDED 2026-08-10 and folded into this phase.** Edit mode
+> keeps forcing unfold — a 36px icon rail cannot show the labels being edited, and
+> `docs/archive/FIXES.md` #4 records that the editor *broke* in folded mode
+> historically. What changes is the honesty: the collapse control currently
+> renders, takes focus and does nothing, which is the actual defect.
+>
+> The "fold versus width conflict" flagged on 2026-08-09 was **mis-framed and is
+> withdrawn**. It is not a design conflict — `160px` is simply hardcoded in three
+> places, one of which is the constant this phase makes configurable. Outside edit
+> mode width applies to the expanded menu and folding works normally; inside edit
+> mode folding is off, so width just applies.
+>
+> **This phase turns Maestro into something that loads outside edit mode** for the
+> first time (28-02). "Costs nothing unless you are editing" is true today and
+> stops being — hence the measured-footprint checkpoint rather than an assumption.
 
 ## Phase Details (v1.5 — Per-User Visibility)
 
