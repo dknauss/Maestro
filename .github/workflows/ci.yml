@@ -182,6 +182,15 @@ jobs:
       - name: Integration tests (PHPUnit in wp-env)
         run: npm run test:php
 
+      # ROLE-02's super-admin exemption is `is_multisite() && is_super_admin()`,
+      # so on a single-site run the second half never evaluates and the whole
+      # branch is uncovered. That gap shipped through the v1.5.0 gates as a known
+      # unknown; this lane closes it. Reuses the same containers — WP_MULTISITE=1
+      # only changes how the PHPUnit bootstrap installs, so it costs one extra
+      # suite run rather than a second environment.
+      - name: Integration tests (multisite)
+        run: npm run test:php:multisite
+
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 

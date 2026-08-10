@@ -57,6 +57,31 @@ fourth self-review is the least informative option available.
 pass, and address what it finds. If the decision is to ship without it, record
 that as a deliberate choice — do not let it read as a satisfied gate.
 
+### The two carried gaps — one closed, one only narrowed (2026-08-09)
+
+**✅ Multisite super-admin exemption — CLOSED.** A `WP_MULTISITE=1` lane now runs
+the whole integration suite under multisite (`npm run test:php:multisite`, wired
+into CI beside the single-site run — same containers, one extra suite pass). Three
+new cases assert every half of the rule: a super admin IS exempt from the person
+axis, an ordinary user on the same network is NOT, and the role axis still applies
+to super admins. Writing them immediately caught a bad test of my own — it
+authored the rule as an editor, whom the Gate 10 server-side gate correctly
+refuses, so it would have asserted against an empty config and "proved" the hide
+by proving nothing was saved.
+
+**⚠️ Screen-reader pass — NARROWED, NOT CLOSED.** Added axe-core scanning of the
+popover in both empty and populated states (the chips, results list and live-region
+messages only exist after interaction, so an empty-state scan would miss most of
+what the feature renders). Zero violations against wcag2a/2aa/21a/21aa, scoped to
+the popover so wp-admin's own pre-existing findings don't train people to ignore
+the suite.
+
+**This is still not a screen-reader pass.** axe catches machine-detectable
+violations; it cannot tell you whether the announcements make sense in sequence,
+whether the live-region timing is usable, or whether the four similarly-named
+groups are actually distinguishable in practice. A human with NVDA or VoiceOver
+remains worthwhile, and no automated result should be read as having replaced it.
+
 **21-05 Task 5 (human verification) — NOT PERFORMED AS SPECIFIED.** The plan
 marked it `autonomous: false` and called for a person driving the real editor in
 a browser before the phase closed. That did not happen. The phase was accepted

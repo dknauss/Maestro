@@ -317,6 +317,106 @@ class ReplayHiddenUsersTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * MULTISITE — the exempt branch itself, which single-site runs never reach.
+	 *
+	 * `is_exempt_from_user_axis()` is `is_multisite() && is_super_admin()`, so on
+	 * a single-site suite the second half never evaluates and the whole branch is
+	 * dead code as far as coverage is concerned. This ran unverified through the
+	 * v1.5.0 gates and was carried as a known gap; these three tests close it.
+	 *
+	 * Run with: WP_MULTISITE=1 vendor/bin/phpunit -c phpunit-integration.xml.dist
+	 */
+	public function test_multisite_super_admin_is_exempt_from_the_user_axis() {
+		if ( ! is_multisite() ) {
+			$this->markTestSkipped( 'Multisite-only: the exempt branch requires is_multisite().' );
+		}
+
+		$super = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		grant_super_admin( $super );
+		wp_set_current_user( $super );
+		$this->assertTrue( is_super_admin( $super ), 'precondition: user is a network super admin' );
+
+		( new Config() )->save(
+			array( 'items' => array( 'upload.php' => array( 'hidden_users' => array( $super ) ) ) )
+		);
+
+		$this->run_replay();
+
+		$this->assertContains(
+			'upload.php',
+			$this->top_slugs(),
+			'A network super admin must be exempt from a person-targeted hide.'
+		);
+	}
+
+	/**
+	 * The exemption is for super admins specifically, not for everyone on a
+	 * network. An ordinary site user is hidden under multisite exactly as they
+	 * are under single-site — otherwise the exemption would silently disable the
+	 * whole feature on every multisite install.
+	 */
+	public function test_multisite_ordinary_user_is_still_hidden() {
+		if ( ! is_multisite() ) {
+			$this->markTestSkipped( 'Multisite-only.' );
+		}
+
+		$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
+		$this->assertFalse( is_super_admin( $editor ), 'precondition: not a super admin' );
+
+		// Author AS AN ADMIN. A per-user rule can only be written by someone with
+		// `list_users`, which an editor lacks — saving as the target would be
+		// refused by the server-side gate and this test would then assert against
+		// an empty config, "proving" the hide works by proving nothing was saved.
+		$admin = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin );
+		( new Config() )->save(
+			array( 'items' => array( 'upload.php' => array( 'hidden_users' => array( $editor ) ) ) )
+		);
+		$stored = ( new Config() )->get();
+		$this->assertNotEmpty(
+			$stored['items']['upload.php']['hidden_users'] ?? array(),
+			'precondition: the rule must actually be stored before measuring it'
+		);
+
+		wp_set_current_user( $editor );
+		$this->run_replay();
+
+		$this->assertNotContains(
+			'upload.php',
+			$this->top_slugs(),
+			'Person-targeted hiding must still work for ordinary users on multisite.'
+		);
+	}
+
+	/**
+	 * The documented ASYMMETRY, asserted rather than described: the exemption
+	 * covers the user axis only, so a super admin matched by a ROLE rule is still
+	 * hidden — the shipped v1.4.1 behaviour, unchanged. This is the pairing that
+	 * makes the readme's "role-targeted hides still apply to them" true.
+	 */
+	public function test_multisite_super_admin_is_still_hidden_by_the_role_axis() {
+		if ( ! is_multisite() ) {
+			$this->markTestSkipped( 'Multisite-only.' );
+		}
+
+		$super = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		grant_super_admin( $super );
+		wp_set_current_user( $super );
+
+		( new Config() )->save(
+			array( 'items' => array( 'upload.php' => array( 'hidden_roles' => array( 'administrator' ) ) ) )
+		);
+
+		$this->run_replay();
+
+		$this->assertNotContains(
+			'upload.php',
+			$this->top_slugs(),
+			'The role axis must keep applying to super admins — the exemption is user-axis only.'
+		);
+	}
+
+	/**
 	 * The role axis keeps its shipped v1.4.1 behaviour: the exemption ruled on
 	 * 2026-08-08 covers the NEW user axis only. An administrator matched by a
 	 * role rule is still hidden, exactly as before this phase.

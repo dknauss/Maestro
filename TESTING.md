@@ -2,7 +2,7 @@
 
 Three layers, smallest and fastest first.
 
-> **Current expected status:** unit 167/167 with 223 assertions, integration 120/120 with 277 assertions, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, (COMPAT-04) independent shared-slug top-level/submenu editing, (COMPAT-10) the "Hide its sub-items from:" role group's independent child-hiding behavior, and (ROLE-02) per-user hiding asserted in a targeted user's own authenticated session — including a same-role bystander who must keep every row, which is the assertion that proves the rule did not widen to the whole role.
+> **Current expected status:** unit 167/167 with 223 assertions, integration 123/123 with 277 assertions single-site + 123/123 with 282 under WP_MULTISITE=1, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, (COMPAT-04) independent shared-slug top-level/submenu editing, (COMPAT-10) the "Hide its sub-items from:" role group's independent child-hiding behavior, and (ROLE-02) per-user hiding asserted in a targeted user's own authenticated session — including a same-role bystander who must keep every row, which is the assertion that proves the rule did not widen to the whole role.
 
 ## Gotchas (first run)
 
@@ -83,6 +83,23 @@ npm run test:php           # runs PHPUnit inside the tests container
 
 Standalone (no wp-env): install the WP test library with a configured test DB,
 export `WP_TESTS_DIR`, then `composer test:integration`.
+
+### Multisite lane
+
+```bash
+npm run test:php:multisite   # same suite, WP_MULTISITE=1
+```
+
+ROLE-02's super-admin exemption is `is_multisite() && is_super_admin()`, so on a
+single-site run the second half never evaluates and the branch is uncovered —
+which is exactly how it shipped through the v1.5.0 gates as a known unknown. The
+multisite-only cases in
+[`tests/integration/ReplayHiddenUsersTest.php`](tests/integration/ReplayHiddenUsersTest.php)
+assert all three halves of the rule: a network super admin is exempt from the
+person axis, an ordinary user on the same network is **not**, and the role axis
+still applies to super admins (the documented asymmetry). They `markTestSkipped`
+on single-site, and the single-site-only self-target case skips under multisite,
+so both lanes report 123 tests. CI runs both.
 
 ## 3. End-to-end (Playwright, against live WordPress)
 

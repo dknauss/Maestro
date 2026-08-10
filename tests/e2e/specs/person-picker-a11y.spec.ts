@@ -1,4 +1,5 @@
 import { test, expect } from '../fixtures';
+import AxeBuilder from '@axe-core/playwright';
 import { execFileSync } from 'child_process';
 
 /**
@@ -133,6 +134,41 @@ test.describe( 'ROLE-02 — person picker accessibility', () => {
 
 		await group.locator( '.maestro-user-chip-remove' ).first().click();
 		await expect( search ).toBeFocused();
+	} );
+
+	test( 'axe reports no violations on the popover, empty and populated', async ( { page } ) => {
+		const pop = await openPicker( page );
+
+		// Scoped to the popover rather than the whole admin screen: wp-admin has
+		// its own pre-existing findings, and a suite that fails on those teaches
+		// people to ignore it. This asserts what THIS feature added.
+		const empty = await new AxeBuilder( { page } )
+			.include( '.maestro-vis-popover' )
+			.withTags( [ 'wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa' ] )
+			.analyze();
+		expect(
+			empty.violations.map( ( v ) => `${ v.id }: ${ v.help }` ),
+			'axe violations with the picker empty'
+		).toEqual( [] );
+
+		// Re-scan POPULATED. The chips, the results list and the live-region
+		// messages only exist after interaction, so an empty-state scan would
+		// miss most of what this feature actually renders.
+		const group = pop.locator( '.maestro-vis-own-users' );
+		await group.locator( '.maestro-user-search' ).fill( 'Alex' );
+		const result = group.locator( '.maestro-user-result' ).filter( { hasText: TARGET_NAME } ).first();
+		await expect( result ).toBeVisible( { timeout: 15000 } );
+		await result.click();
+		await expect( group.locator( '.maestro-user-chip' ) ).toContainText( TARGET_NAME );
+
+		const populated = await new AxeBuilder( { page } )
+			.include( '.maestro-vis-popover' )
+			.withTags( [ 'wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa' ] )
+			.analyze();
+		expect(
+			populated.violations.map( ( v ) => `${ v.id }: ${ v.help }` ),
+			'axe violations with a chip present'
+		).toEqual( [] );
 	} );
 
 	test( 'the popover keeps a working focus trap with the person groups present', async ( { page } ) => {
