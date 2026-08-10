@@ -329,6 +329,19 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
+- **Persistent saved-state indicator** — the save status is event feedback that
+  self-erases after 2s (`maestro.js` ~L1748), so seconds after a rename commits
+  there is no on-screen answer to "did that save?". Core's pattern is persistent
+  STATE (block editor "Saved", classic autosave timestamp, Customizer
+  "Published"), not a self-erasing toast; Gutenberg is the closest precedent
+  since both autosave. Phase 25 fixed the layout-shift half of this; the
+  persistence half is a design change and was deliberately left out of 25-02.
+  Carries two caveats — it collides with the per-row "modified" dot, which means
+  *differs from default* rather than *unsaved*; and the live region already
+  pairs `aria-atomic` with an explicit `speak()`, which wants a real screen-reader
+  listen. Captured in
+  `todos/pending/2026-08-09-persistent-saved-state-indicator.md`
+
 - **Reconcile the SPEC/PROJECT V2 backlog against the todo system** — there are
   TWO backlogs and they disagree; only 2 of 10 V2-xx items ever crossed into
   `todos/pending`. SPEC.md item 11 / V2-12 ("UI/UX design polish") reads as open
