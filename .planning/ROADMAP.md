@@ -10,7 +10,7 @@
 - ✅ **R1 Third-Party Compatibility Research** — Phases 13–16 (completed 2026-06-29; non-versioned research — no plugin code, no release tag, no SVN deploy) → [archive](milestones/R1-ROADMAP.md)
 - ✅ **v1.3.0 Slug-Resolution Hardening** — Phases 17–18 (shipped 2026-06-30; release tag `v1.3.0`) → [archive](milestones/v1.3.0-ROADMAP.md)
 - ✅ **v1.4 Compatibility, Roles & Showcase** — Phases 19–24 (shipped 2026-08-04; release tag `v1.4.0`, patch `v1.4.1` 2026-08-05). Shipped **without** Phase 21 (ROLE-02, deferred to v1.5 under the Release Binding fallback) and Phase 22 (not reached; still open).
-- ✅ **v1.5 Per-User Visibility** — Phase 21 + Phase 26 (shipped 2026-08-09; release tag `v1.5.0` on `694b1bf`). Delivered ROLE-02's **per-user half**; the cloned-role "profiles" half remains a backlog item. Phases 22 and 25 were optional inclusions and did **not** land, per the fallback.
+- ✅ **v1.5 Per-User Visibility** — Phase 21 + Phase 26 (shipped 2026-08-09; release tag `v1.5.0` on `694b1bf`). Delivered ROLE-02's **per-user half**; the cloned-role "profiles" half remains a backlog item. Phases 22 and 25 were optional inclusions and did **not** make the cut, per the fallback. Phase 25 has since been completed post-release (2026-08-09, human-verified) and will ride the next release; Phase 22 remains open.
 
 ## Phases
 
@@ -149,7 +149,7 @@ Full phase details, success criteria, and outcomes are archived in
 - [ ] **Phase 22: Slug-Resolution Showcase Demo** — Playground demo that visibly demonstrates the v1.3.0 slug-normalization fixes
 - [x] **Phase 23: Editor UX Polish** — native wp-admin restyle of all edit-mode surfaces (UX-13, added 2026-07-03), semantic-colour borders removed (UX-12 verdict), first-run banner centering (BUG-08) — complete 2026-07-05
 - [x] **Phase 24: Release v1.4.0** — cut and shipped to WordPress.org 2026-08-04 (tag `v1.4.0` on `482510c`, PR #113); editor + directory screenshots recaptured. Patch **v1.4.1** followed 2026-08-05 (tag on `c6cdcbe`, PR #116) for the shared-slug propagation defect. Shipped WITHOUT Phases 21 and 22 — see the outcome note below
-- [ ] **Phase 25: Edit-Mode Toolbar Dark-Surface Polish** — dark-toolbar icon/focus contrast (WCAG 1.4.11), save-indicator layout shift, rename commit feedback (added 2026-08-02; pre-existing v1.3.1 surfaces, non-blocking for v1.4.0)
+- [x] **Phase 25: Edit-Mode Toolbar Dark-Surface Polish** — ✅ COMPLETE 2026-08-09 (2/2 plans; human-verified). Audit struck 1 of 5 criteria as already satisfied, downgraded 1 from fix to choice, absorbed 1. Shipped: reserved status slot, focus ring 3.07:1 → 6.74:1, a11y M2/M3. Original text follows — dark-toolbar icon/focus contrast (WCAG 1.4.11), save-indicator layout shift, rename commit feedback (added 2026-08-02; pre-existing v1.3.1 surfaces, non-blocking for v1.4.0)
 
 ### Phase 19: Cosmetic Hiding Feasibility
 **Goal**: It is known, before any implementation, whether per-user and/or cloned-role menu hiding can be delivered without touching capabilities — and if so, how it should be stored and resolved
