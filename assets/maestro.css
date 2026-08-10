@@ -140,15 +140,32 @@ body.maestro-editing.auto-fold #wpfooter {
 	cursor: default;
 	border: 0;
 	background: transparent;
-	min-width: 0;
+	/* Phase 25: RESERVE the slot rather than collapsing to nothing.
+	 *
+	 * Measured before this change: the element grew 4px -> 24px as the status
+	 * appeared, and the rename field beside it was displaced 20px horizontally
+	 * (x: 230 -> 210) on every single save. `flex-shrink: 0` already stopped it
+	 * being compressed, but nothing reserved the space it would need, so the
+	 * whole toolbar shuffled each time a save cycled.
+	 *
+	 * The width holds the longest state the slot ever shows — the "Saving…"
+	 * glyph + label — so idle, saving and saved all occupy one stable box and
+	 * the content fades in and out inside it. */
+	min-width: 24px;
 	min-height: 0;
 	padding: 0 2px;
 }
 .maestro-toolbar .button:hover {
 	background: rgba( 255, 255, 255, 0.08 ); /* quiet hover-lighten, no colour change */
 }
+/* Phase 25: focus ring widened from #2271b1 (3.07:1 on #1d2327) to WP blue-30
+ * #72aee6 (6.74:1). NOT a compliance fix — the old ring PASSED WCAG 1.4.11's
+ * 3:1 bar. It passed by 0.07, which survives no antialiasing, display gamma or
+ * future palette nudge, so this is a deliberate robustness margin on a dark
+ * surface. Recorded as a choice so it is not later re-reported as a defect.
+ * Core uses the same lightened blue on its own dark admin-bar surfaces. */
 .maestro-toolbar .button:focus-visible {
-	outline: 2px solid #2271b1;
+	outline: 2px solid #72aee6;
 	outline-offset: 1px;
 }
 /* A control with nothing to do (Reset Item on an unmodified item) is dimmed and

@@ -1048,6 +1048,17 @@
 				cb.type = 'checkbox';
 				cb.value = roleKey;
 				cb.addEventListener( 'change', function () {
+					// Phase 25 (M2): a locked row is now aria-disabled rather than
+					// natively disabled, so it stays focusable — which means it is
+					// also clickable, and the browser WILL flip its checked state.
+					// Refuse the change and restore the derived value. Without this
+					// guard the a11y improvement would have made a display-only row
+					// editable, writing a derived value into the model: worse than
+					// the problem it fixes.
+					if ( 'true' === cb.getAttribute( 'aria-disabled' ) ) {
+						cb.checked = true; // locked rows are always derived-checked
+						return;
+					}
 					var set = getSet();
 					if ( cb.checked ) {
 						if ( set.indexOf( roleKey ) === -1 ) { set.push( roleKey ); }
@@ -1068,8 +1079,17 @@
 					// class): a bare disabled checkbox conveys nothing to assistive
 					// tech, so the "already hidden via the parent" reason is exposed
 					// programmatically, not just visually via the title tooltip.
-					hint = el( 'span', 'maestro-vis-locked-hint screen-reader-text' );
+					//
+					// Phase 25 (M2): the reason is now a DESCRIPTION, referenced by
+					// aria-describedby, rather than part of the control's accessible
+					// NAME. "Editor, checkbox, already hidden because…" conflates what
+					// the control IS with why it is unavailable; a description is what
+					// screen readers announce after the name, which is the right shape
+					// for a reason.
+					hint     = el( 'span', 'maestro-vis-locked-hint screen-reader-text' );
+					hint.id  = 'maestro-vis-lockhint-' + ( ++groupIdSeq ) + '-' + roleKey.replace( /[^\w-]/g, '' );
 					row.appendChild( hint );
+					cb.setAttribute( 'aria-describedby', hint.id );
 				}
 
 				group.appendChild( row );
@@ -1090,12 +1110,20 @@
 
 					if ( locked ) {
 						// Derived display only — never touches getSet()/setSet().
-						r.cb.checked  = true;
-						r.cb.disabled = true;
+						r.cb.checked = true;
+						// Phase 25 (M2): aria-disabled, NOT native `disabled`.
+						// A natively-disabled control is removed from the tab order,
+						// which means a screen-reader user in FOCUS mode never lands
+						// on it and never hears why it is locked — the description
+						// below would exist and never be announced. aria-disabled
+						// conveys the same state while keeping the row reachable;
+						// the change handler refuses the toggle, so the value still
+						// cannot move.
+						r.cb.disabled = false;
 						r.cb.setAttribute( 'aria-disabled', 'true' );
 						r.row.classList.add( 'maestro-vis-locked' );
 						var reason = opts.lockedHint( roleKey );
-						r.hint.textContent = ' ' + reason;
+						r.hint.textContent = reason;
 						r.row.title = reason;
 					} else {
 						r.cb.checked  = getSet().indexOf( roleKey ) !== -1;
@@ -1448,10 +1476,15 @@
 			var focusable = pop.querySelectorAll(
 				'input, button, [tabindex]:not([tabindex="-1"])'
 			);
-			// COMPAT-10: a derived-locked checkbox is disabled and never actually
-			// receives focus, so it must be excluded here too — otherwise it would
-			// be wrongly treated as the tab-trap's `first`/`last` boundary and the
-			// wraparound would silently fail to fire.
+			// Excludes genuinely disabled controls (e.g. Reset Item on an
+			// unmodified row), which never receive focus and would otherwise be
+			// wrongly treated as the trap's `first`/`last` boundary, silently
+			// breaking the wraparound.
+			//
+			// Phase 25 (M2) NOTE: a derived-LOCKED checkbox is no longer among
+			// them. It is `aria-disabled` rather than natively disabled precisely
+			// so it stays reachable, and it is therefore a legitimate tab stop
+			// here — that is the fix working, not a leak.
 			focusable = Array.prototype.filter.call( focusable, function ( n ) {
 				return ! n.hidden && ! n.disabled && n.offsetParent !== null;
 			} );
@@ -1526,6 +1559,15 @@
 				if ( ! pop.contains( e.target ) && e.target !== anchorBtn ) {
 					pop.remove();
 					document.removeEventListener( 'click', handler );
+					// Phase 25 (M3): return focus to the anchor, mirroring what the
+					// Escape handler already does. Without this, dismissing by
+					// clicking away drops focus to <body> and a keyboard user has to
+					// tab back from the top of the document — WCAG 2.4.3, and an
+					// inconsistency INSIDE one component, which is the kind users
+					// experience as the thing being broken rather than merely spare.
+					if ( anchorBtn && document.contains( anchorBtn ) ) {
+						anchorBtn.focus();
+					}
 				}
 			} );
 		}, 0 );
