@@ -38,3 +38,20 @@ jobs:
           files: build/maestro-menu-editor.zip
           generate_release_notes: true
           fail_on_unmatched_files: true
+
+  # Deploy to WordPress.org by CALLING the deploy workflow, not by publishing a
+  # Release and hoping the `release: published` event starts it. It does not: the
+  # step above authenticates as the default GITHUB_TOKEN, and GitHub does not start
+  # workflow runs from GITHUB_TOKEN-generated events. That dead trigger is why every
+  # deploy in this repo's history was manual. See wp-deploy.yml's trigger comment.
+  #
+  # `needs: release` means a failed build, a failed tag/version check, or a failed
+  # Release publish all stop the deploy — wp.org is never reached by a tag that did
+  # not pass the gate above.
+  deploy:
+    name: Deploy to WordPress.org
+    needs: release
+    uses: ./.github/workflows/wp-deploy.yml
+    with:
+      tag: ${{ github.ref_name }}
+    secrets: inherit

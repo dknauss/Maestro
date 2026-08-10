@@ -1,20 +1,44 @@
 name: Deploy to WordPress.org
 
+# TRIGGERS — read this before adding a third one.
+#
+# This workflow used to declare `release: types: [published]`. That trigger NEVER
+# FIRED, in six consecutive releases: `release.yml` publishes the Release with the
+# default GITHUB_TOKEN, and GitHub deliberately does not start workflow runs from
+# GITHUB_TOKEN-generated events. Every deploy in this repo's history was a manual
+# workflow_dispatch, and STATE.md carried "remember the manual step" as a standing
+# lesson for four releases — scar tissue over a trigger that could not work.
+#
+# It is replaced by `workflow_call`: release.yml now invokes this workflow
+# DIRECTLY as a dependent job, so there is no event in the middle to be swallowed.
+# workflow_dispatch stays, deliberately — it is how you re-deploy a tag whose
+# commit predates these workflows, and how you recover if a deploy half-fails.
 on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Git tag to deploy (e.g. v1.1.1). Leave blank when triggered by a release."
+        description: "Git tag to deploy (e.g. v1.1.1). Leave blank to use the ref this was dispatched from."
         required: false
         default: ""
-  release:
-    types: [published]
+  workflow_call:
+    inputs:
+      tag:
+        description: "Git tag to deploy (e.g. v1.1.1), passed by release.yml."
+        required: true
+        type: string
+    secrets:
+      WP_ORG_SVN_USERNAME:
+        required: true
+      WP_ORG_SVN_PASSWORD:
+        required: true
 
 permissions:
   contents: read
 
 concurrency:
-  group: wporg-deploy-${{ github.event.inputs.tag || github.ref_name }}
+  # `inputs` covers BOTH workflow_dispatch and workflow_call; `github.event.inputs`
+  # would be null on a call and silently collapse every release into one group.
+  group: wporg-deploy-${{ inputs.tag || github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -22,11 +46,30 @@ jobs:
     name: Deploy to WordPress.org SVN
     runs-on: ubuntu-latest
 
+    # THE HUMAN GATE. Everything above this line is automatic — tag push, build,
+    # version check, Release publish — and then this job STOPS and waits for an
+    # approval on the `wordpress-org` environment before anything reaches wp.org.
+    #
+    # This is the deliberate answer to a real tension. Wiring the deploy directly
+    # (see the trigger comment above) fixes a step that was silently forgotten six
+    # times; but it would also mean a pushed tag publishes to users with no human
+    # in the loop. The environment gate keeps the automation — the run is sitting
+    # there, notified, impossible to forget — while keeping the final confirm.
+    #
+    # ⚠️ The gate is only real because the environment EXISTS with a required
+    # reviewer (created 2026-08-10, reviewer: dknauss). If a workflow names an
+    # environment that does not exist, GitHub AUTO-CREATES IT WITH NO PROTECTION
+    # RULES and the job sails straight through. Deleting or recreating this
+    # environment without reviewers silently converts this line into a no-op —
+    # there is no error, and the deploy simply stops asking.
+    environment: wordpress-org
+
     steps:
-      # Resolve which ref/version to ship. On a release event the tag comes from
-      # github.ref_name; on manual dispatch it comes from the `tag` input. This
-      # lets us deploy a tag whose commit predates these workflows (e.g. v1.0.0),
-      # since the workflow file itself is read from the dispatched ref (main).
+      # Resolve which ref/version to ship. The `tag` input carries it on both a
+      # workflow_call (release.yml passes github.ref_name) and a manual dispatch;
+      # github.ref_name is the fallback when a dispatch leaves it blank. This lets
+      # us deploy a tag whose commit predates these workflows (e.g. v1.0.0), since
+      # the workflow file itself is read from the dispatched ref (main).
       - name: Resolve ref + version
         id: meta
         env:
@@ -34,7 +77,12 @@ jobs:
           # of interpolating ${{ }} straight into the script body — GitHub sets
           # these as env values, so no dispatch input can break out of the string
           # and inject shell.
-          INPUT_TAG: ${{ github.event.inputs.tag }}
+          #
+          # `inputs.tag`, NOT `github.event.inputs.tag`: the latter is null on a
+          # workflow_call, which would silently fall through to github.ref_name.
+          # That happens to be correct today (the caller is a tag push) but only by
+          # accident, and it would break the moment anything else calls this.
+          INPUT_TAG: ${{ inputs.tag }}
           REF_NAME: ${{ github.ref_name }}
         run: |
           REF="$INPUT_TAG"
