@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Per-User Visibility
 status: in-progress
-stopped_at: "v1.5.0 prepared on main (26-01/02/03 merged) — TAG HELD: Gate 8 independent review never ran (Codex quota exhausted)"
+stopped_at: "v1.5.0 hold cleared — Gate 8 satisfied via ultrareview (3 findings, fixed in #128); ready to tag"
 last_updated: "2026-08-09T00:00:00.000Z"
 last_activity: "2026-08-08 — **Phase 21 (ROLE-02 per-user hiding) executed, 5/5 plans, awaiting the human-verify checkpoint.** Branch `phase/21-cosmetic-per-user-hiding`, PR #120, nothing merged. Delivered: `hidden_users` / `child_hidden_users` storage; the `is_hidden_for_current_user()` seam widened to independent OR'd terms (3rd term reserved for the deferred `hidden_profiles`); `resolved_hidden_roles()` GENERALIZED to a field-parameterized resolver rather than duplicated, so the user axis inherits the qualified-key, schema-v2 (#115) and Axis-1 guards from one implementation; a shared `Cascade` union; the §6 cosmetic-invariant guardrail made enforcing; editor model exposure as id+name pairs via one batched query; four-group visibility popover with an async person picker on core's `wp/v2/users`. Gate: unit 165/165 (218), integration 109/109 (257), JS 83/83, e2e 39 passed/28 capture-skipped/0 failed, WPCS clean, PHPStan 0, Plugin Check 0 errors on the ZIP (1 pre-existing readme warning). THREE bugs found by verification that no unit test would have caught: (1) the guardrail initially could NOT detect a broken seam — `current_user_can()` answers from a cached allcaps array, so `snapshot_caps()` now drops `$GLOBALS['current_user']` to force re-derivation; (2) the picker URL appended `?` unconditionally, 404ing on every PLAIN-PERMALINK site since `rest_url()` already carries a query string; (3) clicking a search result or chip closed the whole popover, because re-rendering detached the node before `placePopover()`'s outside-click handler ran. Ruling recorded 2026-08-08: the super-admin exemption covers the NEW user axis only, multisite-scoped (unscoped would make administrators un-hideable on single-site and contradict the locked self-target decision). Prior: 2026-08-05 — **v1.4.1 SHIPPED** (PR #116, tag on c6cdcbe; wp.org API confirms 1.4.1). Patch for the shared-slug propagation defect (#115): a bare top-level key no longer applies to a submenu row whose slug names a rendered top-level item. Two Codex P2 rounds on #115 — the first cut of the gate tested `$nk === $norm_parent` and missed submenus parked under an unrelated parent; widened to `isset( $top_rendered_matches[ $nk ] )`. Prior: 2026-08-04 — **v1.4.0 SHIPPED** (PR #113, tag on 482510c, GitHub Release + wp.org SVN trunk/tags/1.4.0/assets confirmed). Phase 24 release gates 8–11 run consolidated over the full v1.3.1..main diff; one defect found and fixed (multibyte truncation blanked labels) and one changelog overclaim corrected (shared-slug isolation is submenu-direction only). ROLE-02 (Phase 21) deferred to v1.5."
 progress:
@@ -31,31 +31,43 @@ Plan: Phase 21 delivered ROLE-02's **per-user half**: 21-01 storage → 21-02 se
 Status: Phase 20's COMPAT-10 was reworked mid-checkpoint 2026-08-02: the boolean `cascade_hide` + "rides the parent hide" model built in 20-05/20-06 was found **inert** — WordPress core's `_wp_menu_output()` never renders a hidden parent's `<ul class="wp-submenu">` at all, so hiding the parent already removes the whole subtree cosmetically; cascading on top of that produced no observable difference. Reworked (20-CONTEXT.md REVISION NOTE) into an **independent** per-parent `child_hidden_roles` role set: `Maestro\Cascade::effective_hidden_roles( $child_hidden_roles, $parent_child_hidden_roles )` is now a plain, unconditional role-list union (no flag). `Config::sanitize()` accepts `child_hidden_roles` on a top-level item with the same contract as `hidden_roles` (role-intersect, `MAX_HIDDEN_ROLES` cap, dropped on a qualified submenu key). `Replay::replay()`'s submenu loop unions each child's own `hidden_roles` with its parent's `child_hidden_roles`, fully independent of whether the parent's own `hidden_roles` currently hides the parent row — so a parent can stay visible while its children vanish, a genuinely observable effect the old model could never produce. `get_menu_model()` exposes `childHiddenRoles` (empty array, not merely absent, for an untouched parent). The editor popover now shows TWO independent role-checkbox groups — "Hide this item from:" (existing) and "Hide its sub-items from:" (new, shown only on parents with children) — via a shared `buildRoleGroup()` helper in `assets/maestro.js`. The e2e spec (`cascade-hide.spec.ts`) now asserts the effect DIRECTLY against the rendered sidebar (parent visible, child rows gone, role-mirrored) via a second authenticated browser context, replacing the inert model's wp-cli/`$submenu` dump workaround (`dump-cascade-submenu.php`, deleted). Cosmetic-only guardrail reconfirmed end-to-end. **Full zero-regression gate (final):** PHP unit 127/127 (158 assertions), PHP integration 72/72 (172 assertions), JS 58/58, e2e 35 passed/28 capture-gated skipped/0 failed, WPCS clean, PHPStan 0 errors, Plugin Check 0 errors on the built shippable ZIP (1 pre-existing readme.txt warning) and 0 NEW errors on the dev-tree (7 errors/7 warnings, all pre-existing, confirmed via `git log --diff-filter=A` to predate Phase 20). All three Phase 20 requirements (COMPAT-04/07/10) genuinely complete. 20-04 (prior) delivered COMPAT-07 badge/HTML preservation on rename via `Maestro\Title::replace_label()`'s text-node swap at both title-write seams. 20-03 (prior) closed out COMPAT-04 client-side with the qualified-key DOM-join and live WooCommerce verification. 20-02/20-01 (prior) built COMPAT-04's server-side qualified-key foundation and replay/editor-model wiring. Phase 19 ROLE-01 signed off — **partial-go** (per-user go + ship first; cloned-role go as an additive `profiles` registry compiling to the same inline `is_hidden_for_current_user()` seam); Phase 21 unblocked. Phase 23 delivered UX-09/UX-12/UX-13/BUG-08 (native wp-admin restyle; 5/5 plans; full-suite gate green) and shipped in v1.3.1. **NOTE for Phase 24:** Plugin Check flags 7 errors/7 warnings against pre-existing dev-tree root files — logged to `phases/23-editor-ux-polish/deferred-items.md` for the Phase 24 build-then-check pipeline.
 Last activity: 2026-08-09 — Phase 21 merged to `main` (PR #120, merge commit). Two Codex review rounds landed first: round 1 caught a self-target undo trap, the `list_users` gap, and an unenforced 50-user cap; round 2 caught that the `list_users` fix was **client-side only** (an editor could POST guessed IDs and read display names back from the model), plus an unbounded all-users query on every save. Both rounds fixed and CI-green. Codex has NOT reviewed the round-2 fixes themselves.
 
-## ⛔ v1.5.0 IS PREPARED BUT NOT TAGGED (2026-08-09)
+## ✅ THE TAG HOLD IS CLEARED (2026-08-09)
 
-`main` reads version 1.5.0 with the changelog, screenshots and gate work merged
-(PRs #122, #123, #124). **The tag is deliberately held**: Gate 8, the independent
-code review, never ran — Codex hit its usage limit and posted a quota notice
-with zero reviews and zero comments.
+Gate 8 ran. `/code-review ultra` against PR #127 (a review-only PR based on the
+`v1.4.1` tag, so the diff was the whole release) returned **three findings, all
+real**, fixed in #128 and merged as `707d9b6`.
 
-The hold is not procedural tidiness. Gate 10 found **two** real defects in code
-that had already passed my own review, and the second was a hole in my fix for
-the first:
+**It found the two paths I had missed**, on the exact invariant the review
+request asked it to attack:
 
-1. A delegated editor's ordinary autosave silently destroyed per-user rules they
-   could not see (payload-scoped preserve was never sufficient).
-2. The fix for that re-attached under the raw stored key, so a
-   normalizing-equivalent key produced two entries for one item — which the
-   Axis-1 guard resolves to "apply nothing", leaving the rule stored but inert
-   while the config looked healthy.
+1. **MAX_ITEMS starvation** — silent. A payload of 200 title-only junk entries
+   filled every slot, so the restore had nowhere to land and every protected
+   per-user rule died to one crafted POST.
+2. **The DELETE endpoint** bypassed the gate entirely — every sanitize-side fix
+   round lived on the POST path, while `Config::reset()` wiped unconditionally.
 
-Three consecutive confident-but-wrong self-assessments of one function
-(`Config::sanitize()`'s per-user path, now four interacting behaviours). A
-fourth self-review is the least informative option available.
+Plus two nits, both genuine: `resetItem()` had drifted behind `resetSelected()`
+(and its round-trip test was passing *vacuously*, so it could never have caught
+that), and the `.maestro-has-hidden` marker cleared on the wrong condition.
 
-**Before tagging:** run `/code-review ultra 124` or an equivalent independent
-pass, and address what it finds. If the decision is to ship without it, record
-that as a deliberate choice — do not let it read as a satisfied gate.
+**The fix collapsed rather than patched.** Preserve-on-submit, restore-on-omit
+and merge-on-equivalent-key were three mechanisms doing one job — which is
+precisely why a fourth path kept getting through. They are now one normalized-key
+map with reserved item-cap capacity, so starvation is impossible by construction,
+and `reset()` shares the map so the two endpoints cannot drift apart again.
+
+**The record this leaves:** four consecutive holes in one function, every one
+found by review rather than by me, and after each fix I believed the path was
+settled. The gate earned its place; the hold was correct.
+
+### Caveats that survive into the milestone record
+
+- The #128 fixes are themselves unreviewed — the ultrareview ran against
+  `1a32f08`. Accepted deliberately: the collapse removed a class of seam rather
+  than adding another guard.
+- No human screen-reader pass on the person picker. axe is clean across empty and
+  populated states, which is not the same thing.
+- 21-05 Task 5 (human browser verification) was never performed.
 
 ### The two carried gaps — one closed, one only narrowed (2026-08-09)
 
