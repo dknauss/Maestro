@@ -4,7 +4,7 @@ Donate link: https://github.com/sponsors/dknauss
 Tags: admin menu, admin menu editor, menu editor, hide menu items, menu icons
 Requires at least: 6.4
 Tested up to: 7.0
-Stable tag: 1.5.0
+Stable tag: 1.5.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -156,6 +156,14 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 
 == Changelog ==
 
+= 1.5.1 =
+* **Fixed: the edit-mode toolbar no longer shifts while a change saves.** The save status now sits in a reserved slot, so the rename field stays where it is instead of sliding sideways every time a save cycles through "Saving…" and "Saved".
+* **Accessibility: a locked sub-item role is now reachable, and says why it is locked.** When a role is already hidden at the parent level, that role's checkbox under "Hide its sub-items from:" is shown as locked. It was previously skipped by keyboard and screen-reader navigation entirely — so the explanation was written for assistive technology but could never actually be heard. It is now reachable and announces its reason. The value still cannot be changed.
+* **Accessibility: dismissing the visibility popover by clicking outside it now returns focus** to the button that opened it, matching what pressing Escape already did. Previously focus fell to the top of the page and a keyboard user had to tab back.
+* The focus outline on edit-mode toolbar buttons is lighter, giving a clearer ring against dark admin colour schemes.
+* **Fixed: an override could look applied in the editor when it was not being applied.** On a site where two menu rows resolve to the same address — the same screen registered twice with different version or tracking parameters — the visibility popover could show roles as checked while the menu itself ignored the rule, and saving from that state could store what the popover showed. The editor now applies nothing for an ambiguous row, exactly as rendering the menu already did.
+* Internal: a stored override key carrying an HTML-encoded `>` is now classified consistently as a top-level or a sub-item key.
+
 = 1.5.0 =
 * **New: hide menu items from specific people, not just roles.** The visibility popover now has a search box for people alongside the role lists. Type a name, pick them, and the item disappears from that person's admin menu only — everyone else with the same role still sees it. You can target several people, and on an item with sub-items you can hide the sub-items per person while the parent stays visible. Use it when a role is the wrong unit: one editor on a team of editors who doesn't need a particular tool.
 * **Still cosmetic, exactly like hiding by role.** This changes what someone sees, never what they can do. A hidden page still opens normally for anyone who types its URL and holds the capability it requires, and no capability is added or removed by any rule. If you need to actually restrict access, pair Maestro with a capability manager — hiding a menu item is not a security measure.
@@ -220,6 +228,9 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 * Editor: click-to-select with a shared panel, debounced single-flight autosave, and folded-mode neutralization.
 
 == Upgrade Notice ==
+
+= 1.5.1 =
+Fixes a toolbar that shifted sideways while saving, and three editor accessibility gaps. Also fixes a rare case where the visibility popover could show a rule as active while the menu ignored it, and saving could then store it. No configuration changes; existing overrides are untouched.
 
 = 1.5.0 =
 Adds hiding menu items from specific people, alongside hiding by role — on items and their sub-items. Still cosmetic only: a hidden page still opens by URL for anyone allowed to see it, and no capability changes. Existing role rules are untouched.

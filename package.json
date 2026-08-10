@@ -1,6 +1,6 @@
 {
 	"name": "maestro",
-	"version": "1.5.0",
+	"version": "1.5.1",
 	"private": true,
 	"description": "Tooling for Maestro: The Inline Admin Menu Editor: wp-env, PHP integration tests, Playwright E2E.",
 	"scripts": {
