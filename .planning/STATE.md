@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Per-User Visibility
 status: shipped
-stopped_at: "v1.5.0 SHIPPED to WordPress.org (tag v1.5.0 on 694b1bf, SVN verified). Milestone recorded; next milestone not yet opened."
-last_updated: "2026-08-09T00:00:00.000Z"
+stopped_at: "v1.5.0 shipped. UNRELEASED work now on main (Phase 25 + 3 Phase-20 correctness fixes) awaiting a v1.5.1 patch. Phases 27 and 28 planned and unblocked; no milestone open."
+last_updated: "2026-08-10T00:00:00.000Z"
 last_activity: "2026-08-08 — **Phase 21 (ROLE-02 per-user hiding) executed, 5/5 plans, awaiting the human-verify checkpoint.** Branch `phase/21-cosmetic-per-user-hiding`, PR #120, nothing merged. Delivered: `hidden_users` / `child_hidden_users` storage; the `is_hidden_for_current_user()` seam widened to independent OR'd terms (3rd term reserved for the deferred `hidden_profiles`); `resolved_hidden_roles()` GENERALIZED to a field-parameterized resolver rather than duplicated, so the user axis inherits the qualified-key, schema-v2 (#115) and Axis-1 guards from one implementation; a shared `Cascade` union; the §6 cosmetic-invariant guardrail made enforcing; editor model exposure as id+name pairs via one batched query; four-group visibility popover with an async person picker on core's `wp/v2/users`. Gate: unit 165/165 (218), integration 109/109 (257), JS 83/83, e2e 39 passed/28 capture-skipped/0 failed, WPCS clean, PHPStan 0, Plugin Check 0 errors on the ZIP (1 pre-existing readme warning). THREE bugs found by verification that no unit test would have caught: (1) the guardrail initially could NOT detect a broken seam — `current_user_can()` answers from a cached allcaps array, so `snapshot_caps()` now drops `$GLOBALS['current_user']` to force re-derivation; (2) the picker URL appended `?` unconditionally, 404ing on every PLAIN-PERMALINK site since `rest_url()` already carries a query string; (3) clicking a search result or chip closed the whole popover, because re-rendering detached the node before `placePopover()`'s outside-click handler ran. Ruling recorded 2026-08-08: the super-admin exemption covers the NEW user axis only, multisite-scoped (unscoped would make administrators un-hideable on single-site and contradict the locked self-target decision). Prior: 2026-08-05 — **v1.4.1 SHIPPED** (PR #116, tag on c6cdcbe; wp.org API confirms 1.4.1). Patch for the shared-slug propagation defect (#115): a bare top-level key no longer applies to a submenu row whose slug names a rendered top-level item. Two Codex P2 rounds on #115 — the first cut of the gate tested `$nk === $norm_parent` and missed submenus parked under an unrelated parent; widened to `isset( $top_rendered_matches[ $nk ] )`. Prior: 2026-08-04 — **v1.4.0 SHIPPED** (PR #113, tag on 482510c, GitHub Release + wp.org SVN trunk/tags/1.4.0/assets confirmed). Phase 24 release gates 8–11 run consolidated over the full v1.3.1..main diff; one defect found and fixed (multibyte truncation blanked labels) and one changelog overclaim corrected (shared-slug isolation is submenu-direction only). ROLE-02 (Phase 21) deferred to v1.5."
 progress:
   total_phases: 6
@@ -400,6 +400,43 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-08-02T15:43:40.067Z
-Stopped at: Phase 21 context gathered
-Resume file: .planning/phases/21-cosmetic-per-user-cloned-role-hiding/21-CONTEXT.md
+Last session: 2026-08-10
+Stopped at: planning complete for Phases 27 + 28; nothing in flight
+
+**START HERE — the state in one paragraph.** v1.5.0 is live on WordPress.org.
+`main` carries work that is NOT yet released: Phase 25 (toolbar polish, human-
+verified) and the three Phase 20 correctness fixes. A **v1.5.1 patch is the
+obvious next release** and clears the decks before new phases land on top. Two
+phases are fully planned and unblocked — **Phase 28 (menu width + fold honesty)**
+and **Phase 27 (cloned-role profiles, completes ROLE-02)**. Phase 22 (Playground
+demo) is scoped but never planned. 10 todos pending, 2 of them explicitly
+ignorable.
+
+**Recommended order:** v1.5.1 patch → Phase 28 → Phase 27. Phase 28 is the
+lighter lift, its 28-01 ships value alone by fixing a live defect, and it proves
+the shared modal shell with a single scalar before Phase 27 puts CRUD in one.
+
+**Two decisions were made 2026-08-10 that unblock both phases — read them before
+re-opening either question:**
+- `.planning/DECISION-settings-surface.md` — menu-wide features get a toolbar
+  icon opening a modal (Profiles, Settings); per-item stays in the per-item
+  panel; **no wp-admin settings page, ever**; two icons is the budget.
+- The fold story, recorded in
+  `todos/pending/2026-08-10-toolbar-height-and-collapse-menu-parity.md` — edit
+  mode keeps forcing unfold, but `#collapse-menu` stops pretending to work. The
+  "fold versus width conflict" flagged on 2026-08-09 was mis-framed and is
+  **withdrawn**: `160px` is just hardcoded in three places.
+
+**Three things carried, not resolved** (also in the v1.5.0 milestone entry):
+1. The #128 fixes shipped **unreviewed** — the ultrareview ran against the prior commit.
+2. **No human screen-reader pass** on the person picker; axe is clean, which is not the same claim.
+3. 21-05 Task 5 (human browser verification) was never performed; the phase was accepted on automated evidence.
+
+**Environment gotcha:** another project's wp-env on this machine has claimed
+8888/8889 and at times 8899. Check which ports are free before `wp-env start`,
+use `WP_ENV_PORT` / `WP_ENV_TESTS_PORT` to move, and remember Playwright needs
+`WP_ENV_TESTS_PORT` passed separately — it reads it independently of wp-env.
+**Do not stop the other project's containers.**
+
+Resume file: `.planning/ROADMAP.md` (Phase 28 details), then
+`.planning/phases/28-configurable-admin-menu-width/28-01-PLAN.md`
