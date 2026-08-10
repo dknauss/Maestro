@@ -329,6 +329,15 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
+- **Reconcile the SPEC/PROJECT V2 backlog against the todo system** — there are
+  TWO backlogs and they disagree; only 2 of 10 V2-xx items ever crossed into
+  `todos/pending`. SPEC.md item 11 / V2-12 ("UI/UX design polish") reads as open
+  but was delivered by Phase 23 as UX-13 — the same stale-entry failure mode that
+  Phase 25's criterion 1 had, caught there only because 25-01 was written as an
+  audit. V2-09 (menu width) and V2-10 (toolbar editing) are real unbuilt UX work
+  that has never been schedulable. Captured in
+  `todos/pending/2026-08-09-reconcile-v2-backlog-with-todos.md`
+
 - **Named config presets + JSON export/import** — v1.5 candidate; supersedes/extends V2-06 (SPEC.md Roadmap item 6). Research captured in `todos/pending/2026-07-03-config-presets-export-import.md`
 - **Declutter switch (non-core menu items → bottom section)** — v1.5 candidate; needs discuss/feasibility pass (top_order precedence, CPT handling). Research captured in `todos/pending/2026-07-03-declutter-switch-non-core-menu-items.md`
 - ~~**Research Admin Menu Editor (Jānis Elsts) prior art**~~ — ✅ DONE 2026-08-01 (pulled forward from v1.5 to feed Phase 20). Findings note: `compat/PRIOR-ART-admin-menu-editor.md` (adopt/avoid/differentiate; AME 1.15.1 source read). Key inputs to Phase 20: COMPAT-04 → adopt AME's parent-scoped `parent>child` submenu identity; COMPAT-07 → split editable label from preserved title markup; COMPAT-10 → no prior art, Maestro-original. Cosmetic-only stays Maestro's differentiator (AME conflates hide with access). Todo moved to `todos/completed/`.
