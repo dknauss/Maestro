@@ -18,6 +18,13 @@ Admin Menu Editor (300k+ installs) gates JSON import/export behind Pro
 ($49–179) and has **no** named/switchable preset system even in Pro (confirmed
 2026-07-03 against their Permissions/CLI/changelog docs).
 
+> **Re-verify that claim before scoping.** It was checked against AME's docs on
+> 2026-07-03, before the 2026-08-01 source read, and it is the single load-bearing
+> market fact in this todo. [[2026-08-10-ame-feature-surface-research]] will
+> enumerate AME free/Pro/add-ons row by row — take the preset and import/export
+> rows from that matrix rather than re-deriving them here, and correct this
+> paragraph if the matrix disagrees.
+
 ## Solution (research done 2026-07-03, not yet scoped)
 
 The config is already preset-shaped: a sparse delta `{items, top_order,
