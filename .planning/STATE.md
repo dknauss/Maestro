@@ -376,6 +376,14 @@ Recent decisions affecting current work:
   and arbitrary SVG upload, which is a security feature wearing a UI feature's
   clothes and wants its own pass. `todos/pending/2026-08-09-icon-picker-remaining-scope.md`
 
+- **AME feature-surface research** — the 2026-08-01 prior-art spike was
+  *architectural*, scoped to Phase 20; its four-bullet market-gap list is now spent
+  (import/export queued, reparenting out of scope, per-role deny shipped, inline UX
+  is the premise). A second pass would inventory AME free/Pro/add-ons as a **product**
+  and sort each feature into have-it / deliberately-not / already-queued /
+  unclaimed / anti-feature. Deliverable is a NOTE, and "nothing worth adopting" is a
+  legitimate verdict. Worth doing because after Phases 27/28 there is no milestone.
+  `todos/pending/2026-08-10-ame-feature-surface-research.md`
 - **Named config presets + JSON export/import** — v1.5 candidate; supersedes/extends V2-06 (SPEC.md Roadmap item 6). Research captured in `todos/pending/2026-07-03-config-presets-export-import.md`
 - **Declutter switch (non-core menu items → bottom section)** — v1.5 candidate; needs discuss/feasibility pass (top_order precedence, CPT handling). Research captured in `todos/pending/2026-07-03-declutter-switch-non-core-menu-items.md`
 - ~~**Research Admin Menu Editor (Jānis Elsts) prior art**~~ — ✅ DONE 2026-08-01 (pulled forward from v1.5 to feed Phase 20). Findings note: `compat/PRIOR-ART-admin-menu-editor.md` (adopt/avoid/differentiate; AME 1.15.1 source read). Key inputs to Phase 20: COMPAT-04 → adopt AME's parent-scoped `parent>child` submenu identity; COMPAT-07 → split editable label from preserved title markup; COMPAT-10 → no prior art, Maestro-original. Cosmetic-only stays Maestro's differentiator (AME conflates hide with access). Todo moved to `todos/completed/`.
