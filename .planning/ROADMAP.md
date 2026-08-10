@@ -150,6 +150,7 @@ Full phase details, success criteria, and outcomes are archived in
 - [x] **Phase 23: Editor UX Polish** — native wp-admin restyle of all edit-mode surfaces (UX-13, added 2026-07-03), semantic-colour borders removed (UX-12 verdict), first-run banner centering (BUG-08) — complete 2026-07-05
 - [x] **Phase 24: Release v1.4.0** — cut and shipped to WordPress.org 2026-08-04 (tag `v1.4.0` on `482510c`, PR #113); editor + directory screenshots recaptured. Patch **v1.4.1** followed 2026-08-05 (tag on `c6cdcbe`, PR #116) for the shared-slug propagation defect. Shipped WITHOUT Phases 21 and 22 — see the outcome note below
 - [x] **Phase 25: Edit-Mode Toolbar Dark-Surface Polish** — ✅ COMPLETE 2026-08-09 (2/2 plans; human-verified). Audit struck 1 of 5 criteria as already satisfied, downgraded 1 from fix to choice, absorbed 1. Shipped: reserved status slot, focus ring 3.07:1 → 6.74:1, a11y M2/M3. Original text follows — dark-toolbar icon/focus contrast (WCAG 1.4.11), save-indicator layout shift, rename commit feedback (added 2026-08-02; pre-existing v1.3.1 surfaces, non-blocking for v1.4.0)
+- [ ] **Phase 27: Cloned-Role Hiding Profiles** — completes ROLE-02's deferred half: a named, Maestro-internal hiding profile that compiles onto an inline `hidden_profiles` axis and resolves through the seam slot Phase 21 reserved at `class-replay.php:510` (planned 2026-08-10)
 
 ### Phase 19: Cosmetic Hiding Feasibility
 **Goal**: It is known, before any implementation, whether per-user and/or cloned-role menu hiding can be delivered without touching capabilities — and if so, how it should be stored and resolved
@@ -295,6 +296,28 @@ M2/M3 items from `todos/pending/2026-08-02-a11y-locked-checkbox-refinements.md`.
 
 
 ---
+
+### Phase 27: Cloned-Role Hiding Profiles
+**Goal**: An admin can name a reusable hiding profile ("Reduced view"), assign people to it, and apply it to menu items — cosmetically, with membership resolved live — completing ROLE-02
+**Depends on**: Phase 21 (built the seam slot, the field-parameterized resolver, and the bounded-axis sanitize shape this extends)
+**Requirements**: ROLE-02 (completion — currently PARTIAL since v1.5.0)
+**Success Criteria** (what must be TRUE):
+  1. A `profiles` map is the AUTHORING structure and **compiles** onto `items[slug].hidden_profiles`; nothing ever resolves the hide decision from the map itself (feasibility note §7's "one lookup, one seam, one audit point")
+  2. Profile membership is intersected LIVE each request, so adding or removing a person takes effect with no re-save and a deleted profile self-heals
+  3. Term 3 lands in the slot Phase 21 reserved — the seam remains ONE drop path per menu level, not a parallel resolve
+  4. The cosmetic-only invariant holds for the profiles axis exactly as for roles and users, proven by extending the existing §6 guardrail rather than a new one
+  5. Proven in a targeted user's OWN rendered sidebar, with a bystander outside the profile keeping every row
+  6. Zero regression: both integration lanes, unit, JS, e2e, WPCS, PHPStan, Plugin Check
+**Plans**: 27-01 decisions · 27-02 storage + compile · 27-03 seam + live membership · 27-04 editor · 27-05 e2e, gate, close ROLE-02
+
+> **27-01 is a decisions checkpoint, deliberately.** The feasibility note locked
+> storage and resolution in detail but left **authoring UX as "the main open
+> design question for a future discuss-phase"** — where profiles get created and
+> managed has no home today, since Maestro has never had a settings screen. It
+> also re-verifies the note's architecture against the code Phase 21 actually
+> shipped: the note cites line numbers from before v1.4.1 and Phase 21 both moved
+> things, and its assumption that term 3 is a list-intersect may not survive
+> contact, since membership is a property of the USER rather than the item.
 
 ## Phase Details (v1.5 — Per-User Visibility)
 
