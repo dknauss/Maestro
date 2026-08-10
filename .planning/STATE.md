@@ -66,8 +66,11 @@ settled. The gate earned its place; the hold was correct.
   `1a32f08`. Accepted deliberately: the collapse removed a class of seam rather
   than adding another guard.
 - No human screen-reader pass on the person picker. axe is clean across empty and
-  populated states, which is not the same thing.
-- 21-05 Task 5 (human browser verification) was never performed.
+  populated states, which is not the same thing. **Consolidated 2026-08-10 into
+  `todos/pending/2026-08-10-person-picker-screen-reader-pass.md`** — see the
+  reassessment below.
+- ~~21-05 Task 5 (human browser verification) was never performed.~~ **STRUCK
+  2026-08-10 as superseded** — see below.
 
 ### The two carried gaps — one closed, one only narrowed (2026-08-09)
 
@@ -93,6 +96,34 @@ violations; it cannot tell you whether the announcements make sense in sequence,
 whether the live-region timing is usable, or whether the four similarly-named
 groups are actually distinguishable in practice. A human with NVDA or VoiceOver
 remains worthwhile, and no automated result should be read as having replaced it.
+
+### Reassessed 2026-08-10 — the two remaining items are ONE task
+
+Both were carried as prose here rather than as a todo, which is how they survived
+two releases without moving. Reviewing them together:
+
+**21-05 Task 5 — STRUCK as superseded.** Phase 25 performed a genuine human pass
+in a live editor (`25-VERIFICATION.md`, 2026-08-09), and recorded itself as such
+precisely because this project had one checkpoint recorded the other way. It
+covered the toolbar and the locked-checkbox row. It did NOT cover the person
+picker or the four-group popover — so the residue is real, but it is the same
+residue as the screen-reader item, not a separate one.
+
+**The screen-reader item slightly WIDENED, and now owns the residue.** Phase 25's
+M2 change altered this same popover AFTER the v1.5.0 axe scan: the derived-locked
+checkbox went from natively `disabled` to `aria-disabled`, so a control that
+focus mode used to skip is now reachable and refuses its own toggle. That was the
+right fix — the lock reason was written for assistive technology and could never
+be heard while the row was skipped — but it changes tab order and announcement
+sequence in exactly the component that has never had a human pass, and a
+focusable-but-refusing control is not something automated tooling can evaluate
+for comprehensibility. axe passes over it either way.
+
+Both now live in `todos/pending/2026-08-10-person-picker-screen-reader-pass.md`
+as one task: one person, one sitting, VoiceOver or NVDA actually running.
+
+The original record of 21-05 Task 5 follows, kept because the distinction it
+draws is the reason both were written down.
 
 **21-05 Task 5 (human verification) — NOT PERFORMED AS SPECIFIED.** The plan
 marked it `autonomous: false` and called for a person driving the real editor in
@@ -166,10 +197,17 @@ not automatic and required a manual `workflow_dispatch`. Plan the step in.
 **Open, carried deliberately:**
 - ROLE-02's cloned-role "profiles" half is still deferred
   (`todos/pending/2026-08-02-cloned-role-hiding-profiles.md`)
-- Phase 22 (Playground demo) and Phase 25 (toolbar polish) remain open
-- The #128 fixes shipped unreviewed (the ultrareview ran against the prior commit)
-- No human screen-reader pass on the person picker
-- 21-05 Task 5 (human browser verification) was never performed
+- Phase 22 (Playground demo) remains open. ~~Phase 25 (toolbar polish)~~ —
+  ✅ COMPLETE 2026-08-09, SHIPPED in v1.5.1
+- The #128 fixes shipped unreviewed (the ultrareview ran against the prior commit).
+  **Still true as of v1.5.1** — the mechanism is intact in `main`, touched since
+  only by #138's 20-line entity-collision fix. Closing it needs `/code-review ultra`
+  over `1a32f08..707d9b6`, which is user-triggered.
+- No human screen-reader pass on the person picker → consolidated into
+  `todos/pending/2026-08-10-person-picker-screen-reader-pass.md`
+- ~~21-05 Task 5 (human browser verification) was never performed~~ — **STRUCK
+  2026-08-10 as superseded** by Phase 25's human pass; the residue merged into the
+  todo above
 
 ### Release Checklist (v1.4.0)
 
@@ -404,6 +442,14 @@ Recent decisions affecting current work:
   and arbitrary SVG upload, which is a security feature wearing a UI feature's
   clothes and wants its own pass. `todos/pending/2026-08-09-icon-picker-remaining-scope.md`
 
+- **Human screen-reader pass on the person picker** — consolidates the two
+  surviving v1.5.0 caveats into one task (21-05 Task 5 is struck as superseded by
+  Phase 25's human pass). axe is clean and still passing, which is not the same
+  claim: it cannot judge announcement sequence, live-region timing, or whether four
+  similarly-named groups are distinguishable by ear. Phase 25's M2 change made a
+  previously-skipped control focusable in that popover *after* the axe scan, so the
+  gap widened slightly. One person, one sitting, VoiceOver or NVDA actually running.
+  `todos/pending/2026-08-10-person-picker-screen-reader-pass.md`
 - **The release→deploy trigger is dead by construction** — `wp-deploy.yml`
   declares `release: types: [published]`, a path that has fired **zero times in
   six releases**; all six deploys were manual `workflow_dispatch`. Cause confirmed
@@ -473,10 +519,21 @@ re-opening either question:**
   "fold versus width conflict" flagged on 2026-08-09 was mis-framed and is
   **withdrawn**: `160px` is just hardcoded in three places.
 
-**Three things carried, not resolved** (also in the v1.5.0 milestone entry):
-1. The #128 fixes shipped **unreviewed** — the ultrareview ran against the prior commit.
-2. **No human screen-reader pass** on the person picker; axe is clean, which is not the same claim.
-3. 21-05 Task 5 (human browser verification) was never performed; the phase was accepted on automated evidence.
+**Reviewed 2026-08-10 — three carried items are now TWO, and both are actionable:**
+1. **The #128 fixes shipped unreviewed.** Verified still live: `707d9b6` changed
+   192 lines of `class-config.php` plus the logic modules, and that mechanism is
+   intact in `main` (touched since only by #138's 20 lines). It is the same
+   sanitize path in which the ultrareview found four consecutive holes, and it is
+   the one round no adversarial pass has ever seen. **Close with `/code-review
+   ultra` over `1a32f08..707d9b6`** — user-triggered and billed, so it needs Dan.
+   Highest value of the three, and the cheapest.
+2. **The screen-reader pass**, now a real todo rather than prose:
+   `todos/pending/2026-08-10-person-picker-screen-reader-pass.md`. It absorbed
+   item 3 and slightly widened — Phase 25's M2 change made a previously-skipped
+   control focusable in that same popover *after* the v1.5.0 axe scan.
+3. ~~21-05 Task 5 (human browser verification)~~ — **STRUCK as superseded.** Phase
+   25 did a genuine human pass (`25-VERIFICATION.md`); it covered the toolbar and
+   the locked-checkbox row, not the person picker. That residue is item 2.
 
 **Environment gotcha:** another project's wp-env on this machine has claimed
 8888/8889 and at times 8899. Check which ports are free before `wp-env start`,
