@@ -191,17 +191,34 @@ Coverage targets the seams most likely to break: the pure ordering logic (unit),
 
 ## Roadmap
 
+> **System of record.** This list is the *narrative* backlog — what Maestro might
+> become, and why. It is **not** the work queue. Anything actually scheduled must
+> have a file in `.planning/todos/pending/`, and that directory is authoritative
+> for what is being worked on.
+>
+> The two drifted apart badly enough to matter: as of 2026-08-09 only 2 of 10
+> V2-xx items had ever crossed over, and three entries here still read as open
+> after shipping (item 11 → Phase 23; item 5's icon-weight remainder → Phase 7;
+> V2-13/V2-14 → Phase 8). One of those nearly cost real work — Phase 25's scope
+> was drawn from a stale report and would have "fixed" a glyph colour that was
+> already correct, caught only because 25-01 was deliberately written as an audit.
+>
+> **So: when an item here ships, strike it here in the same change.** When one is
+> scheduled, give it a todo. An entry that is neither struck nor in the queue is
+> the failure mode this note exists to prevent.
+
+
 1. **Reparenting.** Move items between top-level and submenu. Requires hand-splicing the globals plus `parent_file`/`submenu_file` highlighting fixes — the known minefield. Highest-value v2 feature; gated on a solid highlighting strategy (study Admin Menu Editor's approach).
 2. **Separator management.** Add/move/delete separators, with a synthetic stable id scheme to survive plugin churn.
 3. ~~**Keyboard-accessible reordering.** Move-up/move-down controls and/or ARIA grab semantics, removing the mouse-only dependency.~~ **Done** — `Alt+ArrowUp`/`Alt+ArrowDown` keyboard reorder with polite/assertive `wp.a11y.speak()` announcements, chained focus retention, and `aria-keyshortcuts` on the selected row.
 4. ~~**Per-item reset in the UI surfaced as an explicit affordance** with a visible "modified" indicator diffing against pristine.~~ **Done** — non-color-only modified indicator (•glyph + screen-reader text, ≥5.5:1 contrast) driven by `maestroLogic.diffItem`; reset button keyboard-reachable and emphasised when the item is modified.
-5. ~~**Custom icon support.** Dashicons picker plus URL/SVG and `none`, with appropriate sanitization.~~ **Done** — the validator accepts all four native forms and the picker bundles dashicons + Bootstrap Icons. Remaining: media-library/URL input in the UI, arbitrary SVG upload with deep sanitisation, a `mask-image` path so bundled SVGs recolour with the admin scheme, and a heavier/solid bundled set (Bootstrap `*-fill` or Heroicons Mini) so bundled icons match dashicons' weight (V2-11 — the outline Bootstrap glyphs read thin next to dashicons).
+5. ~~**Custom icon support.** Dashicons picker plus URL/SVG and `none`, with appropriate sanitization.~~ **Done** — the validator accepts all four native forms and the picker bundles dashicons + Bootstrap Icons. Remaining: media-library/URL input in the UI, arbitrary SVG upload with deep sanitisation, a `mask-image` path so bundled SVGs recolour with the admin scheme. (V2-11, the heavier/solid bundled set, is **done** — Phase 7 shipped the fill-resolution policy in v1.1; see the header of [`includes/icons-bootstrap.php`](includes/icons-bootstrap.php)).
 6. **Import/export config** as JSON for staging→production parity and version control.
-7. **Optional enforcement bridge.** Not built-in access control, but a documented, opt-in handoff that sets a hidden item's required capability *in concert with* a capability manager — clearly labelled as defense-in-depth, never as the primary lock.
+7. **Optional enforcement bridge.** ⚠️ **IN TENSION — needs a decision, not implementation.** REQUIREMENTS.md lists "real access control / enforced tiers" as Out of Scope, and the core value is that Maestro never changes a capability. This item has Maestro *setting* one. Either it is genuinely out of scope and belongs there, or the handoff is narrower than the wording implies and should be rewritten to say so. Do not build it from this entry as written. Not built-in access control, but a documented, opt-in handoff that sets a hidden item's required capability *in concert with* a capability manager — clearly labelled as defense-in-depth, never as the primary lock.
 8. **Multisite / network-level defaults** with per-site override.
 9. **Configurable admin-menu width.** A toggle/control to widen the 160px sidebar so long or renamed titles don't wrap. Global `menu_width` in config, applied on every admin page via the same `#adminmenu`/`#wpcontent` rules used by the folded-mode override. First asset loaded outside edit mode; must respect folded mode and the `<782px` responsive breakpoint. (cf. "Wider Admin Menu", integrated into the editor.)
 10. **Admin toolbar editing (research).** Feasibility of extending the in-place editor to the top admin bar (`#wpadminbar`) — hide/reorder/rename toolbar nodes with a better inline interface than existing tools (cf. "Hide Admin Menu"). Investigate `WP_Admin_Bar` node registration, safely-hideable nodes, front-end vs admin rendering, and per-role handling. Deliverable is a feasibility note first, not a commitment.
-11. **UI/UX design polish.** Review edit mode as a dense WordPress admin tool: control hierarchy, spacing, responsive behavior, modified-state affordances, save/error status clarity, icon-picker scanability, and first-run/onboarding cues. Keep it visually native to wp-admin and verify with before/after screenshots plus keyboard/mouse walkthrough notes.
+11. ~~**UI/UX design polish.** Review edit mode as a dense WordPress admin tool: control hierarchy, spacing, responsive behavior, modified-state affordances, save/error status clarity, icon-picker scanability, and first-run/onboarding cues. Keep it visually native to wp-admin and verify with before/after screenshots plus keyboard/mouse walkthrough notes.~~ **Done** — delivered as UX-13 across Phase 23 (native wp-admin restyle of every edit-mode surface: toolbar, shared panel, icon/visibility popovers, first-run banner, coachmark, in-menu selection/badges), shipped in v1.3.1. Phase 25 (v1.5.0) followed up on the dark-toolbar specifics: reserved status slot, widened focus-ring margin, and the locked-checkbox a11y semantics.
 
 ---
 

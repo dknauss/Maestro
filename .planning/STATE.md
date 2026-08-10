@@ -342,14 +342,28 @@ Recent decisions affecting current work:
   listen. Captured in
   `todos/pending/2026-08-09-persistent-saved-state-indicator.md`
 
-- **Reconcile the SPEC/PROJECT V2 backlog against the todo system** — there are
-  TWO backlogs and they disagree; only 2 of 10 V2-xx items ever crossed into
-  `todos/pending`. SPEC.md item 11 / V2-12 ("UI/UX design polish") reads as open
-  but was delivered by Phase 23 as UX-13 — the same stale-entry failure mode that
-  Phase 25's criterion 1 had, caught there only because 25-01 was written as an
-  audit. V2-09 (menu width) and V2-10 (toolbar editing) are real unbuilt UX work
-  that has never been schedulable. Captured in
-  `todos/pending/2026-08-09-reconcile-v2-backlog-with-todos.md`
+- ~~**Reconcile the SPEC/PROJECT V2 backlog**~~ — ✅ DONE 2026-08-09. Struck four
+  entries that had shipped but still read as open (item 11 / V2-12 → Phase 23;
+  item 5's icon-weight remainder / V2-11 → Phase 7; V2-13 and V2-14 → Phase 8),
+  converted the surviving UX work into individual todos (menu width V2-09,
+  toolbar-editing research V2-10, remaining icon-picker scope), deleted the
+  unresolvable "UX-11 follow-ups" line, flagged the enforcement bridge as IN
+  TENSION with the Out of Scope list, and — the root cause — **declared
+  `.planning/todos/pending/` the system of record** in SPEC.md, with the rule
+  that a shipped item gets struck in the same change. Todo moved to `completed/`.
+- **Configurable admin-menu width (V2-09)** — extracted from the prose backlog and
+  now schedulable. Would be Maestro's FIRST asset loaded outside edit mode, which
+  changes its footprint on every admin page; folded mode and the <782px
+  breakpoint are hard constraints. `todos/pending/2026-08-09-configurable-admin-menu-width.md`
+- **Admin toolbar editing research (V2-10)** — deliverable is a feasibility NOTE
+  modelled on ROLE-01's, not a feature. Open question that could return a no-go:
+  whether the cosmetic-only guarantee even holds for toolbar nodes, since the
+  sidebar's version rests on core's `$_wp_menu_nopriv` gate and URL-reachability.
+  `todos/pending/2026-08-09-admin-toolbar-editing-research.md`
+- **Icon support — remaining third of SPEC item 5** — media-library/URL input
+  (the validator accepts these; nothing can enter them), `mask-image` recolour,
+  and arbitrary SVG upload, which is a security feature wearing a UI feature's
+  clothes and wants its own pass. `todos/pending/2026-08-09-icon-picker-remaining-scope.md`
 
 - **Named config presets + JSON export/import** — v1.5 candidate; supersedes/extends V2-06 (SPEC.md Roadmap item 6). Research captured in `todos/pending/2026-07-03-config-presets-export-import.md`
 - **Declutter switch (non-core menu items → bottom section)** — v1.5 candidate; needs discuss/feasibility pass (top_order precedence, CPT handling). Research captured in `todos/pending/2026-07-03-declutter-switch-non-core-menu-items.md`
