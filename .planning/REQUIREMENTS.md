@@ -67,7 +67,11 @@ first; neither blocks the cut.
 ## Deferred (future milestone)
 
 - **COMPAT-05/06/08/09/11/12/13** — documented WordPress menu-model limitations from R1; docs-only, correct by design (carried as user-guidance, not code).
-- **UX-11 follow-ups** beyond the screenshot recapture (the coachmark itself shipped in v1.3.0).
+<!-- "UX-11 follow-ups beyond the screenshot recapture" removed 2026-08-09: an
+     unresolvable reference. UX-11 (the first-run coachmark) shipped in v1.3.0 and
+     the screenshot recapture happened at v1.4.0, but the line never said WHAT the
+     follow-ups were, so nobody could act on it or close it. If a specific coachmark
+     improvement is wanted, it needs its own todo naming it. -->
 
 ## Out of Scope
 
