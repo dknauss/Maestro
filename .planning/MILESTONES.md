@@ -1,5 +1,37 @@
 # Milestones: Maestro
 
+## v1.5.0 Per-User Visibility (Shipped: 2026-08-09)
+
+**Phases:** 21 (built under the v1.4 roadmap) + 26 (release). **Release tag:** `v1.5.0` (commit `694b1bf`) · GitHub Release + WordPress.org SVN `trunk`/`tags/1.5.0`, verified from SVN.
+
+**Delivered:** ROLE-02's **per-user half**. An admin can hide a menu item from named individuals as well as whole roles, on four independent axes (role × person, item × sub-items). Cosmetic only, like every other hide in Maestro: a hidden page still opens by URL for anyone authorized, and no capability changes.
+
+**Key accomplishments:**
+- `items[slug].hidden_users` / `child_hidden_users` storage, sparse and capped at `MAX_HIDDEN_USERS`
+- `is_hidden_for_current_user()` widened to independent OR'd terms, with the third reserved for the deferred `hidden_profiles` half — the seam stays a pure identity intersect and never touches a capability
+- `resolved_hidden_roles()` **generalized** into a field-parameterized resolver rather than duplicated, so the user axis inherits the qualified-key, schema-v2 and Axis-1 guards from one implementation
+- The feasibility note's §6 cosmetic-invariant guardrail made **enforcing** (`CosmeticInvariantUsersTest`)
+- Four-group visibility popover with an async person picker on core's `wp/v2/users`, gated by `list_users` on both sides
+- A multisite CI lane, closing the super-admin exemption's coverage gap
+
+**NOT in this milestone:** the cloned-role **"profiles"** half of ROLE-02, still a backlog item (`todos/pending/2026-08-02-cloned-role-hiding-profiles.md`). ROLE-02 remains **partially delivered**. Phase 22 (demo) and Phase 25 (toolbar polish) were optional inclusions that did not land.
+
+### What this milestone should be remembered for
+
+**Nine defects were found by verification and review; almost none by the test suite as first written.** Three surfaced during Phase 21's own browser checks — including a guardrail that could not detect a broken seam, because `current_user_can()` answers from a cached allcaps array. Two more came from Codex rounds on the plans, both of which I then hit as live bugs anyway. The adversarial security gate found two. The final ultrareview found three.
+
+Most instructive: **four consecutive holes in `Config::sanitize()`'s per-user authorization path**, each fix correct about the case in front of it and blind to the next — client-only gate → payload-scoped preserve → raw-key matching → item-cap starvation, plus a DELETE endpoint that bypassed all of them. After each fix the path looked settled. It was only resolved by *collapsing* three mechanisms into one normalized-key map with reserved capacity, rather than adding a fifth guard.
+
+The transferable lesson: when a fix keeps needing another fix, the shape is wrong, not the coverage.
+
+**Known limitations, carried deliberately rather than dropped at the finish line:**
+- The final round of fixes (#128) is itself unreviewed — the ultrareview ran against the prior commit
+- No human screen-reader pass on the person picker; axe is clean across empty and populated states, which is not the same claim
+- 21-05 Task 5 (human browser verification) was never performed; the phase was accepted on automated evidence
+- On multisite, super admins are exempt from the person axis only — deliberate, now tested both ways
+
+---
+
 ## v1.3.0 Slug-Resolution Hardening (Shipped: 2026-06-30)
 
 **Phases completed:** 2 phases (17–18), 6 plans. **Release tag:** `v1.3.0` (commit `884c6df`) · GitHub Release + WordPress.org SVN `trunk`/`tags/1.3.0`.

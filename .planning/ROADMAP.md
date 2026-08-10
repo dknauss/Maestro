@@ -10,7 +10,7 @@
 - ✅ **R1 Third-Party Compatibility Research** — Phases 13–16 (completed 2026-06-29; non-versioned research — no plugin code, no release tag, no SVN deploy) → [archive](milestones/R1-ROADMAP.md)
 - ✅ **v1.3.0 Slug-Resolution Hardening** — Phases 17–18 (shipped 2026-06-30; release tag `v1.3.0`) → [archive](milestones/v1.3.0-ROADMAP.md)
 - ✅ **v1.4 Compatibility, Roles & Showcase** — Phases 19–24 (shipped 2026-08-04; release tag `v1.4.0`, patch `v1.4.1` 2026-08-05). Shipped **without** Phase 21 (ROLE-02, deferred to v1.5 under the Release Binding fallback) and Phase 22 (not reached; still open).
-- 🚧 **v1.5 Per-User Visibility** — Phase 21 (built under the v1.4 roadmap, ships here) + Phase 26 (release). Phases 22 and 25 are **optional inclusions**: they ship in v1.5 if they land before the cut, and otherwise slip without blocking it.
+- ✅ **v1.5 Per-User Visibility** — Phase 21 + Phase 26 (shipped 2026-08-09; release tag `v1.5.0` on `694b1bf`). Delivered ROLE-02's **per-user half**; the cloned-role "profiles" half remains a backlog item. Phases 22 and 25 were optional inclusions and did **not** land, per the fallback.
 
 ## Phases
 
@@ -295,7 +295,7 @@ feature is built (Phase 21, 5/5 plans, 2026-08-08) but unreleased — v1.4.0 was
 cut before it landed. This milestone exists to get it to users.
 
 - [~] **Phase 21: Cosmetic Per-User Hiding** — built under the v1.4 roadmap (details in the v1.4 section above); ships here. Per-user half complete; cloned-role profiles remain a backlog item.
-- [ ] **Phase 26: Release v1.5.0** — cut and ship to WordPress.org
+- [x] **Phase 26: Release v1.5.0** — cut and shipped to WordPress.org 2026-08-09 (tag `v1.5.0` on `694b1bf`; GitHub Release + SVN `trunk`/`tags/1.5.0` verified from SVN)
 - [ ] *(optional)* **Phase 22: Slug-Resolution Showcase Demo** — ships in v1.5 if it lands before the cut
 - [ ] *(optional)* **Phase 25: Edit-Mode Toolbar Dark-Surface Polish** — ships in v1.5 if it lands before the cut
 
