@@ -8,6 +8,23 @@ files:
   - .planning/STATE.md (the "standing lesson" this replaces)
 ---
 
+## ⚙️ FIX IMPLEMENTED 2026-08-10 — NOT YET PROVEN
+
+**Option 1 was taken.** `wp-deploy.yml` gained a `workflow_call` trigger (with
+declared `tag` input and the two SVN secrets), the dead `release: [published]`
+trigger was **removed**, and `release.yml` gained a `deploy` job that calls it
+with `needs: release` + `secrets: inherit`. No new credential.
+
+**This todo stays PENDING until a real release fires it**, per the verification
+bar below. Until then, keep treating the manual dispatch as the live path.
+
+**One behaviour change worth knowing:** pushing a `v*` tag now deploys to
+WordPress.org automatically, with no human step between tag and publish. That is
+the point of the fix, but it removes a checkpoint that existed by accident for six
+releases. `needs: release` is the guard — a failed build, a failed tag/version
+match, or a failed Release publish all stop the deploy before wp.org is touched.
+`workflow_dispatch` is deliberately retained for re-deploys and recovery.
+
 ## Problem
 
 `wp-deploy.yml` declares two triggers:
