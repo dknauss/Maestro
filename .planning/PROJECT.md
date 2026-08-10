@@ -184,6 +184,7 @@ and `.planning/milestones/` for records.
 | Sparse delta, not a stored full menu | Trivial reset, resilience to plugin churn, upstream label changes show through | ✓ Good |
 | Debounced autosave, no Save button | In-place ethos; Save was implicated in early "doesn't persist" reports | ✓ Good |
 | Click-to-select, whole-row drag, no handles | Per-item clusters/handles were heavy and broke folded mode + hard to grab | ✓ Good |
+| **Menu-wide features get a toolbar icon opening a modal; per-item features stay in the per-item panel. No wp-admin settings page, ever.** | The toolbar's right zone ALREADY hosts the only global action (Reset All), so placement itself distinguishes global from per-item — and the modal idiom already exists (`role=dialog` + `aria-modal` + focus trap) in the icon and visibility popovers. A settings page would add an admin menu item, which is self-parodying for a menu-decluttering plugin, and would break "operates on the menu itself". Decided 2026-08-10 for Phases 27/28, which both stalled on it. | Pending (Phases 27, 28) |
 | Unique slug, no `Update URI` header | Slug uniqueness is the .org collision protection; the header is disallowed by Plugin Check | ✓ Good |
 | Strip `menu-icon-*` for custom image icons | Core's `background-image:none !important` on its own items hid data-URI/URL icons | ✓ Good |
 | Visibility is cosmetic only | Authorization is a separate, mature concern; half-enforcement is the worst failure mode | ✓ Good |
