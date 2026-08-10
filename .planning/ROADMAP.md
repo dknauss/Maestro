@@ -272,37 +272,27 @@ ship Phase 21's per-user hiding. See "Phase Details (v1.5 — Per-User Visibilit
 **Goal**: The edit-mode bottom toolbar reads cleanly on its dark (`#1d2327`) background and meets the accessibility bar Phase 23 held — control icons and focus states clear WCAG non-text contrast, the save-status indicator no longer shifts the layout, and renames give adequate commit feedback — spot-checked on Default + Modern + Midnight admin colour schemes.
 **Depends on**: Phase 23 (builds on the shipped editor-UX toolbar)
 **Requirements**: (none formal — UX/a11y polish; surfaced during Phase 20 verification 2026-08-02. Seed: [.planning/todos/pending/2026-08-01-editor-toolbar-icon-contrast.md](todos/pending/2026-08-01-editor-toolbar-icon-contrast.md))
-**Success Criteria** (what must be TRUE):
-  1. Control **icon glyphs** meet WCAG 1.4.11 (≥3:1) on the dark toolbar — recoloured from WP interactive-blue `#3858e9` (~2.8:1) to WP light gray `#c3c4c7` (~9:1), matching the button labels — confirmed by a contrast check.
-  2. The **focus ring** on toolbar controls is a light/bright indicator (`#fff` or WP blue-30 `#72aee6`, ≥3:1 on `#1d2327`), replacing the dark `#2271b1` ring, mirroring WP's admin bar / Gutenberg dark surfaces — confirmed by a focus-visible contrast check.
-  3. The **save-status indicator** (`.maestro-status`) occupies a persistent fixed-width slot so its appearance/disappearance no longer reflows the rename field — content fades in/out inside a reserved box — confirmed by before/after (no layout shift).
-  4. **Rename commit feedback** is improved (the save-status fires on rename commit and/or an "Enter to apply" hint) so a rename no longer feels unsaved — WITHOUT introducing live as-you-type autosave (keeps the commit-on-Enter/blur + debounced-save model and the HARD-03 save-race behavior intact).
-  5. Existing PHP unit, integration, JS, and Playwright e2e suites stay green; WPCS clean; PHPStan clean; Plugin Check 0 new errors; verified across Default/Modern/Midnight admin colour schemes.
+**Success Criteria** — ⚠️ **RE-SCOPED 2026-08-09 by the 25-01 audit.** The original
+five were written from a 2026-08-02 defect report; two had decayed. Measured
+verdicts below; full evidence in `25-01-SUMMARY.md`.
+  1. **The save-status indicator occupies a reserved slot** so it no longer displaces the rename field. *(CONFIRMED and measured: the status grows 4px → 24px and the rename field shifts 20px horizontally as a direct result. Absorbs original criterion 4 — see below.)*
+  2. **The focus ring margin is widened** from `#2271b1` (3.07:1) to `#72aee6` (6.74:1) on `#1d2327`. *(A ROBUSTNESS CHOICE, not a compliance fix — the current ring PASSES the 3:1 bar. Recorded as a choice so it is not re-litigated as a defect.)*
+  3. **A11y M2** — the derived-locked checkbox drops its redundant `aria-disabled`, moves the lock reason from the accessible NAME to `aria-describedby`, and makes that reason reachable in screen-reader focus mode (a natively-disabled control is skipped there today, so the reason is never heard). *(From `todos/pending/2026-08-02-a11y-locked-checkbox-refinements.md`; NOT covered by the v1.5.0 axe scanning.)*
+  4. **A11y M3** — outside-click dismissal restores focus to the anchor button, matching what Escape already does (WCAG 2.4.3). *(Confirmed by reading `placePopover()`. The v1.5.0 a11y spec asserted the Escape path but never outside-click, which is why it passed.)*
+  5. Existing PHP unit, integration (single-site AND multisite), JS, and Playwright e2e suites stay green; WPCS clean; PHPStan clean; Plugin Check 0 new errors; verified across Default/Modern/Midnight admin colour schemes.
+
+**Resolved before execution — struck by the 25-01 audit, kept visible so nobody wonders whether the original report was addressed:**
+  - ~~Recolour icon glyphs from `#3858e9` (~2.8:1) to `#c3c4c7`~~ — **ALREADY SATISFIED.** The glyphs measure **9.11:1**; `#3858e9` appears nowhere in `maestro.css`. v1.4.0's a11y gate found this independently and closed it as stale; this roadmap entry was simply never updated.
+  - ~~Make the save-status fire on rename commit~~ — **ALREADY IMPLEMENTED.** Enter-commit produces `Saving… → Saved`. The residue (the confirmation is transient) is folded into criterion 1, since reserving the slot is most of what "feels unsaved" was describing. A persistent post-save marker remains an open design question, deliberately not smuggled in under a layout fix.
+
 **Sequencing note**: these are **pre-existing** Phase 23 (v1.3.1) toolbar surfaces, not v1.4 regressions, so they do **not** block the Phase 24 release. Placement is the user's call — ship it *before* Phase 24 (so v1.4.0 carries the fixes and Phase 24's editor-screenshot recapture reflects them), or defer to a v1.4.1 / later follow-up. Currently appended after Phase 24; resequence with `/gsd:insert-phase` if it should precede the release.
 
 **Resolved 2026-08-08:** the question is moot as posed — v1.4.0 shipped on
 2026-08-04 without this phase, so it did not precede that release. It is now a
 candidate for the (not yet created) v1.5 release, alongside the deferred a11y
 M2/M3 items from `todos/pending/2026-08-02-a11y-locked-checkbox-refinements.md`.
-**Plans**: 25-01 audit + re-scope · 25-02 implement, prove, close (planned 2026-08-09; both `autonomous: false`)
+**Plans**: 25-01 audit + re-scope ✅ COMPLETE 2026-08-09 · 25-02 implement, prove, close (pending; `autonomous: false`)
 
-> **⚠️ SCOPE IS STALE — 25-01 exists to fix that before any code is written.**
-> Measured against `main` @ `2f21818` on 2026-08-09:
->
-> - **Criterion 1 is already satisfied.** The glyphs are `#c3c4c7` at **9.11:1**,
->   not the reported blue `#3858e9` at 2.83:1 — which no longer appears in the
->   CSS at all. v1.4.0's a11y gate reached the same conclusion independently and
->   recorded it as "does not reproduce, closed as stale"; this entry was never
->   updated to match.
-> - **Criterion 2 rests on a false premise.** The `#2271b1` focus ring measures
->   **3.07:1** on `#1d2327` — it PASSES the 3:1 bar. Widening the margin to
->   `#72aee6` (6.74:1) is defensible on robustness grounds, but it is a choice,
->   not a fix.
-> - **Criteria 3 and 4 are unverified.** `.maestro-status` sets `flex-shrink: 0`
->   but `min-width: 0`, so whether it actually reflows is an empirical question.
->
-> If fewer than two criteria survive the audit, 25-01 is instructed to recommend
-> closing the phase as overtaken by events rather than executing a token version.
 
 ---
 
