@@ -222,8 +222,89 @@ class Config {
 	 * @return void
 	 */
 	public function reset() {
+		// ROLE-02 — "Reset All" is still gated only by capability(), so a
+		// delegated editor without `list_users` can reach it. Wiping wholesale
+		// would let them destroy per-user rules they are not permitted to write,
+		// which is the same authorization boundary sanitize() enforces on save —
+		// and a boundary that holds on one endpoint and not the other is not a
+		// boundary. Reset All therefore means "reset everything you can affect".
+		//
+		// An administrator is unaffected: they hold `list_users`, so $protected is
+		// empty and this is the plain wipe it has always been.
+		$protected = current_user_can( 'list_users' )
+			? array()
+			: $this->protected_user_axes( function_exists( 'admin_url' ) ? admin_url( '' ) : '' );
+
+		if ( $protected ) {
+			$items = array();
+			foreach ( $protected as $entry ) {
+				$items[ $entry['slug'] ] = $entry['axes'];
+			}
+			update_option(
+				MAESTRO_OPTION,
+				array(
+					'schema_version' => self::SCHEMA_VERSION,
+					'items'          => $items,
+					'top_order'      => array(),
+					'sub_order'      => array(),
+				),
+				false
+			);
+			$this->cache = null;
+			return;
+		}
+
 		delete_option( MAESTRO_OPTION );
 		$this->cache = array();
+	}
+
+	/**
+	 * Stored per-user axes the CURRENT user has no authority to write, indexed by
+	 * normalized slug. (ROLE-02)
+	 *
+	 * Returns `[ normalized_key => [ 'slug' => stored_slug, 'axes' => [...] ] ]`,
+	 * carrying the original slug so a restored entry lands under the key it was
+	 * stored with rather than a canonicalised one.
+	 *
+	 * Indexed by NORMALIZED key on purpose: a payload may name the same item in
+	 * an equivalent-but-different form (`upload.php?ver=9` for a rule stored as
+	 * `upload.php`), which is the expected state after a plugin bumps a cache
+	 * buster — slug drift is precisely what Slug::normalize() exists for. Keying
+	 * raw would let both spellings survive into storage, and two keys normalizing
+	 * to one item are ambiguous, which the Axis-1 guard resolves to "apply
+	 * nothing": the rule would be present but inert while the config looked fine.
+	 *
+	 * @param string $base Admin base for Slug::normalize_qualified().
+	 * @return array<string, array{slug: string, axes: array}>
+	 */
+	private function protected_user_axes( $base ) {
+		$existing = $this->get();
+		$items    = isset( $existing['items'] ) ? $existing['items'] : array();
+		$out      = array();
+
+		foreach ( $items as $slug => $entry ) {
+			$axes = array();
+			if ( ! empty( $entry['hidden_users'] ) ) {
+				$axes['hidden_users'] = $entry['hidden_users'];
+			}
+			if ( ! empty( $entry['child_hidden_users'] ) ) {
+				$axes['child_hidden_users'] = $entry['child_hidden_users'];
+			}
+			if ( ! $axes ) {
+				continue;
+			}
+
+			$nk = Slug::normalize_qualified( (string) $slug, $base );
+			if ( '' === $nk || isset( $out[ $nk ] ) ) {
+				continue; // Unresolvable or already claimed by an earlier key.
+			}
+			$out[ $nk ] = array(
+				'slug' => $slug,
+				'axes' => $axes,
+			);
+		}
+
+		return $out;
 	}
 
 	/**
@@ -294,12 +375,17 @@ class Config {
 		// autosave is full-replace, so silently dropping the axes would let any
 		// unrelated edit wipe an administrator's per-user rules. Stored values
 		// are preserved verbatim instead — the saver can neither add nor destroy.
+		//
+		// The protection is ONE mechanism, deliberately. It was three (preserve
+		// the submitted item, restore the omitted one, merge an equivalent key)
+		// and each was added to patch a path the previous one missed — which is
+		// exactly why a fourth path (starving the item cap with junk entries)
+		// still got through. A single map, keyed by NORMALIZED slug and given
+		// reserved capacity below, has no seams for the next path to slip
+		// between.
+		$base             = function_exists( 'admin_url' ) ? admin_url( '' ) : '';
 		$can_target_users = current_user_can( 'list_users' );
-		$stored_items     = array();
-		if ( ! $can_target_users ) {
-			$existing     = $this->get();
-			$stored_items = isset( $existing['items'] ) ? $existing['items'] : array();
-		}
+		$protected        = $can_target_users ? array() : $this->protected_user_axes( $base );
 
 		// Validate the incoming IDs with ONE bounded query rather than loading
 		// every user ID on the site. The payload caps each axis at
@@ -309,6 +395,15 @@ class Config {
 		$valid_users = $can_target_users
 			? $this->valid_user_ids( self::candidate_user_ids( $raw ) )
 			: array();
+
+		// RESERVE capacity for the protected rules before the payload loop runs.
+		// Without this, a payload of MAX_ITEMS junk entries fills every slot and
+		// the protected rules have nowhere to land — silent destruction by a
+		// saver with no authority to write them, achieved with a single crafted
+		// POST. Reserving keeps the stored total bounded by MAX_ITEMS exactly as
+		// before, and simply means abusive filler is what gets dropped rather
+		// than an administrator's rules.
+		$item_budget = self::MAX_ITEMS - count( $protected );
 
 		if ( ! empty( $raw['items'] ) && is_array( $raw['items'] ) ) {
 			foreach ( $raw['items'] as $slug => $item ) {
@@ -382,14 +477,18 @@ class Config {
 				// scopes (bare top-level and qualified submenu), exactly as
 				// hidden_roles is — only the child_* axis below is parent-only.
 				if ( ! $can_target_users ) {
-					// Saver cannot target users: carry any stored axes through
-					// untouched so an unrelated edit cannot destroy them, and
-					// ignore whatever the payload claims.
-					if ( ! empty( $stored_items[ $slug ]['hidden_users'] ) ) {
-						$entry['hidden_users'] = $stored_items[ $slug ]['hidden_users'];
-					}
-					if ( ! $is_qualified && ! empty( $stored_items[ $slug ]['child_hidden_users'] ) ) {
-						$entry['child_hidden_users'] = $stored_items[ $slug ]['child_hidden_users'];
+					// Saver cannot target users: attach whatever was stored for
+					// this item and ignore what the payload claims. Matched on the
+					// NORMALIZED key so an equivalent spelling of the same slug
+					// (`upload.php?ver=9` vs `upload.php`) lands here rather than
+					// producing a second entry later — two keys normalizing to one
+					// item are ambiguous, and the Axis-1 guard resolves ambiguity
+					// to "apply nothing", which would leave the rule stored but
+					// inert while the config still looked healthy.
+					$nk = Slug::normalize_qualified( (string) $slug, $base );
+					if ( '' !== $nk && isset( $protected[ $nk ] ) ) {
+						$entry = array_merge( $entry, $protected[ $nk ]['axes'] );
+						unset( $protected[ $nk ] ); // Claimed; do not re-add below.
 					}
 				} else {
 					if ( ! empty( $item['hidden_users'] ) && is_array( $item['hidden_users'] ) ) {
@@ -412,73 +511,18 @@ class Config {
 
 				if ( $entry ) {
 					$out['items'][ $slug ] = $entry;
-					if ( count( $out['items'] ) >= self::MAX_ITEMS ) {
+					if ( count( $out['items'] ) >= $item_budget ) {
 						break; // Deterministic: first N slugs in incoming object order win.
 					}
 				}
 			}
 		}
 
-		// ROLE-02 — restore per-user axes the saver was not allowed to touch.
-		//
-		// The per-item preserve above only fires for items PRESENT in the
-		// payload, which is not enough. get_menu_model() withholds the user axes
-		// from a saver without `list_users`, so diffItem() never flags them
-		// client-side, so an item whose ONLY override is a per-user rule is
-		// omitted from that saver's full-replace autosave entirely — and a rule
-		// omitted from a full replace is a rule deleted. That made any edit by a
-		// delegated editor silently wipe every per-user rule they could not see:
-		// ordinary data loss, not an exotic hand-crafted POST.
-		//
-		// So the restore runs over the STORED items, not the submitted ones.
-		if ( ! $can_target_users ) {
-			// Index what we are about to write by NORMALIZED key. Matching on the
-			// raw key is not enough: the payload may name the same item in a
-			// different-but-equivalent form (`upload.php?ver=9` for a rule stored
-			// under `upload.php`), which is not contrived — slug drift is the
-			// exact problem Slug::normalize() exists to solve, so it is the
-			// expected state after a plugin update. Re-attaching under the stored
-			// key would then leave TWO keys normalizing to the same item, which
-			// the Axis-1 collision guard resolves to "apply nothing" — silently
-			// neutralising both the preserved rule and the saver's own edit while
-			// the stored config still looks healthy.
-			$base     = function_exists( 'admin_url' ) ? admin_url( '' ) : '';
-			$norm_out = array();
-			foreach ( array_keys( $out['items'] ) as $written_key ) {
-				$nk = Slug::normalize_qualified( (string) $written_key, $base );
-				if ( '' !== $nk && ! isset( $norm_out[ $nk ] ) ) {
-					$norm_out[ $nk ] = $written_key;
-				}
-			}
-
-			foreach ( $stored_items as $stored_slug => $stored_entry ) {
-				$keep = array();
-				if ( ! empty( $stored_entry['hidden_users'] ) ) {
-					$keep['hidden_users'] = $stored_entry['hidden_users'];
-				}
-				if ( ! empty( $stored_entry['child_hidden_users'] ) ) {
-					$keep['child_hidden_users'] = $stored_entry['child_hidden_users'];
-				}
-				if ( ! $keep ) {
-					continue;
-				}
-
-				$nk = Slug::normalize_qualified( (string) $stored_slug, $base );
-
-				if ( '' !== $nk && isset( $norm_out[ $nk ] ) ) {
-					// Same item under either spelling — merge into the key that is
-					// actually being written, never add a second one.
-					$target                  = $norm_out[ $nk ];
-					$out['items'][ $target ] = array_merge( $out['items'][ $target ], $keep );
-				} elseif ( count( $out['items'] ) < self::MAX_ITEMS ) {
-					// Nothing equivalent is being written; the item exists only to
-					// hold the rule, so re-create it rather than let it vanish.
-					$out['items'][ $stored_slug ] = $keep;
-					if ( '' !== $nk ) {
-						$norm_out[ $nk ] = $stored_slug;
-					}
-				}
-			}
+		// Anything still unclaimed names an item the payload never mentioned (in
+		// any spelling). Its entry exists only to hold the rule, so re-create it.
+		// The budget reserved above guarantees room.
+		foreach ( $protected as $unclaimed ) {
+			$out['items'][ $unclaimed['slug'] ] = $unclaimed['axes'];
 		}
 
 		if ( ! empty( $raw['top_order'] ) && is_array( $raw['top_order'] ) ) {

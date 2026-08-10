@@ -153,6 +153,71 @@ class PerUserAxisAuthorizationTest extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * A6: MAX_ITEMS starvation. A crafted payload of MAX_ITEMS title-only junk
+	 * entries used to fill every slot, leaving the restore nowhere to land — so
+	 * a single POST from a saver with no authority to write per-user rules
+	 * silently destroyed all of them. Capacity is now reserved BEFORE the payload
+	 * loop, so filler is what gets dropped, never an admin's rules.
+	 */
+	public function test_delegate_cannot_starve_the_item_cap_to_destroy_rules() {
+		$this->seed_admin_rule();
+		wp_set_current_user( $this->delegate );
+
+		$junk = array();
+		for ( $i = 1; $i <= Config::MAX_ITEMS; $i++ ) {
+			$junk[ "junk-$i.php" ] = array( 'title' => 'x' );
+		}
+
+		( new Config() )->save( array( 'items' => $junk ) );
+
+		$cfg = ( new Config() )->get();
+		$this->assertSame(
+			array( $this->victim ),
+			$cfg['items']['upload.php']['hidden_users'] ?? null,
+			'A6: a full-cap junk payload must not be able to evict a protected rule'
+		);
+		$this->assertLessThanOrEqual(
+			Config::MAX_ITEMS,
+			count( $cfg['items'] ),
+			'A6: reserving capacity must not push the stored config past MAX_ITEMS'
+		);
+	}
+
+	/**
+	 * A7: the DELETE endpoint. "Reset All" is gated only on capability(), so a
+	 * delegate can reach it — and an unconditional wipe would destroy per-user
+	 * rules they cannot write. A boundary enforced on save but not on reset is
+	 * not a boundary. Reset All now means "reset everything you can affect".
+	 */
+	public function test_delegate_reset_all_cannot_destroy_protected_rules() {
+		$this->seed_admin_rule();
+		wp_set_current_user( $this->delegate );
+
+		( new Config() )->reset();
+
+		$cfg = ( new Config() )->get();
+		$this->assertSame(
+			array( $this->victim ),
+			$cfg['items']['upload.php']['hidden_users'] ?? null,
+			'A7: a delegate resetting must not destroy rules they cannot author'
+		);
+	}
+
+	/**
+	 * …but an ADMIN's Reset All is still a full wipe. The preservation is an
+	 * authorization boundary, not a new "sticky rules" behaviour — if it applied
+	 * to admins too, Reset All would stop meaning what it says.
+	 */
+	public function test_admin_reset_all_still_wipes_everything() {
+		$this->seed_admin_rule();
+		wp_set_current_user( $this->admin );
+
+		( new Config() )->reset();
+
+		$this->assertSame( array(), ( new Config() )->get(), 'A7b: an admin reset must still clear everything' );
+	}
+
 	/** A4: does the model leak display names to a delegate? Expected: no. */
 	public function test_model_does_not_leak_display_names_to_delegate() {
 		$this->seed_admin_rule();
