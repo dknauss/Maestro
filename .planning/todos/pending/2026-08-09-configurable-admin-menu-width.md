@@ -33,7 +33,15 @@ every page load for every admin user — worth being deliberate about, since
 
 Three interactions to get right, none optional:
 - **Folded mode** (`.folded`, 36px) must still fold — a fixed width that ignores
-  it breaks the collapse control entirely
+  it breaks the collapse control entirely.
+  **⚠️ BLOCKED ON A DECISION, added 2026-08-10.** Edit mode currently REFUSES to
+  fold: `forceUnfold()` strips the classes, re-strips them via MutationObserver,
+  neuters `#collapse-menu` with a capture-phase handler, and `maestro.css` forces
+  `width: 160px !important` as a backstop. Ship both features as-is and a site
+  with `menu_width: 240` renders 240px while browsing and snaps to 160px the
+  instant edit mode opens — the editor showing a different width than the thing
+  it is editing. **Settle the fold story first:**
+  `todos/pending/2026-08-10-toolbar-height-and-collapse-menu-parity.md`
 - **The `<782px` responsive breakpoint**, where the menu becomes an overlay
 - **`#wpcontent`'s matching offset** — set one without the other and the content
   column overlaps or leaves a gap
