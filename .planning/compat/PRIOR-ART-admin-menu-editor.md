@@ -102,10 +102,18 @@ solved — or paid for the sharp corners of — most of Maestro's hard problems.
 - **D4 — Zero front-end footprint: one sparse, NON-AUTOLOADED row (added 2026-08-11).** The
   storage-row consequence of V2, and a **key differentiator / USP** — the one Maestro claim that is
   measurable by a third party (`wp option list --autoload=on`) without installing either plugin.
-  - **AME's row is autoloaded**, so every request the site serves — front end included, where the
-    data is never used — pays to fetch and unserialize it. Its size grows with the *whole* admin
-    menu (every plugin installed adds to the stored full tree) and with every role/user rule, not
-    with what the user edited.
+  - **AME's row is autoloaded**, so its bytes ride in the `alloptions` bundle on every request that
+    boots WP — front end and logged-out included, where the data is never read. Its size grows with
+    the *whole* admin menu (every plugin installed adds to the stored full tree) and with every
+    role/user rule, not with what the user edited.
+  - **Where that cost actually lands** (state it precisely; the loose version invites a correction):
+    `wp_load_alloptions()` fetches every autoloaded row in one query and holds them in memory for
+    the request. The option's own `maybe_unserialize()` runs only when something calls
+    `get_option()` for it — so the front-end tax is the **bundle**, not that call: DB→PHP transfer,
+    memory, and — with a persistent object cache, where `alloptions` is a single cache object — a
+    per-request fetch and unserialize of the *whole* bundle, which is precisely where a fat row
+    hurts most. A full-page cache spares requests that never boot WP; a logged-in or otherwise
+    uncacheable front-end request pays in full.
   - **This is acknowledged upstream, not inferred.** A wordpress.org thread reports `ws_menu_editor`
     as the site's largest autoloaded row; Elsts confirms the autoload behavior and declines to flip
     it because non-autoloaded "would mean an additional SQL query on every admin page", pointing to

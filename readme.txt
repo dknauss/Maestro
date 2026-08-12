@@ -130,13 +130,15 @@ their current parent.
 
 Maestro is built to stay out of the way:
 
-* **Zero extra database queries on the front end.** Every hook is admin-only, so the plugin is completely inert for public page loads and logged-out visitors.
-* **One extra query on an admin page** — a single, *non-autoloaded* option (`maestro_config`), read once per request and cached. With a persistent object cache (Redis / Memcached) that drops to zero.
-* **Nothing added to `alloptions`.** Because the option is not autoloaded, it adds no weight to the bundle WordPress loads on every request.
+* **Nothing added to `alloptions` — the one that matters.** WordPress loads every *autoloaded* option into memory on every request that boots it, including front-end pages served to logged-out visitors. A menu configuration is admin-only data, so an autoloaded one is a tax on traffic that will never read it — and a bloated autoloaded bundle is a classic cause of a sluggish site. Maestro's option is explicitly non-autoloaded. **Check it on your own site:** `wp option list --autoload=on` will not list `maestro_config`.
+* **Zero extra database queries on the front end.** Not merely "light" — inert. Every hook is admin-gated, so a public page load reads nothing at all.
+* **One extra query on an admin page** — a single, *non-autoloaded* option (`maestro_config`), read once per request and cached, no matter how many parts of the plugin ask for it. With a persistent object cache (Redis / Memcached) that drops to zero. This is a deliberate trade: one query where the data is actually used, so that public traffic — the bulk of what a live site serves — pays nothing.
+* **Storage tracks your edits, not your plugin count.** Maestro stores a sparse delta: three renamed items are three renamed items, whether the site runs five plugins or fifty. A typical configuration is 5–15 KB, with a hard 1 MB ceiling — small enough that there is nothing to compress, optimize, or tune.
 * **Minimal storage.** One `wp_options` row, created only when you first save a change — a fresh install stores nothing. No custom tables, no post or user meta, no transients, no cron jobs. Uninstalling deletes that single row.
-* **Small install** — roughly a 115 KB download. Menu changes are applied in memory during the `admin_menu` pass, not through extra queries.
+* **Measured, not asserted.** At a typical configuration size Maestro adds roughly **0.1 ms** to an admin page load; even a pathological config at the 1 MB ceiling adds about **1 ms**. Menu changes are applied in memory during the `admin_menu` pass, not through extra queries. Method and full numbers: [config size vs. page-load cost](https://github.com/dknauss/Maestro/blob/main/docs/performance/config-size-and-page-load.md).
+* **Small install** — roughly a 115 KB download.
 
-(Figures are a v1.4.1 snapshot.)
+(Size figures are a v1.4.1 snapshot; timings were measured 2026-08-03 on WordPress 7.0 / PHP 8.3.)
 
 == Known limits / deferred to v2 ==
 
