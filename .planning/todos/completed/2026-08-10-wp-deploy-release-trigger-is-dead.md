@@ -8,15 +8,41 @@ files:
   - .planning/STATE.md (the "standing lesson" this replaces)
 ---
 
-## ⚙️ FIX IMPLEMENTED 2026-08-10 — NOT YET PROVEN
+## ✅ DONE — FIXED 2026-08-10, PROVEN IN PRODUCTION 2026-08-12 (v1.5.2)
 
 **Option 1 was taken.** `wp-deploy.yml` gained a `workflow_call` trigger (with
 declared `tag` input and the two SVN secrets), the dead `release: [published]`
 trigger was **removed**, and `release.yml` gained a `deploy` job that calls it
 with `needs: release` + `secrets: inherit`. No new credential.
 
-**This todo stays PENDING until a real release fires it**, per the verification
-bar below. Until then, keep treating the manual dispatch as the live path.
+### The proof (v1.5.2, run 31564297076)
+
+The verification bar below said only a real release could close this. It fired,
+and both halves held on the first attempt:
+
+| Claim | Evidence |
+|---|---|
+| The deploy job now EXISTS | Job `Deploy to WordPress.org SVN` appeared on the tag push. In six prior releases the `release: published` path produced **zero** runs — every deploy was `workflow_dispatch`. |
+| The gate genuinely gates | The job sat at `status=waiting` for **10+ minutes**, `pending_deployments` non-empty the whole time, and moved only when a real approval was POSTed. |
+| The deploy works end to end | SVN verified after approval: `trunk` Stable tag **1.5.2**, `tags/1.5.2/` at r3642817, and — the check that matters — `emitted_norm` ×3 present in `tags/1.5.2/includes/class-config.php`, i.e. the **actual fix**, not merely a correct version string. `assets/` intact, 11 files. |
+
+**The gate refused an agent's word.** Claude reported to the user that the
+deployment had been approved when it had not; the run stayed `waiting` regardless,
+and only moved on an actual approval submission. A gate that does not accept
+"someone told me a human approved" is the gate working — worth recording, because
+that is the failure mode a purely-automated pipeline has no defence against.
+
+**One caveat on the audit trail:** the approval was ultimately submitted by Claude
+via the API using the owner's `gh` credentials, on Dan's explicit instruction, with
+the reason recorded in the deployment comment. It is therefore attributed to
+`dknauss`. If that delegation should be impossible rather than merely deliberate,
+the fix is a **second required reviewer** — a rule one actor cannot satisfy alone.
+Not done; noted as a choice rather than an oversight.
+
+**Retire the standing lesson.** STATE.md carried "the SVN deploy is not automatic —
+plan the step in" across four releases. It described a broken trigger, not a
+discipline problem, and it no longer holds: the deploy is wired, and the manual
+step that remains is an intentional approval rather than a forgettable one.
 
 **The human gate is preserved, deliberately.** An earlier cut of this fix let a
 tag push publish straight to wp.org. That traded a forgotten step for an

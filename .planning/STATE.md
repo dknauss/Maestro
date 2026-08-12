@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Per-User Visibility
 status: shipped
-stopped_at: "v1.5.1 SHIPPED and verified from SVN — main carries no unreleased code. Phases 27 and 28 planned and unblocked; no milestone open. New CI todo: the release→deploy trigger is dead by construction (GITHUB_TOKEN), which is what the four-release 'remember the manual step' lesson was actually describing."
-last_updated: "2026-08-10T00:00:00.000Z"
+stopped_at: "v1.5.2 SHIPPED 2026-08-12 and verified from SVN (tags/1.5.2 carries the actual fix, not just the version string) — main carries no unreleased code. Closed the fifth Config::sanitize() hole, found by ultrareview against the full unreviewed range; a concurrent second review landed nothing. The release→deploy trigger fix is PROVEN in production and its todo is closed, retiring the four-release 'remember the manual step' lesson. Phases 27 and 28 planned and unblocked; no milestone open."
+last_updated: "2026-08-12T00:00:00.000Z"
 last_activity: "2026-08-08 — **Phase 21 (ROLE-02 per-user hiding) executed, 5/5 plans, awaiting the human-verify checkpoint.** Branch `phase/21-cosmetic-per-user-hiding`, PR #120, nothing merged. Delivered: `hidden_users` / `child_hidden_users` storage; the `is_hidden_for_current_user()` seam widened to independent OR'd terms (3rd term reserved for the deferred `hidden_profiles`); `resolved_hidden_roles()` GENERALIZED to a field-parameterized resolver rather than duplicated, so the user axis inherits the qualified-key, schema-v2 (#115) and Axis-1 guards from one implementation; a shared `Cascade` union; the §6 cosmetic-invariant guardrail made enforcing; editor model exposure as id+name pairs via one batched query; four-group visibility popover with an async person picker on core's `wp/v2/users`. Gate: unit 165/165 (218), integration 109/109 (257), JS 83/83, e2e 39 passed/28 capture-skipped/0 failed, WPCS clean, PHPStan 0, Plugin Check 0 errors on the ZIP (1 pre-existing readme warning). THREE bugs found by verification that no unit test would have caught: (1) the guardrail initially could NOT detect a broken seam — `current_user_can()` answers from a cached allcaps array, so `snapshot_caps()` now drops `$GLOBALS['current_user']` to force re-derivation; (2) the picker URL appended `?` unconditionally, 404ing on every PLAIN-PERMALINK site since `rest_url()` already carries a query string; (3) clicking a search result or chip closed the whole popover, because re-rendering detached the node before `placePopover()`'s outside-click handler ran. Ruling recorded 2026-08-08: the super-admin exemption covers the NEW user axis only, multisite-scoped (unscoped would make administrators un-hideable on single-site and contradict the locked self-target decision). Prior: 2026-08-05 — **v1.4.1 SHIPPED** (PR #116, tag on c6cdcbe; wp.org API confirms 1.4.1). Patch for the shared-slug propagation defect (#115): a bare top-level key no longer applies to a submenu row whose slug names a rendered top-level item. Two Codex P2 rounds on #115 — the first cut of the gate tested `$nk === $norm_parent` and missed submenus parked under an unrelated parent; widened to `isset( $top_rendered_matches[ $nk ] )`. Prior: 2026-08-04 — **v1.4.0 SHIPPED** (PR #113, tag on 482510c, GitHub Release + wp.org SVN trunk/tags/1.4.0/assets confirmed). Phase 24 release gates 8–11 run consolidated over the full v1.3.1..main diff; one defect found and fixed (multibyte truncation blanked labels) and one changelog overclaim corrected (shared-slug isolation is submenu-direction only). ROLE-02 (Phase 21) deferred to v1.5."
 progress:
   total_phases: 6
@@ -153,6 +153,51 @@ Progress: [██████████] v1.5 SHIPPED 2026-08-09 (Phases 21 + 
 
 ## Release Binding
 
+### v1.5.2 — ✅ SHIPPED 2026-08-12
+
+**Tag `v1.5.2` on `7e8a71e`** (PR #154 squash-merged). One shippable file:
+`includes/class-config.php` (+46/−3).
+
+**A FIFTH hole in `Config::sanitize()`, found by ultrareview.** Two payload keys
+normalizing to the same slug (`upload.php` + `upload.php?ver=1`) could both be
+stored; Replay's Axis-1 guard then read the item as ambiguous and applied
+NEITHER — so a rename or visibility rule stopped working while still sitting
+visibly in the config. The authorization consequence: the protected-axis map is
+claimed and `unset()` on the first matching spelling, so a second equivalent
+spelling found no match and stored itself anyway, letting a saver **without
+`list_users`** neutralise an administrator's per-user rule with one POST.
+
+Fixed by deduping at the point of write — one stored key per normalized identity,
+first spelling wins — **unconditionally**, not special-cased to the delegate path,
+because the seam existed only because the collision was constructible at all.
+
+**The review target was chosen deliberately and it mattered.** `1a32f08..main`
+(everything no adversarial pass had seen) rather than the narrower
+`1a32f08..707d9b6` first proposed — #138 had since modified 20 lines of the same
+sanitize path, and reviewing the historical diff alone would have missed the
+interaction.
+
+**Three ReplayTest cases had to change, and this was the subtle part.** They seeded
+their ambiguous fixture *through* `Config::save()`, which now refuses to create it —
+so they began asserting sanitize's behaviour while claiming to assert replay's, and
+would have gone quietly vacuous. They now seed via `update_option()` directly. The
+replay-side Axis-1 guard is **unchanged and still load-bearing**: pre-fix configs
+and slug drift (host move, plugin URL change) can still produce ambiguity that
+sanitize can no longer author.
+
+**Verified FROM SVN:** `trunk` Stable tag 1.5.2; `tags/1.5.2/` at r3642817;
+`emitted_norm` ×3 present in `tags/1.5.2/includes/class-config.php` — the actual
+fix, not merely a correct version string; `assets/` intact (11 files).
+
+**A second ultrareview ran concurrently in another session and landed nothing** —
+`v1.5.2..origin/main` was empty, no open PRs. The tag hold cost nothing and was
+still the right call: it was released by evidence, not by assumption.
+
+Not framed as a security release — cosmetic-only held throughout; no capability
+granted or removed, page URL-reachable. Upgrade Notice 271/300. Also carried #152's
+readme listing rewrite (D4 non-autoloaded differentiator) — directory copy, no
+behaviour change, no changelog entry.
+
 ### v1.5.1 — ✅ SHIPPED 2026-08-10
 
 **Tag `v1.5.1` on `9caa65d`** (PR #146 squash-merged). Patch for work that had sat
@@ -177,9 +222,17 @@ value, zero behavior change). Upgrade Notice 287/300 chars.
 zero times in six releases — all six were `workflow_dispatch`. Cause confirmed in
 source: `release.yml:36` publishes via `softprops/action-gh-release@v3` with the
 default `GITHUB_TOKEN`, and GitHub does not create workflow runs from
-`GITHUB_TOKEN`-generated events. The trigger cannot fire. Captured in
-`todos/pending/2026-08-10-wp-deploy-release-trigger-is-dead.md` — keep the manual
-step in the checklist until a real release proves a fix.
+`GITHUB_TOKEN`-generated events. The trigger cannot fire.
+
+**✅ FIXED and PROVEN in v1.5.2 (2026-08-12).** `wp-deploy.yml` gained
+`workflow_call` (dead `release:` trigger removed), `release.yml` calls it with
+`needs: release`, and the deploy job runs in a `wordpress-org` environment with a
+required reviewer — so the step is wired but still gated on a human. On the v1.5.2
+tag the deploy job appeared for the first time in the repo's history and sat at
+`waiting` until an approval was actually submitted.
+`todos/completed/2026-08-10-wp-deploy-release-trigger-is-dead.md`.
+**The four-release "remember the manual step" lesson is RETIRED** — it described a
+broken trigger, not forgetfulness.
 
 ### v1.5 Per-User Visibility — ✅ SHIPPED 2026-08-09
 
@@ -451,16 +504,13 @@ Recent decisions affecting current work:
   previously-skipped control focusable in that popover *after* the axe scan, so the
   gap widened slightly. One person, one sitting, VoiceOver or NVDA actually running.
   `todos/pending/2026-08-10-person-picker-screen-reader-pass.md`
-- **The release→deploy trigger is dead by construction** — `wp-deploy.yml`
-  declares `release: types: [published]`, a path that has fired **zero times in
-  six releases**; all six deploys were manual `workflow_dispatch`. Cause confirmed
-  in source, not inferred: `release.yml:36` publishes with the default
-  `GITHUB_TOKEN`, and GitHub does not create workflow runs from `GITHUB_TOKEN`
-  events. The four-release "remember the manual step" lesson was scar tissue over
-  this. Failure mode is quiet — tag, Release, green CI all say shipped while users
-  stay on the old version. Recommended fix is to have `release.yml` call the deploy
-  directly rather than to add a PAT.
-  `todos/pending/2026-08-10-wp-deploy-release-trigger-is-dead.md`
+- ~~**The release→deploy trigger is dead by construction**~~ — ✅ **DONE 2026-08-12.**
+  Fixed via `workflow_call` (dead `release:` trigger removed) plus a
+  `wordpress-org` environment gate, and PROVEN on the v1.5.2 tag: the deploy job
+  appeared for the first time in the repo's history and held at `waiting` until a
+  real approval was submitted. Moved to `todos/completed/`. The four-release
+  "remember the manual step" lesson is retired — it described a broken trigger,
+  not forgetfulness.
 - **AME comprehensive feature sweep → an AME↔Maestro MATRIX** — the 2026-08-01
   prior-art spike was *architectural*, scoped to Phase 20; AME's feature surface has
   never been enumerated at all, and the four-bullet market-gap list it did produce
@@ -498,21 +548,30 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-08-10
-Stopped at: planning complete for Phases 27 + 28; nothing in flight
+Last session: 2026-08-12
+Stopped at: v1.5.2 shipped and SVN-verified; nothing in flight, no open PRs
 
-**START HERE — the state in one paragraph.** v1.5.0 is live on WordPress.org.
-`main` carries work that is NOT yet released: Phase 25 (toolbar polish, human-
-verified) and the three Phase 20 correctness fixes. A **v1.5.1 patch is the
-obvious next release** and clears the decks before new phases land on top. Two
-phases are fully planned and unblocked — **Phase 28 (menu width + fold honesty)**
-and **Phase 27 (cloned-role profiles, completes ROLE-02)**. Phase 22 (Playground
-demo) is scoped but never planned. 10 todos pending, 2 of them explicitly
-ignorable.
+**START HERE — the state in one paragraph.** **v1.5.2 is live on WordPress.org**
+and `main` carries NO unreleased code — the first time that has been true at the
+end of a session. The release pipeline is now wired end to end and proven: a tag
+push builds, publishes, and then **pauses for a human approval** on the
+`wordpress-org` environment before touching SVN. Two phases are fully planned and
+unblocked — **Phase 28 (menu width + fold honesty)** and **Phase 27 (cloned-role
+profiles, completes ROLE-02)**. Phase 22 (Playground demo) is scoped but never
+planned. 12 todos pending, 2 of them explicitly ignorable.
 
-**Recommended order:** v1.5.1 patch → Phase 28 → Phase 27. Phase 28 is the
-lighter lift, its 28-01 ships value alone by fixing a live defect, and it proves
-the shared modal shell with a single scalar before Phase 27 puts CRUD in one.
+**Recommended order: Phase 28 → Phase 27.** No release work is outstanding.
+Phase 28 is the lighter lift, its 28-01 ships value alone by fixing a live defect
+(`#collapse-menu` renders, takes focus, and does nothing), and it proves the shared
+modal shell with a single scalar before Phase 27 puts CRUD in one.
+
+**Two release-process facts worth carrying into the next release:**
+- The deploy is **wired now** — do NOT plan a manual `workflow_dispatch` step. Plan
+  an **approval** step instead: you will get a notification and the run will sit at
+  `waiting` until you act.
+- The tag hold on v1.5.2 (held for a concurrent second review, which landed
+  nothing) cost nothing and was still correct. Hold on evidence, release on
+  evidence.
 
 **Two decisions were made 2026-08-10 that unblock both phases — read them before
 re-opening either question:**
