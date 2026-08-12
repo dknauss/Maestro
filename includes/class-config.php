@@ -133,8 +133,11 @@ class Config {
 	 * under this — five 128 KB icons plus titles/roles is ~0.65 MB. The ceiling
 	 * exists only to refuse the pathological multi-MB payload (e.g. 200 max
 	 * items each carrying a 128 KB icon ≈ 25 MB) that would bloat the option
-	 * and every autoloaded read of it. An over-ceiling save is rejected whole
-	 * rather than truncated — a partial config is worse than the prior one.
+	 * and every admin-request read of it. (The option is stored non-autoloaded —
+	 * see save() — so it is never part of the `alloptions` bundle; the cost the
+	 * ceiling bounds is the per-admin-request get_option + unserialize, not a
+	 * front-end tax.) An over-ceiling save is rejected whole rather than
+	 * truncated — a partial config is worse than the prior one.
 	 *
 	 * @var int
 	 */
