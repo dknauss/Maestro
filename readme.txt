@@ -9,13 +9,17 @@ Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Rename, reorder, change icons, and hide WordPress admin menu items per user role — an inline admin menu editor you drive right on the menu itself.
+Hide admin menu items per user role, rename them, reorder them, swap their icons — an inline admin menu editor you drive right on the menu itself.
 
 == Description ==
 
-**Maestro lets you orchestrate the appearance of the WordPress admin menu.** 
+**Maestro lets you orchestrate the appearance of the WordPress admin menu — rename admin menu items, reorder them, change their icons, and hide admin menu items from the roles and people who don't need them.**
 
-Instead of a separate settings screen, Maestro turns the admin menu into something you edit *in place* — right where it lives. Toggle **Edit Menu** from the admin bar, and the menu becomes editable. Click a menu item to rename it, hide it from selected user roles, or change its icon. Drag submenu items and whole menu groups to reorder them. 
+Every WordPress install accumulates menu clutter. A dozen plugins each claim a top-level slot, submenus sit in an order nobody chose, and clients meet a dashboard full of tools that aren't theirs. Maestro is how you customize the admin menu back into shape: **declutter** it for a client site, **rename** cryptic plugin labels into the words your team actually uses, **reorder** the admin menu so what you touch daily is at the top, and **hide admin menu items per user role** — or from one named person — so everyone sees only their own work.
+
+Instead of a separate settings screen, Maestro turns the admin menu into something you edit *in place* — right where it lives. Toggle **Edit Menu** from the admin bar, and the menu becomes editable. Click a menu item to rename it, hide it from selected user roles, or change its icon. Drag submenu items and whole menu groups to reorder them. Nothing to configure first, and nothing to learn: the menu you are editing *is* the menu you are looking at.
+
+And it stays out of the way. Maestro adds **no autoloaded options** and does no work at all on the front end, so a menu you tidied for the dashboard costs your visitors nothing (see **Performance & footprint** below).
 
 **Try Maestro right here.** Launch a demo in [WordPress Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/main/playground/blueprint-hosted.json) — it boots a throwaway site with the plugin active in edit mode, plus User Switching and test users (editor, author, contributor, subscriber; password `password`) so you can try per-role visibility by switching to another user's account.
 
