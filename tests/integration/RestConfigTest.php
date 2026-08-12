@@ -198,6 +198,49 @@ class RestConfigTest extends WP_UnitTestCase {
 		$this->assertSame( 'Bold Posts', $item['title'], 'Markup must be stripped from titles.' );
 	}
 
+	/**
+	 * Sanitize stores ONE key per normalized identity.
+	 *
+	 * Two spellings of the same slug used to be stored as two entries, and
+	 * Replay's Axis-1 guard then resolved that ambiguity to "apply nothing" —
+	 * so a config that looked healthy silently applied none of its own
+	 * overrides for that item.
+	 *
+	 * This is the ordinary-admin half of the fix. The adversarial half, where a
+	 * saver without `list_users` used the same collision to neutralise an
+	 * administrator's per-user rule, is A8 in PerUserAxisAuthorizationTest.
+	 * Deduping unconditionally is what makes that attack unconstructible rather
+	 * than merely blocked on one path.
+	 */
+	public function test_save_stores_one_key_per_normalized_slug() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$req = new WP_REST_Request( 'POST', self::ROUTE );
+		$req->set_param(
+			'config',
+			array(
+				'items' => array(
+					'upload.php'       => array( 'title' => 'Files One' ),
+					'upload.php?ver=1' => array( 'title' => 'Files Two' ),
+				),
+			)
+		);
+
+		$items = $this->server->dispatch( $req )->get_data()['config']['items'];
+
+		$this->assertCount(
+			1,
+			$items,
+			'Two normalizing-equivalent keys must collapse to one stored entry. Got: '
+				. implode( ', ', array_keys( $items ) )
+		);
+		$this->assertSame(
+			array( 'upload.php' => array( 'title' => 'Files One' ) ),
+			$items,
+			'First spelling in incoming object order wins, matching the MAX_ITEMS rule.'
+		);
+	}
+
 	public function test_save_accepts_all_native_icon_forms() {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 

@@ -62,9 +62,10 @@ settled. The gate earned its place; the hold was correct.
 
 ### Caveats that survive into the milestone record
 
-- The #128 fixes are themselves unreviewed — the ultrareview ran against
-  `1a32f08`. Accepted deliberately: the collapse removed a class of seam rather
-  than adding another guard.
+- ~~The #128 fixes are themselves unreviewed — the ultrareview ran against
+  `1a32f08`.~~ **CLOSED 2026-08-10.** Reviewed via #149 (review-only PR, base
+  pinned at `1a32f08`, so the diff was everything no adversarial pass had seen).
+  **It found a fifth hole in the same function** — see the entry below.
 - No human screen-reader pass on the person picker. axe is clean across empty and
   populated states, which is not the same thing. **Consolidated 2026-08-10 into
   `todos/pending/2026-08-10-person-picker-screen-reader-pass.md`** — see the
@@ -199,10 +200,10 @@ not automatic and required a manual `workflow_dispatch`. Plan the step in.
   (`todos/pending/2026-08-02-cloned-role-hiding-profiles.md`)
 - Phase 22 (Playground demo) remains open. ~~Phase 25 (toolbar polish)~~ —
   ✅ COMPLETE 2026-08-09, SHIPPED in v1.5.1
-- The #128 fixes shipped unreviewed (the ultrareview ran against the prior commit).
-  **Still true as of v1.5.1** — the mechanism is intact in `main`, touched since
-  only by #138's 20-line entity-collision fix. Closing it needs `/code-review ultra`
-  over `1a32f08..707d9b6`, which is user-triggered.
+- ~~The #128 fixes shipped unreviewed (the ultrareview ran against the prior
+  commit).~~ **CLOSED 2026-08-10** via #149 — which found a fifth hole in the same
+  sanitize path (two normalizing-equivalent payload keys). Fixed; see the
+  reassessment near the end of this file.
 - No human screen-reader pass on the person picker → consolidated into
   `todos/pending/2026-08-10-person-picker-screen-reader-pass.md`
 - ~~21-05 Task 5 (human browser verification) was never performed~~ — **STRUCK
@@ -525,13 +526,26 @@ re-opening either question:**
   **withdrawn**: `160px` is just hardcoded in three places.
 
 **Reviewed 2026-08-10 — three carried items are now TWO, and both are actionable:**
-1. **The #128 fixes shipped unreviewed.** Verified still live: `707d9b6` changed
-   192 lines of `class-config.php` plus the logic modules, and that mechanism is
-   intact in `main` (touched since only by #138's 20 lines). It is the same
-   sanitize path in which the ultrareview found four consecutive holes, and it is
-   the one round no adversarial pass has ever seen. **Close with `/code-review
-   ultra` over `1a32f08..707d9b6`** — user-triggered and billed, so it needs Dan.
-   Highest value of the three, and the cheapest.
+1. ~~**The #128 fixes shipped unreviewed.**~~ **CLOSED 2026-08-10 — and it was
+   worth doing.** The ultrareview ran against #149 (`1a32f08..main`) and returned
+   **one finding, confirmed real: a FIFTH hole in `Config::sanitize()`.**
+
+   Two payload keys that normalize alike (`upload.php` + `upload.php?ver=1`) both
+   got stored: the first claimed and `unset()` the protected map entry, so the
+   second found no match and wrote itself as a fresh entry. Two stored keys
+   normalizing to one is exactly what Replay's Axis-1 guard resolves to "apply
+   nothing" — so a saver WITHOUT `list_users` could neutralise an administrator's
+   per-user rule with one POST, leaving it visibly present in storage and applying
+   nowhere.
+
+   **The pattern held for a fifth time**: the seam was the `unset()` after the
+   first match, and the code comment directly above it claimed the merge existed
+   to prevent precisely this ambiguity — true only of the FIRST equivalent
+   spelling. Fixed by deduping at the point of write, unconditionally, so the
+   collision is unconstructible rather than blocked on one path. Reproduced with a
+   failing test first; three replay-side tests had to be re-seeded because
+   sanitize can no longer create the state they assert on (they still can, and
+   must, via legacy configs and slug drift — all three re-verified falsifiable).
 2. **The screen-reader pass**, now a real todo rather than prose:
    `todos/pending/2026-08-10-person-picker-screen-reader-pass.md`. It absorbed
    item 3 and slightly widened — Phase 25's M2 change made a previously-skipped
