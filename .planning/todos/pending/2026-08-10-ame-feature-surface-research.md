@@ -86,6 +86,20 @@ The sweep is not done until each of these is enumerated and every item lands in 
 4. **The settings/UI surface** — what AME exposes where. Relevant because
    `DECISION-settings-surface.md` locked Maestro's answer and AME is the
    counter-example (a dedicated editor screen).
+5. **The database-footprint features** — AME's Settings tab ships "Compress menu
+   configuration data" (2.5, zlib in 2.11) and "Optimize menu configuration size"
+   (2.27). These are *user-facing toggles*, so they are feature rows despite the
+   storage carve-out in Out of scope below, and they are the rows where Maestro's
+   **D4 differentiator** (single sparse non-autoloaded row — see
+   [`PRIOR-ART-admin-menu-editor.md`](../../compat/PRIOR-ART-admin-menu-editor.md)
+   § Differentiate) states itself: status `deliberately-not`, because a config that
+   is sparse and out of `alloptions` never needs a compression toggle. Expected to
+   be among the strongest `have`/`deliberately-not` rows in the matrix for
+   competitive-positioning purposes.
+   **Also settle the open evidence question while the zip is open:** confirm
+   whether `ws_menu_editor` is written with an autoload argument at all. D4
+   currently rests on the author's forum reply plus the changelog, not on a source
+   read — grep the `update_option` call and record the answer as `source-read`.
 
 **Completion check** (mirroring SCHEMA.md's): every file in AME's `modules/`
 accounted for in at least one row; every bullet on the Pro pricing page accounted
@@ -116,6 +130,12 @@ Every row still gets surveyed and classified. These decide only whether an
 The architecture comparison — apply model, hook ordering, storage format, menu
 identity, submenu targeting — all answered 2026-08-01. If a feature row needs an
 architectural answer, note the dependency in its Note cell and move on.
+
+**One carve-out: the options-table footprint is in scope** (Coverage item 5). The
+storage *format* is architecture and stays out, but its consequences — an
+autoloaded row that every front-end request pays for, and the two Settings-tab
+toggles AME ships to manage it — are user-visible and are Maestro's D4 selling
+point. They earn rows.
 
 Other prior art is also out: "Wider Admin Menu" and "Hide Admin Menu" belong to
 `SPEC.md` items 9 and 10. AME-only keeps this bounded.

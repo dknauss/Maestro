@@ -99,6 +99,44 @@ solved — or paid for the sharp corners of — most of Maestro's hard problems.
   drag-between-levels (reparenting), and per-role deny are all either Pro-gated or fragile in AME.
   Maestro's own backlog (`config-presets-export-import`, reparenting v2) lines up to undercut these
   for free.
+- **D4 — Zero front-end footprint: one sparse, NON-AUTOLOADED row (added 2026-08-11).** The
+  storage-row consequence of V2, and a **key differentiator / USP** — the one Maestro claim that is
+  measurable by a third party (`wp option list --autoload=on`) without installing either plugin.
+  - **AME's row is autoloaded**, so its bytes ride in the `alloptions` bundle on every request that
+    boots WP — front end and logged-out included, where the data is never read. Its size grows with
+    the *whole* admin menu (every plugin installed adds to the stored full tree) and with every
+    role/user rule, not with what the user edited.
+  - **Where that cost actually lands** (state it precisely; the loose version invites a correction):
+    `wp_load_alloptions()` fetches every autoloaded row in one query and holds them in memory for
+    the request. The option's own `maybe_unserialize()` runs only when something calls
+    `get_option()` for it — so the front-end tax is the **bundle**, not that call: DB→PHP transfer,
+    memory, and — with a persistent object cache, where `alloptions` is a single cache object — a
+    per-request fetch and unserialize of the *whole* bundle, which is precisely where a fat row
+    hurts most. A full-page cache spares requests that never boot WP; a logged-in or otherwise
+    uncacheable front-end request pays in full.
+  - **This is acknowledged upstream, not inferred.** A wordpress.org thread reports `ws_menu_editor`
+    as the site's largest autoloaded row; Elsts confirms the autoload behavior and declines to flip
+    it because non-autoloaded "would mean an additional SQL query on every admin page", pointing to
+    compression instead ([support thread](https://wordpress.org/support/topic/wp_option-table-ws_menu_editor-auotload-yes/)).
+    Three separate size mitigations over eight years ([Pro changelog](https://adminmenueditor.com/documentation/changelog/)):
+    **2.5** (2017) compress-menu-config, **2.11** (2020) + zlib ("greatly decreases the amount of
+    data stored… but increases decompression overhead"), **2.27** (2025) "Optimize menu
+    configuration size" for the `ws_menu_editor_pro` entry. Three rounds ⇒ structural, not a bug.
+  - **Maestro's position:** one `maestro_config` row written `update_option( …, false )`
+    (`includes/class-config.php`), never created until first save; sparse delta so size tracks
+    *edits*, not installed-plugin count; hard 1 MB aggregate cap; every hook admin-gated (`Replay`
+    on `admin_menu`, `Admin_Bar::node()` bails on `! is_admin()`) so a front-end request reads
+    nothing at all. Measured: **0 extra front-end queries**; ~0.1 ms added per admin page at a
+    realistic 5–15 KB config, ~1 ms at the 1 MB ceiling
+    (`docs/performance/config-size-and-page-load.md`).
+  - **The trade, stated honestly:** non-autoloaded costs **1 extra admin-page query** — exactly
+    Elsts' objection. Maestro takes it because that query is admin-only, memoized once per request
+    by `Config::get()`, and zero with a persistent object cache, while public traffic — the bulk of
+    a live site's requests — pays nothing. AME's arrangement inverts the tax.
+  - **Evidence caveat:** the autoload flag comes from the author's own reply and the changelog, not
+    from the 1.15.1 source read (that spike recorded the storage *format*, not the autoload
+    argument). Confirm the `update_option` call when the free zip is next opened — the feature
+    sweep todo now carries that as a check.
 
 ---
 
