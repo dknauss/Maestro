@@ -4,7 +4,7 @@ Donate link: https://github.com/sponsors/dknauss
 Tags: admin menu, menu editor, hide menu items, rename menu items, menu icons
 Requires at least: 6.4
 Tested up to: 7.0
-Stable tag: 1.5.1
+Stable tag: 1.5.2
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -164,6 +164,10 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 
 == Changelog ==
 
+= 1.5.2 =
+* **Fixed: an override could silently stop applying when the same menu item was saved under two spellings of its address.** Some items can be addressed more than one way — with or without a version number or tracking parameter, for instance. If a single save carried two such spellings of the same item, Maestro stored both, then read the item as ambiguous and applied neither. A rename or a visibility rule would stop working while still appearing in your settings, which is the worst way for something to break. Maestro now keeps one entry per item, so the situation cannot arise.
+* This also closes a way for someone who can edit the menu but cannot list users to undo a per-person visibility rule set by an administrator. As always, hiding is cosmetic: no capability was granted or removed, and the affected page stayed reachable by URL throughout for anyone allowed to open it.
+
 = 1.5.1 =
 * **Fixed: the edit-mode toolbar no longer shifts while a change saves.** The save status now sits in a reserved slot, so the rename field stays where it is instead of sliding sideways every time a save cycles through "Saving…" and "Saved".
 * **Accessibility: a locked sub-item role is now reachable, and says why it is locked.** When a role is already hidden at the parent level, that role's checkbox under "Hide its sub-items from:" is shown as locked. It was previously skipped by keyboard and screen-reader navigation entirely — so the explanation was written for assistive technology but could never actually be heard. It is now reachable and announces its reason. The value still cannot be changed.
@@ -236,6 +240,9 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 * Editor: click-to-select with a shared panel, debounced single-flight autosave, and folded-mode neutralization.
 
 == Upgrade Notice ==
+
+= 1.5.2 =
+Fixes an override that could silently stop applying when one save carried two spellings of the same item's address, and closes a way for a delegated editor to undo an administrator's per-person visibility rule. Cosmetic only — no access changed. No configuration changes.
 
 = 1.5.1 =
 Fixes a toolbar that shifted sideways while saving, and three editor accessibility gaps. Also fixes a rare case where the visibility popover could show a rule as active while the menu ignored it, and saving could then store it. No configuration changes; existing overrides are untouched.
