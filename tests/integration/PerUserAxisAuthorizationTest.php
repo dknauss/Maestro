@@ -154,6 +154,58 @@ class PerUserAxisAuthorizationTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A8: TWO normalizing-equivalent keys in ONE payload.
+	 *
+	 * A5 covers a single equivalent spelling: it matches the protected map,
+	 * merges, and claims the entry. The seam is what happens to the SECOND
+	 * equivalent key in the same payload — the first iteration `unset()`s the
+	 * protected entry, so the second finds no match, takes the no-match branch,
+	 * and is stored under its own raw key.
+	 *
+	 * That leaves two stored keys normalizing to one item, which is precisely
+	 * the ambiguity the Axis-1 guard resolves to "apply nothing" — so the
+	 * admin's rule survives in storage and applies NOWHERE. Same outcome as
+	 * outright deletion, reached by a saver with no authority to write it, and
+	 * invisible to anyone auditing the stored config because the rule is still
+	 * sitting there under `upload.php`.
+	 *
+	 * Found by ultrareview against #149, on the exact question the review was
+	 * pointed at: can a crafted payload cause a protected rule to be dropped?
+	 */
+	public function test_delegate_cannot_neutralize_a_rule_with_two_equivalent_keys() {
+		$this->seed_admin_rule();
+		wp_set_current_user( $this->delegate );
+
+		( new Config() )->save(
+			array(
+				'items' => array(
+					'upload.php'       => array( 'title' => 'Files1' ),
+					'upload.php?ver=1' => array( 'title' => 'Files2' ),
+				),
+			)
+		);
+
+		$cfg   = ( new Config() )->get();
+		$items = $cfg['items'];
+
+		global $menu, $submenu;
+		$menu    = array(
+			10 => array( 'Media', 'upload_files', 'upload.php', '', 'menu-top', 'menu-media', '' ),
+		);
+		$submenu = array();
+
+		wp_set_current_user( $this->victim );
+		( new Replay( new Config() ) )->replay();
+
+		$this->assertNotContains(
+			'upload.php',
+			wp_list_pluck( $menu, 2 ),
+			'A8: two normalizing-equivalent keys in one payload must not be able to '
+				. 'neutralise the rule. Stored keys: ' . implode( ', ', array_keys( $items ) )
+		);
+	}
+
+	/**
 	 * A6: MAX_ITEMS starvation. A crafted payload of MAX_ITEMS title-only junk
 	 * entries used to fill every slot, leaving the restore nowhere to land — so
 	 * a single POST from a saver with no authority to write per-user rules

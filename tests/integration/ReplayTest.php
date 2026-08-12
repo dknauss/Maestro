@@ -554,9 +554,27 @@ class ReplayTest extends WP_UnitTestCase {
 		);
 
 		// Store two DISTINCT keys that normalize to the same key.
-		( new Config() )->save(
+		//
+		// Seeded DIRECTLY rather than through Config::save(), which since the
+		// two-equivalent-keys fix refuses to write an ambiguous pair at all
+		// (first spelling wins). That is the sanitize-side guarantee; this test
+		// pins the REPLAY-side one, which is still load-bearing because the
+		// ambiguity remains reachable by other routes:
+		//
+		//   - configs written by any version BEFORE that fix, i.e. every install
+		//     upgrading into it
+		//   - slug drift: two keys that did NOT normalize alike when saved but do
+		//     now, after a host move or a plugin changing its menu URL — the exact
+		//     scenario Slug::normalize() exists for
+		//   - direct DB or WP-CLI edits
+		//
+		// Seeding through save() would now assert sanitize's behaviour while
+		// claiming to assert replay's, and would go quietly vacuous.
+		update_option(
+			'maestro_config',
 			array(
-				'items' => array(
+				'schema_version' => Config::SCHEMA_VERSION,
+				'items'          => array(
 					$slug_amp   => array( 'title' => 'Ambiguous A' ),
 					$slug_plain => array( 'title' => 'Ambiguous B' ),
 				),
@@ -886,9 +904,14 @@ class ReplayTest extends WP_UnitTestCase {
 	public function test_axis1_guard_extends_to_qualified_keys() {
 		$this->seed_shared_slug_menu();
 
-		( new Config() )->save(
+		// Seeded directly — Config::save() no longer writes an ambiguous pair.
+		// See test_collision_noop_ambiguous_stored_keys_apply_nothing() for why
+		// the replay-side guard still has to hold regardless.
+		update_option(
+			'maestro_config',
 			array(
-				'items' => array(
+				'schema_version' => Config::SCHEMA_VERSION,
+				'items'          => array(
 					'edit.php?post_type=product>edit.php?post_type=product&ver=1.0' => array( 'title' => 'Ambiguous A' ),
 					'edit.php?post_type=product>edit.php?post_type=product&ver=2.0' => array( 'title' => 'Ambiguous B' ),
 				),
@@ -1594,9 +1617,14 @@ class ReplayTest extends WP_UnitTestCase {
 		// Two DISTINCT stored keys collide to one normalized parent key (Axis-1
 		// norm_skip). One carries child_hidden_roles for the current (editor) user;
 		// because the parent override is ambiguous, child-hiding must NOT fire.
-		( new Config() )->save(
+		// Seeded directly — Config::save() no longer writes an ambiguous pair.
+		// See test_collision_noop_ambiguous_stored_keys_apply_nothing() for why
+		// the replay-side guard still has to hold regardless.
+		update_option(
+			'maestro_config',
 			array(
-				'items' => array(
+				'schema_version' => Config::SCHEMA_VERSION,
+				'items'          => array(
 					$slug_amp   => array( 'child_hidden_roles' => array( 'editor' ) ),
 					$slug_plain => array( 'title' => 'Ambiguous' ),
 				),

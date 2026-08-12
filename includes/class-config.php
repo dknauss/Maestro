@@ -408,6 +408,11 @@ class Config {
 		// than an administrator's rules.
 		$item_budget = self::MAX_ITEMS - count( $protected );
 
+		// Normalized keys already written to $out['items'] this pass. See the
+		// dedupe guard in the loop — this is what makes the sanitized output
+		// collision-free BY CONSTRUCTION rather than collision-detected later.
+		$emitted_norm = array();
+
 		if ( ! empty( $raw['items'] ) && is_array( $raw['items'] ) ) {
 			foreach ( $raw['items'] as $slug => $item ) {
 				// Qualified `parent>child` submenu keys: clean each half
@@ -443,6 +448,31 @@ class Config {
 					$slug = $parent_half . Slug::QUALIFIED_SEPARATOR . $child_half;
 				} else {
 					$slug = $this->clean_slug( $slug );
+				}
+
+				// ONE stored key per NORMALIZED identity.
+				//
+				// Two payload keys that normalize alike (`upload.php` and
+				// `upload.php?ver=1`) would otherwise BOTH be stored, and the
+				// Axis-1 guard in Replay::normalized_items() resolves that
+				// ambiguity to "apply nothing" — dropping every override on that
+				// item, including a protected per-user rule merged in below. The
+				// config still looks healthy; the rule simply stops applying.
+				//
+				// That was reachable by a saver WITHOUT `list_users`: the protected
+				// map is claimed and unset on the first matching spelling, so a
+				// second equivalent spelling in the same payload found no match,
+				// stored itself as a fresh entry, and neutralised an administrator's
+				// rule with one POST. Deduping at the point of write closes it for
+				// every caller at once, rather than special-casing that path — the
+				// seam only existed because the collision was constructible at all.
+				//
+				// First spelling in incoming object order wins, matching the
+				// MAX_ITEMS break below. Recorded only when an entry is actually
+				// stored, so an empty first entry does not shadow a real later one.
+				$nk = Slug::normalize_qualified( (string) $slug, $base );
+				if ( '' !== $nk && isset( $emitted_norm[ $nk ] ) ) {
+					continue;
 				}
 
 				$entry = array();
@@ -504,7 +534,14 @@ class Config {
 					// item are ambiguous, and the Axis-1 guard resolves ambiguity
 					// to "apply nothing", which would leave the rule stored but
 					// inert while the config still looked healthy.
-					$nk = Slug::normalize_qualified( (string) $slug, $base );
+					//
+					// That reasoning only ever covered the FIRST equivalent spelling:
+					// this branch claims and unsets the protected entry, so a second
+					// equivalent key in the same payload found no match and stored
+					// itself anyway — recreating the exact ambiguity the comment above
+					// says it prevents. The dedupe guard earlier in the loop is what
+					// actually closes it; $nk is computed once up there and reused
+					// here, since a second local copy is how the two would drift.
 					if ( '' !== $nk && isset( $protected[ $nk ] ) ) {
 						$entry = array_merge( $entry, $protected[ $nk ]['axes'] );
 						unset( $protected[ $nk ] ); // Claimed; do not re-add below.
@@ -530,6 +567,9 @@ class Config {
 
 				if ( $entry ) {
 					$out['items'][ $slug ] = $entry;
+					if ( '' !== $nk ) {
+						$emitted_norm[ $nk ] = true;
+					}
 					if ( count( $out['items'] ) >= $item_budget ) {
 						break; // Deterministic: first N slugs in incoming object order win.
 					}
