@@ -34,7 +34,7 @@ class Admin_Bar {
 	 * @return void
 	 */
 	public function node( $bar ) {
-		if ( ! is_admin() || ! current_user_can( capability() ) ) {
+		if ( ! is_admin() || is_editor_screen() || ! current_user_can( capability() ) ) {
 			return;
 		}
 
