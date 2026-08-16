@@ -1,6 +1,7 @@
 <?php
 /**
- * Integration checks for the admin-bar editor-entry toggle label strings (UX-08b).
+ * Integration checks for the admin-bar editor-entry toggle: its label strings
+ * (UX-08b / UX-09) and the screens it may appear on (WP71-01).
  *
  * WHY INTEGRATION (not unit): Admin_Bar::node() depends on WordPress runtime functions
  * (is_admin(), current_user_can(), WP_Admin_Bar, add_query_arg(), is_edit_mode(),
@@ -15,6 +16,11 @@
  *   - Visible label (exit):   'Exit Menu Editor'  (was 'Exit' pre-Phase-23)
  *   - meta.title (enter):     'Edit Admin Menu'
  *   - meta.title (exit):      'Exit Menu Editor'  (was 'Exit Editor' pre-Phase-23)
+ *
+ * WP71-01 adds the screen gate: the toggle must not be registered in the Post
+ * Editor or the Site Editor, where WordPress 7.1's persistent toolbar would
+ * otherwise make it visible on a screen with no editable menu. The matching
+ * asset-side gate is covered by AssetsScreenGateTest.
  *
  * @package Maestro
  */
@@ -174,6 +180,56 @@ class AdminBarTest extends WP_UnitTestCase {
 			'Exit Menu Editor',
 			$meta_title,
 			'Exit-mode meta.title must contain "Exit Menu Editor" for screen readers'
+		);
+	}
+
+	/**
+	 * WP71-01 (post editor): the toggle must NOT be registered on a block-editor
+	 * screen.
+	 *
+	 * WordPress 7.1 shows the toolbar persistently in the Post Editor — previously
+	 * it was hidden by fullscreen, which is the default. The toggle therefore
+	 * becomes visible and clickable on a screen where #adminmenu is hidden and
+	 * there is no menu to edit: entering edit mode there binds sortables to a
+	 * hidden menu and floats Maestro's toolbar over the block canvas.
+	 */
+	public function test_toggle_absent_on_block_editor_screen() {
+		set_current_screen( 'post' );
+		get_current_screen()->is_block_editor( true );
+
+		$this->assertNull(
+			$this->render_toggle_node(),
+			'maestro-toggle must not be registered on a block-editor screen (WP 7.1 persistent toolbar)'
+		);
+	}
+
+	/**
+	 * WP71-01 (Site Editor): same guard, matched on screen id.
+	 *
+	 * The Site Editor never rendered the toolbar before 7.1, so this is entirely
+	 * new exposure. It is matched by id rather than is_block_editor() because the
+	 * two are set independently and the Site Editor is the case that regressed.
+	 */
+	public function test_toggle_absent_on_site_editor_screen() {
+		set_current_screen( 'site-editor' );
+
+		$this->assertNull(
+			$this->render_toggle_node(),
+			'maestro-toggle must not be registered on the Site Editor screen (WP 7.1 persistent toolbar)'
+		);
+	}
+
+	/**
+	 * Regression guard for the gate above: a classic admin screen that is NOT a
+	 * block editor must still get the toggle. Without this, "hide it everywhere"
+	 * would pass the two tests above.
+	 */
+	public function test_toggle_present_on_classic_admin_screen() {
+		set_current_screen( 'options-general' );
+
+		$this->assertNotNull(
+			$this->render_toggle_node(),
+			'maestro-toggle must still be registered on classic admin screens'
 		);
 	}
 }
