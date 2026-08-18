@@ -1,72 +1,113 @@
 import { test, expect } from '../fixtures';
+import { execFileSync } from 'child_process';
 
 /**
- * WP71-01 — Maestro stays out of the Post Editor and the Site Editor.
+ * WP71-01 — Maestro follows the admin menu, not the screen.
  *
- * WordPress 7.1 shows the toolbar persistently in both editors. Before that the
- * Post Editor hid it in fullscreen (the default) and the Site Editor never
- * rendered one, so the edit-mode toggle was there but unreachable. Once it is
- * reachable, clicking it enters edit mode on a screen whose #adminmenu is behind
- * the editor's fullscreen chrome: sortables bind to an invisible menu and the
- * Maestro toolbar floats over the block canvas.
+ * WordPress 7.1 shows the toolbar persistently in the Post and Site Editors.
+ * Before that the Post Editor hid it in fullscreen (the default) and the Site
+ * Editor never rendered one, so Maestro's toggle was registered there but
+ * unreachable. Now it is reachable — and in fullscreen it leads nowhere, because
+ * #adminmenu is behind the editor chrome.
  *
- * WHY THIS RUNS ON PRE-7.1 TOO: the gate is server-side (PHP screen check), so
- * asking for the editor URL with ?maestro_edit=1 exercises it on any supported
- * WordPress. What differs in 7.1 is only whether a user can *reach* the toggle
- * by clicking — not what the server does with the URL. These specs take the URL
- * path directly, which is also the path a bookmark or a shared link takes.
+ * The rule is NOT "editor screens are off limits". Verified on 7.1-RC4:
+ *
+ *   - Post Editor, fullscreen ON (default): #adminmenu hidden -> nothing to edit.
+ *   - Post Editor, fullscreen OFF:          #adminmenu visible at 160x523, and
+ *                                           Maestro works completely.
+ *   - Site Editor:                          permanently fullscreen. Forcing every
+ *                                           fullscreen preference to false does not
+ *                                           change it and there is no fullscreen
+ *                                           menu item, so the menu is never reachable.
+ *
+ * So the gate keys on fullscreen, not on the screen. That keeps the Post Editor
+ * path that genuinely works today and still covers the Site Editor for free.
+ *
+ * Note these assert VISIBILITY, not absence: the toggle is server-rendered into
+ * the toolbar and hidden by CSS, so the node exists in the DOM either way.
  */
 
-const EDITOR_SCREENS = [
-	{ name: 'Post Editor', path: '/wp-admin/post-new.php' },
-	{ name: 'Site Editor', path: '/wp-admin/site-editor.php' },
-];
+/**
+ * Set the persisted fullscreen preference for the admin user.
+ *
+ * Written straight to user meta rather than toggled through the editor UI so the
+ * state is deterministic at first paint — core reads this to decide whether to
+ * strip the server-rendered `is-fullscreen-mode` class during hydration.
+ */
+function setFullscreenMode( on: boolean ): void {
+	execFileSync(
+		'npx',
+		[
+			'wp-env', 'run', 'tests-cli',
+			'wp', 'user', 'meta', 'update', 'admin', 'wp_persisted_preferences',
+			JSON.stringify( { 'core/edit-post': { fullscreenMode: on } } ),
+			'--format=json',
+		],
+		{ stdio: 'ignore' }
+	);
+}
 
-test.describe( 'WP71-01 — editor screens are out of scope for Maestro', () => {
-	for ( const screen of EDITOR_SCREENS ) {
-		test( `${ screen.name }: no toggle, and ?maestro_edit=1 loads no editor`, async ( {
-			page,
-		} ) => {
-			// 1. The entry point is absent. In 7.1 the toolbar renders here, so
-			//    without the gate this node would be visible and clickable.
-			await page.goto( screen.path );
-			await expect(
-				page.locator( '#wp-admin-bar-maestro-toggle' )
-			).toHaveCount( 0 );
+test.describe( 'WP71-01 — fullscreen decides, not the screen', () => {
+	test.afterAll( () => {
+		// Leave the shared instance on the WordPress default.
+		setFullscreenMode( true );
+	} );
 
-			// 2. The URL is inert even when asked for directly. Hiding the toggle
-			//    does not retract a bookmarked or shared ?maestro_edit=1 link, so
-			//    the asset gate has to hold on its own.
-			await page.goto( `${ screen.path }?maestro_edit=1` );
-			await expect( page.locator( '.maestro-toolbar' ) ).toHaveCount( 0 );
-			await expect(
-				page.locator( '#adminmenu li.maestro-item' )
-			).toHaveCount( 0 );
+	test( 'Post Editor in fullscreen: no toggle, and ?maestro_edit=1 paints nothing', async ( {
+		page,
+	} ) => {
+		setFullscreenMode( true );
 
-			// 3. Nothing of ours is on the page at all — not even the admin-bar
-			//    stylesheet, which exists only to keep a toggle we no longer
-			//    render reachable on narrow screens.
-			const maestroAssets = await page.evaluate( () =>
-				Array.from(
-					document.querySelectorAll(
-						'script[src], link[rel="stylesheet"][href]'
-					)
-				)
-					.map(
-						( el ) =>
-							el.getAttribute( 'src' ) ||
-							el.getAttribute( 'href' ) ||
-							''
-					)
-					.filter( ( url ) => url.includes( '/maestro-menu-editor/' ) )
-			);
-			expect( maestroAssets ).toEqual( [] );
-		} );
-	}
+		await page.goto( '/wp-admin/post-new.php' );
+		await expect( page.locator( 'body' ) ).toHaveClass( /is-fullscreen-mode/ );
+		await expect(
+			page.locator( '#wp-admin-bar-maestro-toggle' )
+		).toBeHidden();
 
-	test( 'the classic admin path is unaffected', async ( { page } ) => {
-		// Regression guard: a gate that refused everything everywhere would pass
-		// every assertion above.
+		// The URL is reachable by bookmark even with the toggle hidden.
+		await page.goto( '/wp-admin/post-new.php?maestro_edit=1' );
+		await expect( page.locator( '.maestro-toolbar' ) ).toBeHidden();
+		// The tour traps focus, so it must never open over the canvas.
+		await expect( page.locator( '.maestro-tour' ) ).toHaveCount( 0 );
+	} );
+
+	test( 'Post Editor out of fullscreen: Maestro still works (BC)', async ( {
+		page,
+	} ) => {
+		setFullscreenMode( false );
+
+		await page.goto( '/wp-admin/post-new.php' );
+		await expect( page.locator( 'body' ) ).not.toHaveClass(
+			/is-fullscreen-mode/
+		);
+		await expect( page.locator( '#adminmenu' ) ).toBeVisible();
+		await expect(
+			page.locator( '#wp-admin-bar-maestro-toggle' )
+		).toBeVisible();
+
+		await page.goto( '/wp-admin/post-new.php?maestro_edit=1' );
+		await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
+		await expect(
+			page.locator( '#adminmenu li.maestro-item' ).first()
+		).toBeVisible();
+	} );
+
+	test( 'Site Editor: no toggle, fullscreen preference notwithstanding', async ( {
+		page,
+	} ) => {
+		// Even with the preference off, the Site Editor stays fullscreen.
+		setFullscreenMode( false );
+
+		await page.goto( '/wp-admin/site-editor.php' );
+		await expect( page.locator( 'body' ) ).toHaveClass( /is-fullscreen-mode/ );
+		await expect(
+			page.locator( '#wp-admin-bar-maestro-toggle' )
+		).toBeHidden();
+	} );
+
+	test( 'classic admin is untouched', async ( { page } ) => {
+		setFullscreenMode( true );
+
 		await page.goto( '/wp-admin/index.php' );
 		await expect(
 			page.locator( '#wp-admin-bar-maestro-toggle' )
