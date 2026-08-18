@@ -151,10 +151,27 @@ jobs:
         run: npm run check:doc-links
 
   integration-e2e:
-    name: Integration + E2E (wp-env, WP 7.1)
+    # NAME IS A CONTRACT — do not put the WP version in it.
+    #
+    # Branch protection requires this job by its literal name. When the name
+    # carried the version, bumping WordPress renamed the check, the required
+    # context stopped reporting, and the very PR doing the bump could never
+    # merge — protection waiting on a name that no longer existed. That happened
+    # on the 7.0 -> 7.1 bump (#159).
+    #
+    # The version now lives in .wp-env.json, which is the single source of truth,
+    # and is echoed by the step below so it is visible in the run without being
+    # baked into a name anything else depends on.
+    name: Integration + E2E (wp-env)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+
+      - name: Report pinned WordPress core
+        run: |
+          CORE="$(node -p "require('./.wp-env.json').core || 'default'")"
+          echo "wp-env core pin: $CORE"
+          echo "### WordPress under test: \`$CORE\`" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
