@@ -496,6 +496,17 @@ Recent decisions affecting current work:
   and arbitrary SVG upload, which is a security feature wearing a UI feature's
   clothes and wants its own pass. `todos/pending/2026-08-09-icon-picker-remaining-scope.md`
 
+- **WordPress 7.1 compatibility register** — `compat/WP-7.1-COMPAT.md`, opened
+  2026-08-18. Created because #156 introduced the `WP71-nn` identifier in code
+  comments with no registry for `WP71-02` onward to land in. **WP71-01 is CLOSED**
+  (#156: the persistent 7.1 toolbar made the Edit Menu toggle reachable in the Post
+  and Site Editors; guard keys on FULLSCREEN, not the screen, because with
+  fullscreen off the Post Editor still shows the menu and Maestro works there).
+  Three open: **WP71-02** Phase 23's "no admin CSS variables exist" rationale
+  expired against 7.1's `--wpds-*` tokens (99 hardcoded hex, 0 `var(--)` — wants a
+  decision, not a fix); **WP71-03** Phase 25's contrast ratios were measured against
+  7.0 and #65382 moved the sidebar palette; **WP71-04** #65250 fixed collapsed-menu
+  cursor behaviour inside Phase 28-01's work area — read it before, not after.
 - **Human screen-reader pass on the person picker** — consolidates the two
   surviving v1.5.0 caveats into one task (21-05 Task 5 is struck as superseded by
   Phase 25's human pass). axe is clean and still passing, which is not the same
