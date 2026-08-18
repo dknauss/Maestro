@@ -62,6 +62,63 @@ tour off the block canvas. Covered by `tests/e2e/specs/editor-screen-gate.spec.t
 unconditionally and strips it during hydration for users who turned fullscreen
 off, so the toggle appears a moment after load for those users.
 
+### ◻ WP71-05 — the toggle is reachable in the Post Editor, but entering costs an interruption
+
+**Open. Raised by Dan 2026-08-18, from using it.**
+
+WP71-01 concluded: *with fullscreen off, the Post Editor shows the menu, so
+Maestro works there.* That is true of the **menu** and not of the **entry point**.
+
+`Admin_Bar::node()` renders a plain `href` (`class-admin-bar.php:53`), so entering
+edit mode is a **full page navigation**. In the Post Editor that navigates away
+from an editor which may hold unsaved content, and Gutenberg's own
+unsaved-changes guard raises a browser confirm. Maestro has no `beforeunload` of
+its own — the dialog is core's, fired because Maestro navigated the page out from
+under it.
+
+Answering a browser dialog, and risking post content, in order to edit a menu is a
+bad trade even when the menu is visible.
+
+#### Could entry be made interruption-free? Investigated: not cheaply
+
+The idea — enter edit mode client-side, no reload — fails on where the editor
+model comes from:
+
+- **The model is a product of an admin page render.** `get_menu_model()`
+  (`class-replay.php:710`) reads the live `$menu`/`$submenu` globals, which exist
+  only after `admin_menu` has run. Its single caller is `class-assets.php:125`,
+  feeding `wp_localize_script`. **It is not exposed over REST**, and the existing
+  `READABLE` route on `maestro/v1/config` returns the stored *config*, not the
+  model. A REST request has no admin menu to read, so serving the model from one
+  would mean bootstrapping the admin menu inside a non-admin request — precisely
+  the fragile thing this codebase avoids.
+- **Edit mode renders rows normal mode omits.** `class-replay.php:505` skips the
+  per-user hide when `is_edit_mode()`, so a row you hid from yourself reappears
+  while editing — deliberately, so the rule stays removable. A no-reload session
+  would have to inject those rows client-side, i.e. reconstruct markup core
+  generates. That is the rebuild model `SPEC.md` principle 4 rejects.
+- Asset gating alone would be solvable (lazy-load on click); the model is not.
+
+#### Recommendation: remove the option here
+
+Hide the toggle in the Post Editor **whether or not fullscreen is on**. The
+sidebar is one click away on every other admin screen, so nothing is lost, and it
+makes WP71-01's guard consistent: *the entry point should not appear where using
+it is worse than not.*
+
+**This is a runtime change to #156's guard and should be its own PR**, not folded
+into the compat declaration. Note the widened guard would also make the Site
+Editor case fall out of the same rule rather than needing fullscreen at all.
+
+#### The invariant this and WP71-01 share
+
+> **The toggle should only appear where edit mode can actually deliver an editable
+> menu, without cost.**
+
+Three known violations, only one of them 7.1-related — see
+`todos/pending/2026-08-18-mobile-edit-mode-does-not-open-the-menu.md` for the
+third, which is pre-existing and has the *opposite* answer.
+
 ### ◻ WP71-02 — the "no admin CSS variables exist" rationale has expired
 
 **Open. Not urgent; nothing breaks.**
