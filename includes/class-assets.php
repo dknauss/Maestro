@@ -52,15 +52,6 @@ class Assets {
 	 * @return void
 	 */
 	public function enqueue() {
-		// Post Editor / Site Editor: nothing here applies. Admin_Bar hides the
-		// toggle on these screens, but `?maestro_edit=1` is a plain query arg —
-		// bookmarkable and typeable — so the asset gate has to hold on its own.
-		// This sits above the admin-bar stylesheet too: that sheet exists only to
-		// keep the toggle reachable on narrow screens, and there is no toggle here.
-		if ( is_editor_screen() ) {
-			return;
-		}
-
 		// Always-loaded: keep the editor ENTER/EXIT toggle reachable in the admin bar at <=782px,
 		// regardless of edit mode (the heavy editor assets below stay edit-mode-gated). UX-08a.
 		wp_enqueue_style(

@@ -7,3 +7,25 @@
 	#wpadminbar li#wp-admin-bar-maestro-toggle { display: block; }
 	#wpadminbar li#wp-admin-bar-maestro-toggle .maestro-ab-label { display: none; }
 }
+
+/*
+ * WP71-01 — hide the entry point where the menu is unreachable.
+ *
+ * WordPress 7.1 shows the toolbar persistently in the Post and Site Editors. In
+ * fullscreen — the Post Editor default, and the Site Editor always, which has no
+ * fullscreen control at all — #adminmenu sits behind the editor chrome, so the
+ * toggle would lead somewhere with nothing to edit.
+ *
+ * Fullscreen is the deciding fact, not the screen: with fullscreen off the Post
+ * Editor shows the menu and Maestro works there, as it did before 7.1.
+ *
+ * Core renders `is-fullscreen-mode` server-side unconditionally and strips it
+ * during hydration for users who turned fullscreen off, so this settles on the
+ * right state either way — at the cost of the toggle appearing a moment after
+ * load for those users.
+ *
+ * display:none rather than visibility/opacity so it leaves the tab order too.
+ */
+.is-fullscreen-mode #wp-admin-bar-maestro-toggle {
+	display: none;
+}

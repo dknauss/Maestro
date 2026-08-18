@@ -770,3 +770,16 @@ body.maestro-editing.auto-fold #wpfooter {
  * .maestro-toolbar .maestro-btn-label above), so the former <=600px-only
  * compression block (Gap 2 / UX-08b) is no longer needed — the labels never
  * show on screen; aria-label/title carry the accessible name everywhere. */
+
+/*
+ * WP71-01 — keep the editor chrome off the block canvas.
+ *
+ * Hiding the toggle does not retract a bookmarked `?maestro_edit=1`, so the
+ * editing surfaces carry the same guard. This is the no-flash half; maestro.js
+ * declines to initialise at all in fullscreen, which is the half that actually
+ * keeps sortables off a hidden menu and the focus-trapping tour off the canvas.
+ */
+.is-fullscreen-mode .maestro-toolbar,
+.is-fullscreen-mode .maestro-tour {
+	display: none;
+}
