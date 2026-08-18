@@ -2093,10 +2093,88 @@
 
 	/* ---------- go --------------------------------------------------------- */
 
+	/*
+	 * WP71-01 — do not start up where there is no menu to edit.
+	 *
+	 * WordPress 7.1 shows the toolbar persistently in the Post and Site Editors,
+	 * so `?maestro_edit=1` is reachable on screens whose #adminmenu is behind the
+	 * editor's fullscreen chrome. Starting there binds sortables to an invisible
+	 * menu and opens the guided tour — which is aria-modal and traps focus — over
+	 * the block canvas. The CSS hides those surfaces; this keeps them from being
+	 * built in the first place.
+	 *
+	 * Fullscreen is what decides, not the screen. With fullscreen off, the Post
+	 * Editor shows the admin menu and Maestro works normally, and that path
+	 * predates 7.1 — gating on "is this an editor screen" would take it away.
+	 *
+	 * The catch: core adds `is-fullscreen-mode` UNCONDITIONALLY server-side
+	 * ("Default to is-fullscreen-mode to avoid jumps in the UI", edit-form-blocks.php
+	 * and site-editor.php) and only strips it during hydration for users who turned
+	 * fullscreen off. At DOMContentLoaded it is therefore present either way, so
+	 * reading it right then would deny the editor to exactly the users entitled to
+	 * it. On block-editor screens we wait for the class to settle instead.
+	 */
+	var FULLSCREEN_SETTLE_MS = 3000;
+
+	function menuIsEditable() {
+		return ! document.body.classList.contains( 'is-fullscreen-mode' );
+	}
+
+	/**
+	 * Resolve whether the admin menu is editable, once the answer is knowable.
+	 *
+	 * @param {Function} done Receives true when Maestro should start up.
+	 */
+	function whenFullscreenSettles( done ) {
+		// Ordinary admin screen: nothing defers the answer, so answer now. This
+		// keeps every non-editor screen on exactly the pre-7.1 code path.
+		if ( ! document.body.classList.contains( 'block-editor-page' ) ) {
+			done( true );
+			return;
+		}
+
+		if ( menuIsEditable() ) {
+			done( true );
+			return;
+		}
+
+		var settled = false;
+		var observer;
+		var timer;
+
+		function finish( editable ) {
+			if ( settled ) { return; }
+			settled = true;
+			observer.disconnect();
+			clearTimeout( timer );
+			done( editable );
+		}
+
+		// Hydration strips the class for non-fullscreen users; that is our cue.
+		observer = new MutationObserver( function () {
+			if ( menuIsEditable() ) { finish( true ); }
+		} );
+		observer.observe( document.body, {
+			attributes: true,
+			attributeFilter: [ 'class' ]
+		} );
+
+		// Still fullscreen once hydration has had its chance: stay out. On a very
+		// slow load this can decline a non-fullscreen editor; a reload recovers,
+		// which is a better failure than a focus trap over the canvas.
+		timer = setTimeout( function () { finish( false ); }, FULLSCREEN_SETTLE_MS );
+	}
+
+	function boot() {
+		whenFullscreenSettles( function ( editable ) {
+			if ( editable ) { init(); }
+		} );
+	}
+
 	if ( document.readyState === 'loading' ) {
-		document.addEventListener( 'DOMContentLoaded', init );
+		document.addEventListener( 'DOMContentLoaded', boot );
 	} else {
-		init();
+		boot();
 	}
 
 } )( jQuery );

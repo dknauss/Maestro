@@ -16,6 +16,11 @@
  *   - meta.title (enter):     'Edit Admin Menu'
  *   - meta.title (exit):      'Exit Menu Editor'  (was 'Exit Editor' pre-Phase-23)
  *
+ * WP71-01 (the 7.1 persistent toolbar) is deliberately NOT covered here. The
+ * toggle is still registered on every admin screen, including both editors —
+ * whether it is *shown* depends on fullscreen, which is a client-side fact PHP
+ * cannot read. That behaviour lives in tests/e2e/specs/editor-screen-gate.spec.ts.
+ *
  * @package Maestro
  */
 
@@ -176,4 +181,5 @@ class AdminBarTest extends WP_UnitTestCase {
 			'Exit-mode meta.title must contain "Exit Menu Editor" for screen readers'
 		);
 	}
+
 }
