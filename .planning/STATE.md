@@ -496,6 +496,16 @@ Recent decisions affecting current work:
   and arbitrary SVG upload, which is a security feature wearing a UI feature's
   clothes and wants its own pass. `todos/pending/2026-08-09-icon-picker-remaining-scope.md`
 
+- **Mobile edit mode does not open the admin menu** — below 782px the menu is
+  off-canvas and entering edit mode leaves it closed, so you get the toolbar and
+  nothing to edit; on a wide screen the equivalent folded state IS forced open.
+  Cause: `forceUnfold()` only knows the DESKTOP fold (`folded`/`auto-fold`), and
+  `maestro.js` has no `782`/`menu-toggle`/`matchMedia` at all. Not a regression —
+  UX-08a deliberately made the toggle reachable on mobile without a step to make
+  the menu visible on arrival. Third instance of the WP71-05 invariant, and the
+  only one that resolves by FIXING rather than removing, because the page has
+  already rendered in edit mode so the model exists. Design with Phase 28.
+  `todos/pending/2026-08-18-mobile-edit-mode-does-not-open-the-menu.md`
 - **WordPress 7.1 compatibility register** — `compat/WP-7.1-COMPAT.md`, opened
   2026-08-18. Created because #156 introduced the `WP71-nn` identifier in code
   comments with no registry for `WP71-02` onward to land in. **WP71-01 is CLOSED**
