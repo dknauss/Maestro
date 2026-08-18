@@ -92,17 +92,33 @@ test.describe( 'WP71-01 — fullscreen decides, not the screen', () => {
 		).toBeVisible();
 	} );
 
-	test( 'Site Editor: no toggle, fullscreen preference notwithstanding', async ( {
+	test( 'Site Editor: the toggle leads to the Dashboard, not nowhere (UX-11)', async ( {
 		page,
 	} ) => {
-		// Even with the preference off, the Site Editor stays fullscreen.
+		// Even with the preference off, the Site Editor stays fullscreen — which
+		// is exactly why it cannot be treated like the Post Editor.
 		setFullscreenMode( false );
 
 		await page.goto( '/wp-admin/site-editor.php' );
 		await expect( page.locator( 'body' ) ).toHaveClass( /is-fullscreen-mode/ );
+
+		/*
+		 * Deliberately NOT hidden here, unlike the Post Editor. Fullscreen is a
+		 * preference there, so the menu is one toggle away and hiding costs
+		 * nothing. The Site Editor has no such control, so hiding would leave no
+		 * route to menu editing at all.
+		 */
+		const toggle = page.locator( '#wp-admin-bar-maestro-toggle' );
+		await expect( toggle ).toBeVisible();
+		await expect( toggle ).toHaveClass( /maestro-toggle-offsite/ );
+
+		// Following it must land somewhere the menu actually exists.
+		await toggle.locator( 'a' ).click();
+		await expect( page ).toHaveURL( /index\.php\?maestro_edit=1/ );
+		await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
 		await expect(
-			page.locator( '#wp-admin-bar-maestro-toggle' )
-		).toBeHidden();
+			page.locator( '#adminmenu li.maestro-item' ).first()
+		).toBeVisible();
 	} );
 
 	test( 'classic admin is untouched', async ( { page } ) => {
