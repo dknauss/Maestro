@@ -151,7 +151,7 @@ jobs:
         run: npm run check:doc-links
 
   integration-e2e:
-    name: Integration + E2E (wp-env, WP 7.0)
+    name: Integration + E2E (wp-env, WP 7.1)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
