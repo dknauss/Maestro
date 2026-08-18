@@ -2114,7 +2114,30 @@
 	 * reading it right then would deny the editor to exactly the users entitled to
 	 * it. On block-editor screens we wait for the class to settle instead.
 	 */
-	var FULLSCREEN_SETTLE_MS = 3000;
+	/*
+	 * How long to wait for hydration to strip is-fullscreen-mode before giving
+	 * up and staying out.
+	 *
+	 * Measured on 7.1-RC4 against post-new.php, latency from DOMContentLoaded to
+	 * the class being stripped, under CPU throttling:
+	 *
+	 *     none    89ms
+	 *     4x     376ms
+	 *     10x    926ms
+	 *     20x   2303ms
+	 *
+	 * 20x is a plausible low-end device under load, and at 3000ms that left only
+	 * ~700ms of headroom — around 26x would have blown it and silently denied
+	 * the editor to someone entitled to it.
+	 *
+	 * Raising this is close to free, because the ceiling only bounds the
+	 * GIVE-UP path. With fullscreen off we resolve the moment the class is
+	 * stripped, so the ceiling never applies. With fullscreen on we wait it out
+	 * and then decline — and declining paints nothing, which is what would have
+	 * happened anyway. So the only thing a longer wait costs is a MutationObserver
+	 * living slightly longer on a page where Maestro stays out regardless.
+	 */
+	var FULLSCREEN_SETTLE_MS = 10000;
 
 	function menuIsEditable() {
 		return ! document.body.classList.contains( 'is-fullscreen-mode' );
