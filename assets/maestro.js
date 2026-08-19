@@ -766,12 +766,40 @@
 		var toggle = document.querySelector( '#wp-admin-bar-maestro-toggle > .ab-item' );
 		if ( ! toggle ) { return; }
 		toggle.addEventListener( 'click', function ( e ) {
-			if ( ! saveTimer && ! inFlight ) { return; }
+			/*
+			 * Two kinds of unsaved work can be in play on the way out, and they
+			 * are not the same thing.
+			 *
+			 * Maestro's own: a debounced or in-flight menu save, flushed by
+			 * waitForSaveIdle() so the navigation cannot outrun it.
+			 *
+			 * The POST's: edit mode is reachable in the post editor with
+			 * fullscreen off, so the user can enter it and keep typing. Exiting
+			 * then navigates away from unsaved content and raises the browser's
+			 * "Leave site?" prompt — the same defect UX-13 fixed on entry, which
+			 * this half originally missed. maestroPostGuard is present only on
+			 * block-editor screens, so this is feature-detected rather than
+			 * depended on; every classic screen keeps the old path exactly.
+			 */
+			var guard = window.maestroPostGuard;
+			var flushMenu = saveTimer || inFlight;
+			var savePost = !! ( guard && guard.needsSave() );
+
+			if ( ! flushMenu && ! savePost ) { return; }
+
 			e.preventDefault();
 			var href = toggle.href;
-			waitForSaveIdle().then( function () {
-				window.location.href = href;
-			} );
+
+			Promise.resolve()
+				.then( function () {
+					return flushMenu ? waitForSaveIdle() : null;
+				} )
+				.then( function () {
+					return savePost ? guard.save() : null;
+				} )
+				.then( function () {
+					window.location.href = href;
+				} );
 		} );
 	}
 
