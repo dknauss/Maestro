@@ -4,7 +4,7 @@ Donate link: https://github.com/sponsors/dknauss
 Tags: admin menu, menu editor, hide menu items, rename menu items, menu icons
 Requires at least: 6.4
 Tested up to: 7.1
-Stable tag: 1.5.2
+Stable tag: 1.5.3
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -164,6 +164,13 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 
 == Changelog ==
 
+= 1.5.3 =
+* **WordPress 7.1 support.** 7.1 keeps the toolbar on screen in the post and site editors, where it used to be hidden. Maestro's **Edit Menu** button appeared there too — on screens with no admin menu to edit. It now appears only where it can actually do something.
+* **Fixed: Edit Menu on a phone or narrow window opened the editor without opening the menu.** WordPress hides the admin menu at narrow widths behind the toolbar's menu button. Edit mode started anyway, so you got the editing toolbar and no menu, with nothing saying to tap the menu button first. It now opens the menu for you, and the menu button keeps working normally while you edit.
+* **Fixed: in the site editor, Edit Menu led nowhere.** The site editor never shows the admin menu and has no way to bring it back, so the button had nothing to act on. It now takes you to the Dashboard with the editor already open.
+* **Fixed: your unsaved post could raise a browser warning when entering or leaving Edit Menu.** Both are ordinary page loads, so an unfinished post triggered the browser's "Leave site?" prompt. Maestro now saves your work first, the same way WordPress's own autosave does. It never publishes anything — a draft stays a draft and a published post keeps the version your readers see.
+* **Fixed: the Collapse menu button did nothing during editing.** Collapsing is not possible while the menu is being edited, but the button was still there to click. It is now hidden until you finish.
+
 = 1.5.2 =
 * **Fixed: an override could silently stop applying when the same menu item was saved under two spellings of its address.** Some items can be addressed more than one way — with or without a version number or tracking parameter, for instance. If a single save carried two such spellings of the same item, Maestro stored both, then read the item as ambiguous and applied neither. A rename or a visibility rule would stop working while still appearing in your settings, which is the worst way for something to break. Maestro now keeps one entry per item, so the situation cannot arise.
 * This also closes a way for someone who can edit the menu but cannot list users to undo a per-person visibility rule set by an administrator. As always, hiding is cosmetic: no capability was granted or removed, and the affected page stayed reachable by URL throughout for anyone allowed to open it.
@@ -240,6 +247,9 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 * Editor: click-to-select with a shared panel, debounced single-flight autosave, and folded-mode neutralization.
 
 == Upgrade Notice ==
+
+= 1.5.3 =
+Adds WordPress 7.1 support and fixes four ways Edit Menu could take you somewhere it could not work: the post and site editors, narrow windows, and the Collapse menu button. Unsaved posts are now saved before Edit Menu navigates. Cosmetic only — no access changed. No configuration changes.
 
 = 1.5.2 =
 Fixes an override that could silently stop applying when one save carried two spellings of the same item's address, and closes a way for a delegated editor to undo an administrator's per-person visibility rule. Cosmetic only — no access changed. No configuration changes.
