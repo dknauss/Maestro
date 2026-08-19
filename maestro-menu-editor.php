@@ -58,6 +58,31 @@ function is_edit_mode() {
 }
 
 /**
+ * Is the current screen the Site Editor?
+ *
+ * The Site Editor is the one admin screen where #adminmenu can never be
+ * reached: it is permanently fullscreen and, unlike the Post Editor, offers no
+ * fullscreen control to turn off (verified on 7.1-RC4 — forcing every
+ * fullscreen preference to false leaves it fullscreen). Editing in place is
+ * therefore impossible there, which is why the toggle points elsewhere instead
+ * of being a dead end.
+ *
+ * Unlike fullscreen itself, this IS knowable server-side: it is a screen id,
+ * not a client-side preference.
+ *
+ * @return bool
+ */
+function is_site_editor_screen() {
+	if ( ! function_exists( 'get_current_screen' ) ) {
+		return false;
+	}
+
+	$screen = get_current_screen();
+
+	return $screen instanceof \WP_Screen && 'site-editor' === $screen->id;
+}
+
+/**
  * Register bundled translations with WordPress' just-in-time loader.
  */
 function register_translation_path() {

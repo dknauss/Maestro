@@ -892,3 +892,20 @@ body.maestro-editing.auto-fold #wpfooter {
 .is-fullscreen-mode .maestro-tour {
 	display: none;
 }
+
+/*
+ * UX-12 — withdraw controls that edit mode has made inert.
+ *
+ * forceUnfold() keeps the menu unfolded while editing and swallows
+ * #collapse-menu's click so the menu cannot collapse out from under the editor.
+ * That left the button rendered and focusable: it looked operable, did nothing,
+ * and explained nothing. A control that cannot act should not be offered.
+ *
+ * display:none rather than disabled or aria-hidden, so it leaves the tab order
+ * too — a keyboard user should not land on a dead control either. The JS guard
+ * in forceUnfold() stays as the functional backstop, in case a theme or admin
+ * stylesheet overrides this rule.
+ */
+.maestro-editing #collapse-menu {
+	display: none;
+}

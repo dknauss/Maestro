@@ -26,6 +26,18 @@
  *
  * display:none rather than visibility/opacity so it leaves the tab order too.
  */
-.is-fullscreen-mode #wp-admin-bar-maestro-toggle {
+.is-fullscreen-mode #wp-admin-bar-maestro-toggle:not( .maestro-toggle-offsite ) {
 	display: none;
 }
+
+/*
+ * UX-11 — the Site Editor is exempt.
+ *
+ * It is permanently fullscreen with no control to leave, so hiding the toggle
+ * there is a dead end rather than a kindness: those users would have no route
+ * to menu editing at all. PHP marks that variant .maestro-toggle-offsite and
+ * points it at the Dashboard in edit mode, so the toggle leads somewhere real.
+ *
+ * The Post Editor is deliberately not exempt — fullscreen is a preference
+ * there, so the menu is one toggle away.
+ */

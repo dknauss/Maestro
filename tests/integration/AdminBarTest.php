@@ -182,4 +182,69 @@ class AdminBarTest extends WP_UnitTestCase {
 		);
 	}
 
+
+	/**
+	 * UX-11 (Site Editor): the toggle is still registered there, but points at
+	 * the Dashboard instead of the current screen.
+	 *
+	 * The Site Editor is the one screen where the admin menu can never be
+	 * reached: it is permanently fullscreen and exposes no fullscreen control,
+	 * verified on 7.1-RC4. Hiding the toggle there (which the fullscreen CSS
+	 * would otherwise do) leaves those users no route to menu editing at all.
+	 * The Post Editor is different — fullscreen is a preference there, so the
+	 * menu is one toggle away and hiding costs nothing.
+	 */
+	public function test_site_editor_toggle_targets_the_dashboard() {
+		set_current_screen( 'site-editor' );
+
+		$node = $this->render_toggle_node();
+
+		$this->assertNotNull( $node, 'maestro-toggle must still be registered in the Site Editor' );
+
+		$this->assertStringContainsString(
+			'index.php',
+			$node->href,
+			'Site Editor toggle must target the Dashboard, not site-editor.php'
+		);
+		$this->assertStringContainsString(
+			'maestro_edit=1',
+			$node->href,
+			'Site Editor toggle must arrive in edit mode'
+		);
+	}
+
+	/**
+	 * UX-11: the Site Editor variant carries a class so the fullscreen CSS rule
+	 * can exempt it. Without this it would be hidden by the same
+	 * .is-fullscreen-mode rule that correctly hides it in the Post Editor.
+	 */
+	public function test_site_editor_toggle_is_marked_for_css_exemption() {
+		set_current_screen( 'site-editor' );
+
+		$node = $this->render_toggle_node();
+
+		$this->assertNotNull( $node );
+		$this->assertStringContainsString(
+			'maestro-toggle-offsite',
+			isset( $node->meta['class'] ) ? $node->meta['class'] : '',
+			'Site Editor toggle needs the offsite class so CSS can exempt it from the fullscreen hide'
+		);
+	}
+
+	/**
+	 * Guard: a classic screen must keep targeting itself, not the Dashboard.
+	 * Without this, "always send them to the Dashboard" would pass the above.
+	 */
+	public function test_classic_screen_toggle_targets_current_screen() {
+		set_current_screen( 'options-general' );
+
+		$node = $this->render_toggle_node();
+
+		$this->assertNotNull( $node );
+		$this->assertStringNotContainsString(
+			'maestro-toggle-offsite',
+			isset( $node->meta['class'] ) ? $node->meta['class'] : '',
+			'Classic screens must not be marked offsite'
+		);
+	}
 }

@@ -20,8 +20,15 @@ import { execFileSync } from 'child_process';
  *                                           change it and there is no fullscreen
  *                                           menu item, so the menu is never reachable.
  *
- * So the gate keys on fullscreen, not on the screen. That keeps the Post Editor
- * path that genuinely works today and still covers the Site Editor for free.
+ * So the gate keys on fullscreen, not on the screen, which keeps the Post Editor
+ * path that genuinely works today.
+ *
+ * The Site Editor then needs an explicit exception (UX-11). Keying on fullscreen
+ * would hide the toggle there too — technically consistent, but it leaves those
+ * users no route to menu editing at all, since they cannot turn fullscreen off.
+ * A hidden toggle is the right answer only where the menu is one preference
+ * away. Where it is unreachable for good, the toggle stays and points at the
+ * Dashboard instead.
  *
  * Note these assert VISIBILITY, not absence: the toggle is server-rendered into
  * the toolbar and hidden by CSS, so the node exists in the DOM either way.
@@ -92,17 +99,33 @@ test.describe( 'WP71-01 — fullscreen decides, not the screen', () => {
 		).toBeVisible();
 	} );
 
-	test( 'Site Editor: no toggle, fullscreen preference notwithstanding', async ( {
+	test( 'Site Editor: the toggle leads to the Dashboard, not nowhere (UX-11)', async ( {
 		page,
 	} ) => {
-		// Even with the preference off, the Site Editor stays fullscreen.
+		// Even with the preference off, the Site Editor stays fullscreen — which
+		// is exactly why it cannot be treated like the Post Editor.
 		setFullscreenMode( false );
 
 		await page.goto( '/wp-admin/site-editor.php' );
 		await expect( page.locator( 'body' ) ).toHaveClass( /is-fullscreen-mode/ );
+
+		/*
+		 * Deliberately NOT hidden here, unlike the Post Editor. Fullscreen is a
+		 * preference there, so the menu is one toggle away and hiding costs
+		 * nothing. The Site Editor has no such control, so hiding would leave no
+		 * route to menu editing at all.
+		 */
+		const toggle = page.locator( '#wp-admin-bar-maestro-toggle' );
+		await expect( toggle ).toBeVisible();
+		await expect( toggle ).toHaveClass( /maestro-toggle-offsite/ );
+
+		// Following it must land somewhere the menu actually exists.
+		await toggle.locator( 'a' ).click();
+		await expect( page ).toHaveURL( /index\.php\?maestro_edit=1/ );
+		await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
 		await expect(
-			page.locator( '#wp-admin-bar-maestro-toggle' )
-		).toBeHidden();
+			page.locator( '#adminmenu li.maestro-item' ).first()
+		).toBeVisible();
 	} );
 
 	test( 'classic admin is untouched', async ( { page } ) => {
