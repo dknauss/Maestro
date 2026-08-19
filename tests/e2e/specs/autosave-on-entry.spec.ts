@@ -91,6 +91,7 @@ test.describe( 'UX-13 — autosave before leaving the post editor', () => {
 
 		await page.goto( '/wp-admin/post-new.php' );
 		await dismissWelcomeGuide( page );
+		await dismissWelcomeGuide( page );
 		await expect(
 			page.locator( '#wp-admin-bar-maestro-toggle' )
 		).toBeVisible();
@@ -125,6 +126,7 @@ test.describe( 'UX-13 — autosave before leaving the post editor', () => {
 
 		await page.goto( '/wp-admin/post-new.php' );
 		await dismissWelcomeGuide( page );
+		await dismissWelcomeGuide( page );
 		await expect(
 			page.locator( '#wp-admin-bar-maestro-toggle' )
 		).toBeVisible();
@@ -137,5 +139,49 @@ test.describe( 'UX-13 — autosave before leaving the post editor', () => {
 		expect( persistedTitles().split( '\n' ).filter( Boolean ).length ).toBe(
 			before
 		);
+	} );
+
+	test( 'unsaved work is persisted on the way OUT too', async ( { page } ) => {
+		/*
+		 * The symmetric case, and the one #166 missed. Edit mode is reachable in
+		 * the post editor with fullscreen off, so a user can enter it, carry on
+		 * typing, and then click Exit — which navigates, with the post dirty.
+		 *
+		 * bindAdminBarExit() already intercepts this exact toggle, but only to
+		 * flush MAESTRO's pending saves. The post's own unsaved changes were not
+		 * its concern, so the browser prompt came back on exit having been fixed
+		 * on entry.
+		 */
+		setFullscreenMode( false );
+
+		const title = `Unsaved on exit ${ Date.now() }`;
+
+		await page.goto( '/wp-admin/post-new.php?maestro_edit=1' );
+		await dismissWelcomeGuide( page );
+		await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
+
+		const exit = page.locator( '#wp-admin-bar-maestro-toggle a' );
+		await expect( exit ).toHaveAttribute( 'href', /^(?!.*maestro_edit=1).*$/ );
+
+		await page.evaluate(
+			( t ) => window.wp.data.dispatch( 'core/editor' ).editPost( { title: t } ),
+			title
+		);
+		await expect
+			.poll( () =>
+				page.evaluate( () =>
+					window.wp.data.select( 'core/editor' ).isEditedPostDirty()
+				)
+			)
+			.toBe( true );
+
+		await exit.click();
+
+		// It still leaves edit mode.
+		await expect( page ).not.toHaveURL( /maestro_edit=1/ );
+		await expect( page.locator( '.maestro-toolbar' ) ).toHaveCount( 0 );
+
+		// And the work survived.
+		expect( persistedTitles() ).toContain( title );
 	} );
 } );

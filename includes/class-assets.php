@@ -61,21 +61,39 @@ class Assets {
 			MAESTRO_VERSION
 		);
 
+		/*
+		 * UX-13: on block-editor screens the toggle navigates away from content
+		 * that may be unsaved, in BOTH directions — entering edit mode and
+		 * leaving it. Either raises the browser's generic "Leave site?" prompt.
+		 *
+		 * The shared guard decides what preserving means (autosave, never
+		 * savePost) so entry and exit cannot drift apart; #166 fixed only entry
+		 * and the asymmetry showed up immediately for anyone who kept typing
+		 * after entering edit mode.
+		 *
+		 * Scoped to block-editor screens: every other admin screen has no post
+		 * to lose and keeps the pre-existing zero-JS path. Consumers
+		 * feature-detect window.maestroPostGuard rather than declaring a
+		 * dependency, so maestro.js stays loadable without it.
+		 */
+		if ( is_block_editor_screen() ) {
+			wp_enqueue_script(
+				'maestro-post-guard',
+				MAESTRO_URL . 'assets/maestro-post-guard.js',
+				array( 'wp-data' ),
+				MAESTRO_VERSION,
+				true
+			);
+		}
+
 		if ( ! is_edit_mode() ) {
-			/*
-			 * UX-13: on block-editor screens the toggle navigates away from
-			 * content that may be unsaved, which raises the browser's generic
-			 * "Leave site?" prompt. This tiny script autosaves first.
-			 *
-			 * Scoped to block-editor screens and to NOT-editing, because that is
-			 * the only case that leaves unsaved content behind — every other
-			 * admin screen keeps the pre-existing zero-JS path.
-			 */
+			// Entry side. The exit side is bound by maestro.js, which is what
+			// loads once edit mode is on.
 			if ( is_block_editor_screen() ) {
 				wp_enqueue_script(
 					'maestro-entry',
 					MAESTRO_URL . 'assets/maestro-entry.js',
-					array( 'wp-data' ),
+					array( 'maestro-post-guard' ),
 					MAESTRO_VERSION,
 					true
 				);
