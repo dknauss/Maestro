@@ -62,6 +62,25 @@ class Assets {
 		);
 
 		if ( ! is_edit_mode() ) {
+			/*
+			 * UX-13: on block-editor screens the toggle navigates away from
+			 * content that may be unsaved, which raises the browser's generic
+			 * "Leave site?" prompt. This tiny script autosaves first.
+			 *
+			 * Scoped to block-editor screens and to NOT-editing, because that is
+			 * the only case that leaves unsaved content behind — every other
+			 * admin screen keeps the pre-existing zero-JS path.
+			 */
+			if ( is_block_editor_screen() ) {
+				wp_enqueue_script(
+					'maestro-entry',
+					MAESTRO_URL . 'assets/maestro-entry.js',
+					array( 'wp-data' ),
+					MAESTRO_VERSION,
+					true
+				);
+			}
+
 			return;
 		}
 

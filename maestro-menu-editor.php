@@ -83,6 +83,25 @@ function is_site_editor_screen() {
 }
 
 /**
+ * Is the current screen a block editor (Post Editor, Site Editor, or any other)?
+ *
+ * Used only to decide whether the entry guard is worth loading. Unlike
+ * fullscreen — which core stamps unconditionally and resolves during hydration —
+ * this is answerable server-side.
+ *
+ * @return bool
+ */
+function is_block_editor_screen() {
+	if ( ! function_exists( 'get_current_screen' ) ) {
+		return false;
+	}
+
+	$screen = get_current_screen();
+
+	return $screen instanceof \WP_Screen && $screen->is_block_editor();
+}
+
+/**
  * Register bundled translations with WordPress' just-in-time loader.
  */
 function register_translation_path() {
