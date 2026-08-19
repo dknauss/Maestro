@@ -21,6 +21,7 @@ jobs:
   dependency-health:
     name: Dependency metadata + audits
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
 
@@ -54,6 +55,7 @@ jobs:
   php-lint:
     name: PHP syntax (PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -73,6 +75,7 @@ jobs:
   lint:
     name: Coding standards (WPCS)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
 
@@ -91,6 +94,7 @@ jobs:
   phpstan:
     name: Static analysis (PHPStan)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
 
@@ -110,6 +114,7 @@ jobs:
   unit:
     name: Unit tests (PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -132,6 +137,7 @@ jobs:
   node-quality:
     name: JavaScript unit tests + docs links
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
 
@@ -164,6 +170,7 @@ jobs:
     # baked into a name anything else depends on.
     name: Integration + E2E (wp-env)
     runs-on: ubuntu-latest
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v7
 
@@ -208,7 +215,18 @@ jobs:
       - name: Integration tests (multisite)
         run: npm run test:php:multisite
 
+      # The step that hung on PR #173 — apt-get, inside the browser install,
+      # the same failure Borges hit on its #79. Bounded here as well as at the
+      # job level because a step timeout names the step in the log and ends the
+      # job Failed rather than Cancelled, which is a cleaner signal for a
+      # required check.
+      #
+      # 20 minutes is sized against this step's own history, not the median:
+      # across 80 successful runs it is 21-689s (median 25s, p95 97s), so the
+      # bound is ~1.7x its observed max. The tail here is much longer than the
+      # typical run, which is why the median would have been the wrong basis.
       - name: Install Playwright Chromium
+        timeout-minutes: 20
         run: npx playwright install --with-deps chromium
 
       - name: E2E tests (Playwright)
@@ -221,6 +239,7 @@ jobs:
   package-check:
     name: Runtime package + Plugin Check
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
 
