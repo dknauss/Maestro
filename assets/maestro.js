@@ -214,11 +214,80 @@
 		}
 	}
 
+	/*
+	 * forceUnfold()'s responsive twin. Below 782px WordPress does not fold the
+	 * menu, it hides it outright: #adminmenuwrap is display:none until #wpwrap
+	 * gets .wp-responsive-open via the toolbar hamburger. Edit mode would
+	 * otherwise decorate items nobody can see, with nothing on screen saying to
+	 * tap the hamburger first.
+	 *
+	 * Opening goes through core's own click.wp-responsive handler rather than by
+	 * setting the class directly, so the toggle's aria-expanded stays truthful
+	 * and focus lands where core puts it.
+	 *
+	 * Holding it open is the point, not a nicety: core closes the responsive menu
+	 * on any click outside #wp-admin-bar-menu-toggle and #adminmenuwrap
+	 * (wp-admin/js/common.js), and Maestro's toolbar is outside both — so the
+	 * editing controls would close the menu being edited. The observer re-opens
+	 * instead of stopping propagation, because Maestro's own popovers close on a
+	 * document-level click listener (placePopover) that has to keep seeing those
+	 * events.
+	 *
+	 * While editing, the hamburger therefore appears inert — the same bargain
+	 * forceUnfold() already makes with #collapse-menu on desktop.
+	 */
+	function forceResponsiveOpen() {
+		var wrap   = document.getElementById( 'wpwrap' );
+		var toggle = document.getElementById( 'wp-admin-bar-menu-toggle' );
+
+		if ( ! wrap || ! toggle ) { return; }
+
+		// The hamburger only renders in the responsive layout; when it is not
+		// displayed this is a desktop width and forceUnfold() owns the menu.
+		function isResponsive() {
+			return toggle.offsetParent !== null;
+		}
+
+		function openMenu() {
+			if ( ! isResponsive() || wrap.classList.contains( 'wp-responsive-open' ) ) {
+				return;
+			}
+
+			if ( window.jQuery ) {
+				window.jQuery( toggle ).trigger( 'click.wp-responsive' );
+			}
+
+			/*
+			 * Verify rather than assume. Core binds click.wp-responsive from its
+			 * own jQuery ready handler, and this runs from init() on
+			 * DOMContentLoaded — so on a cold load the trigger above can fire
+			 * before that handler exists and do nothing at all. When that
+			 * happens (or jQuery is absent), set the state core would have set,
+			 * accessible state included, so the toggle stays truthful and its
+			 * next real click toggles from the correct position.
+			 */
+			if ( ! wrap.classList.contains( 'wp-responsive-open' ) ) {
+				wrap.classList.add( 'wp-responsive-open' );
+
+				var link = toggle.querySelector( 'a' );
+				if ( link ) {
+					link.setAttribute( 'aria-expanded', 'true' );
+				}
+			}
+		}
+
+		openMenu();
+
+		var mo = new MutationObserver( openMenu );
+		mo.observe( wrap, { attributes: true, attributeFilter: [ 'class' ] } );
+	}
+
 	/* ---------- build model + wire the DOM --------------------------------- */
 
 	function init() {
 		document.body.classList.add( 'maestro-editing' );
 		forceUnfold();
+		forceResponsiveOpen();
 
 		D.menu.forEach( function ( node ) {
 			model[ node.slug ] = {
