@@ -20,8 +20,15 @@ import { execFileSync } from 'child_process';
  *                                           change it and there is no fullscreen
  *                                           menu item, so the menu is never reachable.
  *
- * So the gate keys on fullscreen, not on the screen. That keeps the Post Editor
- * path that genuinely works today and still covers the Site Editor for free.
+ * So the gate keys on fullscreen, not on the screen, which keeps the Post Editor
+ * path that genuinely works today.
+ *
+ * The Site Editor then needs an explicit exception (UX-11). Keying on fullscreen
+ * would hide the toggle there too — technically consistent, but it leaves those
+ * users no route to menu editing at all, since they cannot turn fullscreen off.
+ * A hidden toggle is the right answer only where the menu is one preference
+ * away. Where it is unreachable for good, the toggle stays and points at the
+ * Dashboard instead.
  *
  * Note these assert VISIBILITY, not absence: the toggle is server-rendered into
  * the toolbar and hidden by CSS, so the node exists in the DOM either way.
