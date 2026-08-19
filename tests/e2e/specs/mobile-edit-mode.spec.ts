@@ -66,4 +66,37 @@ test.describe( 'UX-10 — edit mode at <=782px', () => {
 			page.locator( '#adminmenu li.maestro-item' ).first()
 		).toBeVisible();
 	} );
+
+	test( 'closing the menu withdraws the toolbar with it, reversibly', async ( {
+		page,
+	} ) => {
+		/*
+		 * A deliberate consequence of attaching the toolbar inside #adminmenuwrap
+		 * rather than an accident worth hiding: closing the menu takes the toolbar
+		 * with it, because it is part of that subtree.
+		 *
+		 * That is the right reading — no menu on screen means nothing to edit —
+		 * and it is what keeps the hamburger honest instead of inert. Exit stays
+		 * on the admin bar, which UX-09 already made the single entry/exit, so
+		 * the user is never stranded.
+		 */
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
+
+		const hamburger = page.locator( '#wp-admin-bar-menu-toggle a' );
+
+		await hamburger.click();
+		await expect( page.locator( '#adminmenu' ) ).toBeHidden();
+		await expect( page.locator( '.maestro-toolbar' ) ).toBeHidden();
+
+		// Never stranded: the way out is still on the admin bar.
+		await expect(
+			page.locator( '#wp-admin-bar-maestro-toggle' )
+		).toBeVisible();
+
+		// And it comes straight back.
+		await hamburger.click();
+		await expect( page.locator( '#adminmenu' ) ).toBeVisible();
+		await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
+	} );
 } );

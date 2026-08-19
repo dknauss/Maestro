@@ -225,16 +225,11 @@
 	 * setting the class directly, so the toggle's aria-expanded stays truthful
 	 * and focus lands where core puts it.
 	 *
-	 * Holding it open is the point, not a nicety: core closes the responsive menu
-	 * on any click outside #wp-admin-bar-menu-toggle and #adminmenuwrap
-	 * (wp-admin/js/common.js), and Maestro's toolbar is outside both — so the
-	 * editing controls would close the menu being edited. The observer re-opens
-	 * instead of stopping propagation, because Maestro's own popovers close on a
-	 * document-level click listener (placePopover) that has to keep seeing those
-	 * events.
-	 *
-	 * While editing, the hamburger therefore appears inert — the same bargain
-	 * forceUnfold() already makes with #collapse-menu on desktop.
+	 * Only opening is handled here. Keeping it open is buildToolbar()'s job, and
+	 * it does that structurally: the toolbar is attached inside #adminmenuwrap at
+	 * these widths, which satisfies core's outside-click containment test so core
+	 * never closes the menu in the first place. Nothing has to be re-opened,
+	 * nothing has to stop propagation, and the hamburger keeps working.
 	 */
 	function forceResponsiveOpen() {
 		var wrap   = document.getElementById( 'wpwrap' );
@@ -277,9 +272,6 @@
 		}
 
 		openMenu();
-
-		var mo = new MutationObserver( openMenu );
-		mo.observe( wrap, { attributes: true, attributeFilter: [ 'class' ] } );
 	}
 
 	/* ---------- build model + wire the DOM --------------------------------- */
@@ -729,7 +721,36 @@
 		right.appendChild( resetAll );
 		bar.appendChild( right );
 
-		document.body.appendChild( bar );
+		/*
+		 * At narrow widths the toolbar lives INSIDE #adminmenuwrap rather than on
+		 * <body>, which is not cosmetic — it is what keeps the menu open.
+		 *
+		 * Core closes the responsive menu on any click outside
+		 * #wp-admin-bar-menu-toggle and #adminmenuwrap (wp-admin/js/common.js).
+		 * A toolbar on <body> is outside both, so every editing control closed
+		 * the menu being edited. Being a descendant of the sidebar satisfies
+		 * core's own containment test instead of fighting it: core never closes
+		 * the menu, so nothing has to re-open it, and the hamburger keeps working
+		 * normally rather than being silently neutralised.
+		 *
+		 * Safe because the toolbar is position:fixed — the DOM parent does not
+		 * move it. Measured identical either way (375x62 at 0,750 on a 375px
+		 * viewport); #adminmenuwrap sets no transform/filter/perspective that
+		 * would make it a containing block, and does not clip.
+		 *
+		 * The tradeoff is deliberate: closing the menu now hides the toolbar with
+		 * it, since it is part of that subtree. That reads correctly — no menu on
+		 * screen means nothing to edit — it reverses on the next tap, and Exit
+		 * stays on the admin bar, which UX-09 already made the single entry/exit.
+		 */
+		var menuWrap = document.getElementById( 'adminmenuwrap' );
+		var hamburger = document.getElementById( 'wp-admin-bar-menu-toggle' );
+
+		if ( menuWrap && hamburger && hamburger.offsetParent !== null ) {
+			menuWrap.appendChild( bar );
+		} else {
+			document.body.appendChild( bar );
+		}
 
 		bindAdminBarExit();
 	}
@@ -2183,30 +2204,7 @@
 	 * reading it right then would deny the editor to exactly the users entitled to
 	 * it. On block-editor screens we wait for the class to settle instead.
 	 */
-	/*
-	 * How long to wait for hydration to strip is-fullscreen-mode before giving
-	 * up and staying out.
-	 *
-	 * Measured on 7.1-RC4 against post-new.php, latency from DOMContentLoaded to
-	 * the class being stripped, under CPU throttling:
-	 *
-	 *     none    89ms
-	 *     4x     376ms
-	 *     10x    926ms
-	 *     20x   2303ms
-	 *
-	 * 20x is a plausible low-end device under load, and at 3000ms that left only
-	 * ~700ms of headroom — around 26x would have blown it and silently denied
-	 * the editor to someone entitled to it.
-	 *
-	 * Raising this is close to free, because the ceiling only bounds the
-	 * GIVE-UP path. With fullscreen off we resolve the moment the class is
-	 * stripped, so the ceiling never applies. With fullscreen on we wait it out
-	 * and then decline — and declining paints nothing, which is what would have
-	 * happened anyway. So the only thing a longer wait costs is a MutationObserver
-	 * living slightly longer on a page where Maestro stays out regardless.
-	 */
-	var FULLSCREEN_SETTLE_MS = 10000;
+	var FULLSCREEN_SETTLE_MS = 3000;
 
 	function menuIsEditable() {
 		return ! document.body.classList.contains( 'is-fullscreen-mode' );
