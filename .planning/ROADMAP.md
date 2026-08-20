@@ -12,6 +12,49 @@
 - ✅ **v1.4 Compatibility, Roles & Showcase** — Phases 19–24 (shipped 2026-08-04; release tag `v1.4.0`, patch `v1.4.1` 2026-08-05). Shipped **without** Phase 21 (ROLE-02, deferred to v1.5 under the Release Binding fallback) and Phase 22 (not reached; still open).
 - ✅ **v1.5 Per-User Visibility** — Phase 21 + Phase 26 (shipped 2026-08-09; release tag `v1.5.0` on `694b1bf`). Delivered ROLE-02's **per-user half**; the cloned-role "profiles" half remains a backlog item. Phases 22 and 25 were optional inclusions and did **not** make the cut, per the fallback. Phase 25 has since been completed post-release (2026-08-09, human-verified) and will ride the next release; Phase 22 remains open.
 
+## Next up
+
+Not yet scheduled into a milestone; listed here because it is the first thing to
+decide on rather than the first thing to build.
+
+### Bootstrap icon colour — [#172](https://github.com/dknauss/Maestro/issues/172)
+
+All 87 icons in the Bootstrap set sit at a fixed `#a7aaad`. Dashicons lighten on
+hover, go white on the current item, and follow the admin colour scheme; the
+Bootstrap ones do none of it, so a mixed menu looks inconsistent exactly where
+the eye lands.
+
+This is a known trade-off, not an oversight — `bin/generate-bootstrap-icons.mjs`
+bakes the grey in because a data-URI used as a CSS `background-image` cannot
+resolve `currentColor`, and dashicons get it free by being a font. The
+constraint is core's: `wp-admin/menu-header.php` has no branch that would let a
+plugin emit inline `<svg>`. 7.1's SVG Icon API does not change this — see
+[#162](https://github.com/dknauss/Maestro/issues/162).
+
+Four options, cheapest first:
+
+1. **Document it in the picker.** A note on the Bootstrap set so the behaviour
+   is chosen rather than discovered. Fixes nothing; costs nothing.
+2. **CSS filter** (`brightness(0) invert(1)`) on hover/current. One line, no
+   payload cost, but it can only reach pure white — wrong against any scheme
+   whose icon-focus colour is not white.
+3. **Per-state generated variants.** Bake a white copy and swap
+   `background-image`. Doubles the set's payload and still misses custom
+   colour schemes, which vary the colour rather than just its lightness.
+4. **Inline SVG injected by JS.** The only option that genuinely inherits
+   `currentColor` and so tracks every scheme and state. Also the most invasive:
+   rewriting core's menu markup on every admin page for every user.
+
+**Recommendation:** (1) now, (2) if the inconsistency is worth an approximation.
+(4) only alongside [#167](https://github.com/dknauss/Maestro/issues/167) /
+[#168](https://github.com/dknauss/Maestro/issues/168) — it is the same
+architectural bet and should not be taken for icon colour alone.
+
+**Note:** there are two icon sets, `dashicons` and `bootstrap`, registered in
+`Assets::icon_sets()`. There is no third. A set registered through the 7.1 SVG
+Icon API would be the obvious candidate, but per #162 it would land with exactly
+this same limitation.
+
 ## Phases
 
 <details>
