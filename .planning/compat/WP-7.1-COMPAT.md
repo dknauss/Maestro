@@ -1,8 +1,10 @@
 # WordPress 7.1 — compatibility register
 
 **Opened:** 2026-08-18
-**Maestro baseline:** v1.5.2 (shipped), `main` at `68f7d6f`
-**7.1 status at time of writing:** RC (CI has run against a real `7.1-RC4-63322` build)
+**Last updated:** 2026-08-21 — WP71-02 closed and WP71-03 half-closed by measurement on `572f472`
+**Maestro baseline at opening:** v1.5.2 (shipped), `main` at `68f7d6f`
+**7.1 status at opening:** RC (CI had run against a real `7.1-RC4-63322` build); the
+2026-08-21 measurements were taken on `7.1.1-alpha-63326`
 
 This file exists because `#156` introduced the **`WP71-nn`** identifier in code
 comments and there was nowhere for `WP71-02` onward to land. It is the registry
@@ -119,46 +121,126 @@ Three known violations, only one of them 7.1-related — see
 `todos/pending/2026-08-18-mobile-edit-mode-does-not-open-the-menu.md` for the
 third, which is pre-existing and has the *opposite* answer.
 
-### ◻ WP71-02 — the "no admin CSS variables exist" rationale has expired
+### ✅ WP71-02 — the rationale expired; the conclusion survives, for a better reason
 
-**Open. Not urgent; nothing breaks.**
+**Closed 2026-08-21 by measurement.** Read on `572f472` (v1.5.3) against a running
+`7.1.1-alpha-63326` wp-env instance. First entry in this file backed by observation
+rather than by reading a dev note.
 
-Phase 23 recorded that Maestro's panel/toolbar colours stay hardcoded because *no
-WP admin-colour-scheme CSS variable exists for a custom-drawn surface to inherit*.
-That was true when written. 7.1's `--wpds-*` tokens make it false.
+Phase 23 recorded that Maestro's colours stay hardcoded because *no admin-colour-scheme
+CSS variable exists for a custom-drawn surface to inherit*. That **wording** is now
+false: 7.1 puts **167 `--wpds-*` custom properties on `:root`**, and `wp-theme` is both
+registered *and* enqueued by default on admin screens (`wp_style_is()` true for both).
 
-Measured on `68f7d6f`: **99 hardcoded hex values in `assets/maestro.css`, zero
-`var(--)` usages, zero `wpds` references** across both stylesheets.
+The **conclusion** survives anyway, on two findings the dev note does not state.
 
-Nothing is broken — hardcoded colours still render. What changed is the *reason*:
-a plugin whose stated aim is looking native to wp-admin now has a supported way to
-actually be native, and its recorded justification for not doing so no longer
-holds. Any adoption must stay back-compatible to the 6.4 floor (`var(--wpds-x, #hex)`
-fallbacks), which is also what makes this safe to do incrementally rather than as
-a sweep.
+#### 1. The tokens are scheme-blind. The surface Maestro draws on is not.
 
-**Blocked on nothing. Wants a decision, not a fix:** adopt tokens progressively,
-or record a *current* reason for staying hardcoded. Either is fine; the stale
-rationale is the actual defect.
+| Scheme | `#adminmenuwrap` | current item | `--wpds-…-surface-neutral` | `--wpds-color-stroke-focus` |
+|---|---|---|---|---|
+| fresh | `rgb(29,35,39)` | `rgb(34,113,177)` | `#fcfcfc` | `#3858e9` |
+| midnight | `rgb(51,60,66)` | `rgb(207,67,57)` | `#fcfcfc` | `#3858e9` |
+| ocean | `rgb(57,83,90)` | `rgb(86,121,88)` | `#fcfcfc` | `#3858e9` |
+| sunrise | `rgb(138,49,45)` | `rgb(173,99,30)` | `#fcfcfc` | `#3858e9` |
+| coffee | `rgb(92,76,64)` | `rgb(145,103,69)` | `#fcfcfc` | `#3858e9` |
 
-### ◻ WP71-03 — Phase 25's contrast ratios were measured against 7.0
+**Zero of 167 tokens changed value across all five schemes.** Scheme-following was the
+entire prize in adopting them, and it is not on offer: a token cannot make
+menu-adjacent chrome native to a scheme it has no knowledge of. The `#adminmenuwrap`
+subtree does not re-scope the tokens either — it reports root's `#fcfcfc`, i.e. the
+light-canvas value, on a surface that is dark in every scheme.
 
-**Open. Low risk, cheap to settle.**
+#### 2. The palette is Gutenberg's, not classic wp-admin's.
 
-#65382 boosted sidebar contrast in the admin colour schemes. Phase 25 measured and
-recorded specific ratios against 7.0 values — the focus ring at **6.74:1** on
-`#1d2327`, toolbar glyphs `#c3c4c7` at **9.11:1** — and chose `#72aee6`
-deliberately as a robustness margin over a value that passed by 0.07.
+Every value is a near-miss against what Maestro already uses:
 
-Those numbers are almost certainly still fine, and may well have improved. But
-they are currently *asserted* against a palette core has moved. Re-measure against
-7.1 and update `25-VERIFICATION.md` with the new figures, or note that they were
-re-checked and held.
+| Role | wpds | Maestro now | contrast between the two |
+|---|---|---|---|
+| card surface | `#fcfcfc` | `#fff` | 1.03 |
+| body text | `#1e1e1e` | `#1d2327` | 1.05 |
+| brand / accent | `#3858e9` | `#2271b1` | 1.09 |
+| stroke | `#dbdbdb` | `#c3c4c7` | 1.26 |
+| secondary text | `#707070` | `#50575e` | 1.48 |
 
-Related and unexamined: core standardising focus indicators to ≥2px (#65645) and
-improving focus states on the admin bar and admin menu (#65765, #65726). Maestro
-draws its own 2px ring on its own toolbar, so this is likely alignment rather than
-conflict — but "likely" is not "checked".
+Adopting these would not align Maestro with the classic screens it draws on — it would
+align it with the **editor**, by a margin too small to read as deliberate. Of the three
+available outcomes (match, differ clearly, almost-match), near-miss is the worst.
+
+#### Decision: stay hardcoded — and this is now the recorded reason
+
+Not "no variables exist" but: *the tokens describe a different design language than the
+surface this plugin draws on, and they are scheme-blind where that surface is
+scheme-aware.* That is a live justification rather than a stale one, which is what this
+entry was opened to obtain. Revisit if core ever seeds `--wpds-*` from the admin colour
+scheme — that single change would reverse the decision.
+
+**`ThemeProvider` is separately out of scope.** It is a React component from
+`@wordpress/theme`; Maestro has no React and no build step (`class-assets.php:113`
+enqueues hand-written JS). It also exists so a plugin can express *brand identity*,
+which is the inverse of this plugin's premise.
+
+**Worth taking opportunistically** — the non-colour scales, when that CSS is open for
+another reason. `--wpds-border-radius-*` is `1/2/4/8/12px`, and Maestro's `3px` is off
+that scale entirely; `--wpds-cursor-control` covers the six `cursor: pointer` sites but
+**not** the deliberate `cursor: default` ones (`maestro.css:238`, where the absent hand
+cursor *is* the design). These are static too — adoption buys alignment with core's
+scale, not the following of a user setting.
+
+**If any of it is adopted, guard the dependency:** test
+`wp_style_is( 'wp-theme', 'registered' )` before appending it. `WP_Dependencies` drops
+an item whose dependency is unregistered, so an unguarded
+`array( 'dashicons', 'wp-theme' )` would mean `maestro.css` does not print **at all** on
+the 6.4–7.0 floor.
+
+### ◻ WP71-03 — Phase 25's ratios re-measured against 7.1: they hold
+
+**Ratio half closed 2026-08-21. Focus-state interaction half still open.**
+
+Phase 25's two recorded figures reproduce **exactly** under 7.1 — focus ring `#72aee6`
+at **6.74:1**, toolbar glyphs `#c3c4c7` at **9.11:1**.
+
+They were never at risk, and the reason is worth recording because this entry was
+framed slightly wrong when it was opened: both were measured against **Maestro's own**
+`#1d2327` toolbar background (`maestro.css:536`), not against core's sidebar. #65382
+moved core's palette; it cannot move a colour Maestro hardcodes for itself.
+
+What *does* vary by scheme is the chrome Maestro draws on the **real** menu surface.
+Those ratios had never been measured on any version:
+
+| Scheme | menu surface | `#c3c4c7` text (needs ≥4.5) | `#72aee6` ring (needs ≥3) |
+|---|---|---|---|
+| fresh | `#1d2327` | 9.11 ✅ | 6.74 ✅ |
+| midnight | `#333c42` | 6.45 ✅ | 4.78 ✅ |
+| ocean | `#39535a` | 4.71 ✅ | 3.48 ✅ |
+| sunrise | `#8a312d` | 4.71 ✅ | 3.48 ✅ |
+| coffee | `#5c4c40` | 4.70 ✅ | 3.48 ✅ |
+
+All pass on all five. `ocean`, `sunrise` and `coffee` sit within **0.0003** relative
+luminance of one another (0.07795 / 0.07789 / 0.07814) — which is why a single
+dark-surface choice covers three schemes at once. That is robustness Maestro already
+had and had not recorded.
+
+#### Core's own focus token would have been a regression
+
+`--wpds-color-stroke-focus` (`#3858e9`) against the menu surface: **2.83:1** on fresh,
+**2.00:1** on midnight, **1.46:1** on the other three — under WCAG 1.4.11's 3:1 floor on
+**every** scheme. Phase 25 chose `#72aee6` as a robustness margin over a value that
+passed by 0.07; it now also beats the token core ships. Adopting
+`--wpds-color-stroke-focus` on Maestro's dark surfaces is specifically contraindicated,
+which is the opposite of the assumption that core's token is the safer default.
+
+#### Still open
+
+The `#3c434a` divider (`maestro.css:651`) is hardcoded against a scheme-aware
+background — 1.12–1.58:1 across the five. **Not** a 1.4.11 failure: a subtle zone
+divider is decoration, and the comment there says subtle is the intent. But it is cool
+grey against `sunrise`'s red and `coffee`'s brown, which is a hue question rather than a
+contrast one, and it is unexamined.
+
+**Also unchanged:** core standardising focus indicators to ≥2px (#65645) and improving
+focus states on the admin bar and admin menu (#65765, #65726). Maestro draws its own 2px
+ring on its own toolbar, so this is likely alignment rather than conflict — none of it
+was exercised by the probe, so "likely" is still not "checked".
 
 ### ◻ WP71-04 — #65250 lands inside Phase 28's work area
 
@@ -176,7 +258,7 @@ first is cheap insurance against designing around a bug core has already fixed.
 
 ## What the green 7.1 suite does and does not prove
 
-[#159](https://github.com/dknauss/Maestro/pull/159) (open, CI green, and built on
+[#159](https://github.com/dknauss/Maestro/pull/159) (merged as `0e3b45e`, CI green, built on
 top of the WP71-01 guard) declares `Tested up to: 7.1` and moves the wp-env pin to
 `#7.1-branch`. Its backing is real: the full suite ran against `7.1-RC4-63322` —
 unit 167, JS 83, integration 129, e2e 56, phpcs and PHPStan clean.
@@ -197,8 +279,8 @@ on re-run. The suite shares one WordPress instance and one option row, which
 `tests/e2e/fixtures.ts` already documents as an isolation hazard. It will bite CI
 eventually and is worth its own todo.
 
-**Also open, and unrelated to 7.1:** [#157](https://github.com/dknauss/Maestro/pull/157)
-(dependabot, `@axe-core/playwright` 4.12.1 → 4.13.0).
+**Landed since, and unrelated to 7.1:** [#157](https://github.com/dknauss/Maestro/pull/157)
+(dependabot, `@axe-core/playwright` 4.12.1 → 4.13.0) merged as `ffc83ed`.
 
 ---
 
@@ -206,7 +288,17 @@ eventually and is worth its own todo.
 
 - Items 1–3 in the changes table are read from the linked dev notes.
 - WP71-01's implementation is read from `68f7d6f`'s diff.
-- WP71-02's counts are measured on `68f7d6f`.
-- **Nothing here was observed running under 7.1 by the author of this note.**
-  #159's suite run is the only runtime evidence in the file, and it is quoted from
-  that PR rather than reproduced.
+- WP71-02's original hex/`var()` counts were measured statically on `68f7d6f`, and
+  re-derived unchanged on `572f472` (99 hex, 0 `var(--)`, 0 `wpds` in
+  `assets/maestro.css`): `grep -oE '#[0-9a-fA-F]{3,8}\b' assets/maestro.css | wc -l`.
+- **WP71-02 and WP71-03 were observed running under 7.1** on 2026-08-21, on `572f472`:
+  a wp-env instance on `7.1.1-alpha-63326`, driven with Playwright through the existing
+  e2e auth harness, reading computed `--wpds-*` values off `:root` and computed
+  backgrounds off `#adminmenuwrap` across five admin colour schemes. Contrast figures
+  are derived from those measured values with the WCAG 2.x relative-luminance formula,
+  not read from a source. Two caveats: the build is `7.1.1-alpha`, slightly ahead of
+  7.1.0, so specific hex values could still move — the structural findings
+  (scheme-blindness, Gutenberg palette) would not. And **the probe was a throwaway spec,
+  not committed**, so re-running it means rewriting it; if these figures are ever load
+  bearing again, that spec should land env-gated like the capture specs.
+- **Everything else here is still unobserved.** WP71-04 and WP71-05 are read, not run.
