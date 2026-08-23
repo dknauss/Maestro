@@ -62,21 +62,21 @@ class Assets {
 		);
 
 		/*
-		 * UX-13: on block-editor screens the toggle navigates away from content
-		 * that may be unsaved, in BOTH directions — entering edit mode and
-		 * leaving it. Either raises the browser's generic "Leave site?" prompt.
+		 * UX-13: the toggle navigates away from content that may be unsaved,
+		 * raising the browser's generic "Leave site?" prompt. The shared guard
+		 * autosaves first — never savePost, which on a published post would push
+		 * in-progress edits live.
 		 *
-		 * The shared guard decides what preserving means (autosave, never
-		 * savePost) so entry and exit cannot drift apart; #166 fixed only entry
-		 * and the asymmetry showed up immediately for anyone who kept typing
-		 * after entering edit mode.
+		 * WP71-05 narrowed this from every block-editor screen to the Site Editor
+		 * alone. It covered both directions in the Post Editor because the toggle
+		 * lived there; now it does not, so nothing to bind to and nothing to
+		 * preserve. The Site Editor keeps its toggle (UX-11) and that toggle still
+		 * leaves the screen, so it keeps the guard.
 		 *
-		 * Scoped to block-editor screens: every other admin screen has no post
-		 * to lose and keeps the pre-existing zero-JS path. Consumers
-		 * feature-detect window.maestroPostGuard rather than declaring a
+		 * Consumers feature-detect window.maestroPostGuard rather than declaring a
 		 * dependency, so maestro.js stays loadable without it.
 		 */
-		if ( is_block_editor_screen() ) {
+		if ( is_site_editor_screen() ) {
 			wp_enqueue_script(
 				'maestro-post-guard',
 				MAESTRO_URL . 'assets/maestro-post-guard.js',
@@ -87,9 +87,10 @@ class Assets {
 		}
 
 		if ( ! is_edit_mode() ) {
-			// Entry side. The exit side is bound by maestro.js, which is what
-			// loads once edit mode is on.
-			if ( is_block_editor_screen() ) {
+			// Entry side, Site Editor only since WP71-05. There is no exit side to
+			// pair with any more: edit mode cannot run on a block-editor screen, so
+			// maestro.js never binds an exit there.
+			if ( is_site_editor_screen() ) {
 				wp_enqueue_script(
 					'maestro-entry',
 					MAESTRO_URL . 'assets/maestro-entry.js',
@@ -99,6 +100,24 @@ class Assets {
 				);
 			}
 
+			return;
+		}
+
+		/*
+		 * WP71-05: edit mode never runs on a block-editor screen.
+		 *
+		 * Hiding the entry point does not retract a bookmarked ?maestro_edit=1,
+		 * so the assets have to decline too — otherwise sortables bind to a menu
+		 * behind the editor chrome and the tour, which is aria-modal and traps
+		 * focus, opens over the block canvas.
+		 *
+		 * #156 did this in maestro.js by watching for hydration to strip
+		 * `is-fullscreen-mode`. Deciding here instead means there is nothing to
+		 * wait for and nothing to race: the file simply never loads. The Site
+		 * Editor needs no exception — its toggle leaves for the Dashboard, so it
+		 * is never in edit mode on its own screen.
+		 */
+		if ( is_block_editor_screen() ) {
 			return;
 		}
 

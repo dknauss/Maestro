@@ -767,39 +767,28 @@
 		if ( ! toggle ) { return; }
 		toggle.addEventListener( 'click', function ( e ) {
 			/*
-			 * Two kinds of unsaved work can be in play on the way out, and they
-			 * are not the same thing.
+			 * Only Maestro's own unsaved work can be in play here: a debounced or
+			 * in-flight menu save, flushed by waitForSaveIdle() so the navigation
+			 * cannot outrun it.
 			 *
-			 * Maestro's own: a debounced or in-flight menu save, flushed by
-			 * waitForSaveIdle() so the navigation cannot outrun it.
+			 * Until WP71-05 this also had to preserve the POST's content, because
+			 * edit mode was reachable in the post editor with fullscreen off — the
+			 * asymmetry UX-13 fixed on entry and this half originally missed. It is
+			 * not reachable any more: Assets::enqueue() does not load this file on
+			 * block-editor screens, and maestro-post-guard.js loads only on them,
+			 * so the two are never present together and that branch has gone.
 			 *
-			 * The POST's: edit mode is reachable in the post editor with
-			 * fullscreen off, so the user can enter it and keep typing. Exiting
-			 * then navigates away from unsaved content and raises the browser's
-			 * "Leave site?" prompt — the same defect UX-13 fixed on entry, which
-			 * this half originally missed. maestroPostGuard is present only on
-			 * block-editor screens, so this is feature-detected rather than
-			 * depended on; every classic screen keeps the old path exactly.
+			 * The guard itself stays, used by maestro-entry.js for the Site Editor
+			 * toggle, which still navigates away from possibly-unsaved work.
 			 */
-			var guard = window.maestroPostGuard;
-			var flushMenu = saveTimer || inFlight;
-			var savePost = !! ( guard && guard.needsSave() );
-
-			if ( ! flushMenu && ! savePost ) { return; }
+			if ( ! saveTimer && ! inFlight ) { return; }
 
 			e.preventDefault();
 			var href = toggle.href;
 
-			Promise.resolve()
-				.then( function () {
-					return flushMenu ? waitForSaveIdle() : null;
-				} )
-				.then( function () {
-					return savePost ? guard.save() : null;
-				} )
-				.then( function () {
-					window.location.href = href;
-				} );
+			waitForSaveIdle().then( function () {
+				window.location.href = href;
+			} );
 		} );
 	}
 
@@ -2212,110 +2201,25 @@
 	/* ---------- go --------------------------------------------------------- */
 
 	/*
-	 * WP71-01 — do not start up where there is no menu to edit.
+	 * WP71-05 — block-editor screens never load this file.
 	 *
-	 * WordPress 7.1 shows the toolbar persistently in the Post and Site Editors,
-	 * so `?maestro_edit=1` is reachable on screens whose #adminmenu is behind the
-	 * editor's fullscreen chrome. Starting there binds sortables to an invisible
-	 * menu and opens the guided tour — which is aria-modal and traps focus — over
-	 * the block canvas. The CSS hides those surfaces; this keeps them from being
-	 * built in the first place.
+	 * #156 decided here, by watching for hydration to strip `is-fullscreen-mode`
+	 * from <body>. That was forced: core stamps the class server-side
+	 * unconditionally ("Default to is-fullscreen-mode to avoid jumps in the UI"),
+	 * so at DOMContentLoaded it is present either way and reading it right then
+	 * would deny the editor to exactly the users entitled to it. Hence a
+	 * MutationObserver, a settle ceiling, and a give-up path no test could reach.
 	 *
-	 * Fullscreen is what decides, not the screen. With fullscreen off, the Post
-	 * Editor shows the admin menu and Maestro works normally, and that path
-	 * predates 7.1 — gating on "is this an editor screen" would take it away.
-	 *
-	 * The catch: core adds `is-fullscreen-mode` UNCONDITIONALLY server-side
-	 * ("Default to is-fullscreen-mode to avoid jumps in the UI", edit-form-blocks.php
-	 * and site-editor.php) and only strips it during hydration for users who turned
-	 * fullscreen off. At DOMContentLoaded it is therefore present either way, so
-	 * reading it right then would deny the editor to exactly the users entitled to
-	 * it. On block-editor screens we wait for the class to settle instead.
+	 * WP71-05 moved the decision to PHP. Assets::enqueue() declines to enqueue on
+	 * block-editor screens, so this file cannot be running on one — including via
+	 * a bookmarked ?maestro_edit=1, since the assets never load for it. There is
+	 * nothing left to wait for, so the observer, the ceiling and the give-up path
+	 * are gone with it.
 	 */
-	/*
-	 * How long to wait for hydration to strip is-fullscreen-mode before giving
-	 * up and staying out.
-	 *
-	 * Measured on 7.1-RC4 against post-new.php, latency from DOMContentLoaded to
-	 * the class being stripped, under CPU throttling:
-	 *
-	 *     none    89ms
-	 *     4x     376ms
-	 *     10x    926ms
-	 *     20x   2303ms
-	 *
-	 * 20x is a plausible low-end device under load, and at 3000ms that left only
-	 * ~700ms of headroom — around 26x would have blown it and silently denied
-	 * the editor to someone entitled to it.
-	 *
-	 * Raising this is close to free, because the ceiling only bounds the
-	 * GIVE-UP path. With fullscreen off we resolve the moment the class is
-	 * stripped, so the ceiling never applies. With fullscreen on we wait it out
-	 * and then decline — and declining paints nothing, which is what would have
-	 * happened anyway. So the only thing a longer wait costs is a MutationObserver
-	 * living slightly longer on a page where Maestro stays out regardless.
-	 */
-	var FULLSCREEN_SETTLE_MS = 10000;
-
-	function menuIsEditable() {
-		return ! document.body.classList.contains( 'is-fullscreen-mode' );
-	}
-
-	/**
-	 * Resolve whether the admin menu is editable, once the answer is knowable.
-	 *
-	 * @param {Function} done Receives true when Maestro should start up.
-	 */
-	function whenFullscreenSettles( done ) {
-		// Ordinary admin screen: nothing defers the answer, so answer now. This
-		// keeps every non-editor screen on exactly the pre-7.1 code path.
-		if ( ! document.body.classList.contains( 'block-editor-page' ) ) {
-			done( true );
-			return;
-		}
-
-		if ( menuIsEditable() ) {
-			done( true );
-			return;
-		}
-
-		var settled = false;
-		var observer;
-		var timer;
-
-		function finish( editable ) {
-			if ( settled ) { return; }
-			settled = true;
-			observer.disconnect();
-			clearTimeout( timer );
-			done( editable );
-		}
-
-		// Hydration strips the class for non-fullscreen users; that is our cue.
-		observer = new MutationObserver( function () {
-			if ( menuIsEditable() ) { finish( true ); }
-		} );
-		observer.observe( document.body, {
-			attributes: true,
-			attributeFilter: [ 'class' ]
-		} );
-
-		// Still fullscreen once hydration has had its chance: stay out. On a very
-		// slow load this can decline a non-fullscreen editor; a reload recovers,
-		// which is a better failure than a focus trap over the canvas.
-		timer = setTimeout( function () { finish( false ); }, FULLSCREEN_SETTLE_MS );
-	}
-
-	function boot() {
-		whenFullscreenSettles( function ( editable ) {
-			if ( editable ) { init(); }
-		} );
-	}
-
 	if ( document.readyState === 'loading' ) {
-		document.addEventListener( 'DOMContentLoaded', boot );
+		document.addEventListener( 'DOMContentLoaded', init );
 	} else {
-		boot();
+		init();
 	}
 
 } )( jQuery );

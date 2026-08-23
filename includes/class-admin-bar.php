@@ -38,18 +38,41 @@ class Admin_Bar {
 			return;
 		}
 
+		/*
+		 * WP71-05: no entry point in the Post Editor, fullscreen or not.
+		 *
+		 * #156 keyed this on fullscreen because with fullscreen off the Post
+		 * Editor does show #adminmenu, so gating on the screen looked like it
+		 * would remove working behaviour. It counted the cost of *arriving* and
+		 * not the cost of *entering*: the toggle is a plain href, so following it
+		 * is a full page navigation, and from an editor holding unsaved content
+		 * that raises core's unsaved-changes dialog. Answering a browser dialog,
+		 * and risking post content, to reach a menu that is one click away on
+		 * every other admin screen is a worse trade than not offering it.
+		 *
+		 * The Site Editor is exempt for the opposite reason (UX-11, below): it can
+		 * never show the menu, so its toggle leads offsite rather than nowhere.
+		 *
+		 * Unlike fullscreen — which core stamps server-side unconditionally and
+		 * resolves during hydration — the screen is knowable here, so this decides
+		 * before render instead of flickering after it.
+		 */
+		if ( is_block_editor_screen() && ! is_site_editor_screen() ) {
+			return;
+		}
+
 		$editing = is_edit_mode();
 
 		/*
 		 * UX-11: in the Site Editor there is nothing to edit in place — it is
 		 * permanently fullscreen with no way to reveal #adminmenu. Hiding the
-		 * toggle there (which the .is-fullscreen-mode rule would otherwise do)
-		 * would leave those users no route to menu editing at all. So it stays,
-		 * and takes them to the Dashboard already in edit mode.
+		 * toggle there would leave those users no route to menu editing at all,
+		 * so it stays, and takes them to the Dashboard already in edit mode.
 		 *
-		 * The Post Editor is deliberately NOT treated this way: fullscreen is a
-		 * preference there, so the menu is one toggle away and hiding costs the
-		 * user nothing.
+		 * This is why the WP71-05 guard above exempts it rather than gating on
+		 * "is this a block editor". The Post Editor gets no toggle because
+		 * entering from there costs a dialog; the Site Editor gets one because
+		 * leaving is the only way it can work at all.
 		 */
 		$offsite = is_site_editor_screen();
 
@@ -74,8 +97,9 @@ class Admin_Bar {
 		);
 
 		if ( $offsite ) {
-			// Exempts this variant from the .is-fullscreen-mode hide in
-			// assets/maestro-admin-bar.css.
+			// Marks the variant whose href leaves the current screen. Since
+			// WP71-05 this is a semantic marker rather than a CSS hook — the
+			// fullscreen hide it used to exempt is gone.
 			$meta['class'] = 'maestro-toggle-offsite';
 		}
 

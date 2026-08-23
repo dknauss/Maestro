@@ -9,35 +9,15 @@
 }
 
 /*
- * WP71-01 — hide the entry point where the menu is unreachable.
+ * WP71-05 — the entry point is gated in PHP now, not here.
  *
- * WordPress 7.1 shows the toolbar persistently in the Post and Site Editors. In
- * fullscreen — the Post Editor default, and the Site Editor always, which has no
- * fullscreen control at all — #adminmenu sits behind the editor chrome, so the
- * toggle would lead somewhere with nothing to edit.
+ * #156 hid the toggle under .is-fullscreen-mode because fullscreen was the
+ * deciding fact and PHP cannot read it. Once the cost of *entering* was counted
+ * — a plain href, so a navigation, so core's unsaved-changes dialog — the Post
+ * Editor stopped qualifying whether or not the menu was visible, and the screen
+ * is knowable server-side. Admin_Bar::node() declines to register the node
+ * there, so there is nothing to hide and no post-hydration flicker.
  *
- * Fullscreen is the deciding fact, not the screen: with fullscreen off the Post
- * Editor shows the menu and Maestro works there, as it did before 7.1.
- *
- * Core renders `is-fullscreen-mode` server-side unconditionally and strips it
- * during hydration for users who turned fullscreen off, so this settles on the
- * right state either way — at the cost of the toggle appearing a moment after
- * load for those users.
- *
- * display:none rather than visibility/opacity so it leaves the tab order too.
- */
-.is-fullscreen-mode #wp-admin-bar-maestro-toggle:not( .maestro-toggle-offsite ) {
-	display: none;
-}
-
-/*
- * UX-11 — the Site Editor is exempt.
- *
- * It is permanently fullscreen with no control to leave, so hiding the toggle
- * there is a dead end rather than a kindness: those users would have no route
- * to menu editing at all. PHP marks that variant .maestro-toggle-offsite and
- * points it at the Dashboard in edit mode, so the toggle leads somewhere real.
- *
- * The Post Editor is deliberately not exempt — fullscreen is a preference
- * there, so the menu is one toggle away.
+ * UX-11's .maestro-toggle-offsite survives as a marker on the Site Editor
+ * variant, but it no longer exempts anything from a rule here.
  */

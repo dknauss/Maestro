@@ -1,7 +1,8 @@
 # WordPress 7.1 — compatibility register
 
 **Opened:** 2026-08-18
-**Last updated:** 2026-08-21 — WP71-02 closed and WP71-03 half-closed by measurement on `572f472`
+**Last updated:** 2026-08-23 — WP71-05 closed in code; WP71-02 closed and WP71-03
+half-closed by measurement on `572f472`
 **Maestro baseline at opening:** v1.5.2 (shipped), `main` at `68f7d6f`
 **7.1 status at opening:** RC (CI had run against a real `7.1-RC4-63322` build); the
 2026-08-21 measurements were taken on `7.1.1-alpha-63326`
@@ -64,9 +65,9 @@ tour off the block canvas. Covered by `tests/e2e/specs/editor-screen-gate.spec.t
 unconditionally and strips it during hydration for users who turned fullscreen
 off, so the toggle appears a moment after load for those users.
 
-### ◻ WP71-05 — the toggle is reachable in the Post Editor, but entering costs an interruption
+### ✅ WP71-05 — the toggle is reachable in the Post Editor, but entering costs an interruption
 
-**Open. Raised by Dan 2026-08-18, from using it.**
+**Closed 2026-08-23. Raised by Dan 2026-08-18, from using it.**
 
 WP71-01 concluded: *with fullscreen off, the Post Editor shows the menu, so
 Maestro works there.* That is true of the **menu** and not of the **entry point**.
@@ -101,16 +102,37 @@ model comes from:
   generates. That is the rebuild model `SPEC.md` principle 4 rejects.
 - Asset gating alone would be solvable (lazy-load on click); the model is not.
 
-#### Recommendation: remove the option here
+#### Resolution: the option was removed here
 
-Hide the toggle in the Post Editor **whether or not fullscreen is on**. The
-sidebar is one click away on every other admin screen, so nothing is lost, and it
-makes WP71-01's guard consistent: *the entry point should not appear where using
-it is worse than not.*
+Implemented as recommended — the toggle is gone from the Post Editor **whether or
+not fullscreen is on**. The sidebar is one click away on every other admin screen,
+so nothing is lost, and WP71-01's guard becomes consistent: *the entry point
+should not appear where using it is worse than not.*
 
-**This is a runtime change to #156's guard and should be its own PR**, not folded
-into the compat declaration. Note the widened guard would also make the Site
-Editor case fall out of the same rule rather than needing fullscreen at all.
+**The gate moved from CSS to PHP, which is the part worth recording.** #156 could
+only key on fullscreen, a client-side fact, so it hid a rendered node with CSS and
+had `maestro.js` wait out hydration before deciding whether to start. The screen
+is knowable server-side, so `Admin_Bar::node()` now declines to register the node
+and `Assets::enqueue()` declines to enqueue. Three mechanisms went with it:
+
+- the `.is-fullscreen-mode` rule in `maestro-admin-bar.css`;
+- `FULLSCREEN_SETTLE_MS`, the MutationObserver and the give-up path in
+  `maestro.js` — and `tests/js/hydration-ceiling.test.mjs`, the guard #174 added
+  after that constant was silently reverted once. **The guard went because the
+  constant went, not because the risk was reconsidered**;
+- `bindAdminBarExit()`'s post-preservation branch, unreachable once `maestro.js`
+  stopped loading on block-editor screens.
+
+`autosave-on-entry.spec.ts` was retired for the same reason: its own header
+recorded that it only covered the fullscreen-OFF Post Editor path. That leaves
+`maestroPostGuard` with one caller, the Site Editor toggle, and no test —
+a pre-existing gap this change exposed rather than created.
+`todos/pending/2026-08-23-site-editor-guard-coverage.md`
+
+WP71-01's accepted cosmetic cost — the toggle appearing a moment after load for
+non-fullscreen users, because core stamps `is-fullscreen-mode` server-side and
+strips it during hydration — is gone as a side effect. Nothing waits on hydration
+any more.
 
 #### The invariant this and WP71-01 share
 
