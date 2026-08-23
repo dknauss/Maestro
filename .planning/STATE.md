@@ -512,11 +512,17 @@ Recent decisions affecting current work:
   (#156: the persistent 7.1 toolbar made the Edit Menu toggle reachable in the Post
   and Site Editors; guard keys on FULLSCREEN, not the screen, because with
   fullscreen off the Post Editor still shows the menu and Maestro works there).
-  Three open: **WP71-02** Phase 23's "no admin CSS variables exist" rationale
-  expired against 7.1's `--wpds-*` tokens (99 hardcoded hex, 0 `var(--)` — wants a
-  decision, not a fix); **WP71-03** Phase 25's contrast ratios were measured against
-  7.0 and #65382 moved the sidebar palette; **WP71-04** #65250 fixed collapsed-menu
-  cursor behaviour inside Phase 28-01's work area — read it before, not after.
+  **WP71-02 is CLOSED** (2026-08-21, by measurement on a running `7.1.1-alpha-63326`:
+  zero of 167 `--wpds-*` tokens track the admin colour scheme, while the menu surface
+  Maestro draws on does — and the token palette is Gutenberg's, not classic wp-admin's.
+  Staying hardcoded now has a live reason rather than a stale one; core's own
+  `--wpds-color-stroke-focus` would in fact have been an accessibility regression on the
+  dark surfaces, failing 3:1 on all five schemes). **WP71-03 is half-closed** — Phase 25's
+  6.74:1 and 9.11:1 reproduce exactly, because they were always measured against
+  Maestro's own `#1d2327`, not core's sidebar; the untested half is core's own focus-state
+  changes (#65645, #65765, #65726). Two open: **WP71-03**'s focus-state half, and
+  **WP71-04** #65250 fixed collapsed-menu cursor behaviour inside Phase 28-01's work
+  area — read it before, not after.
 - **Human screen-reader pass on the person picker** — consolidates the two
   surviving v1.5.0 caveats into one task (21-05 Task 5 is struck as superseded by
   Phase 25's human pass). axe is clean and still passing, which is not the same
