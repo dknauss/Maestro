@@ -69,3 +69,38 @@ deliberately does not assert core's 400, which is core's to change.
 Worth recording as method: the fixed-sleep version of this spec raced, because
 `getCurrentPostId()` is null while the editor resolves. Waiting on the condition
 made it both stable across repeats and roughly twice as fast.
+
+---
+
+## Follow-on found while writing the coverage: `save()` does not await the network
+
+Codex asked (on #178) for the dirty-template test to prove navigation waits for
+the autosave to *complete*, not merely that a request went out. Trying to write
+that assertion showed the code does not meet it.
+
+**Measured on `7.1.1-alpha-63326`:** with the autosave response held open for
+**4000ms**, `maestroPostGuard.save()` resolved in **28ms**.
+
+`wp.data.dispatch( 'core/editor' ).autosave()` settles when the action is
+dispatched, not when the HTTP round-trip lands. So:
+
+- `maestro-post-guard.js`'s `save()` docblock — *"Resolves once the attempt has
+  finished"* — is inaccurate;
+- `maestro-entry.js` awaits `save()` and then navigates, so it navigates with the
+  autosave still in flight, where the navigation can abort it.
+
+This is **not** WP71-05 fallout. It predates it and applied equally to the Post
+Editor path UX-13 was written for, which means UX-13's protection has always been
+weaker than its comments claim.
+
+**Not fixed here.** The fix is to wait on `isAutosavingPost()` with a bounded
+ceiling — unbounded would strand the toggle if the store never settles — and that
+is a change to a navigation path that deserves its own PR and its own review.
+Recorded as `test.fixme` in `tests/e2e/specs/site-editor-guard.spec.ts` so the
+gap sits in the suite rather than only in prose.
+
+**Second thing that test caught:** REST reaches the same route by two URL shapes
+— `/wp-json/wp/v2/...` under pretty permalinks and
+`index.php?rest_route=%2Fwp%2Fv2%2F...` under plain ones, which is what wp-env
+uses. The first predicate only matched the pretty form and silently captured
+nothing; decoding the URL before matching covers both.

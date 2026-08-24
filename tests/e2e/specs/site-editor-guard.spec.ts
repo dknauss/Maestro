@@ -32,6 +32,27 @@ import { test, expect } from '../fixtures';
  */
 
 /**
+ * A preservation attempt, as opposed to any traffic whose URL says "autosaves".
+ *
+ * The Site Editor reads an existing autosave during bootstrap, and that GET's URL
+ * also contains `autosaves`. Matching the bare word let the clean-template test
+ * report a write the guard never made and — worse — let the dirty test pass on
+ * that same read while proving nothing. Codex caught this on #178.
+ */
+function isAutosaveWrite( request ): boolean {
+	if ( request.method() !== 'POST' ) {
+		return false;
+	}
+	// Two URL shapes reach the same route: /wp-json/wp/v2/... with pretty
+	// permalinks, and index.php?rest_route=%2Fwp%2Fv2%2F... with plain ones,
+	// which is what wp-env uses. Decoding first matches both without a second
+	// pattern.
+	return /\/wp\/v2\/templates\/.+\/autosaves/.test(
+		decodeURIComponent( request.url() )
+	);
+}
+
+/**
  * Wait until the Site Editor has actually resolved a template.
  *
  * A fixed sleep raced here: getCurrentPostId() is null while the editor is still
@@ -89,7 +110,7 @@ test.describe( 'UX-13 / WP71-05 — the Site Editor entry guard', () => {
 	test( 'a clean template is not written to on the way out', async ( { page } ) => {
 		const attempts: string[] = [];
 		page.on( 'request', r => {
-			if ( /autosaves/.test( r.url() ) ) { attempts.push( r.url() ); }
+			if ( isAutosaveWrite( r ) ) { attempts.push( r.url() ); }
 		} );
 
 		await page.goto( '/wp-admin/site-editor.php' );
@@ -105,12 +126,12 @@ test.describe( 'UX-13 / WP71-05 — the Site Editor entry guard', () => {
 		expect( attempts, 'a clean template must not be autosaved' ).toHaveLength( 0 );
 	} );
 
-	test( 'a dirty template is preserved-attempted before the toggle navigates', async ( {
+	test( 'a dirty template triggers a preservation WRITE before the toggle navigates', async ( {
 		page,
 	} ) => {
 		const attempts: string[] = [];
 		page.on( 'request', r => {
-			if ( /autosaves/.test( r.url() ) ) { attempts.push( r.url() ); }
+			if ( isAutosaveWrite( r ) ) { attempts.push( r.url() ); }
 		} );
 
 		await page.goto( '/wp-admin/site-editor.php' );
@@ -123,11 +144,53 @@ test.describe( 'UX-13 / WP71-05 — the Site Editor entry guard', () => {
 		await page.locator( '#wp-admin-bar-maestro-toggle a' ).click();
 		await expect( page ).toHaveURL( /index\.php\?maestro_edit=1/ );
 
-		// The attempt must precede the navigation — that ordering is the whole
-		// point of awaiting guard.save() before assigning location.
 		expect(
 			attempts.length,
-			'a dirty template must trigger a preservation attempt before navigating'
+			'a dirty template must trigger a preservation attempt'
 		).toBeGreaterThan( 0 );
 	} );
+
+	/*
+	 * The contract Codex asked for on #178 — that navigation waits for the
+	 * autosave to COMPLETE — is not met by the code today, so this is fixme
+	 * rather than a passing assertion dressed up as coverage.
+	 *
+	 * Measured on 7.1.1-alpha-63326: holding the autosave response open for
+	 * 4000ms, maestroPostGuard.save() resolved in 28ms. wp.data's
+	 * dispatch('core/editor').autosave() settles when the action is dispatched,
+	 * not when the request lands, so post-guard.js's "Resolves once the attempt
+	 * has finished" is inaccurate and entry.js navigates with the autosave still
+	 * in flight — where the navigation can abort it.
+	 *
+	 * Fixing it means waiting on isAutosavingPost() with a bounded ceiling, since
+	 * a promise that never settles would strand the toggle. That is a change to a
+	 * navigation path and belongs in its own PR, not this one.
+	 */
+	test.fixme(
+		'navigation waits for the preservation attempt to COMPLETE',
+		async ( { page } ) => {
+			await page.goto( '/wp-admin/site-editor.php' );
+			await dirtyTemplate( page );
+
+			let release: () => void = () => {};
+			const held = new Promise< void >( resolve => { release = resolve; } );
+			await page.route( '**/autosaves**', async route => {
+				if ( route.request().method() !== 'POST' ) { await route.continue(); return; }
+				await held;
+				await route.continue();
+			} );
+
+			await page.locator( '#wp-admin-bar-maestro-toggle a' ).click();
+			await page.waitForTimeout( 1500 );
+
+			expect(
+				page.url(),
+				'navigation must not outrun the preservation attempt'
+			).toContain( 'site-editor.php' );
+
+			release();
+			await expect( page ).toHaveURL( /index\.php\?maestro_edit=1/ );
+		}
+	);
+
 } );
