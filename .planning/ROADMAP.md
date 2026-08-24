@@ -24,14 +24,25 @@ hover, go white on the current item, and follow the admin colour scheme; the
 Bootstrap ones do none of it, so a mixed menu looks inconsistent exactly where
 the eye lands.
 
-This is a known trade-off, not an oversight — `bin/generate-bootstrap-icons.mjs`
-bakes the grey in because a data-URI used as a CSS `background-image` cannot
-resolve `currentColor`, and dashicons get it free by being a font. The
-constraint is core's: `wp-admin/menu-header.php` has no branch that would let a
-plugin emit inline `<svg>`. 7.1's SVG Icon API does not change this — see
-[#162](https://github.com/dknauss/Maestro/issues/162).
+`bin/generate-bootstrap-icons.mjs` bakes the grey in because a data-URI used as a
+CSS `background-image` cannot resolve `currentColor`, and dashicons get it free by
+being a font.
 
-Four options, cheapest first:
+**That rationale was measured on 7.1 (2026-08-23) and is half wrong.** It is true
+of `background-image` — but Maestro lands in that branch *because it passes a data
+URI*. `wp-admin/menu-header.php` picks by prefix, and the `'none'` branch emits a
+bare `<div class="wp-menu-image dashicons-before"><br></div>` with **no inline
+`style` attribute**. Nothing to override; the box is ours to paint. `mask-image` +
+`background-color: currentColor` reaches `currentColor` where `background-image`
+cannot, and `currentColor` on that div was measured tracking the link colour
+exactly — scheme-aware and state-aware, `#72aee6` on hover under `fresh`.
+
+Still true, and now verified against core source rather than inferred: there is no
+branch that emits inline `<svg>`, and 7.1's SVG Icon API is not wired into admin
+menu rendering at all — see [#162](https://github.com/dknauss/Maestro/issues/162).
+The API cannot drive this. The *option list* was what needed correcting.
+
+Five options, cheapest first:
 
 1. **Document it in the picker.** A note on the Bootstrap set so the behaviour
    is chosen rather than discovered. Fixes nothing; costs nothing.
@@ -41,19 +52,39 @@ Four options, cheapest first:
 3. **Per-state generated variants.** Bake a white copy and swap
    `background-image`. Doubles the set's payload and still misses custom
    colour schemes, which vary the colour rather than just its lightness.
-4. **Inline SVG injected by JS.** The only option that genuinely inherits
-   `currentColor` and so tracks every scheme and state. Also the most invasive:
-   rewriting core's menu markup on every admin page for every user.
+4. **Inline SVG injected by JS.** Inherits `currentColor` and so tracks every
+   scheme and state. The most invasive: rewriting core's menu markup on every
+   admin page for every user.
+5. **`mask-image` on a `'none'` icon slot.** Pass `none` instead of the data URI,
+   then paint the stored URI as a mask coloured by `currentColor`. Same result as
+   (4) — every scheme, every state — with no JS and no schema change, since
+   `Assets::icon_sets()` already stores the data URI (`class-assets.php:255`).
+   Needs `opacity: .6` at idle to match core's dimmed dashicon, and a
+   `background-image` fallback under `@supports not (mask-image: url(''))` so an
+   unsupported browser degrades to today's flat grey rather than a blank box.
 
-**Recommendation:** (1) now, (2) if the inconsistency is worth an approximation.
-(4) only alongside [#167](https://github.com/dknauss/Maestro/issues/167) /
-[#168](https://github.com/dknauss/Maestro/issues/168) — it is the same
-architectural bet and should not be taken for icon colour alone.
+**Recommendation: (5).** It dominates (4) — same outcome, a fraction of the cost.
+
+**(4) is no longer coupled to [#167](https://github.com/dknauss/Maestro/issues/167) /
+[#168](https://github.com/dknauss/Maestro/issues/168).** The old recommendation
+tied it there because inheriting `currentColor` was thought to require inline
+`<svg>`, making it the same architectural bet. It does not, so icon colour no
+longer needs that bet — and (4)'s remaining edge is narrow: a mask is monochrome
+by construction, so it flattens multi-colour SVGs. That matters only if arbitrary
+SVG upload ever lands; Bootstrap Icons are monochrome already.
+
+**What (5) has not proven:** one item, one icon, three schemes, on `7.1.1-alpha`.
+The mechanism works; the migration is untested. Unexamined: the picker's preview
+rendering, the `menu-icon-*` class stripping at `class-replay.php:151`, collapsed
+and folded menu states, RTL, and where the per-item CSS should be enqueued.
+Measurement and CSS in
+[#172](https://github.com/dknauss/Maestro/issues/172#issuecomment-5388711826).
 
 **Note:** there are two icon sets, `dashicons` and `bootstrap`, registered in
-`Assets::icon_sets()`. There is no third. A set registered through the 7.1 SVG
-Icon API would be the obvious candidate, but per #162 it would land with exactly
-this same limitation.
+`Assets::icon_sets()`. There is no third, and the 7.1 SVG Icon API cannot supply
+one — per #162 it does not reach admin menu icons at all. Option (5) applies to
+any `data`-form icon, so it would cover a third set if one ever arrived by some
+other route.
 
 ## Phases
 
