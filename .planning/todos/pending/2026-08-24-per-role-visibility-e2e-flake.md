@@ -29,34 +29,56 @@ the config comment argues that this makes it race-free rather than merely rarer.
 If the shared row were the cause, the mitigation already in place should have
 removed it.
 
-## A second candidate, unverified
+## A second candidate, with a control already in the repo
 
-The three specs that fail this way — `editor.spec.ts`, `cascade-hide.spec.ts`,
-`hidden-users.spec.ts` — are exactly the three that sign in as a **second user**
-mid-test via `browser.newContext()`.
+The specs that sign in as a **second user mid-test**, under the default per-test
+budget, are two:
 
-`playwright.config.ts` raised `navigationTimeout` to **60000** for that reason,
-noting a wp-env login is the slowest navigation in the suite and can exceed the
-default on a loaded machine. But the per-test budget is still **`timeout: 30_000`**.
+| Spec | Secondary login | `test.slow()` | Flakes? |
+|---|---|---|---|
+| `editor.spec.ts:300` | mid-test | no | **yes** |
+| `cascade-hide.spec.ts:151,255` | mid-test | no | **yes** |
+| `hidden-users.spec.ts:129` | in `beforeAll` | **yes** (`:144`) | no |
 
-A navigation allowed 60s inside a test allowed 30s cannot use its allowance: the
-test dies first, and it presents as a timeout in whichever assertion follows the
-login rather than at the login itself. That would explain why it only appears in
-full runs (machine already loaded by ~90 preceding tests) and never in isolation.
+`playwright.config.ts` raised `navigationTimeout` to **60000** because a wp-env
+login is the slowest navigation in the suite. But the per-test budget is still
+**`timeout: 30_000`**, so a navigation allowed 60s sits inside a test allowed 30s
+and cannot use its allowance — the test dies first, surfacing as a timeout in
+whichever assertion follows the login rather than at the login itself.
 
-**Not confirmed** — the failure artefacts from the 2026-08-24 run were not kept,
-so the failure mode was not read. Confirming it is the first step, not the fix.
+**`hidden-users.spec.ts` is the control, and it already ran this experiment.** Its
+own docblock records the identical signature — *"originally failed in CI on all
+three attempts for exactly that reason while passing locally every time"* — and
+its fix was `test.slow()` (a 90s budget) plus hoisting both logins into
+`beforeAll`. It has not flaked since.
+
+So the two specs that still flake are precisely the two that never got that
+treatment. That is a good deal stronger than a bare timing guess, and it makes
+the hypothesis falsifiable: if the budget is the cause, the same remedy should
+work here.
+
+**Still not confirmed.** The failure artefacts from the 2026-08-24 run were not
+kept, so the failure mode was not read.
+
+*(Correlation corrected 2026-08-24 after Codex review on #181: the first draft of
+this todo listed `hidden-users.spec.ts` as a third mid-test-login spec. It is not
+— its logins are in `beforeAll` and it already carries `test.slow()`. Including it
+made the claim false and would have pointed the investigation at a spec that had
+already solved the problem.)*
 
 ## To settle it
 
 1. Reproduce with artefacts kept, and read whether the failure is a **test
    timeout** or a **failed assertion**. That single fact separates the two
    hypotheses: a timeout points at the budget, an assertion points at state.
-2. If it is a timeout, either raise `timeout` for the specs that log in twice
-   (`test.setTimeout()` per spec, rather than globally) or make the secondary
-   login cheaper — a stored `storageState` for `maestro_editor`, as
-   `auth.setup.ts` already does for admin, would remove the login from the test
-   path entirely.
+2. If it is a timeout, apply what `hidden-users.spec.ts` already proved: add
+   `test.slow()` to the affected describes in `editor.spec.ts` and
+   `cascade-hide.spec.ts`. Prefer that over raising the global `timeout`, which
+   would slow every genuine failure in the suite to a 30s+ crawl.
+
+   The stronger version, if it recurs after that: a stored `storageState` for
+   `maestro_editor`, as `auth.setup.ts` already does for admin, removing the
+   login from the test path entirely rather than budgeting for it.
 3. If it is an assertion, the shared-option theory is back on the table and wants
    the actual leak identified rather than assumed.
 
