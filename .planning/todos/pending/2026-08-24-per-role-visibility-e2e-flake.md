@@ -29,7 +29,7 @@ the config comment argues that this makes it race-free rather than merely rarer.
 If the shared row were the cause, the mitigation already in place should have
 removed it.
 
-## A second candidate, with a control already in the repo
+## A second candidate, with corroborating evidence in the repo
 
 The specs that sign in as a **second user mid-test**, under the default per-test
 budget, are two:
