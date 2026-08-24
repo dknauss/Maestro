@@ -1,4 +1,5 @@
 import { test, expect } from '../fixtures';
+import { execFileSync } from 'child_process';
 
 /**
  * UX-13 after WP71-05 — the Site Editor is the guard's only remaining caller.
