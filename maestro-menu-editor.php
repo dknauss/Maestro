@@ -83,22 +83,35 @@ function is_site_editor_screen() {
 }
 
 /**
- * Is the current screen a block editor (Post Editor, Site Editor, or any other)?
+ * Is the current screen the block Post Editor specifically?
  *
- * Used only to decide whether the entry guard is worth loading. Unlike
- * fullscreen — which core stamps unconditionally and resolves during hydration —
- * this is answerable server-side.
+ * NOT "is this a block editor". That predicate is too broad: on a classic theme
+ * `widgets.php` reports `is_block_editor()` true while remaining an ordinary
+ * admin screen with a rendered, 160px-wide `#adminmenu`. WP71-05 originally used
+ * it and removed menu editing there — the exact over-blocking #156 rejected
+ * `is_block_editor()` for. Caught in review on #176.
+ *
+ * `base` is `'post'` for both `post.php` and `post-new.php`, across post types.
+ * The `is_block_editor()` term still matters: with the Classic Editor plugin the
+ * base is still `'post'`, but 7.1's persistent toolbar is a block-editor
+ * behaviour and the menu is visible, so the toggle should stay.
+ *
+ * The Site Editor needs no mention here — it is not `base === 'post'`, so it
+ * falls outside this predicate and keeps its offsite toggle (UX-11) by default.
+ *
+ * Unlike fullscreen — which core stamps unconditionally and resolves during
+ * hydration — this is answerable server-side.
  *
  * @return bool
  */
-function is_block_editor_screen() {
+function is_post_editor_screen() {
 	if ( ! function_exists( 'get_current_screen' ) ) {
 		return false;
 	}
 
 	$screen = get_current_screen();
 
-	return $screen instanceof \WP_Screen && $screen->is_block_editor();
+	return $screen instanceof \WP_Screen && $screen->is_block_editor() && 'post' === $screen->base;
 }
 
 /**
