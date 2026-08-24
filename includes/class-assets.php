@@ -116,8 +116,11 @@ class Assets {
 		 * wait for and nothing to race: the file simply never loads. The Site
 		 * Editor needs no exception — its toggle leaves for the Dashboard, so it
 		 * is never in edit mode on its own screen.
+		 *
+		 * Post editor only. Blocking every block-editor screen also blocked a
+		 * bookmarked ?maestro_edit=1 on widgets.php, where the menu is editable.
 		 */
-		if ( is_block_editor_screen() ) {
+		if ( is_post_editor_screen() ) {
 			return;
 		}
 
