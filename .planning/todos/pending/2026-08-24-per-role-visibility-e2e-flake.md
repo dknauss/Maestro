@@ -60,21 +60,32 @@ work here.
 **Still not confirmed.** The failure artefacts from the 2026-08-24 run were not
 kept, so the failure mode was not read.
 
-*(Correlation corrected 2026-08-24 after Codex review on #181: the first draft of
-this todo listed `hidden-users.spec.ts` as a third mid-test-login spec. It is not
-— its logins are in `beforeAll` and it already carries `test.slow()`. Including it
-made the claim false and would have pointed the investigation at a spec that had
-already solved the problem.)*
+*(Two corrections from Codex review on #181, both to this todo rather than to the
+code. First: the original draft listed `hidden-users.spec.ts` as a third
+mid-test-login spec. It is not — its logins are in `beforeAll` and it already
+carries `test.slow()` — and including it made the central claim false. Second:
+the remedy originally said to annotate the affected describes, which in
+`editor.spec.ts` would have slowed 11 unrelated tests and contradicted this
+todo's own argument against a global timeout bump.)*
 
 ## To settle it
 
 1. Reproduce with artefacts kept, and read whether the failure is a **test
    timeout** or a **failed assertion**. That single fact separates the two
    hypotheses: a timeout points at the budget, an assertion points at state.
-2. If it is a timeout, apply what `hidden-users.spec.ts` already proved: add
-   `test.slow()` to the affected describes in `editor.spec.ts` and
-   `cascade-hide.spec.ts`. Prefer that over raising the global `timeout`, which
-   would slow every genuine failure in the suite to a 30s+ crawl.
+2. If it is a timeout, apply what `hidden-users.spec.ts` already proved:
+   `test.slow()` — but **inside the individual tests that log in, not on their
+   describes**.
+
+   That distinction matters in `editor.spec.ts`. The
+   `Admin Menu Maestro — editor` describe (`:16`) holds **12** tests and only one
+   of them (`:278`) logs in mid-test; annotating the describe would hand the
+   other 11 a 90s budget and reproduce, at describe scope, exactly the
+   slow-every-real-failure cost that argues against raising the global `timeout`.
+
+   In `cascade-hide.spec.ts` both tests (`:60`, `:185`) log in, so describe and
+   per-test scope coincide there — but keep it per-test anyway, so the annotation
+   marks *why* a given test is slow rather than becoming ambient.
 
    The stronger version, if it recurs after that: a stored `storageState` for
    `maestro_editor`, as `auth.setup.ts` already does for admin, removing the
