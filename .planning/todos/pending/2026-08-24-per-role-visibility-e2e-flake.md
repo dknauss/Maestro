@@ -250,6 +250,46 @@ proof is CI staying green across subsequent runs. Watch for `flaky` in the
 Playwright summary, not just the exit code: a recovered retry still reports
 success.
 
+### The fix helped and did not finish the job
+
+Verified on the next CI run (`32790711889`): **63 passed, 2 flaky, 0 failed** —
+no hard failure, both tests recover. But they still fail attempt 0:
+
+```
+✘ editor.spec.ts:278       (1.1m)   → ✓ retry #1 (4.6s)
+✘ cascade-hide.spec.ts:189 (1.1m)   → ✓ retry #1 (8.1s)
+```
+
+**The wall moved from 30s to ~60s rather than disappearing.** 66s is
+`navigationTimeout: 60000` plus teardown, so what is now being exceeded is the
+*navigation* budget, not the test budget. Raising the test budget revealed the
+deeper fact it was masking: **on a cold CI container the secondary login really
+does take more than 60 seconds**, and the retry passes in 4.6s only because the
+container is warm by then.
+
+That is the same failure seen locally on `auth.setup.ts` against a freshly started
+wp-env — `page.waitForURL: Timeout 60000ms exceeded` — so it is one problem, not
+two.
+
+**So budgets are the wrong lever from here.** Raising `navigationTimeout` again
+just moves the wall a third time. The durable fix is to stop paying for the login
+at all, which this todo already named as the stronger version:
+
+- a stored `storageState` for `maestro_editor`, exactly as `auth.setup.ts` already
+  does for `admin`, so the secondary sessions are restored rather than
+  re-authenticated; or
+- a warm-up step before the e2e run, so the first login is not the one that pays
+  for container start-up.
+
+The first is better: it removes the slow operation instead of budgeting for it,
+and the repo already has the pattern. It is a change to shared harness setup
+(a second setup project plus a storageState file, and updating the three specs
+that log in), so it wants its own PR rather than riding on this one.
+
+**Status: improved, not closed.** Hard failures are gone; the flake is now a
+recovered retry that CI reports green. Keep the todo open until the login is off
+the test path.
+
 ### A related crack this exposed, not yet closed
 
 While verifying the fix, `auth.setup.ts` itself failed against a freshly started
