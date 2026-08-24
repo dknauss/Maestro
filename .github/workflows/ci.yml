@@ -232,6 +232,23 @@ jobs:
       - name: E2E tests (Playwright)
         run: npm run test:e2e
 
+      # The suite already records a trace on first retry (playwright.config.ts),
+      # and until now discarded it — so every intermittent failure here was
+      # diagnosable and the diagnosis was thrown away. The per-role visibility
+      # flake has outlived two investigations for exactly that reason: it does
+      # not reproduce locally, so CI is the only place the evidence exists.
+      # See .planning/todos/pending/2026-08-24-per-role-visibility-e2e-flake.md
+      - name: Upload Playwright artefacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-artefacts
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Stop wp-env
         if: always()
         run: npm run env:stop

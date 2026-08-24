@@ -119,6 +119,70 @@ changed three variables at once and `test.slow()` does not even cover the
 3. If it is an assertion, the shared-option theory is back on the table and wants
    the actual leak identified rather than assumed.
 
+## Experiment run 2026-08-24 — it did not reproduce, and that is the result
+
+Step 1 (read the failure mode) could not be completed, because the failure would
+not happen.
+
+| Attempt | Result |
+|---|---|
+| 3 × full suite in CI's order (`test:php` then `test:e2e`) | **65 passed, 0 failed** each time |
+| `editor.spec.ts` under 10 synthetic CPU hogs on 8 cores | 27 passed; the per-role test in **4.9s** |
+
+**So the frequency claim in this todo was wrong.** "About one full run in one" was
+extrapolated from a single observation. Four consecutive clean runs put it far
+lower, and the honest statement is that the rate is unknown and low.
+
+That also means **the single-variable experiment in step 2 cannot be run yet.**
+With a baseline of zero failures, adding `test.slow()` and observing a pass
+carries no information — it would be a change made on unfalsifiable grounds,
+which is the same error as the multi-variable fix this todo criticises, wearing
+different clothes. No `test.slow()` has been added.
+
+### The mechanism looks unlikely at ordinary slowness
+
+Measured the secondary login directly, under browser CPU throttling:
+
+| CPU throttle | login | + dashboard | total |
+|---|---|---|---|
+| 1x | 526ms | 141ms | 667ms |
+| 4x | 1224ms | 400ms | 1624ms |
+| 10x | 2808ms | 944ms | 3752ms |
+| 20x | 5687ms | 1960ms | 7647ms |
+
+At 20x the login is **5.7s** — five times under the 30s per-test budget. Reaching
+30s would need roughly 100x, which browser-side slowness does not plausibly
+produce.
+
+Note the limit of this measurement: `Emulation.setCPUThrottlingRate` slows the
+**renderer**, not the wp-env container. The login is server-bound, so what it
+rules out is browser-side cost, not a stalled MySQL or PHP. A cold or contended
+container remains a live candidate — `auth.setup.ts` documents exactly that
+failure ("a cold/slow wp-env exceeding the nav timeout sank the entire E2E run")
+— and this experiment does not touch it.
+
+### What changed instead: CI now keeps the evidence
+
+The useful finding was elsewhere. `playwright.config.ts` sets
+`trace: 'on-first-retry'`, and CI runs `retries: 2` — so **CI has been recording a
+trace for every one of these failures and discarding it**, because the only
+`upload-artifact` step in `ci.yml` was for the runtime ZIP.
+
+Every past occurrence was diagnosable. The diagnosis was binned each time, which
+is why two investigations have now bounced off this.
+
+`ci.yml` now uploads `test-results/` and `playwright-report/` on E2E failure,
+retained 14 days. Since the flake does not reproduce locally, CI is the only
+place the evidence exists, and this is what makes step 1 possible on the next
+occurrence rather than the next attempt to force one.
+
+### Revised order of work
+
+1. **Wait for the next CI failure** and download the artefact. The trace answers
+   the timeout-vs-assertion question directly, and shows where the time went.
+2. Only then choose a remedy — and if it is a timeout, apply `test.slow()` to
+   `editor.spec.ts:278` alone, as below.
+
 ## Worth fixing rather than tolerating
 
 CI's two retries hide it, which means the suite reports green while containing a
