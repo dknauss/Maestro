@@ -124,10 +124,24 @@ and `Assets::enqueue()` declines to enqueue. Three mechanisms went with it:
   stopped loading on block-editor screens.
 
 `autosave-on-entry.spec.ts` was retired for the same reason: its own header
-recorded that it only covered the fullscreen-OFF Post Editor path. That leaves
-`maestroPostGuard` with one caller, the Site Editor toggle, and no test —
-a pre-existing gap this change exposed rather than created.
-`todos/pending/2026-08-23-site-editor-guard-coverage.md`
+recorded that it only covered the fullscreen-OFF Post Editor path. That left
+`maestroPostGuard` with one caller, the Site Editor toggle, and no test — a
+pre-existing gap this change exposed rather than created.
+
+**Settled 2026-08-23, against the expectation that raised it.** The guard was
+assumed inert in the Site Editor because it reads post-shaped state. It is not:
+`core/editor` is registered there over a `wp_template`, a clean template reports
+`needsSave()` false and a dirty one reports true and fires a real autosave
+request. What it cannot do is succeed on a **theme-file** template — core answers
+`400 rest_invalid_template`, "Templates based on theme files can't have
+revisions" — so `save()` resolves, the template stays dirty, and beforeunload
+stands. That is the fallback `maestro-post-guard.js` already documents, so both
+scripts stay and are now covered by `tests/e2e/specs/site-editor-guard.spec.ts`.
+
+A second claim made during that work — that `save()` resolves before the autosave
+lands (#180) — **was a bad measurement and has been retracted**; the shipped code
+resolves in 4102ms against a 4000ms hold, with the request intercepted once.
+`todos/completed/2026-08-23-site-editor-guard-coverage.md`
 
 WP71-01's accepted cosmetic cost — the toggle appearing a moment after load for
 non-fullscreen users, because core stamps `is-fullscreen-mode` server-side and
