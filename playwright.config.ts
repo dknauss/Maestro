@@ -26,13 +26,29 @@ export default defineConfig( {
 	workers: 1,
 	// CI absorbs genuine flakes (network/timing races in wp-env) with two
 	// retries; local runs stay strict at zero so a real break surfaces
-	// immediately. `trace: 'on-first-retry'` captures a trace when a retry kicks
-	// in, so a flaky failure is still diagnosable.
+	// immediately.
 	retries: process.env.CI ? 2 : 0,
 	reporter: 'list',
 	use: {
 		baseURL: `http://localhost:${ testsPort }`,
-		trace: 'on-first-retry',
+		/*
+		 * retain-on-failure, NOT on-first-retry.
+		 *
+		 * The claim this replaces — that on-first-retry keeps a flaky failure
+		 * diagnosable — is false for the case that matters. When attempt 0 fails
+		 * and the first retry passes (the green-flake this suite actually
+		 * produces), on-first-retry records the RETRY: the attempt that
+		 * succeeded. The failing execution is never traced, so the artefact shows
+		 * the run that worked and explains nothing.
+		 *
+		 * retain-on-failure traces every attempt and keeps only the ones that
+		 * failed, so attempt 0's trace survives a recovered retry. It costs
+		 * recording overhead on every test; watch the E2E job duration, since
+		 * #174 bounded CI runtime deliberately, and reconsider if it moves much.
+		 *
+		 * Caught in review on #182.
+		 */
+		trace: 'retain-on-failure',
 		// Several specs sign in as a SECOND user mid-test (cascade-hide,
 		// editor.spec, hidden-users) to assert what that user's own sidebar
 		// renders. A wp-env login is the slowest navigation in the suite, and on

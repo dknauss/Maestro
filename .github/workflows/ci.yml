@@ -232,7 +232,7 @@ jobs:
       - name: E2E tests (Playwright)
         run: npm run test:e2e
 
-      # The suite records a trace on first retry (playwright.config.ts) and until
+      # The suite records a trace for failed attempts (playwright.config.ts) and until
       # now discarded it, so every intermittent failure here was diagnosable and
       # the diagnosis was thrown away. The per-role visibility flake has outlived
       # two investigations for exactly that reason: it does not reproduce

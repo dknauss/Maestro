@@ -182,11 +182,14 @@ so Playwright exits 0 and the step succeeds. `failure()` would have skipped the
 upload for exactly the runs worth reading, capturing only failures that exhausted
 both retries. Caught in review on #182; the first version had it wrong.
 
-One thing still unverified: whether Playwright retains the trace for a retry
-attempt that *passed*. `trace: 'on-first-retry'` records it, but if the recovered
-attempt's output is discarded, the next flaky run will upload nothing useful and
-the fix is a retain mode (`on-all-retries`, or `retain-on-failure`) rather than a
-different upload condition. Check that on the first artefact that arrives.
+That uncertainty is now settled, and it needed a second fix. `on-first-retry`
+records **the retry** — the attempt that *passed* in a green flake — so the
+uploaded trace would have shown the run that worked and explained nothing. The
+config is now `trace: 'retain-on-failure'`, which traces every attempt and keeps
+the failed ones, so attempt 0 survives a recovered retry.
+
+Cost: recording overhead on every test. #174 bounded CI runtime deliberately, so
+watch the E2E job duration on the next few runs and reconsider if it moves much.
 
 ### Revised order of work
 
