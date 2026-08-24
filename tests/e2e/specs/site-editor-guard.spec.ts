@@ -89,6 +89,29 @@ async function dirtyTemplate( page ): Promise< void > {
 }
 
 test.describe( 'UX-13 / WP71-05 — the Site Editor entry guard', () => {
+	/*
+	 * Assert a block theme rather than inherit one.
+	 *
+	 * CI runs integration and e2e in the same job, integration first, and
+	 * phpunit's bootstrap reinstalls WordPress into the same database — which
+	 * clears `stylesheet` along with `active_plugins`. `pretest:e2e` restores the
+	 * plugin but not the theme, so by the time these tests run there may be no
+	 * active theme at all, and the Site Editor never resolves a template. That
+	 * presented as three identical `waitForTemplate` timeouts, which look like a
+	 * slow-CI problem and are not.
+	 *
+	 * Kept spec-local rather than folded into `pretest:e2e`: a failure here breaks
+	 * one spec, whereas a bad theme slug in the shared hook would block the whole
+	 * e2e run on any WordPress that ships a different default.
+	 */
+	test.beforeAll( () => {
+		execFileSync(
+			'npx',
+			[ 'wp-env', 'run', 'tests-cli', 'wp', 'theme', 'activate', 'twentytwentyfive' ],
+			{ stdio: 'ignore' }
+		);
+	} );
+
 	test( 'the guard loads in the Site Editor and not in the Post Editor', async ( {
 		page,
 	} ) => {
