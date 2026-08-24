@@ -58,6 +58,10 @@ test.describe( 'COMPAT-10 — independent child_hidden_roles ("Hide its sub-item
 	} );
 
 	test( 'sub-items group is gated to parents with children; hiding children leaves the parent visible and is role-mirrored; hidden child page still loads directly', async ( { page, browser } ) => {
+		// Signs in as a second user mid-test; see the note in editor.spec.ts.
+		// Both tests in this file do, and both timed out at 31.5s in CI.
+		test.slow();
+
 		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
 
 		const panel = page.locator( '.maestro-toolbar .maestro-panel' );
@@ -183,6 +187,10 @@ test.describe( 'COMPAT-10 — independent child_hidden_roles ("Hide its sub-item
 	} );
 
 	test( 'a role hidden in "Hide this item from:" locks (checked+disabled) the same role in "Hide its sub-items from:", live, WITHOUT ever persisting it into child_hidden_roles', async ( { page, browser } ) => {
+		// Signs in as a second user mid-test; see the note in editor.spec.ts.
+		// Both tests in this file do, and both timed out at 31.5s in CI.
+		test.slow();
+
 		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
 
 		const panel = page.locator( '.maestro-toolbar .maestro-panel' );

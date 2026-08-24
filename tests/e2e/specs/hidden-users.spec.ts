@@ -127,6 +127,18 @@ test.describe( 'ROLE-02 — per-user cosmetic hiding', () => {
 	let other: { context: any; page: any };
 
 	test.beforeAll( async ( { browser } ) => {
+		/*
+		 * test.slow() below does NOT cover this hook — it extends the budget of
+		 * TESTS, and these two logins moved here in a1769f9. So the hook kept the
+		 * default 30s while performing the two slowest navigations in the suite,
+		 * each allowed 60s by navigationTimeout.
+		 *
+		 * Observed in CI 2026-08-24: every test in this describe failed at 0ms on
+		 * all three attempts — the signature of a blown beforeAll — in the same
+		 * run where cascade-hide's two mid-test logins timed out at 31.5s.
+		 */
+		test.setTimeout( 120000 );
+
 		createUsers();
 		target = await signInAs( browser, TARGET_LOGIN );
 		other = await signInAs( browser, OTHER_LOGIN );

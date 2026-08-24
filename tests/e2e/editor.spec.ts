@@ -276,6 +276,13 @@ test.describe( 'Admin Menu Maestro — editor', () => {
 	} );
 
 	test( 'per-role visibility hides an item from that role only', async ( { page, browser } ) => {
+		// Signs in as a second user mid-test. A wp-env login is allowed 60s by
+		// navigationTimeout but the test budget is 30s, so a slow login exhausts
+		// the test before the navigation — observed in CI at 31.5s with
+		// "Test timeout of 30000ms exceeded / page.waitForURL: Test ended".
+		// Scoped to this test: 11 others in this describe never log in.
+		test.slow();
+
 		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
 
 		await page.locator( '#menu-media > a.menu-top' ).click();

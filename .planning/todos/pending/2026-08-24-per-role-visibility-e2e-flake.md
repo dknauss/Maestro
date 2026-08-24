@@ -29,7 +29,7 @@ the config comment argues that this makes it race-free rather than merely rarer.
 If the shared row were the cause, the mitigation already in place should have
 removed it.
 
-## A second candidate, with corroborating evidence in the repo
+## A second candidate, with corroborating evidence in the repo — since CONFIRMED
 
 The specs that sign in as a **second user mid-test**, under the default per-test
 budget, are two:
@@ -197,6 +197,66 @@ watch the E2E job duration on the next few runs and reconsider if it moves much.
    the timeout-vs-assertion question directly, and shows where the time went.
 2. Only then choose a remedy — and if it is a timeout, apply `test.slow()` to
    `editor.spec.ts:278` alone, as below.
+
+## ✅ CONFIRMED 2026-08-24 — by CI, on the run that added the artefact upload
+
+The experiment could not be forced locally. CI answered it unprompted, on the very
+PR that made failures diagnosable ([#182](https://github.com/dknauss/Maestro/pull/182),
+run `32789152952`):
+
+```
+✘ cascade-hide.spec.ts:60  … (31.5s)
+✘ cascade-hide.spec.ts:185 … (31.5s)
+✘ hidden-users.spec.ts:146 … (0ms)   ← and on both retries
+
+Test timeout of 30000ms exceeded.
+Error: page.waitForURL: Test ended.
+1 failed, 2 flaky, 59 passed
+```
+
+**It is a timeout, not an assertion** — which settles the two hypotheses. The
+shared `maestro_config` row is exonerated; the 30s-test-budget-around-a-60s-
+navigation mismatch is the cause, and the failure lands in `waitForURL` on the
+secondary login exactly as predicted. 31.5s is the 30s budget plus teardown.
+
+Two refinements the evidence forced:
+
+- **It is not specific to `editor.spec.ts`.** This run hit `cascade-hide.spec.ts`,
+  both of its tests. The unit is *any test that logs in mid-test*, which is what
+  the table above already said — the per-role test was simply the first instance
+  anyone noticed.
+- **`hidden-users.spec.ts` is not protected after all**, and Codex called this
+  before the evidence arrived. Its tests failed at **0ms on all three attempts**,
+  the signature of a blown `beforeAll` — because `test.slow()` extends *test*
+  budgets and `a1769f9` moved its two logins into the hook, which kept the
+  default 30s while performing the two slowest navigations in the suite.
+
+## Fixed
+
+One variable, applied to every affected site now that the cause is known rather
+than guessed:
+
+| Site | Change |
+|---|---|
+| `editor.spec.ts:278` | `test.slow()` inside the test |
+| `cascade-hide.spec.ts:60`, `:185` | `test.slow()` inside each test |
+| `hidden-users.spec.ts` `beforeAll` | `test.setTimeout( 120000 )` — `test.slow()` cannot reach a hook |
+
+Scoped per-test, never per-describe: the `Admin Menu Maestro — editor` describe
+holds 12 tests and only one logs in.
+
+Local verification is weak by construction — it never reproduced here — so the
+proof is CI staying green across subsequent runs. Watch for `flaky` in the
+Playwright summary, not just the exit code: a recovered retry still reports
+success.
+
+### A related crack this exposed, not yet closed
+
+While verifying the fix, `auth.setup.ts` itself failed against a freshly started
+container with `page.waitForURL: Timeout 60000ms exceeded` — the admin login
+exceeding `navigationTimeout` on a cold wp-env. Same family, one layer up, and
+not addressed by any of the above. It passed on retry once the container warmed.
+Worth its own look if it recurs.
 
 ## Worth fixing rather than tolerating
 
