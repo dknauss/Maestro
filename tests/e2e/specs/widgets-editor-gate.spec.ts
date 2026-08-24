@@ -20,8 +20,24 @@ import { execFileSync } from 'child_process';
  * the Site Editor, so the screen under test does not exist.
  */
 
+/**
+ * Activate a theme, installing it first if this WordPress does not bundle it.
+ *
+ * `wp theme activate` only activates an already-installed theme, so on a build
+ * that ships a narrower default set this would exit nonzero in `beforeAll` and
+ * fail the job before the regression test ran. Which themes a given WordPress
+ * bundles is not something this spec should have to know, so it does not assume:
+ * it tries, and falls back to installing. Raised as P1 by Codex on #179.
+ */
 function activateTheme( slug: string ): void {
-	execFileSync( 'npx', [ 'wp-env', 'run', 'tests-cli', 'wp', 'theme', 'activate', slug ], { stdio: 'ignore' } );
+	const run = ( ...args: string[] ) =>
+		execFileSync( 'npx', [ 'wp-env', 'run', 'tests-cli', 'wp', ...args ], { stdio: 'ignore' } );
+
+	try {
+		run( 'theme', 'activate', slug );
+	} catch ( e ) {
+		run( 'theme', 'install', slug, '--activate' );
+	}
 }
 
 test.describe( 'WP71-05 — the block widgets editor is not an editor screen for this purpose', () => {
