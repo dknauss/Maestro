@@ -174,47 +174,75 @@ test.describe( 'UX-13 / WP71-05 — the Site Editor entry guard', () => {
 		).toBeGreaterThan( 0 );
 	} );
 
-	/*
-	 * The contract Codex asked for on #178 — that navigation waits for the
-	 * autosave to COMPLETE — is not met by the code today, so this is fixme
-	 * rather than a passing assertion dressed up as coverage.
+	/**
+	 * The contract Codex asked for on #178 — and it was already met.
 	 *
-	 * Measured on 7.1.1-alpha-63326: holding the autosave response open for
-	 * 4000ms, maestroPostGuard.save() resolved in 28ms. wp.data's
-	 * dispatch('core/editor').autosave() settles when the action is dispatched,
-	 * not when the request lands, so post-guard.js's "Resolves once the attempt
-	 * has finished" is inaccurate and entry.js navigates with the autosave still
-	 * in flight — where the navigation can abort it.
+	 * I reported the opposite on #180, from a bad measurement: `save()` appearing
+	 * to resolve in 28ms against a 4000ms hold, which would have meant
+	 * `wp.data`'s `dispatch( 'core/editor' ).autosave()` settling on dispatch
+	 * rather than on the response, and `entry.js` navigating with the autosave in
+	 * flight. Re-measured with the interception counted, holding 4000ms, the
+	 * shipped code resolves in **4102ms** with exactly one POST intercepted. It
+	 * waits. #180 is closed as not reproducible.
 	 *
-	 * Fixing it means waiting on isAutosavingPost() with a bounded ceiling, since
-	 * a promise that never settles would strand the toggle. That is a change to a
-	 * navigation path and belongs in its own PR, not this one.
+	 * This test stays because the contract is worth pinning even though it already
+	 * holds: a `save()` rewritten to fire-and-forget would resolve immediately and
+	 * fail here.
+	 *
+	 * ASSERTED ON save(), NOT ON NAVIGATION, and that distinction cost three wrong
+	 * turns worth recording:
+	 *
+	 *   1. hold the response, wait, assert page.url() has not changed — url() does
+	 *      not update until the new document commits, hiding a navigation that has
+	 *      already started;
+	 *   2. assert total elapsed time to the new URL — loading the Dashboard takes
+	 *      longer than the delay under test, so page-load time met the floor on
+	 *      its own;
+	 *   3. assert when the navigation REQUEST is issued — measured at ~3.1s
+	 *      against a 3s hold for BOTH a correct and a deliberately-broken build.
+	 *      Holding a route delays the page's navigation whatever the JS does, so
+	 *      no navigation-level assertion can separate them.
 	 */
-	test.fixme(
-		'navigation waits for the preservation attempt to COMPLETE',
-		async ( { page } ) => {
-			await page.goto( '/wp-admin/site-editor.php' );
-			await dirtyTemplate( page );
+	test( 'save() does not resolve until the autosave request lands', async ( {
+		page,
+	} ) => {
+		const DELAY_MS = 3000;
+		// Far above the milliseconds a fire-and-forget save() would take, and far
+		// below DELAY_MS so scheduling jitter cannot trip it.
+		const FLOOR_MS = 2000;
 
-			let release: () => void = () => {};
-			const held = new Promise< void >( resolve => { release = resolve; } );
-			await page.route( '**/autosaves**', async route => {
-				if ( route.request().method() !== 'POST' ) { await route.continue(); return; }
-				await held;
+		await page.goto( '/wp-admin/site-editor.php' );
+		await dirtyTemplate( page );
+
+		let intercepted = 0;
+		await page.route( '**/autosaves**', async route => {
+			if ( route.request().method() !== 'POST' ) {
 				await route.continue();
-			} );
+				return;
+			}
+			intercepted++;
+			await new Promise( r => setTimeout( r, DELAY_MS ) );
+			await route.continue();
+		} );
 
-			await page.locator( '#wp-admin-bar-maestro-toggle a' ).click();
-			await page.waitForTimeout( 1500 );
+		const elapsed = await page.evaluate( async () => {
+			const t0 = performance.now();
+			await ( window as any ).maestroPostGuard.save();
+			return Math.round( performance.now() - t0 );
+		} );
 
-			expect(
-				page.url(),
-				'navigation must not outrun the preservation attempt'
-			).toContain( 'site-editor.php' );
+		// Without this the timing above proves nothing: a save() that never sent a
+		// request would also "wait", and that is how the original 28ms reading
+		// misled me.
+		expect(
+			intercepted,
+			'the delay must have applied to a real autosave POST'
+		).toBe( 1 );
 
-			release();
-			await expect( page ).toHaveURL( /index\.php\?maestro_edit=1/ );
-		}
-	);
+		expect(
+			elapsed,
+			`save() resolved in ${ elapsed }ms against a ${ DELAY_MS }ms autosave; it must wait for the attempt to finish`
+		).toBeGreaterThan( FLOOR_MS );
+	} );
 
 } );

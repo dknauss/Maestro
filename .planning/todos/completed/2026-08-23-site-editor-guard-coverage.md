@@ -72,35 +72,42 @@ made it both stable across repeats and roughly twice as fast.
 
 ---
 
-## Follow-on found while writing the coverage: `save()` does not await the network
+## Follow-on: I reported a bug here that does not exist
 
 Codex asked (on #178) for the dirty-template test to prove navigation waits for
-the autosave to *complete*, not merely that a request went out. Trying to write
-that assertion showed the code does not meet it.
+the autosave to *complete*. Trying to write that assertion produced a reading of
+**28ms** for `maestroPostGuard.save()` against a response held open for 4000ms,
+which I took to mean `wp.data`'s `dispatch( 'core/editor' ).autosave()` settles on
+dispatch rather than on the response. I filed #180 on that basis and wrote a fix
+for it.
 
-**Measured on `7.1.1-alpha-63326`:** with the autosave response held open for
-**4000ms**, `maestroPostGuard.save()` resolved in **28ms**.
+**Re-measured, it is wrong.** Holding the response 4000ms and counting the
+interception, the shipped code resolves in **4102ms with exactly one POST
+intercepted**. It waits for the request to land. #180 is closed as not
+reproducible and the fix — a `wp.data.subscribe` loop with a 5000ms ceiling — was
+discarded unshipped. It would have added a way to *stop* waiting where none was
+needed, capping a legitimately slow autosave at 5s.
 
-`wp.data.dispatch( 'core/editor' ).autosave()` settles when the action is
-dispatched, not when the HTTP round-trip lands. So:
+The original reading was almost certainly `save()` resolving without a request of
+its own, with the POST I saw belonging to the editor's own autosave timer. The
+corrected test now asserts `intercepted === 1` alongside the timing, so a save
+that sends nothing can no longer look like a save that waited.
 
-- `maestro-post-guard.js`'s `save()` docblock — *"Resolves once the attempt has
-  finished"* — is inaccurate;
-- `maestro-entry.js` awaits `save()` and then navigates, so it navigates with the
-  autosave still in flight, where the navigation can abort it.
+### What the detour was worth
 
-This is **not** WP71-05 fallout. It predates it and applied equally to the Post
-Editor path UX-13 was written for, which means UX-13's protection has always been
-weaker than its comments claim.
+Three framings of the navigation-level assertion passed against a deliberately
+broken build before one failed, and the reason is worth keeping:
 
-**Not fixed here.** The fix is to wait on `isAutosavingPost()` with a bounded
-ceiling — unbounded would strand the toggle if the store never settles — and that
-is a change to a navigation path that deserves its own PR and its own review.
-Recorded as `test.fixme` in `tests/e2e/specs/site-editor-guard.spec.ts` so the
-gap sits in the suite rather than only in prose.
+1. **hold, wait, assert `page.url()` unchanged** — `url()` does not update until
+   the new document commits, so a navigation already under way looks like no
+   navigation;
+2. **assert total elapsed time to the new URL** — the Dashboard takes longer to
+   load than the delay under test, so page-load time met the floor by itself;
+3. **assert when the navigation REQUEST is issued** — measured ~3.1s against a 3s
+   hold for *both* a correct and a broken build. Holding a route delays the
+   page's navigation regardless of what the JS does, so nothing at that level
+   discriminates.
 
-**Second thing that test caught:** REST reaches the same route by two URL shapes
-— `/wp-json/wp/v2/...` under pretty permalinks and
-`index.php?rest_route=%2Fwp%2Fv2%2F...` under plain ones, which is what wp-env
-uses. The first predicate only matched the pretty form and silently captured
-nothing; decoding the URL before matching covers both.
+The contract lives on `save()`, so that is where it is asserted. And the general
+lesson is the one this whole file is about: a green test against a build you have
+deliberately broken is the only proof that a test guards anything.

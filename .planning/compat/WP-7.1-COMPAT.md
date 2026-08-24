@@ -137,6 +137,10 @@ request. What it cannot do is succeed on a **theme-file** template — core answ
 revisions" — so `save()` resolves, the template stays dirty, and beforeunload
 stands. That is the fallback `maestro-post-guard.js` already documents, so both
 scripts stay and are now covered by `tests/e2e/specs/site-editor-guard.spec.ts`.
+
+A second claim made during that work — that `save()` resolves before the autosave
+lands (#180) — **was a bad measurement and has been retracted**; the shipped code
+resolves in 4102ms against a 4000ms hold, with the request intercepted once.
 `todos/completed/2026-08-23-site-editor-guard-coverage.md`
 
 WP71-01's accepted cosmetic cost — the toggle appearing a moment after load for
