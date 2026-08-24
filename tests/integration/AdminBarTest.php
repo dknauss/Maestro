@@ -16,10 +16,14 @@
  *   - meta.title (enter):     'Edit Admin Menu'
  *   - meta.title (exit):      'Exit Menu Editor'  (was 'Exit Editor' pre-Phase-23)
  *
- * WP71-01 (the 7.1 persistent toolbar) is deliberately NOT covered here. The
- * toggle is still registered on every admin screen, including both editors —
- * whether it is *shown* depends on fullscreen, which is a client-side fact PHP
- * cannot read. That behaviour lives in tests/e2e/specs/editor-screen-gate.spec.ts.
+ * WP71-05 moved the editor gate into PHP, so it IS covered here now. #156 keyed
+ * on fullscreen — a client-side fact PHP cannot read — which is why the original
+ * version of this file said the opposite. Fullscreen stopped being the deciding
+ * fact once the cost of *entering* was counted rather than only the cost of
+ * arriving: entry is a navigation, so from the Post Editor it trips core's
+ * unsaved-changes dialog whether or not the menu happens to be visible. The
+ * screen is knowable server-side; fullscreen is not. See tests/e2e/specs/
+ * editor-screen-gate.spec.ts for the rendered counterpart.
  *
  * @package Maestro
  */
@@ -245,6 +249,66 @@ class AdminBarTest extends WP_UnitTestCase {
 			'maestro-toggle-offsite',
 			isset( $node->meta['class'] ) ? $node->meta['class'] : '',
 			'Classic screens must not be marked offsite'
+		);
+	}
+
+	/**
+	 * Put the current screen into the Post Editor.
+	 *
+	 * set_current_screen( 'post' ) alone does not mark the screen as a block
+	 * editor — WP_Screen::is_block_editor() is set during the real editor
+	 * bootstrap, not inferred from the id — so set it explicitly.
+	 */
+	private function set_post_editor_screen() {
+		set_current_screen( 'post' );
+		get_current_screen()->is_block_editor( true );
+	}
+
+	/**
+	 * WP71-05: no toggle in the Post Editor, fullscreen or not.
+	 *
+	 * #156 left it registered and let CSS hide it under .is-fullscreen-mode, so
+	 * with fullscreen off it stayed visible and usable. That looked like
+	 * preserved behaviour but was not free: the toggle is a plain href
+	 * (class-admin-bar.php), so following it is a full page navigation, and in
+	 * the Post Editor that raises core's unsaved-changes dialog. Answering a
+	 * browser dialog, and risking post content, to reach a menu that is one
+	 * click away on every other screen is a worse trade than not offering it.
+	 */
+	public function test_post_editor_registers_no_toggle() {
+		$this->set_post_editor_screen();
+
+		$this->assertNull(
+			$this->render_toggle_node(),
+			'The Post Editor must not register the toggle at all (WP71-05)'
+		);
+	}
+
+	/**
+	 * The same holds in edit mode: hiding the entry point does not retract a
+	 * bookmarked ?maestro_edit=1, so the exit toggle must not appear there either.
+	 */
+	public function test_post_editor_registers_no_toggle_in_edit_mode() {
+		$_GET['maestro_edit'] = '1';
+		$this->set_post_editor_screen();
+
+		$this->assertNull(
+			$this->render_toggle_node(),
+			'The Post Editor must not register the toggle even in edit mode (WP71-05)'
+		);
+	}
+
+	/**
+	 * Guard against over-blocking: the gate keys on the block editor, so an
+	 * ordinary screen must be untouched by it. Without this, "register nothing
+	 * anywhere" would pass the two tests above.
+	 */
+	public function test_classic_screen_still_registers_the_toggle() {
+		set_current_screen( 'options-general' );
+
+		$this->assertNotNull(
+			$this->render_toggle_node(),
+			'Classic admin screens must keep the toggle'
 		);
 	}
 }
