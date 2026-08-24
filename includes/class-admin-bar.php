@@ -53,11 +53,15 @@ class Admin_Bar {
 		 * The Site Editor is exempt for the opposite reason (UX-11, below): it can
 		 * never show the menu, so its toggle leads offsite rather than nowhere.
 		 *
+		 * Scoped to the POST editor, not to block editors generally — see
+		 * is_post_editor_screen(). The broad predicate took the toggle off the
+		 * block widgets editor too, where the menu is plainly usable.
+		 *
 		 * Unlike fullscreen — which core stamps server-side unconditionally and
 		 * resolves during hydration — the screen is knowable here, so this decides
 		 * before render instead of flickering after it.
 		 */
-		if ( is_block_editor_screen() && ! is_site_editor_screen() ) {
+		if ( is_post_editor_screen() ) {
 			return;
 		}
 

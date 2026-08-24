@@ -299,7 +299,31 @@ class AdminBarTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Guard against over-blocking: the gate keys on the block editor, so an
+	 * The block WIDGETS editor must keep the toggle.
+	 *
+	 * Codex caught this on #176: `WP_Screen::is_block_editor()` is true there on a
+	 * classic theme, but widgets.php is an ordinary admin screen — #adminmenu is
+	 * rendered and 160px wide, and Maestro worked there before WP71-05. Gating on
+	 * "is this a block editor" removed a working path, which is precisely the
+	 * over-blocking #156 rejected `is_block_editor()` for in the first place.
+	 *
+	 * Note `set_current_screen( 'widgets' )` alone reports is_block_editor false —
+	 * core sets that during the real page bootstrap — so it is set explicitly here.
+	 * That is also why this bug survived the original integration pass and only
+	 * showed up on a rendered page; see the e2e counterpart.
+	 */
+	public function test_block_widgets_editor_still_registers_the_toggle() {
+		set_current_screen( 'widgets' );
+		get_current_screen()->is_block_editor( true );
+
+		$this->assertNotNull(
+			$this->render_toggle_node(),
+			'The block widgets editor has a usable admin menu and must keep the toggle'
+		);
+	}
+
+	/**
+	 * Guard against over-blocking: the gate keys on the post editor, so an
 	 * ordinary screen must be untouched by it. Without this, "register nothing
 	 * anywhere" would pass the two tests above.
 	 */
