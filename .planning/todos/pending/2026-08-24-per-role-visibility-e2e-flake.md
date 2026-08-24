@@ -171,10 +171,22 @@ trace for every one of these failures and discarding it**, because the only
 Every past occurrence was diagnosable. The diagnosis was binned each time, which
 is why two investigations have now bounced off this.
 
-`ci.yml` now uploads `test-results/` and `playwright-report/` on E2E failure,
+`ci.yml` now uploads `test-results/` and `playwright-report/` after the E2E step,
 retained 14 days. Since the flake does not reproduce locally, CI is the only
 place the evidence exists, and this is what makes step 1 possible on the next
 occurrence rather than the next attempt to force one.
+
+**The upload runs on `always()`, not `failure()`, and that distinction is the
+whole point.** This failure *recovers on retry* — which is why CI reports green —
+so Playwright exits 0 and the step succeeds. `failure()` would have skipped the
+upload for exactly the runs worth reading, capturing only failures that exhausted
+both retries. Caught in review on #182; the first version had it wrong.
+
+One thing still unverified: whether Playwright retains the trace for a retry
+attempt that *passed*. `trace: 'on-first-retry'` records it, but if the recovered
+attempt's output is discarded, the next flaky run will upload nothing useful and
+the fix is a retain mode (`on-all-retries`, or `retain-on-failure`) rather than a
+different upload condition. Check that on the first artefact that arrives.
 
 ### Revised order of work
 
