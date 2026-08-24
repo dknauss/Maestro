@@ -68,19 +68,30 @@ async function waitForTemplate( page ): Promise< void > {
 	}, null, { timeout: 30000 } );
 }
 
-/** Mark the edited template dirty through the same store the guard reads. */
+/**
+ * Mark the edited template dirty through the same store the guard reads.
+ *
+ * The content is unique per call. With a fixed string, a later test can re-apply
+ * exactly what an earlier one already left on the entity, so the edit is not a
+ * change and no autosave is sent — which presented in CI as `intercepted: 0`
+ * while every local run passed. Uniqueness makes each call a real edit rather
+ * than relying on what previous tests happened to leave behind.
+ */
+let dirtyMarker = 0;
+
 async function dirtyTemplate( page ): Promise< void > {
 	await waitForTemplate( page );
-	await page.evaluate( () => {
+	const marker = `maestro guard probe ${ ++dirtyMarker }-${ Date.now() }`;
+	await page.evaluate( ( content ) => {
 		const d = ( window as any ).wp.data;
 		const s = d.select( 'core/editor' );
 		d.dispatch( 'core' ).editEntityRecord(
 			'postType',
 			s.getCurrentPostType(),
 			s.getCurrentPostId(),
-			{ content: '<!-- wp:paragraph --><p>maestro guard probe</p><!-- /wp:paragraph -->' }
+			{ content }
 		);
-	} );
+	}, `<!-- wp:paragraph --><p>${ marker }</p><!-- /wp:paragraph -->` );
 	// The guard reads derived state, so wait for it to settle rather than guess.
 	await page.waitForFunction(
 		() => ( window as any ).maestroPostGuard.needsSave() === true,
@@ -174,75 +185,39 @@ test.describe( 'UX-13 / WP71-05 — the Site Editor entry guard', () => {
 		).toBeGreaterThan( 0 );
 	} );
 
-	/**
-	 * The contract Codex asked for on #178 — and it was already met.
+	/*
+	 * NOT TESTED HERE: that save() waits for the autosave response.
 	 *
-	 * I reported the opposite on #180, from a bad measurement: `save()` appearing
-	 * to resolve in 28ms against a 4000ms hold, which would have meant
-	 * `wp.data`'s `dispatch( 'core/editor' ).autosave()` settling on dispatch
-	 * rather than on the response, and `entry.js` navigating with the autosave in
-	 * flight. Re-measured with the interception counted, holding 4000ms, the
-	 * shipped code resolves in **4102ms** with exactly one POST intercepted. It
-	 * waits. #180 is closed as not reproducible.
+	 * #180 claimed it does not, from a 28ms reading against a 4000ms hold. That
+	 * was wrong — re-measured, the shipped code resolves in 4102ms with exactly
+	 * one POST intercepted, so `dispatch( 'core/editor' ).autosave()` does await
+	 * the round-trip and #180 is closed as not reproducible.
 	 *
-	 * This test stays because the contract is worth pinning even though it already
-	 * holds: a `save()` rewritten to fire-and-forget would resolve immediately and
-	 * fail here.
+	 * A test pinning that was written and then removed, because it could not be
+	 * made honest. It passed alone and under --repeat-each, and failed with
+	 * `intercepted: 0` in a full run — reproduced locally by running the suite in
+	 * CI's order. The dirty state is consumed by whatever autosaves first, and the
+	 * editor's own timer is not under the test's control, so whether save() has
+	 * anything left to send depends on timing the test cannot pin down. Making it
+	 * deterministic means reaching into editor settings to disable that timer,
+	 * which couples the spec to internals it should not know about.
 	 *
-	 * ASSERTED ON save(), NOT ON NAVIGATION, and that distinction cost three wrong
-	 * turns worth recording:
+	 * Three navigation-level framings were tried first and all passed against a
+	 * deliberately broken build:
 	 *
-	 *   1. hold the response, wait, assert page.url() has not changed — url() does
-	 *      not update until the new document commits, hiding a navigation that has
-	 *      already started;
-	 *   2. assert total elapsed time to the new URL — loading the Dashboard takes
-	 *      longer than the delay under test, so page-load time met the floor on
-	 *      its own;
-	 *   3. assert when the navigation REQUEST is issued — measured at ~3.1s
-	 *      against a 3s hold for BOTH a correct and a deliberately-broken build.
-	 *      Holding a route delays the page's navigation whatever the JS does, so
-	 *      no navigation-level assertion can separate them.
+	 *   1. hold the response, wait, assert page.url() unchanged — url() does not
+	 *      update until the new document commits, so an in-progress navigation
+	 *      reads as none;
+	 *   2. assert total elapsed time to the new URL — Dashboard load alone exceeds
+	 *      the delay under test;
+	 *   3. assert when the navigation REQUEST is issued — ~3.1s against a 3s hold
+	 *      for both a correct and a broken build, because holding a route stalls
+	 *      the page's navigation whatever the JS does.
+	 *
+	 * What remains covered is Maestro's own contract: the test above asserts a
+	 * dirty template produces a preservation WRITE before the toggle navigates.
+	 * Whether wp.data's promise awaits its own request is core's behaviour, and
+	 * pinning it here bought less than the flake cost.
 	 */
-	test( 'save() does not resolve until the autosave request lands', async ( {
-		page,
-	} ) => {
-		const DELAY_MS = 3000;
-		// Far above the milliseconds a fire-and-forget save() would take, and far
-		// below DELAY_MS so scheduling jitter cannot trip it.
-		const FLOOR_MS = 2000;
-
-		await page.goto( '/wp-admin/site-editor.php' );
-		await dirtyTemplate( page );
-
-		let intercepted = 0;
-		await page.route( '**/autosaves**', async route => {
-			if ( route.request().method() !== 'POST' ) {
-				await route.continue();
-				return;
-			}
-			intercepted++;
-			await new Promise( r => setTimeout( r, DELAY_MS ) );
-			await route.continue();
-		} );
-
-		const elapsed = await page.evaluate( async () => {
-			const t0 = performance.now();
-			await ( window as any ).maestroPostGuard.save();
-			return Math.round( performance.now() - t0 );
-		} );
-
-		// Without this the timing above proves nothing: a save() that never sent a
-		// request would also "wait", and that is how the original 28ms reading
-		// misled me.
-		expect(
-			intercepted,
-			'the delay must have applied to a real autosave POST'
-		).toBe( 1 );
-
-		expect(
-			elapsed,
-			`save() resolved in ${ elapsed }ms against a ${ DELAY_MS }ms autosave; it must wait for the attempt to finish`
-		).toBeGreaterThan( FLOOR_MS );
-	} );
 
 } );

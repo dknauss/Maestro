@@ -89,9 +89,23 @@ discarded unshipped. It would have added a way to *stop* waiting where none was
 needed, capping a legitimately slow autosave at 5s.
 
 The original reading was almost certainly `save()` resolving without a request of
-its own, with the POST I saw belonging to the editor's own autosave timer. The
-corrected test now asserts `intercepted === 1` alongside the timing, so a save
-that sends nothing can no longer look like a save that waited.
+its own, with the POST I saw belonging to the editor's own autosave timer.
+
+**The corrected test was then removed too, and that is the more useful outcome.**
+Adding an `intercepted === 1` assertion alongside the timing immediately exposed
+the same trap in CI: `intercepted: 0`, reproduced locally by running the suite in
+CI's order (integration, then e2e). Whichever autosave fires first consumes the
+dirty state, and the editor's own timer is not under the test's control, so
+whether `save()` still has anything to send is a race the test cannot pin. Making
+it deterministic means disabling that timer through editor settings — coupling
+the spec to internals it should not know about, to assert a `wp.data` behaviour
+rather than any of Maestro's.
+
+So the assertion that caught my bad measurement is also what showed the test was
+not worth keeping. Maestro's own contract — a dirty template produces a
+preservation WRITE before the toggle navigates — stays covered by the sibling
+test. The reasoning is kept as a comment in the spec so the next person does not
+rebuild it.
 
 ### What the detour was worth
 
