@@ -46,16 +46,35 @@ login is the slowest navigation in the suite. But the per-test budget is still
 and cannot use its allowance — the test dies first, surfacing as a timeout in
 whichever assertion follows the login rather than at the login itself.
 
-**`hidden-users.spec.ts` is the control, and it already ran this experiment.** Its
-own docblock records the identical signature — *"originally failed in CI on all
-three attempts for exactly that reason while passing locally every time"* — and
-its fix was `test.slow()` (a 90s budget) plus hoisting both logins into
-`beforeAll`. It has not flaked since.
+### `hidden-users.spec.ts` corroborates — it does not isolate
 
-So the two specs that still flake are precisely the two that never got that
-treatment. That is a good deal stronger than a bare timing guess, and it makes
-the hypothesis falsifiable: if the budget is the cause, the same remedy should
-work here.
+The first version of this todo called it a control that had "already run this
+experiment." That claim does not survive reading the history.
+
+`37719b3` ("stop hidden-users.spec.ts flaking in CI") changed **three things at
+once**: an explicit `waitForURL( …, { timeout: 60000 } )`, `test.slow()`, and
+hoisting into `beforeAll`. `a1769f9` then globalised the navigation budget into
+`playwright.config.ts` and moved both login sessions into `beforeAll`. Its
+stopping flaking therefore tells us the bundle worked, not which part did.
+
+Two things follow, and they cut against the hypothesis rather than for it:
+
+- **The commit message names a different culprit.** It records the failure as
+  *"`signInAs` timing out on waitForURL after clicking submit"*, and its first
+  remedy was the explicit 60s navigation budget — the thing `a1769f9` later made
+  global. That budget **already applies** to `editor.spec.ts` and
+  `cascade-hide.spec.ts`, so the fix that plausibly mattered there is not missing
+  here.
+- **`test.slow()` is not even covering the login in that spec.** It extends the
+  budget of *tests*; since `a1769f9` the logins run in `beforeAll`, which is a
+  separate budget. So the annotation being present cannot be what protects the
+  login, and pointing at it as proof is wrong on the mechanics.
+
+What remains is narrower and worth stating plainly: the per-test budget is 30s
+while a navigation inside it may take up to 60s, so a slow login *can* exhaust
+the test before it exhausts the navigation. That is a real inconsistency and it
+fits the observed pattern — but `hidden-users.spec.ts` is corroborating evidence
+at best, not a demonstration.
 
 **Still not confirmed.** The failure artefacts from the 2026-08-24 run were not
 kept, so the failure mode was not read.
@@ -66,16 +85,23 @@ mid-test-login spec. It is not — its logins are in `beforeAll` and it already
 carries `test.slow()` — and including it made the central claim false. Second:
 the remedy originally said to annotate the affected describes, which in
 `editor.spec.ts` would have slowed 11 unrelated tests and contradicted this
-todo's own argument against a global timeout bump.)*
+todo's own argument against a global timeout bump. Third: this todo called
+`hidden-users.spec.ts` a control that had already proved the fix, when its repair
+changed three variables at once and `test.slow()` does not even cover the
+`beforeAll` where its logins now run.)*
 
 ## To settle it
 
 1. Reproduce with artefacts kept, and read whether the failure is a **test
    timeout** or a **failed assertion**. That single fact separates the two
    hypotheses: a timeout points at the budget, an assertion points at state.
-2. If it is a timeout, apply what `hidden-users.spec.ts` already proved:
-   `test.slow()` — but **inside the individual tests that log in, not on their
-   describes**.
+2. If it is a timeout, run it as a **single-variable experiment**: add
+   `test.slow()` to `editor.spec.ts:278` **alone**, change nothing else, and see
+   whether full runs stop failing. Changing several things at once is what left
+   `hidden-users.spec.ts` unable to answer this question, and repeating that
+   would waste the second chance.
+
+   Scope it **inside the individual tests that log in, not on their describes**.
 
    That distinction matters in `editor.spec.ts`. The
    `Admin Menu Maestro — editor` describe (`:16`) holds **12** tests and only one
