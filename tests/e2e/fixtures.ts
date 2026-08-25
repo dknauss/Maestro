@@ -20,6 +20,16 @@ import { execFileSync } from 'child_process';
  */
 
 /**
+ * Stored session for `maestro_editor`, created by auth.setup.ts.
+ *
+ * Specs that need to see the admin menu as a non-admin restore this instead of
+ * logging in: on a cold CI container that login exceeded even the 60s
+ * navigationTimeout, and no budget fixed it — see
+ * `.planning/todos/pending/2026-08-24-per-role-visibility-e2e-flake.md`.
+ */
+export const EDITOR_STATE = './tests/e2e/.auth/editor.json';
+
+/**
  * Delete the single shared plugin option on the wp-env *tests* instance via
  * wp-cli — the same harness/auth path auth.setup.ts uses.
  *

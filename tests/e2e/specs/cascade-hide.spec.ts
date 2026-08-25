@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures';
+import { test, expect, EDITOR_STATE } from '../fixtures';
 import { execFileSync } from 'child_process';
 
 /**
@@ -58,6 +58,10 @@ test.describe( 'COMPAT-10 — independent child_hidden_roles ("Hide its sub-item
 	} );
 
 	test( 'sub-items group is gated to parents with children; hiding children leaves the parent visible and is role-mirrored; hidden child page still loads directly', async ( { page, browser } ) => {
+		// Retained transitionally; see the note in editor.spec.ts. The login this
+		// protected is gone — the session is restored from storageState.
+		test.slow();
+
 		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
 
 		const panel = page.locator( '.maestro-toolbar .maestro-panel' );
@@ -148,13 +152,11 @@ test.describe( 'COMPAT-10 — independent child_hidden_roles ("Hide its sub-item
 		await expect( postsLi ).toBeVisible();
 
 		// --- View as the targeted role: parent VISIBLE, its children GONE. ---
-		const editorContext = await browser.newContext();
+		// Restore the stored maestro_editor session instead of logging in —
+		// that login exceeded even the 60s navigationTimeout on a cold CI
+		// container. See auth.setup.ts.
+		const editorContext = await browser.newContext( { storageState: EDITOR_STATE } );
 		const editorPage = await editorContext.newPage();
-		await editorPage.goto( '/wp-login.php' );
-		await editorPage.fill( '#user_login', 'maestro_editor' );
-		await editorPage.fill( '#user_pass', 'password' );
-		await editorPage.click( '#wp-submit' );
-		await editorPage.waitForURL( /wp-admin/ );
 		await editorPage.goto( '/wp-admin/index.php' );
 
 		await expect( editorPage.locator( '#menu-posts' ) ).toBeVisible();
@@ -183,6 +185,10 @@ test.describe( 'COMPAT-10 — independent child_hidden_roles ("Hide its sub-item
 	} );
 
 	test( 'a role hidden in "Hide this item from:" locks (checked+disabled) the same role in "Hide its sub-items from:", live, WITHOUT ever persisting it into child_hidden_roles', async ( { page, browser } ) => {
+		// Retained transitionally; see the note in editor.spec.ts. The login this
+		// protected is gone — the session is restored from storageState.
+		test.slow();
+
 		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
 
 		const panel = page.locator( '.maestro-toolbar .maestro-panel' );
@@ -252,13 +258,11 @@ test.describe( 'COMPAT-10 — independent child_hidden_roles ("Hide its sub-item
 		// --- Prove the round-trip end-to-end in the live menu: after
 		// hide-then-unhide, the editor role sees Posts AND its children again
 		// — nothing was left silently hidden by the lock. ---
-		const editorContext = await browser.newContext();
+		// Restore the stored maestro_editor session instead of logging in —
+		// that login exceeded even the 60s navigationTimeout on a cold CI
+		// container. See auth.setup.ts.
+		const editorContext = await browser.newContext( { storageState: EDITOR_STATE } );
 		const editorPage = await editorContext.newPage();
-		await editorPage.goto( '/wp-login.php' );
-		await editorPage.fill( '#user_login', 'maestro_editor' );
-		await editorPage.fill( '#user_pass', 'password' );
-		await editorPage.click( '#wp-submit' );
-		await editorPage.waitForURL( /wp-admin/ );
 		await editorPage.goto( '/wp-admin/index.php' );
 		await expect( editorPage.locator( '#menu-posts' ) ).toBeVisible();
 		await expect( editorPage.locator( '#menu-posts .wp-submenu a[href*="post-new.php"]' ) ).toBeVisible();

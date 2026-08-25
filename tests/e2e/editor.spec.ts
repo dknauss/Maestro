@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures';
+import { test, expect, EDITOR_STATE } from './fixtures';
 import * as fs from 'fs';
 
 /**
@@ -276,6 +276,13 @@ test.describe( 'Admin Menu Maestro — editor', () => {
 	} );
 
 	test( 'per-role visibility hides an item from that role only', async ( { page, browser } ) => {
+		// Retained transitionally. The mid-test login this protected is gone —
+		// the editor session is restored from storageState now — so this should
+		// be unnecessary. Keeping it until CI shows several runs with no `flaky`
+		// in the summary, then remove it rather than leave a guard whose reason
+		// has expired.
+		test.slow();
+
 		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
 
 		await page.locator( '#menu-media > a.menu-top' ).click();
@@ -297,13 +304,11 @@ test.describe( 'Admin Menu Maestro — editor', () => {
 		const payload = ( await saveResp ).request().postDataJSON();
 		expect( payload?.config?.items?.[ 'upload.php' ]?.hidden_roles ).toContain( 'editor' );
 
-		const editorContext = await browser.newContext();
+		// Restore the stored maestro_editor session instead of logging in —
+		// that login exceeded even the 60s navigationTimeout on a cold CI
+		// container. See auth.setup.ts.
+		const editorContext = await browser.newContext( { storageState: EDITOR_STATE } );
 		const editorPage = await editorContext.newPage();
-		await editorPage.goto( '/wp-login.php' );
-		await editorPage.fill( '#user_login', 'maestro_editor' );
-		await editorPage.fill( '#user_pass', 'password' );
-		await editorPage.click( '#wp-submit' );
-		await editorPage.waitForURL( /wp-admin/ );
 		await editorPage.goto( '/wp-admin/index.php' );
 
 		await expect( editorPage.locator( '#menu-media' ) ).toHaveCount( 0 );

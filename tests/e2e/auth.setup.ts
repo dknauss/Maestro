@@ -17,6 +17,7 @@ import { dirname } from 'path';
  */
 
 const STATE_PATH = './tests/e2e/.auth/admin.json';
+const EDITOR_STATE_PATH = './tests/e2e/.auth/editor.json';
 
 // Honor WP_ENV_TESTS_PORT so login matches playwright.config.ts's baseURL when
 // the tests instance runs on a non-default port (to dodge a port collision with
@@ -47,9 +48,54 @@ function ensureAdminPassword(): void {
 	wp( [ 'user', 'update', 'admin', '--user_pass=password' ] );
 }
 
-setup( 'authenticate', async ( { page } ) => {
-	// wp-env can be cold on first contact in CI; give this step extra headroom.
-	setup.slow();
+/**
+ * Fill and submit the login form on a page already showing it.
+ *
+ * Shared so the admin and editor sessions are created the same way — a second
+ * hand-rolled login helper is how the secondary logins drifted apart from this
+ * file's hard-won budget in the first place.
+ */
+async function submitLogin( page, login: string, loginUrl: string ): Promise< void > {
+	/*
+	 * The whole login is retried, not just the initial page load.
+	 *
+	 * The readiness gate below proves WordPress is serving, but a fresh context
+	 * can still meet a cold container: the first version of the editor login
+	 * here inherited exactly that and died on
+	 * `page.waitForURL: Timeout 60000ms exceeded`. Short per-attempt timeouts let
+	 * a hung navigation fail fast and be retried, rather than one attempt
+	 * consuming the entire budget — the same reasoning as the gate itself.
+	 */
+	await expect( async () => {
+		await page.goto( loginUrl, {
+			waitUntil: 'domcontentloaded',
+			timeout: 15_000,
+		} );
+		await expect( page.locator( '#user_login' ) ).toBeVisible( { timeout: 5_000 } );
+		await page.fill( '#user_login', login );
+		await page.fill( '#user_pass', 'password' );
+		await Promise.all( [
+			page.waitForURL( /wp-admin/, {
+				waitUntil: 'domcontentloaded',
+				timeout: 20_000,
+			} ),
+			page.click( '#wp-submit' ),
+		] );
+	} ).toPass( { timeout: 120_000 } );
+
+	// Confirm we actually landed authenticated before persisting the state.
+	await expect( page.locator( '#wpadminbar' ) ).toBeVisible();
+}
+
+setup( 'authenticate', async ( { page, browser } ) => {
+	/*
+	 * Explicit, not setup.slow().
+	 *
+	 * slow() triples the 30s default to 90s, which is less than this step can now
+	 * legitimately need: two logins, each retried for up to 120s against a cold
+	 * container. A 90s ceiling would abort the recovery it exists to allow.
+	 */
+	setup.setTimeout( 300_000 );
 
 	mkdirSync( dirname( STATE_PATH ), { recursive: true } );
 	ensureAdminPassword();
@@ -57,25 +103,32 @@ setup( 'authenticate', async ( { page } ) => {
 
 	const loginUrl = `http://localhost:${ TESTS_PORT }/wp-login.php`;
 
-	// Readiness gate: wp-env reports "started" before WordPress is actually
-	// serving. Poll until the login form is really there, rather than firing the
-	// submit at a half-up server and timing out on the redirect.
-	await expect( async () => {
-		// Short per-attempt timeouts so a single slow/hung navigation fails fast
-		// and toPass() retries promptly, rather than one goto eating the whole
-		// 60s recovery window.
-		await page.goto( loginUrl, { waitUntil: 'domcontentloaded', timeout: 10_000 } );
-		await expect( page.locator( '#user_login' ) ).toBeVisible( { timeout: 5_000 } );
-	} ).toPass( { timeout: 60_000 } );
+	// The readiness gate that used to sit here — poll until the login form is
+	// really there, because wp-env reports "started" before WordPress is serving
+	// — is now inside submitLogin(), which retries the load AND the submit. Two
+	// nested retry loops would have stacked their budgets for no extra coverage.
 
-	await page.fill( '#user_login', 'admin' );
-	await page.fill( '#user_pass', 'password' );
-	await Promise.all( [
-		page.waitForURL( /wp-admin/, { waitUntil: 'domcontentloaded' } ),
-		page.click( '#wp-submit' ),
-	] );
-	// Confirm we actually landed authenticated before persisting the state.
-	await expect( page.locator( '#wpadminbar' ) ).toBeVisible();
-
+	await submitLogin( page, 'admin', loginUrl );
 	await page.context().storageState( { path: STATE_PATH } );
+
+	/*
+	 * The EDITOR session, stored here rather than performed in each spec.
+	 *
+	 * Three tests used to sign in as maestro_editor mid-test to assert what that
+	 * user's own sidebar renders. On a cold CI container that login exceeded even
+	 * the 60s navigationTimeout — measured at ~66s on run 32790711889, after a
+	 * raised per-test budget had already moved the failure from 31.5s — while the
+	 * retry took 4.6s because the container was warm by then.
+	 *
+	 * Budgets could not fix that; they only moved the wall. This removes the
+	 * operation instead. The one login that remains happens here, where the
+	 * readiness gate above has already waited for WordPress to actually serve,
+	 * and where a failure is a retried setup rather than a spec timing out
+	 * somewhere unrelated.
+	 */
+	const editorContext = await browser.newContext();
+	const editorPage = await editorContext.newPage();
+	await submitLogin( editorPage, 'maestro_editor', loginUrl );
+	await editorContext.storageState( { path: EDITOR_STATE_PATH } );
+	await editorContext.close();
 } );
