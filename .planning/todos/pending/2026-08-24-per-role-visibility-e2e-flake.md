@@ -286,9 +286,47 @@ and the repo already has the pattern. It is a change to shared harness setup
 (a second setup project plus a storageState file, and updating the three specs
 that log in), so it wants its own PR rather than riding on this one.
 
-**Status: improved, not closed.** Hard failures are gone; the flake is now a
-recovered retry that CI reports green. Keep the todo open until the login is off
-the test path.
+**Status at that point: improved, not closed** — hard failures gone, the flake
+reduced to a recovered retry. See below: the login has since been taken off the
+test path.
+
+### storageState — the login is off the test path
+
+Done. `auth.setup.ts` now stores a **`maestro_editor`** session alongside the
+admin one, and the three tests that used to sign in mid-test restore it instead:
+`editor.spec.ts:278`, `cascade-hide.spec.ts:60` and `:189`. Exported as
+`EDITOR_STATE` from `fixtures.ts` so there is one path, not three literals.
+
+**`hidden-users.spec.ts` could not use the same fix**, and the reason is worth
+recording rather than rediscovering. Its two users are created and deleted *by the
+spec*, per run — a stored cookie would outlive the account it authenticates. So
+the login stays there and got the resilience it was missing instead: the whole
+sequence is wrapped in `expect(...).toPass()` with short per-attempt timeouts, the
+same shape as the readiness gate `auth.setup.ts` already used.
+
+That mattered, because the failure was **not** a hook-budget problem:
+`page.waitForURL: Timeout 60000ms exceeded` is the *navigation* cap, and raising
+`test.setTimeout` could never have reached it. Retrying a fast-failing attempt can.
+
+Two things fell out of doing it:
+
+- **The new editor login in setup inherited the same vulnerability** it was added
+  to remove, and failed at 60s on a fresh context. `submitLogin()` now retries the
+  load *and* the submit, so both sessions are created the same way.
+- **`setup.slow()` was actively harmful here.** It triples 30s to 90s, which is
+  less than two logins retried for up to 120s each can legitimately need — the
+  ceiling would have aborted the recovery it exists to allow. Replaced with an
+  explicit `setup.setTimeout( 300_000 )`. The old standalone readiness gate is
+  folded into `submitLogin()`, since two nested retry loops stacked their budgets
+  for no extra coverage.
+
+**Verified locally:** full suite in CI's order, from a cleared `.auth/`, **65
+passed, 0 flaky, 0 failed**. Local verification stays weak — this never reproduced
+here — so the real proof is CI runs with no `flaky` in the summary.
+
+The `test.slow()` annotations added earlier are retained transitionally and marked
+as such in the specs. Their stated reason is gone; remove them once CI has been
+clean for several runs rather than leaving guards whose rationale has expired.
 
 ### A related crack this exposed, not yet closed
 

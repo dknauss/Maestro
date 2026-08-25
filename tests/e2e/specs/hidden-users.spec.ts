@@ -77,13 +77,41 @@ function deleteUsers(): void {
 async function signInAs( browser, login: string ) {
 	const context = await browser.newContext();
 	const page = await context.newPage();
-	await page.goto( '/wp-login.php' );
-	await page.fill( '#user_login', login );
-	await page.fill( '#user_pass', 'password' );
-	await Promise.all( [
-		page.waitForURL( /wp-admin/ ),
-		page.click( '#wp-submit' ),
-	] );
+
+	/*
+	 * Retry the whole login rather than spending one 60s navigation on it.
+	 *
+	 * These two users are created and deleted by this spec, so they cannot use
+	 * the stored sessions auth.setup.ts provides for admin and maestro_editor —
+	 * their lifecycle is per-run and a stored cookie would outlive the account.
+	 * So the login stays, and instead gets the resilience it was missing.
+	 *
+	 * On a cold CI container this login exceeded navigationTimeout outright:
+	 * `page.waitForURL: Timeout 60000ms exceeded`, failing beforeAll and taking
+	 * every test in the describe down at 0ms. Raising the hook budget did not
+	 * help, because the cap being hit was the navigation's, not the hook's.
+	 *
+	 * Same shape as auth.setup.ts's readiness gate: short per-attempt timeouts so
+	 * a half-up server fails fast and is retried, instead of one hung navigation
+	 * eating the entire budget.
+	 */
+	await expect( async () => {
+		await page.goto( '/wp-login.php', {
+			waitUntil: 'domcontentloaded',
+			timeout: 15_000,
+		} );
+		await expect( page.locator( '#user_login' ) ).toBeVisible( { timeout: 5_000 } );
+		await page.fill( '#user_login', login );
+		await page.fill( '#user_pass', 'password' );
+		await Promise.all( [
+			page.waitForURL( /wp-admin/, {
+				waitUntil: 'domcontentloaded',
+				timeout: 20_000,
+			} ),
+			page.click( '#wp-submit' ),
+		] );
+	} ).toPass( { timeout: 120_000 } );
+
 	return { context, page };
 }
 
@@ -137,7 +165,8 @@ test.describe( 'ROLE-02 — per-user cosmetic hiding', () => {
 		 * all three attempts — the signature of a blown beforeAll — in the same
 		 * run where cascade-hide's two mid-test logins timed out at 31.5s.
 		 */
-		test.setTimeout( 120000 );
+		// Two logins, each with its own 120s retry budget above.
+		test.setTimeout( 300000 );
 
 		createUsers();
 		target = await signInAs( browser, TARGET_LOGIN );
