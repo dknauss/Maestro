@@ -10,12 +10,15 @@
 - ✅ **R1 Third-Party Compatibility Research** — Phases 13–16 (completed 2026-06-29; non-versioned research — no plugin code, no release tag, no SVN deploy) → [archive](milestones/R1-ROADMAP.md)
 - ✅ **v1.3.0 Slug-Resolution Hardening** — Phases 17–18 (shipped 2026-06-30; release tag `v1.3.0`) → [archive](milestones/v1.3.0-ROADMAP.md)
 - ✅ **v1.4 Compatibility, Roles & Showcase** — Phases 19–24 (shipped 2026-08-04; release tag `v1.4.0`, patch `v1.4.1` 2026-08-05). Shipped **without** Phase 21 (ROLE-02, deferred to v1.5 under the Release Binding fallback) and Phase 22 (not reached; still open).
-- ✅ **v1.5 Per-User Visibility** — Phase 21 + Phase 26 (shipped 2026-08-09; release tag `v1.5.0` on `694b1bf`). Delivered ROLE-02's **per-user half**; the cloned-role "profiles" half remains a backlog item. Phases 22 and 25 were optional inclusions and did **not** make the cut, per the fallback. Phase 25 has since been completed post-release (2026-08-09, human-verified) and will ride the next release; Phase 22 remains open.
+- ✅ **v1.5 Per-User Visibility** — Phase 21 + Phase 26 (shipped as the v1.5.x line; latest release `v1.5.3` on 2026-08-19). Delivered ROLE-02's **per-user half**; the cloned-role "profiles" half remains a backlog item. Phase 25 was completed post-release and is included in the v1.5.3 line; Phase 22 remains open.
+- [~] **v1.5.4 candidate — Compatibility and E2E hardening** — `main` is nine commits beyond `v1.5.3`, including PRs #173–#182. The candidate is not tagged or deployed; release evidence and the version decision remain outstanding.
 
 ## Next up
 
-Not yet scheduled into a milestone; listed here because it is the first thing to
-decide on rather than the first thing to build.
+**Release decision first:** review and cut the v1.5.4 candidate currently on
+main. Once that is released or explicitly deferred, resume feature work in the
+order **Phase 28 → Phase 27**.
+
 
 ### Bootstrap icon colour — [#172](https://github.com/dknauss/Maestro/issues/172)
 
@@ -465,7 +468,12 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 
 **v1.4 complete** (Phases 19–24) — shipped 2026-08-04 as `v1.4.0`, patched 2026-08-05 as `v1.4.1`. It shipped **without** Phase 21 (deferred under the Release Binding fallback) and Phase 22 (not reached).
 
-**v1.5 in progress** (created 2026-08-09) — Phase 21 built 2026-08-08 and awaiting verification/merge, then Phase 26 cuts the release. Phases 22 and 25 are optional inclusions that do not block the cut. Note the phase numbers are non-contiguous by design: 21, 22 and 25 were planned under the v1.4 roadmap and are not renumbered when they slip, matching how the R1 `COMPAT-xx` IDs were reused without renumbering.
+**v1.5 is shipped** as the v1.5.3 release line. The current work is a
+v1.5.4 candidate containing post-release compatibility and E2E hardening commits
+(#173–#182); it has passed the latest CI but is not yet tagged or deployed.
+After the release decision, resume planned feature work in the order Phase 28 →
+Phase 27. Phase numbers remain non-contiguous by design because 21, 22, and 25
+originated under the v1.4 roadmap and were not renumbered when they slipped.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -491,9 +499,9 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 | 18. Release v1.3.0 | v1.3.0 | 3/3 | Complete (shipped 2026-06-30) | 2026-06-30 |
 | 19. Cosmetic Hiding Feasibility | v1.4 | 1/1 | Complete | 2026-07-05 |
 | 20. Third-Party Compatibility Fixes | v1.4 | 6/6 | Complete | 2026-08-02 |
-| 21. Cosmetic Per-User Hiding | built under v1.4, **ships in v1.5** | 5/5 | Per-user half complete; awaiting human verification, unmerged (PR #120). Cloned-role profiles deferred to backlog | 2026-08-08 |
+| 21. Cosmetic Per-User Hiding | v1.5 | 5/5 | Per-user half shipped; cloned-role profiles deferred to Phase 27 | 2026-08-08 |
 | 22. Slug-Resolution Showcase Demo | v1.5 (optional inclusion) | 0/TBD | Not started | - |
 | 23. Editor UX Polish | v1.4 | 5/5 | Complete (shipped as v1.3.1) | 2026-07-05 |
 | 24. Release v1.4.0 | v1.4 | n/a (shipped as PR #113, not numbered plans) | Complete — v1.4.0 shipped; patch v1.4.1 2026-08-05 | 2026-08-04 |
-| 25. Edit-Mode Toolbar Dark-Surface Polish | v1.5 (optional inclusion) | 0/TBD | Not started | - |
-| 26. Release v1.5.0 | v1.5 | 0/TBD | Not started — created 2026-08-09; depends on Phase 21 | - |
+| 25. Edit-Mode Toolbar Dark-Surface Polish | v1.5 | 2/2 | Complete; included in the v1.5.3 line | 2026-08-09 |
+| 26. Release v1.5.0 | v1.5 | n/a | Complete; superseded by the v1.5.3 release line | 2026-08-19 |
