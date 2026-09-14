@@ -25,11 +25,12 @@
 	},
 	"devDependencies": {
 		"@axe-core/playwright": "^4.13.0",
-		"@playwright/test": "^1.62.1",
-		"@wordpress/env": "^11.13.0",
+		"@playwright/test": "^1.63.0",
+		"@wordpress/env": "^11.15.0",
 		"bootstrap-icons": "^1.13.1"
 	},
 	"overrides": {
-		"adm-zip": "^0.6.0"
+		"adm-zip": "^0.6.0",
+		"express": "^4.22.3"
 	}
 }
