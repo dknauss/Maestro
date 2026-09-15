@@ -55,9 +55,15 @@ class Replay {
 		// Late enough that all other admin_menu registrations have happened.
 		add_action( 'admin_menu', array( $this, 'replay' ), PHP_INT_MAX );
 
-		// Top-level ordering goes through the dedicated core filters.
-		add_filter( 'custom_menu_order', array( $this, 'has_top_order' ) );
-		add_filter( 'menu_order', array( $this, 'reorder_top' ) );
+		// Top-level ordering goes through the dedicated core filters, and runs
+		// last for the same reason replay() does. Plugins re-sort the menu on
+		// `menu_order` too — Google Site Kit pins itself under Dashboard, from a
+		// filter it adds on `init`, after this constructor ran — and at a shared
+		// priority whichever registered later wins. A stored order is the user's
+		// explicit choice, so it goes last. Items it does not name keep the
+		// relative order earlier callbacks gave them (Ordering::top()).
+		add_filter( 'custom_menu_order', array( $this, 'has_top_order' ), PHP_INT_MAX );
+		add_filter( 'menu_order', array( $this, 'reorder_top' ), PHP_INT_MAX );
 	}
 
 	/**
