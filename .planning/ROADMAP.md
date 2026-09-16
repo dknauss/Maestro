@@ -84,10 +84,27 @@ Measurement and CSS in
 [#172](https://github.com/dknauss/Maestro/issues/172#issuecomment-5388711826).
 
 **Note:** there are two icon sets, `dashicons` and `bootstrap`, registered in
-`Assets::icon_sets()`. There is no third, and the 7.1 SVG Icon API cannot supply
-one — per #162 it does not reach admin menu icons at all. Option (5) applies to
-any `data`-form icon, so it would cover a third set if one ever arrived by some
-other route.
+`Assets::icon_sets()`. There is no third. Per #162, the 7.1 SVG Icon API does not
+reach admin menu icons: `menu-header.php` has no branch for a registered icon
+name, so a stored `collection/icon` renders as a broken `<img>`.
+
+**The API can still supply a third set, once (5) exists.** #162 rated a
+registry-sourced set low-value because it would inherit the frozen-grey
+`background-image` problem. (5) removes that objection. A mask accepts any
+monochrome SVG, so a registered icon becomes an ordinary `data`-form icon:
+`wp_get_icon()` → base64 data URI → mask, coloured by `currentColor` like the
+Bootstrap set. The picker could then offer every registered collection — core's
+library plus whatever other plugins register — rather than only sets Maestro
+bundles. Sequence it strictly after (5); without the mask path it is the
+low-value duplicate #162 described.
+
+- Gate the tab on `function_exists( 'wp_get_icon' )`; Maestro supports WP 6.4+.
+- Build the list server-side from the registry. `/wp/v2/icons` also works (it
+  requires `edit_posts`, which `manage_options` editors have) but adds a request.
+- Core's sanitiser keeps only `<svg>`, `<path>` and `<polygon>`, so registered
+  icons are already monochrome path data — a good fit for a mask.
+- Don't copy the `ReflectionMethod` workaround circulating for 7.0, where
+  `register()` was protected. 7.1 made the functions public.
 
 ## Phases
 
