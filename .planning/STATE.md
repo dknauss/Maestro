@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.5
-milestone_name: Per-User Visibility
-status: shipped
-stopped_at: "v1.5.2 SHIPPED 2026-08-12 and verified from SVN (tags/1.5.2 carries the actual fix, not just the version string) — main carries no unreleased code. Closed the fifth Config::sanitize() hole, found by ultrareview against the full unreviewed range; a concurrent second review landed nothing. The release→deploy trigger fix is PROVEN in production and its todo is closed, retiring the four-release 'remember the manual step' lesson. Phases 27 and 28 planned and unblocked; no milestone open."
-last_updated: "2026-08-12T00:00:00.000Z"
-last_activity: "2026-08-08 — **Phase 21 (ROLE-02 per-user hiding) executed, 5/5 plans, awaiting the human-verify checkpoint.** Branch `phase/21-cosmetic-per-user-hiding`, PR #120, nothing merged. Delivered: `hidden_users` / `child_hidden_users` storage; the `is_hidden_for_current_user()` seam widened to independent OR'd terms (3rd term reserved for the deferred `hidden_profiles`); `resolved_hidden_roles()` GENERALIZED to a field-parameterized resolver rather than duplicated, so the user axis inherits the qualified-key, schema-v2 (#115) and Axis-1 guards from one implementation; a shared `Cascade` union; the §6 cosmetic-invariant guardrail made enforcing; editor model exposure as id+name pairs via one batched query; four-group visibility popover with an async person picker on core's `wp/v2/users`. Gate: unit 165/165 (218), integration 109/109 (257), JS 83/83, e2e 39 passed/28 capture-skipped/0 failed, WPCS clean, PHPStan 0, Plugin Check 0 errors on the ZIP (1 pre-existing readme warning). THREE bugs found by verification that no unit test would have caught: (1) the guardrail initially could NOT detect a broken seam — `current_user_can()` answers from a cached allcaps array, so `snapshot_caps()` now drops `$GLOBALS['current_user']` to force re-derivation; (2) the picker URL appended `?` unconditionally, 404ing on every PLAIN-PERMALINK site since `rest_url()` already carries a query string; (3) clicking a search result or chip closed the whole popover, because re-rendering detached the node before `placePopover()`'s outside-click handler ran. Ruling recorded 2026-08-08: the super-admin exemption covers the NEW user axis only, multisite-scoped (unscoped would make administrators un-hideable on single-site and contradict the locked self-target decision). Prior: 2026-08-05 — **v1.4.1 SHIPPED** (PR #116, tag on c6cdcbe; wp.org API confirms 1.4.1). Patch for the shared-slug propagation defect (#115): a bare top-level key no longer applies to a submenu row whose slug names a rendered top-level item. Two Codex P2 rounds on #115 — the first cut of the gate tested `$nk === $norm_parent` and missed submenus parked under an unrelated parent; widened to `isset( $top_rendered_matches[ $nk ] )`. Prior: 2026-08-04 — **v1.4.0 SHIPPED** (PR #113, tag on 482510c, GitHub Release + wp.org SVN trunk/tags/1.4.0/assets confirmed). Phase 24 release gates 8–11 run consolidated over the full v1.3.1..main diff; one defect found and fixed (multibyte truncation blanked labels) and one changelog overclaim corrected (shared-slug isolation is submenu-direction only). ROLE-02 (Phase 21) deferred to v1.5."
+milestone: v1.5.4
+milestone_name: Post-v1.5.3 maintenance and compatibility hardening
+status: in_progress
+stopped_at: "v1.5.3 SHIPPED 2026-08-19; main currently contains the v1.5.4 candidate range through #182. No tag or release has been cut for that range."
+last_updated: "2026-08-25T00:00:00.000Z"
+last_activity: "2026-08-25 — Reconciled repository state after v1.5.3. Main is clean, nine commits ahead of v1.5.3, and the latest CI run is green across unit, static, package, integration, and E2E checks. The post-release range is classified as a v1.5.4 candidate; Phase 28 remains the recommended next feature work, followed by Phase 27."
 progress:
-  total_phases: 6
-  completed_phases: 4
-  total_plans: 12
-  completed_plans: 12
-  percent: 67
+  total_phases: 2
+  completed_phases: 0
+  total_plans: 8
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -20,8 +20,12 @@ progress:
 
 See: .planning/PROJECT.md (updated 2026-07-03)
 
+**Current focus:** v1.5.4 candidate review and release evidence; after the release decision, Phase 28 then Phase 27.
+
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
-**Current focus:** **v1.3.1 shipped** (Phase 23 editor UX restyle, live on WordPress.org). Back to milestone v1.4 (Compatibility, Roles & Showcase): Phases 19 + 20 + 23 done; remaining Phase 21 (ROLE-02, now unblocked), Phase 22 (DEMO-01), Phase 24 (v1.4.0 release).
+**Historical focus at the time this section was written:** v1.3.1 shipped and
+the v1.4 compatibility/roles work was being planned. The current focus is
+recorded above as the v1.5.4 candidate release review.
 
 ## Current Position
 
@@ -575,19 +579,22 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-08-12
-Stopped at: v1.5.2 shipped and SVN-verified; nothing in flight, no open PRs
+Last session: 2026-08-25
+Stopped at: v1.5.3 shipped; the nine post-release commits on main are classified as a v1.5.4 candidate and still need release-cut evidence.
 
-**START HERE — the state in one paragraph.** **v1.5.2 is live on WordPress.org**
-and `main` carries NO unreleased code — the first time that has been true at the
-end of a session. The release pipeline is now wired end to end and proven: a tag
-push builds, publishes, and then **pauses for a human approval** on the
-`wordpress-org` environment before touching SVN. Two phases are fully planned and
-unblocked — **Phase 28 (menu width + fold honesty)** and **Phase 27 (cloned-role
-profiles, completes ROLE-02)**. Phase 22 (Playground demo) is scoped but never
-planned. 12 todos pending, 2 of them explicitly ignorable.
+**START HERE — the state in one paragraph.** **v1.5.3 is live on WordPress.org**
+and main carries nine unreleased commits after that tag, including the WordPress
+7.1/editor compatibility and E2E hardening work from PRs #173–#182. Treat this
+range as the current v1.5.4 release candidate, not as shipped code. The release
+pipeline is wired end to end: a tag push builds, publishes, and then **pauses for
+human approval** on the wordpress-org environment before touching SVN. Two
+feature phases remain planned and unblocked — **Phase 28 (menu width + fold
+honesty)** and **Phase 27 (cloned-role profiles, completes ROLE-02)**. Phase 22
+(Playground demo) remains scoped but unplanned.
 
-**Recommended order: Phase 28 → Phase 27.** No release work is outstanding.
+**Recommended order after the v1.5.4 release decision: Phase 28 → Phase 27.**
+The release work is not yet cut: the candidate needs its normal evidence review,
+version decision, tag, and WordPress.org deployment approval.
 Phase 28 is the lighter lift, its 28-01 ships value alone by fixing a live defect
 (`#collapse-menu` renders, takes focus, and does nothing), and it proves the shared
 modal shell with a single scalar before Phase 27 puts CRUD in one.

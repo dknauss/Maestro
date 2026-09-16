@@ -1,5 +1,12 @@
 # `per-role visibility hides an item from that role only` fails in full runs, passes alone
 
+**Status as of 2026-08-25:** Investigation remains open. PR #182 changed the
+secondary-login path and changed Playwright tracing to retain failed attempts;
+the latest full CI run is green, but that does not prove the underlying race is
+gone. Keep this todo pending until a retained artefact either identifies the
+failure or repeated full runs establish that it no longer reproduces.
+
+
 **Raised:** 2026-08-24. Promised a todo of its own by `compat/WP-7.1-COMPAT.md`
 ("it will bite CI eventually and is worth its own todo"); this is that todo.
 
@@ -76,8 +83,11 @@ the test before it exhausts the navigation. That is a real inconsistency and it
 fits the observed pattern — but `hidden-users.spec.ts` is corroborating evidence
 at best, not a demonstration.
 
-**Still not confirmed.** The failure artefacts from the 2026-08-24 run were not
-kept, so the failure mode was not read.
+**Still not confirmed.** The 2026-08-24 failure artefacts were not kept, but
+PR #182 now uploads retained Playwright artefacts and removes the slow secondary
+login from the test path. The first successful run after that change is
+encouraging, not conclusive; close this todo only after the new evidence is
+reviewed or the failure is demonstrated to be gone.
 
 *(Two corrections from Codex review on #181, both to this todo rather than to the
 code. First: the original draft listed `hidden-users.spec.ts` as a third
