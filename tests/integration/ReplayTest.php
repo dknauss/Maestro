@@ -176,6 +176,57 @@ class ReplayTest extends WP_UnitTestCase {
 		$this->assertSame( array( 'edit.php', 'index.php', 'upload.php' ), $result );
 	}
 
+	/**
+	 * A plugin that re-sorts the menu on `menu_order` must not undo a stored order.
+	 *
+	 * Google Site Kit does this: it adds its filter during `init`, after Maestro
+	 * booted on `plugins_loaded`, at the same default priority, so it ran second
+	 * and spliced its item back under Dashboard on every load. The callback below
+	 * is Site Kit's, reduced to the part that matters.
+	 */
+	public function test_stored_top_order_survives_a_later_menu_order_filter() {
+		( new Config() )->save(
+			array( 'top_order' => array( 'index.php', 'edit.php', 'upload.php', 'googlesitekit-dashboard' ) )
+		);
+
+		remove_all_filters( 'menu_order' );
+		new Replay( new Config() );
+
+		add_filter(
+			'menu_order',
+			static function ( array $menu_order ) {
+				$dashboard_index = array_search( 'index.php', $menu_order, true );
+				foreach ( $menu_order as $key => $value ) {
+					if ( 0 === strpos( $value, 'googlesitekit-' ) ) {
+						unset( $menu_order[ $key ] );
+						array_splice( $menu_order, $dashboard_index + 1, 0, $value );
+						break;
+					}
+				}
+				return $menu_order;
+			}
+		);
+
+		$this->assertSame(
+			array( 'index.php', 'edit.php', 'upload.php', 'googlesitekit-dashboard' ),
+			array_values( apply_filters( 'menu_order', array( 'index.php', 'googlesitekit-dashboard', 'edit.php', 'upload.php' ) ) )
+		);
+	}
+
+	/**
+	 * The same hazard on the gate: a plugin that turns custom ordering off after
+	 * Maestro registered would leave a stored order unapplied.
+	 */
+	public function test_stored_top_order_survives_a_later_custom_menu_order_false() {
+		( new Config() )->save( array( 'top_order' => array( 'edit.php' ) ) );
+
+		remove_all_filters( 'custom_menu_order' );
+		new Replay( new Config() );
+		add_filter( 'custom_menu_order', '__return_false' );
+
+		$this->assertTrue( apply_filters( 'custom_menu_order', false ) );
+	}
+
 	public function test_empty_config_leaves_menu_untouched() {
 		$this->run_replay();
 
@@ -319,7 +370,7 @@ class ReplayTest extends WP_UnitTestCase {
 		// Earlier plugin enables core's custom menu ordering.
 		add_filter( 'custom_menu_order', '__return_true', 5 );
 
-		// Maestro registers its callback at the default priority (10).
+		// Maestro registers its callback afterwards, at PHP_INT_MAX.
 		new Replay( new Config() );
 
 		$this->assertTrue(
