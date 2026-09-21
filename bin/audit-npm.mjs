@@ -2,25 +2,24 @@
 /**
  * npm audit wrapper with a narrow, documented dev-tooling allowlist.
  *
- * One exception is currently allowlisted:
+ * No exceptions are currently allowlisted.
  *
- * - GHSA-vwc7-r8mq-g2x9 (adm-zip extraction follows destination symlinks):
- *   pulled in by @wordpress/env's own adm-zip dependency, which this repo
- *   already overrides up to the newest release, 0.6.0 (see the `overrides`
- *   block in package.json). That is the top of the still-vulnerable range;
- *   no patched adm-zip exists upstream as of 2026-09. adm-zip is dev-only
- *   tooling (wp-env archive extraction), never shipped in the plugin
- *   runtime ZIP. Remove this entry as soon as upstream publishes a fixed
- *   version and bump the override to it.
+ * Closed exceptions, kept for the record:
  *
- * A prior exception (GHSA-h67p-54hq-rp68, js-yaml 3.x via @wordpress/env)
- * was closed by pinning js-yaml >= 3.15.2 in the lockfile. Keep any future
- * entry small, dev-scope only (never a runtime-shipped dependency), and
- * remove it as soon as upstream publishes a non-vulnerable dependency path.
+ * - GHSA-h67p-54hq-rp68 (js-yaml 3.x via @wordpress/env): closed by pinning
+ *   js-yaml >= 3.15.2 in the lockfile.
+ * - GHSA-vwc7-r8mq-g2x9 (adm-zip extraction follows destination symlinks,
+ *   via @wordpress/env): closed 2026-09-21 by overriding adm-zip to 0.6.1,
+ *   the first release outside its affected range. The same bump fixes
+ *   GHSA-7q85-xj36-vmfc (adm-zip DoS via declared uncompressed size, < 0.6.1).
+ *
+ * Keep any future entry small, dev-scope only (never a runtime-shipped
+ * dependency), and remove it as soon as upstream publishes a non-vulnerable
+ * dependency path.
  */
 import { spawnSync } from 'node:child_process';
 
-const allowed = new Set( [ 'GHSA-vwc7-r8mq-g2x9' ] );
+const allowed = new Set( [] );
 const result = spawnSync( 'npm', [ 'audit', '--json' ], { encoding: 'utf8' } );
 const stdout = result.stdout || '{}';
 let report;
