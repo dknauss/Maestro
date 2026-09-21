@@ -11,13 +11,18 @@
 - ✅ **v1.3.0 Slug-Resolution Hardening** — Phases 17–18 (shipped 2026-06-30; release tag `v1.3.0`) → [archive](milestones/v1.3.0-ROADMAP.md)
 - ✅ **v1.4 Compatibility, Roles & Showcase** — Phases 19–24 (shipped 2026-08-04; release tag `v1.4.0`, patch `v1.4.1` 2026-08-05). Shipped **without** Phase 21 (ROLE-02, deferred to v1.5 under the Release Binding fallback) and Phase 22 (not reached; still open).
 - ✅ **v1.5 Per-User Visibility** — Phase 21 + Phase 26 (shipped as the v1.5.x line; latest release `v1.5.3` on 2026-08-19). Delivered ROLE-02's **per-user half**; the cloned-role "profiles" half remains a backlog item. Phase 25 was completed post-release and is included in the v1.5.3 line; Phase 22 remains open.
-- [~] **v1.5.4 candidate — Compatibility and E2E hardening** — `main` is nine commits beyond `v1.5.3`, including PRs #173–#182. The candidate is not tagged or deployed; release evidence and the version decision remain outstanding.
+- [~] **v1.5.4 Compatibility and E2E hardening** — patch on the v1.5 line, cut 2026-09-21 in PR #192 and tagged `v1.5.4` on merge; the WordPress.org deploy awaits approval. Ships the Google Site Kit menu-order fix (#189) and removes Edit Menu from the block post editor (#176, #179). The rest of the range (#173–#190) is tests, CI, dev dependencies and planning docs.
 
 ## Next up
 
-**Release decision first:** review and cut the v1.5.4 candidate currently on
-main. Once that is released or explicitly deferred, resume feature work in the
-order **Phase 28 → Phase 27**.
+**v1.5.4 is cut** (PR #192). Once its WordPress.org deploy is approved, resume
+feature work in the order **Phase 28 → Phase 27**.
+
+**Phase 28 input (2026-09-15):** on sites where Keel or PX already widen the
+menu, Maestro's edit-mode toolbar overlaps it, because the toolbar assumes 160px
+(reproduced in wp-env). 28-01 should measure the live `#adminmenuwrap` width
+rather than substitute a stored one, and 28-02's `menu_width` should stand down
+where something else already sets the width.
 
 
 ### Bootstrap icon colour — [#172](https://github.com/dknauss/Maestro/issues/172)
@@ -485,11 +490,9 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 
 **v1.4 complete** (Phases 19–24) — shipped 2026-08-04 as `v1.4.0`, patched 2026-08-05 as `v1.4.1`. It shipped **without** Phase 21 (deferred under the Release Binding fallback) and Phase 22 (not reached).
 
-**v1.5 is shipped** as the v1.5.3 release line. The current work is a
-v1.5.4 candidate containing post-release compatibility and E2E hardening commits
-(#173–#182); it has passed the latest CI but is not yet tagged or deployed.
-After the release decision, resume planned feature work in the order Phase 28 →
-Phase 27. Phase numbers remain non-contiguous by design because 21, 22, and 25
+**v1.5 is shipped** as the v1.5.x release line; v1.5.4 (PR #192) is the latest
+cut, adding post-release compatibility fixes (#176, #179, #189) and E2E
+hardening. Next, resume planned feature work in the order Phase 28 → Phase 27. Phase numbers remain non-contiguous by design because 21, 22, and 25
 originated under the v1.4 roadmap and were not renumbered when they slipped.
 
 | Phase | Milestone | Plans Complete | Status | Completed |

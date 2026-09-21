@@ -4,7 +4,7 @@ Donate link: https://github.com/sponsors/dknauss
 Tags: admin menu, menu editor, hide menu items, rename menu items, menu icons
 Requires at least: 6.4
 Tested up to: 7.1
-Stable tag: 1.5.3
+Stable tag: 1.5.4
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -164,6 +164,10 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 
 == Changelog ==
 
+= 1.5.4 =
+* **Fixed: moving Google Site Kit in the menu did nothing.** Site Kit moves its menu item back under Dashboard on every page load. It did this after Maestro applied your order, so your move never showed. Maestro now applies your saved order last. Items you have not moved keep the order other plugins give them.
+* **Changed: Edit Menu is gone from the post editor, and so is the unsaved-post handling 1.5.3 added there.** 1.5.3 showed Edit Menu in the post editor when fullscreen mode was off, and saved your unsaved post before you entered or left the menu editor. Both directions still meant leaving a post mid-edit, and the admin menu is one click away on every other screen, so Edit Menu no longer appears in the post editor in either fullscreen state, and there is nothing to save on the way in or out. A bookmarked Edit Menu link opened there no longer starts the editor behind your post either. The site editor keeps its Edit Menu button, which still autosaves your work before taking you to the Dashboard. The Classic Editor is unaffected.
+
 = 1.5.3 =
 * **WordPress 7.1 support.** 7.1 keeps the toolbar on screen in the post and site editors, where it used to be hidden. Maestro's **Edit Menu** button appeared there too — on screens with no admin menu to edit. It now appears only where it can actually do something.
 * **Fixed: Edit Menu on a phone or narrow window opened the editor without opening the menu.** WordPress hides the admin menu at narrow widths behind the toolbar's menu button. Edit mode started anyway, so you got the editing toolbar and no menu, with nothing saying to tap the menu button first. It now opens the menu for you, and the menu button keeps working normally while you edit.
@@ -247,6 +251,9 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 * Editor: click-to-select with a shared panel, debounced single-flight autosave, and folded-mode neutralization.
 
 == Upgrade Notice ==
+
+= 1.5.4 =
+Fixes Google Site Kit ignoring where you moved it in the menu. Edit Menu no longer appears in the post editor, so 1.5.3's unsaved-post handling there is gone too; use Edit Menu from any other admin screen. Cosmetic only — no access changed. No configuration changes.
 
 = 1.5.3 =
 Adds WordPress 7.1 support and fixes four ways Edit Menu could take you somewhere it could not work: the post and site editors, narrow windows, and the Collapse menu button. Unsaved posts are now saved before Edit Menu navigates. Cosmetic only — no access changed. No configuration changes.
