@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.5.4
 milestone_name: Post-v1.5.3 maintenance and compatibility hardening
 status: in_progress
-stopped_at: "v1.5.4 cut 2026-09-21 in PR #192 (tag v1.5.4 on merge); the WordPress.org deploy awaits approval on the wordpress-org environment."
+stopped_at: "v1.5.4 SHIPPED 2026-09-21 — PR #192, tag v1.5.4 on 93934c3, GitHub Release with ZIP, WordPress.org deploy approved and verified live (plugins API reports 1.5.4)."
 last_updated: "2026-09-21T00:00:00.000Z"
-last_activity: "2026-09-21 — Cut v1.5.4 (PR #192): version bump, changelog and Upgrade Notice. Ships #189 (a stored top-level order now runs after other plugins' menu_order filters, so Google Site Kit can be moved) and #176/#179 (no Edit Menu in the block post editor, so the 1.5.3 unsaved-post handling there is gone; the Site Editor keeps its toggle and guard). Everything else since v1.5.3 is tests, CI, dev dependencies and planning docs. Tagged on merge; the deploy pauses for approval. Next: Phase 28 → Phase 27."
+last_activity: "2026-09-21 — Shipped v1.5.4: #192 merged, tag v1.5.4 on 93934c3, GitHub Release with the ZIP, WordPress.org deploy approved and confirmed live via the plugins API. Ships #189 (Google Site Kit can be moved) and #176/#179 (no Edit Menu in the block post editor, so the 1.5.3 unsaved-post handling there is gone; the Site Editor keeps its toggle and guard). Follow-up #193 takes adm-zip to 0.6.1 after a new advisory failed the npm audit, and empties the audit allowlist. Next: Phase 28 → Phase 27."
 progress:
   total_phases: 2
   completed_phases: 0
@@ -580,11 +580,11 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-09-21
-Stopped at: v1.5.4 cut in PR #192 and tagged on merge; the WordPress.org deploy awaits approval.
+Stopped at: v1.5.4 shipped and live on WordPress.org; next is Phase 28.
 
-**START HERE — the state in one paragraph.** **v1.5.4 is cut** (PR #192, tag
-`v1.5.4`) and is live on WordPress.org once its deploy is approved; v1.5.3 was
-the previous release. It ships the Google Site Kit menu-order fix (#189) and the
+**START HERE — the state in one paragraph.** **v1.5.4 is live on WordPress.org**
+(PR #192, tag `v1.5.4` on `93934c3`, shipped 2026-09-21); v1.5.3 was the
+previous release. It ships the Google Site Kit menu-order fix (#189) and the
 removal of Edit Menu from the block post editor (#176, #179); the rest of the
 range is tests, CI, dev dependencies and planning docs. The release
 pipeline is wired end to end: a tag push builds, publishes, and then **pauses for
@@ -593,7 +593,7 @@ feature phases remain planned and unblocked — **Phase 28 (menu width + fold
 honesty)** and **Phase 27 (cloned-role profiles, completes ROLE-02)**. Phase 22
 (Playground demo) remains scoped but unplanned.
 
-**Recommended order now that v1.5.4 is cut: Phase 28 → Phase 27.**
+**Recommended order now that v1.5.4 has shipped: Phase 28 → Phase 27.**
 **Phase 28 input (2026-09-15):** reproduced in wp-env that a site whose menu is
 already widened by Keel or PX (`!important`, from 961px) shows Maestro's
 edit-mode toolbar overlapping the menu, because the toolbar assumes 160px. 28-01
