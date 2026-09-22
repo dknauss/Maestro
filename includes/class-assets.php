@@ -293,7 +293,7 @@ class Assets {
 							'label' => ucwords( str_replace( array( 'dashicons-', '-' ), array( '', ' ' ), $cls ) ),
 						);
 					},
-					$this->dashicon_set()
+					require MAESTRO_DIR . 'includes/icons-dashicons.php'
 				),
 			),
 			array(
@@ -302,75 +302,6 @@ class Assets {
 				'type'  => 'data',
 				'icons' => $bi,
 			),
-		);
-	}
-
-	/**
-	 * A curated, working set of dashicons for the picker. Not exhaustive — the
-	 * config validator accepts any well-formed dashicons-* class, so this list
-	 * can be extended freely.
-	 *
-	 * @return string[]
-	 */
-	private function dashicon_set() {
-		return array(
-			'dashicons-admin-home',
-			'dashicons-admin-site',
-			'dashicons-dashboard',
-			'dashicons-admin-post',
-			'dashicons-admin-media',
-			'dashicons-admin-links',
-			'dashicons-admin-page',
-			'dashicons-admin-comments',
-			'dashicons-admin-appearance',
-			'dashicons-admin-plugins',
-			'dashicons-admin-users',
-			'dashicons-admin-tools',
-			'dashicons-admin-settings',
-			'dashicons-admin-network',
-			'dashicons-admin-generic',
-			'dashicons-admin-collapse',
-			'dashicons-welcome-write-blog',
-			'dashicons-welcome-view-site',
-			'dashicons-format-image',
-			'dashicons-format-gallery',
-			'dashicons-format-video',
-			'dashicons-format-audio',
-			'dashicons-camera',
-			'dashicons-images-alt',
-			'dashicons-media-document',
-			'dashicons-media-spreadsheet',
-			'dashicons-media-code',
-			'dashicons-chart-bar',
-			'dashicons-chart-pie',
-			'dashicons-chart-line',
-			'dashicons-calendar-alt',
-			'dashicons-clock',
-			'dashicons-location',
-			'dashicons-products',
-			'dashicons-cart',
-			'dashicons-money-alt',
-			'dashicons-store',
-			'dashicons-megaphone',
-			'dashicons-email-alt',
-			'dashicons-groups',
-			'dashicons-businessperson',
-			'dashicons-id',
-			'dashicons-shield',
-			'dashicons-lock',
-			'dashicons-privacy',
-			'dashicons-database',
-			'dashicons-cloud',
-			'dashicons-rss',
-			'dashicons-book',
-			'dashicons-archive',
-			'dashicons-tag',
-			'dashicons-category',
-			'dashicons-portfolio',
-			'dashicons-layout',
-			'dashicons-screenoptions',
-			'dashicons-tickets-alt',
-			'dashicons-star-filled',
 		);
 	}
 }

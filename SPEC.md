@@ -76,7 +76,7 @@ Two free functions in the bootstrap: `Maestro\capability()` (filterable via `mae
   2. the literal `none` (blank, styled via CSS);
   3. a base64 image **data-URI** (`data:image/{svg+xml|png|gif|jpeg|webp};base64,…`);
   4. an image **URL** (http(s), protocol-relative, or root-relative).
-  Anything else is rejected to `''`. The picker bundles two sets — the dashicons font and ~87 curated **Bootstrap Icons** (MIT) baked to data-URIs — but the validator, not the picker, is the authority on what may be saved.
+  Anything else is rejected to `''`. The picker bundles two sets — every dashicon core ships (342 glyphs, generated into [`includes/icons-dashicons.php`](includes/icons-dashicons.php)) and ~87 curated **Bootstrap Icons** (MIT) baked to data-URIs — but the validator, not the picker, is the authority on what may be saved.
 
 ### Ordering contract (`Ordering::top` / `::submenu`)
 
