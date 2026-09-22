@@ -40,7 +40,9 @@ Hiding a menu item only declutters the menu — the underlying page still loads 
 3. Rename an item by editing its label. Press `Enter` to commit or `Escape` to
    restore the previous label.
 4. Reorder items by dragging menu rows. Top-level items reorder among top-level
-   items; submenu items reorder inside their current parent.
+   items; submenu items reorder inside their current parent. Separators are rows
+   too: select one to move or remove it, or select a top-level item and choose
+   **Add separator below** to start a new group.
 5. Change a top-level icon from the icon picker. Use Dashicons, bundled
    Bootstrap Icons, "No icon", or a valid WordPress icon value.
 6. Hide an item from selected roles with the visibility control. This only

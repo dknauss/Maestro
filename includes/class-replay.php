@@ -87,6 +87,8 @@ class Replay {
 
 		$items = isset( $cfg['items'] ) ? $cfg['items'] : array();
 
+		$this->apply_separators( $cfg );
+
 		// --- Build normalized lookup for stored override keys ------------------
 		// Normalize once per replay() so both the stored key and every rendered
 		// slug are compared in their canonical form (WP-coupled admin_url call
@@ -453,19 +455,76 @@ class Replay {
 	 * @return array
 	 */
 	public function reorder_top( $menu_order ) {
-		global $menu;
-
 		$cfg     = $this->config->get();
 		$desired = isset( $cfg['top_order'] ) ? $cfg['top_order'] : array();
 
-		$separators = array();
+		return Ordering::top( $desired, (array) $menu_order, $this->get_separators() );
+	}
+
+	/**
+	 * Separator slugs in rendered order, for the editor.
+	 *
+	 * Core prints a separator <li> with no id, so the editor pairs these with
+	 * the rendered li.wp-menu-separator elements by position. That pairing is
+	 * exact because this runs at enqueue time, after core has sorted and
+	 * trimmed $menu, and the sidebar is printed from that same array.
+	 *
+	 * @return string[]
+	 */
+	public function get_separators() {
+		global $menu;
+
+		$slugs = array();
 		foreach ( (array) $menu as $row ) {
 			if ( self::is_separator_row( $row ) ) {
-				$separators[] = $row[2];
+				$slugs[] = (string) $row[2];
+			}
+		}
+		return $slugs;
+	}
+
+	/**
+	 * Add the separator rows Maestro owns and drop the ones the user removed.
+	 * Positions come from top_order, applied later on `menu_order`.
+	 *
+	 * Both lists are re-checked here rather than trusted from storage: a row
+	 * is only minted for an id in Maestro's namespace that is not already in
+	 * the menu, and a row is only dropped when it really is a separator, so no
+	 * stored value can duplicate or hide a menu item.
+	 *
+	 * @param array $cfg Stored config.
+	 */
+	private function apply_separators( array $cfg ) {
+		global $menu;
+
+		if ( ! is_array( $menu ) ) {
+			return;
+		}
+
+		$present = array();
+		foreach ( $menu as $row ) {
+			if ( is_array( $row ) && isset( $row[2] ) ) {
+				$present[ (string) $row[2] ] = true;
 			}
 		}
 
-		return Ordering::top( $desired, (array) $menu_order, $separators );
+		$added = isset( $cfg['separators'] ) ? (array) $cfg['separators'] : array();
+		foreach ( $added as $id ) {
+			if ( ! Config::is_separator_id( $id ) || isset( $present[ $id ] ) ) {
+				continue;
+			}
+			$menu[]         = array( '', 'read', $id, '', 'wp-menu-separator' ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: adding a row via admin_menu is the documented WP API for menu customization.
+			$present[ $id ] = true;
+		}
+
+		$removed = isset( $cfg['removed_separators'] ) ? array_flip( array_filter( (array) $cfg['removed_separators'], 'is_string' ) ) : array();
+		if ( $removed ) {
+			foreach ( $menu as $pos => $row ) {
+				if ( self::is_separator_row( $row ) && isset( $removed[ $row[2] ] ) ) {
+					unset( $menu[ $pos ] );
+				}
+			}
+		}
 	}
 
 	/**

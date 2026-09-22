@@ -42,20 +42,48 @@ body.maestro-editing.auto-fold #wpfooter {
 	display: none !important;
 }
 
-/* Core menu separators (a ~11px-tall li.wp-menu-separator + inner div.separator)
- * read as a stray dark band between groups while editing — most visibly above
- * the Posts group — because the force-expanded submenus already cluster each
- * group, so the gap looks like extra dead space enlarging the next item.
- * Collapse separators in edit mode (li AND the inner div). Separators are not
- * editable in v1, so nothing is lost; !important beats WP core's per-version
- * separator sizing across admin colour schemes. */
-.maestro-editing #adminmenu li.wp-menu-separator,
-.maestro-editing #adminmenu li.wp-menu-separator .separator {
+/* Core's own separator styling (a ~11px dark band) reads as dead space while
+ * editing, because the force-expanded submenus already cluster each group.
+ * An editable separator is instead drawn as a slim row with a dashed rule, so
+ * it reads as a thing you can select and move. A separator the editor could
+ * not pair with its slug (see bindSeparators) stays collapsed, as before.
+ * !important beats core's per-version separator sizing across colour schemes. */
+.maestro-editing #adminmenu li.wp-menu-separator:not(.maestro-separator),
+.maestro-editing #adminmenu li.wp-menu-separator:not(.maestro-separator) .separator {
 	height: 0 !important;
 	min-height: 0 !important;
 	margin: 0 !important;
 	padding: 0 !important;
 	border: 0 !important;
+}
+.maestro-editing #adminmenu li.maestro-separator {
+	position: relative;
+	height: 14px !important;
+	min-height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	cursor: default;
+}
+.maestro-editing #adminmenu li.maestro-separator .separator {
+	position: absolute;
+	top: 50%;
+	left: 12px;
+	right: 12px;
+	height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border-top: 1px dashed rgba( 240, 246, 252, 0.35 );
+}
+.maestro-editing #adminmenu li.maestro-separator:hover {
+	background: rgba( 240, 246, 252, 0.06 );
+}
+.maestro-editing #adminmenu li.maestro-separator.maestro-selected {
+	background: rgba( 34, 113, 177, 0.22 );
+	box-shadow: inset 3px 0 0 #2271b1;
+}
+.maestro-editing #adminmenu li.maestro-separator:focus-visible {
+	outline: 2px solid #2271b1;
+	outline-offset: -2px;
 }
 
 /* ---------- accessibility utilities ------------------------------------- */

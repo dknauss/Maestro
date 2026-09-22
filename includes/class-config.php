@@ -23,6 +23,9 @@
  *   ],
  *   'top_order' => [ '<slug>', '<slug>', ... ],          // desired top-level order
  *   'sub_order' => [ '<parent_slug>' => [ '<slug>', ... ] ],
+ *   'separators'         => [ 'separator-maestro-<id>', ... ], // optional: separator rows Maestro adds;
+ *                                                               // their position is in top_order
+ *   'removed_separators' => [ '<slug>', ... ],                 // optional: existing separator rows to drop
  * ]
  *
  * @package Maestro
@@ -74,6 +77,22 @@ class Config {
 	 * @var int
 	 */
 	const MAX_SUB_ORDER_PARENTS = 200;
+
+	/**
+	 * Id prefix for a separator row Maestro adds. Core's add_menu_classes()
+	 * recognises a separator by a slug starting with "separator", so the id
+	 * keeps that prefix to get core's group-edge classes for free.
+	 *
+	 * @var string
+	 */
+	const SEPARATOR_PREFIX = 'separator-maestro-';
+
+	/**
+	 * Maximum entries in 'separators', and separately in 'removed_separators'.
+	 *
+	 * @var int
+	 */
+	const MAX_SEPARATORS = 50;
 
 	/**
 	 * Maximum byte length of any single stored slug (item key, top_order entry,
@@ -607,7 +626,49 @@ class Config {
 			}
 		}
 
+		// An added separator is only ever an id Maestro minted: never a core or
+		// plugin slug (that would duplicate a row) and never markup.
+		if ( ! empty( $raw['separators'] ) && is_array( $raw['separators'] ) ) {
+			$ids = array();
+			foreach ( $raw['separators'] as $id ) {
+				if ( self::is_separator_id( $id ) ) {
+					$ids[ $id ] = true;
+				}
+			}
+			if ( $ids ) {
+				$out['separators'] = array_slice( array_keys( $ids ), 0, self::MAX_SEPARATORS );
+			}
+		}
+
+		// Any slug is accepted here because plugin separator slugs vary. Replay
+		// drops a named row only when it really is a separator, so this list
+		// can never remove a menu item.
+		if ( ! empty( $raw['removed_separators'] ) && is_array( $raw['removed_separators'] ) ) {
+			$slugs = array();
+			foreach ( $raw['removed_separators'] as $slug ) {
+				if ( is_scalar( $slug ) ) {
+					$slug = $this->clean_slug( $slug );
+					if ( '' !== $slug ) {
+						$slugs[ $slug ] = true;
+					}
+				}
+			}
+			if ( $slugs ) {
+				$out['removed_separators'] = array_slice( array_map( 'strval', array_keys( $slugs ) ), 0, self::MAX_SEPARATORS );
+			}
+		}
+
 		return $out;
+	}
+
+	/**
+	 * Is this a separator id Maestro could have minted?
+	 *
+	 * @param mixed $id Candidate id.
+	 * @return bool
+	 */
+	public static function is_separator_id( $id ) {
+		return is_string( $id ) && 1 === preg_match( '/^' . preg_quote( self::SEPARATOR_PREFIX, '/' ) . '[a-z0-9]{1,20}$/', $id );
 	}
 
 	/**

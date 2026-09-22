@@ -176,6 +176,69 @@ class ReplayTest extends WP_UnitTestCase {
 		$this->assertSame( array( 'edit.php', 'index.php', 'upload.php' ), $result );
 	}
 
+	/* ---- separators ------------------------------------------------------ */
+
+	private function menu_slugs() {
+		global $menu;
+		return array_values( wp_list_pluck( $menu, 2 ) );
+	}
+
+	public function test_added_separator_becomes_a_core_style_separator_row() {
+		global $menu;
+		( new Config() )->save( array( 'separators' => array( 'separator-maestro-a1' ) ) );
+
+		$this->run_replay();
+
+		$rows = wp_list_filter( $menu, array( 2 => 'separator-maestro-a1' ) );
+		$this->assertCount( 1, $rows );
+		$this->assertSame( array( '', 'read', 'separator-maestro-a1', '', 'wp-menu-separator' ), array_values( $rows )[0] );
+	}
+
+	public function test_added_separator_is_not_duplicated_or_minted_from_a_foreign_id() {
+		// Stored directly, bypassing the sanitizer: replay still only mints ids in
+		// Maestro's namespace, and never a second row for a slug already present.
+		global $menu;
+		$menu[4] = array( '', 'read', 'separator-maestro-dup', '', 'wp-menu-separator' );
+		update_option( 'maestro_config', array( 'separators' => array( 'separator-maestro-dup', 'edit.php', 'separator1', 'separator-maestro-<b>' ) ) );
+
+		$this->run_replay();
+
+		$counts = array_count_values( $this->menu_slugs() );
+		$this->assertSame( 1, $counts['separator-maestro-dup'] );
+		$this->assertSame( 1, $counts['edit.php'] );
+		$this->assertArrayNotHasKey( 'separator1', $counts );
+		$this->assertArrayNotHasKey( 'separator-maestro-<b>', $counts );
+	}
+
+	public function test_removed_separator_row_is_dropped() {
+		global $menu;
+		$menu[4] = array( '', 'read', 'separator1', '', 'wp-menu-separator' );
+		( new Config() )->save( array( 'removed_separators' => array( 'separator1' ) ) );
+
+		$this->run_replay();
+
+		$this->assertNotContains( 'separator1', $this->menu_slugs() );
+	}
+
+	public function test_editor_gets_separator_slugs_in_menu_order() {
+		global $menu;
+		$menu[59] = array( '', 'read', 'separator2', '', 'wp-menu-separator' );
+		$menu[4]  = array( '', 'read', 'separator1', '', 'wp-menu-separator' );
+		ksort( $menu );
+
+		$this->assertSame( array( 'separator1', 'separator2' ), ( new Replay( new Config() ) )->get_separators() );
+	}
+
+	public function test_removed_separators_never_drop_a_real_menu_item() {
+		// The list accepts any slug, so replay must check the row really is a
+		// separator before dropping it.
+		( new Config() )->save( array( 'removed_separators' => array( 'edit.php' ) ) );
+
+		$this->run_replay();
+
+		$this->assertContains( 'edit.php', $this->menu_slugs() );
+	}
+
 	/**
 	 * An order saved before separators were editable names only the items. Core's
 	 * separators must keep closing their groups rather than sinking to the end,

@@ -40,6 +40,9 @@
 	var inFlight = null;       // promise that settles when the whole save chain is done
 	var savedClearTimer = null; // reverts the transient "Saved" tile back to idle
 	var groupIdSeq = 0;    // monotonic counter for unique role-group heading ids
+	// Core/plugin separators the user removed. A removed row is not rendered,
+	// so it cannot be read back from the DOM; carry the stored list forward.
+	var removedSeparators = ( ( D.config && D.config.removed_separators ) || [] ).slice();
 
 	/* ---------- helpers ---------------------------------------------------- */
 
@@ -146,7 +149,7 @@
 	 */
 	function refreshModifiedIndicator( key ) {
 		var m = model[ key ];
-		if ( ! m ) { return; }
+		if ( ! m || m.isSeparator ) { return; }
 
 		// Submenu pristine defaults are keyed by the RAW rendered slug
 		// (D.pristine.sub), not the qualified model key — use m.slug.
@@ -347,6 +350,7 @@
 			} );
 		} );
 
+		bindSeparators();
 		buildToolbar();
 		bindMenuSelection();
 		initSortables();
@@ -360,6 +364,110 @@
 		Object.keys( model ).forEach( function ( slug ) {
 			refreshModifiedIndicator( slug );
 		} );
+	}
+
+	/* ---------- separators ------------------------------------------------- */
+
+	/*
+	 * Core prints a separator as an id-less li.wp-menu-separator, so pair the
+	 * rendered rows with D.separators (the same $menu, same order) by position.
+	 * If the counts disagree, something rewrote the sidebar after it was printed:
+	 * leave every separator unmanaged rather than bind one to the wrong slug.
+	 */
+	function bindSeparators() {
+		var lis   = document.querySelectorAll( '#adminmenu > li.wp-menu-separator' );
+		var slugs = D.separators || [];
+		if ( lis.length !== slugs.length ) { return; }
+		Array.prototype.forEach.call( lis, function ( li, i ) {
+			decorateSeparator( li, slugs[ i ] );
+		} );
+	}
+
+	function decorateSeparator( li, slug ) {
+		li.dataset.maestroSlug = slug;
+		li.classList.add( 'maestro-item', 'maestro-separator' );
+		// Core hides separators from screen readers; while editing, one is a
+		// row you can select, move, and remove, so it needs a name and focus.
+		li.removeAttribute( 'aria-hidden' );
+		li.setAttribute( 'aria-label', I.separator );
+		li.tabIndex = 0;
+		model[ slug ] = {
+			title: I.separator,
+			icon: '',
+			hiddenRoles: [],
+			childHiddenRoles: [],
+			hiddenUsers: [],
+			childHiddenUsers: [],
+			isSub: false,
+			hasChildren: false,
+			isSeparator: true
+		};
+	}
+
+	function isAddedSeparator( slug ) {
+		return slug.indexOf( D.separatorPrefix ) === 0;
+	}
+
+	// Top-level rows (items and separators) in their current DOM order.
+	function topRows() {
+		return Array.prototype.slice.call(
+			document.querySelectorAll( '#adminmenu > li.maestro-item[data-maestro-slug]' )
+		);
+	}
+
+	// Core drops a separator that directly follows another one, so adding one
+	// there would vanish on the next load.
+	function nextRowIsSeparator( key ) {
+		var rows = topRows();
+		var next = rows[ rows.indexOf( liForKey( key ) ) + 1 ];
+		return !! ( next && next.classList.contains( 'maestro-separator' ) );
+	}
+
+	function addSeparatorBelow() {
+		var m = selectedKey && model[ selectedKey ];
+		if ( ! m || m.isSub || m.isSeparator || nextRowIsSeparator( selectedKey ) ) { return; }
+		var anchor = liForKey( selectedKey );
+		if ( ! anchor ) { return; }
+
+		// Base36 time plus a random tail: unique per click, and inside the
+		// [a-z0-9]{1,20} suffix the server accepts.
+		var id = D.separatorPrefix + Date.now().toString( 36 ) + Math.floor( Math.random() * 1296 ).toString( 36 );
+		var li = el( 'li', 'wp-not-current-submenu wp-menu-separator' );
+		li.appendChild( el( 'div', 'separator' ) );
+		anchor.parentNode.insertBefore( li, anchor.nextSibling );
+		decorateSeparator( li, id );
+
+		selectItem( li, { focusPanel: true } );
+		speak( I.separatorAdded );
+		scheduleAutosave();
+	}
+
+	function removeSelectedSeparator() {
+		var slug = selectedKey;
+		var m    = slug && model[ slug ];
+		if ( ! m || ! m.isSeparator ) { return; }
+
+		var li   = liForKey( slug );
+		var rows = topRows();
+		var prev = li ? rows[ rows.indexOf( li ) - 1 ] || rows[ rows.indexOf( li ) + 1 ] : null;
+
+		// One Maestro added simply stops being listed; an existing row has to be
+		// named so replay drops it on later loads.
+		if ( ! isAddedSeparator( slug ) && removedSeparators.indexOf( slug ) === -1 ) {
+			removedSeparators.push( slug );
+		}
+		if ( li ) { li.remove(); }
+		delete model[ slug ];
+		selectedKey = null;
+		panel.root.hidden = true;
+
+		// Keep focus in the menu, on the row that took its place.
+		if ( prev ) {
+			selectItem( prev );
+			( prev.querySelector( 'a' ) || prev ).focus( { preventScroll: true } );
+		}
+		speak( I.separatorRemoved );
+		scheduleAutosave();
 	}
 
 	/* ---------- click-to-select ------------------------------------------- */
@@ -455,7 +563,7 @@
 			// Top-level scope.
 			parentUl = menu;
 			currentKeys = Array.prototype.map.call(
-				menu.querySelectorAll( 'li.menu-top.maestro-item[data-maestro-slug]' ),
+				menu.querySelectorAll( ':scope > li.maestro-item[data-maestro-slug]' ),
 				function ( n ) { return n.dataset.maestroSlug; }
 			);
 		}
@@ -478,7 +586,7 @@
 			parentUl.querySelectorAll(
 				m.isSub
 					? 'li.maestro-subitem[data-maestro-key]'
-					: 'li.menu-top.maestro-item[data-maestro-slug]'
+					: ':scope > li.maestro-item[data-maestro-slug]'
 			)
 		);
 		var currentIdx = maestroChildren.indexOf( selectedNode );
@@ -511,6 +619,10 @@
 			.replace( '%4$d', String( total ) );
 		speak( movedMsg );
 
+		// The move may have put a separator next to the selection (or taken one
+		// away), which decides whether Add separator is available.
+		populatePanel( selectedKey );
+
 		// Reuse the existing debounced autosave: buildConfig() reads the new DOM order.
 		scheduleAutosave();
 	}
@@ -535,11 +647,13 @@
 		// Tab-reachable). No aria-keyshortcuts advertised — Alt+Arrow was macOS-broken.
 		populatePanel( key );
 		closePopovers();
-		if ( opts.focusPanel && panel.rename ) {
+		// A separator has no rename field; its first real control is Remove.
+		var focusTarget = model[ key ].isSeparator ? panel.removeSepBtn : panel.rename;
+		if ( opts.focusPanel && focusTarget ) {
 			try {
-				panel.rename.focus( { preventScroll: true } );
+				focusTarget.focus( { preventScroll: true } );
 			} catch ( err ) {
-				panel.rename.focus();
+				focusTarget.focus();
 			}
 		}
 	}
@@ -668,6 +782,22 @@
 		iconButton( resetItemBtn, 'dashicons-undo', I.resetItem );
 		resetItemBtn.addEventListener( 'click', resetSelected );
 
+		var addSepBtn = el( 'button', 'button maestro-add-separator' );
+		addSepBtn.type = 'button';
+		iconButton( addSepBtn, 'dashicons-minus', I.addSeparator );
+		addSepBtn.addEventListener( 'click', function ( e ) {
+			e.preventDefault();
+			addSeparatorBelow();
+		} );
+
+		var removeSepBtn = el( 'button', 'button maestro-remove-separator' );
+		removeSepBtn.type = 'button';
+		iconButton( removeSepBtn, 'dashicons-trash', I.removeSeparator );
+		removeSepBtn.addEventListener( 'click', function ( e ) {
+			e.preventDefault();
+			removeSelectedSeparator();
+		} );
+
 		// BUG-02: the rename input comes first so its left edge is fixed and never
 		// shifts as the selected item's name length changes; the breadcrumb label
 		// (kept for "what is targeted" context) sits to its right.
@@ -681,17 +811,21 @@
 		p.appendChild( iconBtn );
 		p.appendChild( visBtn );
 		p.appendChild( resetItemBtn );
+		p.appendChild( addSepBtn );
+		p.appendChild( removeSepBtn );
 		bar.appendChild( p );
 
 		panel = {
-			root:     p,
-			label:    label,
-			rename:   rename,
-			moveUp:   moveUp,
-			moveDown: moveDown,
-			iconBtn:  iconBtn,
-			visBtn:   visBtn,
-			resetBtn: resetItemBtn,
+			root:         p,
+			label:        label,
+			rename:       rename,
+			moveUp:       moveUp,
+			moveDown:     moveDown,
+			iconBtn:      iconBtn,
+			visBtn:       visBtn,
+			resetBtn:     resetItemBtn,
+			addSepBtn:    addSepBtn,
+			removeSepBtn: removeSepBtn,
 		};
 
 		var right = el( 'div', 'maestro-toolbar-right' );
@@ -802,6 +936,20 @@
 			: m.title;
 		panel.label.textContent = crumb;
 
+		// A separator can only be moved or removed; an item can gain one below
+		// it (top level only, and not where core would drop it as a duplicate).
+		var isSep = !! m.isSeparator;
+		panel.rename.style.display       = isSep ? 'none' : '';
+		panel.visBtn.style.display       = isSep ? 'none' : '';
+		panel.resetBtn.style.display     = isSep ? 'none' : '';
+		panel.removeSepBtn.style.display = isSep ? '' : 'none';
+		panel.addSepBtn.style.display    = ( isSep || m.isSub ) ? 'none' : '';
+		panel.addSepBtn.disabled         = ! isSep && ! m.isSub && nextRowIsSeparator( key );
+		if ( isSep ) {
+			panel.iconBtn.style.display = 'none';
+			return;
+		}
+
 		panel.rename.value = m.title;
 
 		// Icon picker is top-level only; submenu items have no icon column.
@@ -826,7 +974,7 @@
 	/* ---------- rename (single, idempotent) -------------------------------- */
 
 	function commitRename() {
-		if ( ! selectedKey ) { return; }
+		if ( ! selectedKey || ! model[ selectedKey ] || model[ selectedKey ].isSeparator ) { return; }
 		var m = model[ selectedKey ];
 		var raw = panel.rename.value.trim();
 		var next = raw || m.title;
@@ -1718,12 +1866,15 @@
 		// control) from starting a top-level drag, so child reordering is handled
 		// solely by the per-submenu sortable below.
 		$( '#adminmenu' ).sortable( {
-			items:     '> li.menu-top.maestro-item',
+			items:     '> li.maestro-item',
 			cancel:    '.wp-submenu, input, button',
 			distance:  6,
 			axis:      'y',
 			tolerance: 'pointer',
-			stop:      scheduleAutosave
+			stop:      function () {
+				if ( selectedKey && model[ selectedKey ] ) { populatePanel( selectedKey ); }
+				scheduleAutosave();
+			}
 		} );
 
 		$( '#adminmenu .wp-submenu' ).each( function () {
@@ -1744,11 +1895,20 @@
 		// Object.prototype or break JSON serialisation of the payload.
 		var cfg = { items: Object.create( null ), top_order: [], sub_order: Object.create( null ) };
 
-		var topLis = document.querySelectorAll( '#adminmenu > li.menu-top.maestro-item[data-maestro-slug]' );
+		var topLis = topRows();
+
+		var added = [];
 
 		topLis.forEach( function ( li ) {
 			var slug = li.dataset.maestroSlug;
 			cfg.top_order.push( slug );
+
+			// A separator's only state is where it sits (top_order, above) and,
+			// for one Maestro added, that it exists at all.
+			if ( li.classList.contains( 'maestro-separator' ) ) {
+				if ( isAddedSeparator( slug ) ) { added.push( slug ); }
+				return;
+			}
 
 			var m    = model[ slug ];
 			var def  = pristineTop( slug );
@@ -1798,6 +1958,10 @@
 				} );
 			}
 		} );
+
+		// Sparse, like items: the keys appear only when there is something to say.
+		if ( added.length ) { cfg.separators = added; }
+		if ( removedSeparators.length ) { cfg.removed_separators = removedSeparators.slice(); }
 
 		return cfg;
 	}
