@@ -1038,13 +1038,32 @@
 		search.focus();
 	}
 
-	// Reflect an icon value into the rendered menu image. The picker only ever
-	// supplies dashicons, but reset feeds back the pristine icon, which can be a
-	// URL / data-URI / "none" / "" (custom icons are out of scope for the picker
-	// but still reachable on reset). Branch so we never push a URL as a CSS class.
+	// Reflect an icon value into the rendered menu image. The picker supplies a
+	// dashicon class or a bundled data-URI; reset feeds back the pristine icon,
+	// which can also be a URL / "none" / "". Branch so we never push a URL as a
+	// CSS class.
 	function applyIconPreview( li, icon ) {
 		var img = li.querySelector( '.wp-menu-image' );
 		if ( ! img ) { return; }
+
+		// A URL icon (UpdraftPlus, miniOrange SAML, ...) is printed by core as an
+		// <img> inside the menu image, which would sit on top of any new icon.
+		Array.prototype.forEach.call( img.querySelectorAll( 'img' ), function ( el ) {
+			el.parentNode.removeChild( el );
+		} );
+
+		// A base64 SVG icon (Yoast SEO, Smush, ...) is cached by core's
+		// svg-painter.js as jQuery data (`wp-ui-svg-{color}`) and repainted with
+		// `!important` on every hover, bringing the old logo back. Drop the cache
+		// so the painter re-reads whatever background we set below: nothing for
+		// a dashicon, or the new SVG (recoloured) for a data-URI.
+		if ( window.jQuery ) {
+			Object.keys( window.jQuery.data( img ) ).forEach( function ( key ) {
+				if ( /^wp-?ui-?svg/i.test( key ) ) {
+					window.jQuery.removeData( img, key );
+				}
+			} );
+		}
 
 		// Drop every dashicons-* token (including dashicons-before) and the svg
 		// marker, so each branch starts from a clean slate. Splitting on

@@ -4,7 +4,8 @@
 	"mappings": {
 		"wp-content/plugins/maestro-menu-editor": ".",
 		"wp-content/mu-plugins/maestro-e2e-shared-slug.php": "./tests/e2e/fixtures/maestro-e2e-shared-slug.php",
-		"wp-content/mu-plugins/maestro-e2e-childless.php": "./tests/e2e/fixtures/maestro-e2e-childless.php"
+		"wp-content/mu-plugins/maestro-e2e-childless.php": "./tests/e2e/fixtures/maestro-e2e-childless.php",
+		"wp-content/mu-plugins/maestro-e2e-image-icons.php": "./tests/e2e/fixtures/maestro-e2e-image-icons.php"
 	},
 	"config": {
 		"WP_DEBUG": true,
