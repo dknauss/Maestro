@@ -424,12 +424,13 @@ M2/M3 items from `todos/pending/2026-08-02-a11y-locked-checkbox-refinements.md`.
 **Depends on**: nothing (28-01 is independently shippable)
 **Requirements**: (none formal — V2-09, extracted from SPEC.md item 9 during the 2026-08-09 backlog reconciliation)
 **Success Criteria** (what must be TRUE):
-  1. `#collapse-menu` is VISIBLY disabled during edit mode with a programmatic reason, not silently swallowed by a capture-phase handler
-  2. The menu column width resolves from ONE source, not three hardcoded `160px` literals (`maestro.css` :22, :28, :523)
+  1. ~~`#collapse-menu` is VISIBLY disabled during edit mode with a programmatic reason~~ — superseded by UX-12 (1.5.3), which hides the control during edit mode instead; not re-opened
+  2. The menu column width resolves from ONE source, not three hardcoded `160px` literals (`maestro.css` :22, :28, :523) — and that source is the MEASURED rendered width, so a menu widened by Keel or PX is honoured (revised 2026-09-21)
   3. `menu_width` is stored bounded and sparse — the default is never written, and reset means absent
   4. The width applies on ORDINARY admin pages, not only in edit mode — and a site that never set one loads nothing new and pays no new page cost
   5. `body.folded` still folds to core's 36px outside edit mode, and the `<782px` overlay is unaffected
   6. Zero regression across both integration lanes, JS, e2e, WPCS, PHPStan, Plugin Check
+  7. Where another plugin already sets the width (Keel, PX), that width wins and Maestro's stored width stands down (added 2026-09-21)
 **Plans**: 28-01 fold honesty + de-hardcode · 28-02 storage + the always-loaded seam · 28-03 control, docs, close
 
 > **The fold story was DECIDED 2026-08-10 and folded into this phase.** Edit mode
