@@ -52,6 +52,51 @@ class OrderingTest extends TestCase {
 		);
 	}
 
+	/* ---- top(): separators the stored order does not name ---------------- */
+
+	public function test_unnamed_separator_stays_after_its_natural_predecessor() {
+		// An order saved before separators were editable names only the items.
+		// The separators must keep their groups instead of sinking to the end,
+		// where core's adjacent/trailing trim deletes them.
+		$this->assertSame(
+			array( 'index.php', 'separator1', 'upload.php', 'edit.php', 'separator2', 'tools.php' ),
+			Ordering::top(
+				array( 'index.php', 'upload.php', 'edit.php', 'tools.php' ),
+				array( 'index.php', 'separator1', 'edit.php', 'upload.php', 'separator2', 'tools.php' ),
+				array( 'separator1', 'separator2' )
+			)
+		);
+	}
+
+	public function test_unnamed_separator_that_leads_the_menu_stays_first() {
+		$this->assertSame(
+			array( 'sep', 'b', 'a' ),
+			Ordering::top( array( 'b', 'a' ), array( 'sep', 'a', 'b' ), array( 'sep' ) )
+		);
+	}
+
+	public function test_consecutive_unnamed_separators_keep_their_relative_order() {
+		$this->assertSame(
+			array( 'b', 'a', 's1', 's2' ),
+			Ordering::top( array( 'b', 'a' ), array( 'a', 's1', 's2', 'b' ), array( 's1', 's2' ) )
+		);
+	}
+
+	public function test_named_separator_follows_the_stored_order() {
+		$this->assertSame(
+			array( 'b', 'sep', 'a' ),
+			Ordering::top( array( 'b', 'sep', 'a' ), array( 'a', 'sep', 'b' ), array( 'sep' ) )
+		);
+	}
+
+	public function test_unnamed_separator_after_a_newcomer_follows_it_to_the_end() {
+		// 'c' is a newcomer (appended); the separator it precedes goes with it.
+		$this->assertSame(
+			array( 'b', 'a', 'c', 'sep' ),
+			Ordering::top( array( 'b', 'a' ), array( 'a', 'b', 'c', 'sep' ), array( 'sep' ) )
+		);
+	}
+
 	public function test_no_desired_matches_returns_natural_order() {
 		$this->assertSame(
 			array( 'a', 'b' ),

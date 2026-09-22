@@ -177,6 +177,32 @@ class ReplayTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * An order saved before separators were editable names only the items. Core's
+	 * separators must keep closing their groups rather than sinking to the end,
+	 * where core's trailing/adjacent-separator trim would delete every one.
+	 */
+	public function test_top_order_without_separators_keeps_core_separators_in_their_groups() {
+		global $menu;
+		$menu[4]  = array( '', 'read', 'separator1', '', 'wp-menu-separator' );
+		$menu[59] = array( '', 'read', 'separator2', '', 'wp-menu-separator' );
+		$menu[75] = array( 'Tools', 'edit_posts', 'tools.php', '', 'menu-top', 'menu-tools', 'dashicons-admin-tools' );
+		ksort( $menu );
+
+		( new Config() )->save(
+			array( 'top_order' => array( 'index.php', 'upload.php', 'edit.php', 'tools.php' ) )
+		);
+
+		$result = ( new Replay( new Config() ) )->reorder_top(
+			array( 'index.php', 'separator1', 'edit.php', 'upload.php', 'separator2', 'tools.php' )
+		);
+
+		$this->assertSame(
+			array( 'index.php', 'separator1', 'upload.php', 'edit.php', 'separator2', 'tools.php' ),
+			$result
+		);
+	}
+
+	/**
 	 * A plugin that re-sorts the menu on `menu_order` must not undo a stored order.
 	 *
 	 * Google Site Kit does this: it adds its filter during `init`, after Maestro

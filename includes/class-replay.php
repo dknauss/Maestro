@@ -453,9 +453,34 @@ class Replay {
 	 * @return array
 	 */
 	public function reorder_top( $menu_order ) {
+		global $menu;
+
 		$cfg     = $this->config->get();
 		$desired = isset( $cfg['top_order'] ) ? $cfg['top_order'] : array();
-		return Ordering::top( $desired, (array) $menu_order );
+
+		$separators = array();
+		foreach ( (array) $menu as $row ) {
+			if ( self::is_separator_row( $row ) ) {
+				$separators[] = $row[2];
+			}
+		}
+
+		return Ordering::top( $desired, (array) $menu_order, $separators );
+	}
+
+	/**
+	 * Is this $menu row a separator? Core, and every plugin surveyed, marks one
+	 * with the `wp-menu-separator` class at index 4; the slug varies
+	 * (separator1, separator-woocommerce, llms-separator, ...).
+	 *
+	 * @param mixed $row A $menu row.
+	 * @return bool
+	 */
+	private static function is_separator_row( $row ) {
+		return is_array( $row )
+			&& ! empty( $row[2] )
+			&& isset( $row[4] )
+			&& false !== strpos( (string) $row[4], 'wp-menu-separator' );
 	}
 
 	/**
