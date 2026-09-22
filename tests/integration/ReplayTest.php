@@ -229,6 +229,23 @@ class ReplayTest extends WP_UnitTestCase {
 		$this->assertSame( array( 'separator1', 'separator2' ), ( new Replay( new Config() ) )->get_separators() );
 	}
 
+	public function test_known_separators_include_one_core_later_trims() {
+		// Core drops adjacent and trailing separators AFTER admin_menu. The editor
+		// must still know such a row is a separator, so it can keep its stored
+		// place instead of erasing it on the next full-replace save.
+		global $menu;
+		$menu[4] = array( '', 'read', 'separator1', '', 'wp-menu-separator' );
+		ksort( $menu );
+		( new Config() )->save( array( 'separators' => array( 'separator-maestro-a1' ) ) );
+
+		$replay = new Replay( new Config() );
+		$replay->replay();
+		unset( $menu[4] ); // Core's trim, simulated.
+
+		$this->assertSame( array( 'separator1', 'separator-maestro-a1' ), $replay->get_known_separators() );
+		$this->assertSame( array( 'separator-maestro-a1' ), $replay->get_separators() );
+	}
+
 	public function test_removed_separators_never_drop_a_real_menu_item() {
 		// The list accepts any slug, so replay must check the row really is a
 		// separator before dropping it.

@@ -185,6 +185,8 @@ class Assets {
 				// Separator slugs in rendered order; the editor pairs them with
 				// core's id-less separator <li>s by position.
 				'separators'      => $this->replay->get_separators(),
+				// Including rows core trimmed, so the editor keeps their stored place.
+				'knownSeparators' => $this->replay->get_known_separators(),
 				'separatorPrefix' => Config::SEPARATOR_PREFIX,
 				'pristine'        => $this->replay->get_pristine(),
 				'i18n'            => array(

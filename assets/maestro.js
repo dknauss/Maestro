@@ -43,6 +43,9 @@
 	// Core/plugin separators the user removed. A removed row is not rendered,
 	// so it cannot be read back from the DOM; carry the stored list forward.
 	var removedSeparators = ( ( D.config && D.config.removed_separators ) || [] ).slice();
+	// Separators Maestro added that the user removed this session. Recorded so
+	// the save does not carry them forward as merely unrendered.
+	var droppedSeparators = [];
 
 	/* ---------- helpers ---------------------------------------------------- */
 
@@ -415,17 +418,17 @@
 		);
 	}
 
-	// Core drops a separator that directly follows another one, so adding one
-	// there would vanish on the next load.
-	function nextRowIsSeparator( key ) {
+	// Core drops a separator that directly follows another one or ends the
+	// menu, so one added in either place would vanish on the next load.
+	function canAddSeparatorBelow( key ) {
 		var rows = topRows();
 		var next = rows[ rows.indexOf( liForKey( key ) ) + 1 ];
-		return !! ( next && next.classList.contains( 'maestro-separator' ) );
+		return !! ( next && ! next.classList.contains( 'maestro-separator' ) );
 	}
 
 	function addSeparatorBelow() {
 		var m = selectedKey && model[ selectedKey ];
-		if ( ! m || m.isSub || m.isSeparator || nextRowIsSeparator( selectedKey ) ) { return; }
+		if ( ! m || m.isSub || m.isSeparator || ! canAddSeparatorBelow( selectedKey ) ) { return; }
 		var anchor = liForKey( selectedKey );
 		if ( ! anchor ) { return; }
 
@@ -453,7 +456,9 @@
 
 		// One Maestro added simply stops being listed; an existing row has to be
 		// named so replay drops it on later loads.
-		if ( ! isAddedSeparator( slug ) && removedSeparators.indexOf( slug ) === -1 ) {
+		if ( isAddedSeparator( slug ) ) {
+			droppedSeparators.push( slug );
+		} else if ( removedSeparators.indexOf( slug ) === -1 ) {
 			removedSeparators.push( slug );
 		}
 		if ( li ) { li.remove(); }
@@ -944,7 +949,7 @@
 		panel.resetBtn.style.display     = isSep ? 'none' : '';
 		panel.removeSepBtn.style.display = isSep ? '' : 'none';
 		panel.addSepBtn.style.display    = ( isSep || m.isSub ) ? 'none' : '';
-		panel.addSepBtn.disabled         = ! isSep && ! m.isSub && nextRowIsSeparator( key );
+		panel.addSepBtn.disabled         = ! isSep && ! m.isSub && ! canAddSeparatorBelow( key );
 		if ( isSep ) {
 			panel.iconBtn.style.display = 'none';
 			return;
@@ -1959,8 +1964,22 @@
 			}
 		} );
 
+		// The save replaces the whole config, so a separator that is stored but
+		// not rendered (core trimmed it, or the editor could not pair it) must be
+		// carried forward, or it would be erased by an unrelated edit.
+		var carried = window.maestroLogic.carrySeparators( {
+			domOrder:    cfg.top_order,
+			domAdded:    added,
+			storedOrder: ( D.config && D.config.top_order ) || [],
+			storedAdded: ( D.config && D.config.separators ) || [],
+			known:       D.knownSeparators || [],
+			removed:     removedSeparators.concat( droppedSeparators ),
+			prefix:      D.separatorPrefix
+		} );
+		cfg.top_order = carried.order;
+
 		// Sparse, like items: the keys appear only when there is something to say.
-		if ( added.length ) { cfg.separators = added; }
+		if ( carried.added.length ) { cfg.separators = carried.added; }
 		if ( removedSeparators.length ) { cfg.removed_separators = removedSeparators.slice(); }
 
 		return cfg;

@@ -1,5 +1,6 @@
 import { test, expect } from './fixtures';
 import type { Page } from '@playwright/test';
+import { execFileSync } from 'child_process';
 
 /**
  * Separator management: move, add, and remove the admin menu's separators.
@@ -22,6 +23,14 @@ const topOrder = ( page: Page ) =>
 			( li ) => ( li as HTMLElement ).dataset.maestroSlug as string
 		)
 	);
+
+function storeConfig( config: object ): void {
+	execFileSync(
+		'npx',
+		[ 'wp-env', 'run', 'tests-cli', 'wp', 'option', 'update', 'maestro_config', JSON.stringify( config ), '--format=json' ],
+		{ stdio: 'ignore' }
+	);
+}
 
 function saved( page: Page ) {
 	return page.waitForResponse( r => POST_SAVE( r.url() ) && r.request().method() === 'POST' && r.ok() );
@@ -125,5 +134,39 @@ test.describe( 'Menu separators', () => {
 		page.once( 'dialog', d => d.accept() );
 		await page.locator( '.maestro-reset-all' ).click();
 		await expect( sepLi( page, 'separator2' ) ).toHaveCount( 1 );
+	} );
+
+	test( 'a stored separator core trims is kept through an unrelated edit', async ( { page } ) => {
+		// Placed straight after separator1, so core drops it as adjacent and it is
+		// never rendered. The next full-replace save must not erase it.
+		const id = 'separator-maestro-keep1';
+		storeConfig( {
+			schema_version: 2,
+			top_order: [ 'index.php', 'separator1', id, 'edit.php', 'upload.php' ],
+			separators: [ id ],
+		} );
+
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		await expect( sepLi( page, id ) ).toHaveCount( 0 );
+
+		await page.locator( '#menu-media > a.menu-top' ).click();
+		const save = saved( page );
+		await page.locator( '.maestro-panel .maestro-move-up' ).click();
+		const payload = ( await save ).request().postDataJSON();
+
+		expect( payload.config.separators ).toEqual( [ id ] );
+		const order: string[] = payload.config.top_order;
+		expect( order.slice( 0, 3 ) ).toEqual( [ 'index.php', 'separator1', id ] );
+	} );
+
+	test( 'no separator can be added below the last item, where core would trim it', async ( { page } ) => {
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+
+		const lastItem = page.locator( '#adminmenu > li.maestro-item:not(.maestro-separator)' ).last();
+		await lastItem.locator( '> a.menu-top' ).click();
+		await expect( page.locator( '.maestro-panel .maestro-add-separator' ) ).toBeDisabled();
+
+		await page.locator( '#menu-posts > a.menu-top' ).click();
+		await expect( page.locator( '.maestro-panel .maestro-add-separator' ) ).toBeEnabled();
 	} );
 } );

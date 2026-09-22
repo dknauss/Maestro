@@ -45,6 +45,14 @@ class Replay {
 	);
 
 	/**
+	 * Every separator slug in $menu at the end of replay(), before core's
+	 * adjacent/trailing-separator trim. See get_known_separators().
+	 *
+	 * @var string[]
+	 */
+	private $known_separators = array();
+
+	/**
 	 * Store config and register admin_menu / menu_order hooks.
 	 *
 	 * @param Config $config Shared config instance.
@@ -81,13 +89,15 @@ class Replay {
 		}
 
 		$cfg = $this->config->get();
+		if ( ! empty( $cfg ) ) {
+			$this->apply_separators( $cfg );
+		}
+		$this->known_separators = $this->get_separators();
 		if ( empty( $cfg ) ) {
 			return;
 		}
 
 		$items = isset( $cfg['items'] ) ? $cfg['items'] : array();
-
-		$this->apply_separators( $cfg );
 
 		// --- Build normalized lookup for stored override keys ------------------
 		// Normalize once per replay() so both the stored key and every rendered
@@ -481,6 +491,19 @@ class Replay {
 			}
 		}
 		return $slugs;
+	}
+
+	/**
+	 * Every separator the menu was built with, including any core later trims
+	 * as adjacent or trailing. A trimmed one is not rendered, so without this
+	 * the editor could not tell that a stored slug is a separator, and the next
+	 * full-replace save would drop its position (and, for one Maestro added,
+	 * the separator itself).
+	 *
+	 * @return string[]
+	 */
+	public function get_known_separators() {
+		return $this->known_separators;
 	}
 
 	/**
