@@ -100,6 +100,10 @@ Remember that this is cosmetic, not a permission change, and you can reset any o
 Yes. Any role registered on the site — including custom roles from User Role Editor, Members, and similar plugins — appears automatically in the visibility
 control.
 
+= Can I use it alongside Admin Menu Editor? =
+
+It will run, but the two will fight. Admin Menu Editor rebuilds the menu from its own saved settings, so its order, names, icons, and hidden items can override the changes you make in Maestro, and the reverse. Use one menu editor at a time. While Admin Menu Editor is active, Maestro shows a warning in edit mode.
+
 = Is the editor keyboard accessible? =
 
 Yes. You can select, rename, reorder (`Alt`+`Arrow`), open the icon and visibility controls, and reset items without a mouse. Saves and moves are announced to screen readers.
