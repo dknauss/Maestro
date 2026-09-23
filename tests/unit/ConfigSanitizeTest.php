@@ -1136,6 +1136,16 @@ class ConfigSanitizeTest extends TestCase {
 		$this->assertSame( array( 'separator-maestro-ok' ), $out['separators'] );
 	}
 
+	public function test_added_separator_id_with_a_trailing_newline_is_dropped() {
+		// `$` alone matches before a final newline, which would store a second
+		// spelling of an id that mints its own row.
+		$out = $this->config->sanitize(
+			array( 'separators' => array( "separator-maestro-ok\n", 'separator-maestro-ok' ) )
+		);
+
+		$this->assertSame( array( 'separator-maestro-ok' ), $out['separators'] );
+	}
+
 	public function test_added_separator_ids_are_deduplicated_and_capped() {
 		$ids = array( 'separator-maestro-a', 'separator-maestro-a' );
 		for ( $i = 0; $i < Config::MAX_SEPARATORS + 5; $i++ ) {

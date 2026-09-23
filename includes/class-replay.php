@@ -552,7 +552,9 @@ class Replay {
 		$removed = isset( $cfg['removed_separators'] ) ? array_flip( array_filter( (array) $cfg['removed_separators'], 'is_string' ) ) : array();
 		if ( $removed ) {
 			foreach ( $menu as $pos => $row ) {
-				if ( self::is_separator_row( $row ) && isset( $removed[ $row[2] ] ) ) {
+				// Same S-1 guard as every other drop: a row the user cannot
+				// access stays, so core still records it in $_wp_menu_nopriv.
+				if ( self::is_separator_row( $row ) && isset( $removed[ $row[2] ] ) && current_user_can( $row[1] ) ) {
 					unset( $menu[ $pos ] );
 				}
 			}

@@ -668,7 +668,7 @@ class Config {
 	 * @return bool
 	 */
 	public static function is_separator_id( $id ) {
-		return is_string( $id ) && 1 === preg_match( '/^' . preg_quote( self::SEPARATOR_PREFIX, '/' ) . '[a-z0-9]{1,20}$/', $id );
+		return is_string( $id ) && 1 === preg_match( '/^' . preg_quote( self::SEPARATOR_PREFIX, '/' ) . '[a-z0-9]{1,20}\z/', $id );
 	}
 
 	/**
