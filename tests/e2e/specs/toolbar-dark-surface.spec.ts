@@ -71,6 +71,24 @@ test.describe( 'Phase 25 — toolbar dark surface', () => {
 		expect( bg ).toBe( TOOLBAR_BG );
 	} );
 
+	test( 'a focused toolbar button keeps its readable text colour', async ( { page } ) => {
+		// Core's button focus style (WordPress 7.1) sets #3858e9, which is 2.82:1
+		// on the dark toolbar, below WCAG 1.4.3's 4.5:1. Selecting a separator
+		// by click or Enter also focuses a button: Remove separator.
+		await enterEditMode( page );
+
+		for ( const sel of [ '.maestro-move-up', '.maestro-icon-btn', '.maestro-vis-btn', '.maestro-add-separator' ] ) {
+			const btn = page.locator( `.maestro-toolbar ${ sel }` ).first();
+			await btn.focus();
+			expect( await btn.evaluate( ( n ) => getComputedStyle( n ).color ), `${ sel } focused` ).toBe( 'rgb(195, 196, 199)' );
+		}
+
+		await page.locator( '#adminmenu > li.maestro-separator' ).first().click();
+		const remove = page.locator( '.maestro-toolbar .maestro-remove-separator' );
+		await expect( remove ).toBeFocused();
+		expect( await remove.evaluate( ( n ) => getComputedStyle( n ).color ) ).toBe( 'rgb(195, 196, 199)' );
+	} );
+
 	test( 'the toolbar renders identically regardless of admin colour scheme', async ( { page } ) => {
 		// The toolbar is a custom-drawn dark surface that inherits from NO admin
 		// colour scheme. Worth one assertion rather than an assumption — a future

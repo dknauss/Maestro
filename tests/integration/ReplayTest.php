@@ -214,6 +214,9 @@ class ReplayTest extends WP_UnitTestCase {
 		global $menu;
 		$menu[4] = array( '', 'read', 'separator1', '', 'wp-menu-separator' );
 		( new Config() )->save( array( 'removed_separators' => array( 'separator1' ) ) );
+		// Anyone in wp-admin has `read`; a logged-out user (the default here) has
+		// not, and removal is guarded by the row's capability.
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
 
 		$this->run_replay();
 
@@ -254,6 +257,21 @@ class ReplayTest extends WP_UnitTestCase {
 		$this->run_replay();
 
 		$this->assertContains( 'edit.php', $this->menu_slugs() );
+	}
+
+	public function test_removed_separators_keep_a_row_the_user_cannot_access() {
+		// A plugin page whose slug contains "wp-menu-separator" looks like a
+		// separator (core puts the slug into $row[4]). Like every other drop in
+		// replay(), removal must leave rows the user lacks the capability for,
+		// so core still records them in $_wp_menu_nopriv.
+		global $menu;
+		$menu[90] = array( 'Odd', 'manage_options', 'odd-wp-menu-separator', 'Odd', 'menu-top toplevel_page_odd-wp-menu-separator' );
+		( new Config() )->save( array( 'removed_separators' => array( 'odd-wp-menu-separator' ) ) );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+
+		$this->run_replay();
+
+		$this->assertContains( 'odd-wp-menu-separator', $this->menu_slugs() );
 	}
 
 	/**

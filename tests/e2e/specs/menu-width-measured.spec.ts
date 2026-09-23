@@ -75,6 +75,43 @@ test.describe( 'Phase 28-01 — toolbar follows the measured menu width', () => 
 		expect( g.content ).toBe( 240 );
 	} );
 
+	/*
+	 * Edit mode shows every submenu inline, including core's hidden flyouts.
+	 * A flyout carries a 5px transparent left border (room for its arrow) and a
+	 * 1px right border that core's open submenu does not. Kept, they indent the
+	 * flyouts' links past the current submenu's, and where a plugin forces the
+	 * submenu width they push each box 6px past the menu's right edge: a
+	 * sawtooth edge, one tooth per group.
+	 */
+	for ( const width of [ null, 240 ] ) {
+		test( `expanded submenus share the menu's edges (${ width ?? 'core' } width)`, async ( { page } ) => {
+			setWideMenu( width );
+			await page.setViewportSize( { width: 1280, height: 900 } );
+			await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+			await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
+
+			const g = await page.evaluate( () => {
+				const menuRight = Math.round( document.getElementById( 'adminmenuwrap' )!.getBoundingClientRect().right );
+				const subs = Array.from( document.querySelectorAll( '#adminmenu > li > .wp-submenu' ) )
+					.map( ( s ) => ( {
+						id: s.parentElement!.id,
+						right: Math.round( s.getBoundingClientRect().right ),
+						linkLeft: Math.round( ( s.querySelector( 'li:not(.wp-submenu-head) a' ) as HTMLElement ).getBoundingClientRect().left ),
+					} ) );
+				return { menuRight, subs };
+			} );
+
+			expect( g.subs.length ).toBeGreaterThan( 3 );
+			for ( const s of g.subs ) {
+				expect( s.right, `${ s.id } right edge` ).toBe( g.menuRight );
+			}
+			const current = g.subs.find( ( s ) => s.id === 'menu-dashboard' )!;
+			for ( const s of g.subs ) {
+				expect( s.linkLeft, `${ s.id } link indent` ).toBe( current.linkLeft );
+			}
+		} );
+	}
+
 	test( 'crossing the widening breakpoint: toolbar tracks the menu live', async ( {
 		page,
 	} ) => {
