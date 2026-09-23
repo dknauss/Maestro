@@ -44,6 +44,14 @@ body.maestro-editing.auto-fold #wpfooter {
 	 * open submenu has no border; match it. */
 	border: 0 !important;
 }
+/* Core pads flyout links 5px 16px 5px 14px and the open submenu's 5px 12px, so
+ * shown inline together the flyouts' words sat 2px further in. Match the open
+ * submenu. Core uses the same values at every width, so this needs no media
+ * query. */
+.maestro-editing #adminmenu .wp-submenu a {
+	padding-left: 12px;
+	padding-right: 12px;
+}
 /* WordPress repeats the parent title in a hidden .wp-submenu-head for folded
  * flyouts. With submenus force-expanded here it would show as a second, icon-
  * less copy of the label — keep it hidden. */

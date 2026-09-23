@@ -82,6 +82,10 @@ test.describe( 'Phase 28-01 — toolbar follows the measured menu width', () => 
 	 * flyouts' links past the current submenu's, and where a plugin forces the
 	 * submenu width they push each box 6px past the menu's right edge: a
 	 * sawtooth edge, one tooth per group.
+	 *
+	 * The indent is measured at the link TEXT, not the link box: core also pads
+	 * flyout links 14px against the open submenu's 12px, so the boxes can line
+	 * up while the words still sit 2px apart.
 	 */
 	for ( const width of [ null, 240 ] ) {
 		test( `expanded submenus share the menu's edges (${ width ?? 'core' } width)`, async ( { page } ) => {
@@ -89,14 +93,22 @@ test.describe( 'Phase 28-01 — toolbar follows the measured menu width', () => 
 			await page.setViewportSize( { width: 1280, height: 900 } );
 			await page.goto( '/wp-admin/index.php?maestro_edit=1' );
 			await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
+			// Core transitions submenu link padding, and edit mode's class lands
+			// after load, so measure once those transitions have finished.
+			await page.evaluate( () => Promise.all( document.getAnimations().map( ( a ) => a.finished ) ) );
 
 			const g = await page.evaluate( () => {
 				const menuRight = Math.round( document.getElementById( 'adminmenuwrap' )!.getBoundingClientRect().right );
+				const textLeft = ( a: Element ) => {
+					const range = document.createRange();
+					range.selectNodeContents( a );
+					return Math.round( range.getBoundingClientRect().left );
+				};
 				const subs = Array.from( document.querySelectorAll( '#adminmenu > li > .wp-submenu' ) )
 					.map( ( s ) => ( {
 						id: s.parentElement!.id,
 						right: Math.round( s.getBoundingClientRect().right ),
-						linkLeft: Math.round( ( s.querySelector( 'li:not(.wp-submenu-head) a' ) as HTMLElement ).getBoundingClientRect().left ),
+						linkLeft: textLeft( s.querySelector( 'li:not(.wp-submenu-head) a' )! ),
 					} ) );
 				return { menuRight, subs };
 			} );
