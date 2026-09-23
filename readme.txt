@@ -29,6 +29,7 @@ Maestro's enhancements are only activated for logged-in users with an Administra
 
 * **Rename** any top-level or submenu item — just click the label.
 * **Reorder** items by dragging (top-level items among themselves, submenu items within their parent), or with the keyboard (`Alt`+`Arrow`).
+* **Group** the menu with separators: move or remove the existing ones, or add a new separator below any top-level item.
 * **Swap icons** on top-level items. The icon picker offers Dashicons and bundled Bootstrap Icons with search. It accepts any of WordPress's four native icon forms (dashicon, "none", base64 image data-URI, or an image URL).
 * **Hide** items from chosen roles — including administrators. Custom roles registered by other plugins ([User Role Editor](https://wordpress.org/plugins/user-role-editor/), [Members](https://wordpress.org/plugins/members/), etc.) appear automatically.
 * **Hide items from specific people**, by name, when a role is the wrong unit — one person on a shared role who doesn't need a particular tool. Search for someone in the visibility popover and add them; a parent's sub-items can be hidden per person too, with the parent left visible. Like every other hide in Maestro, this is cosmetic only: the page still loads by URL for anyone authorized to see it.
@@ -153,7 +154,7 @@ Maestro is built to stay out of the way:
 == Known limits / deferred to v2 ==
 
 * **Reparenting** (moving an item between a top-level position and a submenu) is not included. Top-level items reorder among top-level items, and submenu items reorder within their current parent. Reparenting needs hand-splicing of the globals plus `parent_file`/`submenu_file` highlighting fixes — a known minefield, parked deliberately.
-* **Separators** are preserved in place but not yet add/move/delete-able; their generated slugs (`separator1`…) have no stable identity to key against.
+* **Separators** are top-level only; WordPress has no submenu separator. Core also drops a separator that directly follows another one or ends the menu, so one placed there will not show.
 * **Renaming** an item drops any core-appended count badge (e.g., pending comments) from that label, since the badge lives inside the title string.
 * Submenu sort relies on items registering by the late `admin_menu` pass; a plugin that registers submenus on an unusually late hook may not be captured.
 

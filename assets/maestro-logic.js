@@ -302,6 +302,68 @@ function isSelfTarget( userId, currentUserId ) {
 	return Number( userId ) === Number( currentUserId );
 }
 
+/**
+ * Merge the stored state of separators the editor did not render into a
+ * freshly built config, so a full-replace save cannot silently erase them.
+ *
+ * A separator can be missing from the DOM without the user removing it: core
+ * trims one that ends up next to another (say a role hide emptied the group
+ * between them), and the editor leaves separators unmanaged when it cannot
+ * pair them with the model. Each such separator keeps its stored id (if
+ * Maestro added it) and goes back after its stored predecessor, or first.
+ *
+ * @param {Object}   o
+ * @param {string[]} o.domOrder    Top-level slugs as rendered, in order.
+ * @param {string[]} o.domAdded    Maestro-added separator ids rendered.
+ * @param {string[]} o.storedOrder Stored top_order.
+ * @param {string[]} o.storedAdded Stored separators (Maestro-added ids).
+ * @param {string[]} o.known       Every separator slug the server built the menu with.
+ * @param {string[]} o.removed     Separator slugs the user removed.
+ * @param {string}   o.prefix      Id prefix of a Maestro-added separator.
+ * @return {{ order: string[], added: string[] }} New arrays; inputs untouched.
+ */
+function carrySeparators( o ) {
+	var order   = o.domOrder.slice();
+	var added   = o.domAdded.slice();
+	var inDom   = {};
+	var removed = {};
+	var known   = {};
+	var i;
+
+	o.domOrder.forEach( function ( s ) { inDom[ s ] = true; } );
+	o.removed.forEach( function ( s ) { removed[ s ] = true; } );
+	o.known.forEach( function ( s ) { known[ s ] = true; } );
+
+	o.storedAdded.forEach( function ( id ) {
+		if ( ! inDom[ id ] && ! removed[ id ] && added.indexOf( id ) === -1 ) {
+			added.push( id );
+		}
+	} );
+
+	function isCarried( s ) {
+		if ( inDom[ s ] || removed[ s ] ) { return false; }
+		if ( s.indexOf( o.prefix ) === 0 ) { return added.indexOf( s ) !== -1; }
+		return !! known[ s ];
+	}
+
+	for ( i = 0; i < o.storedOrder.length; i++ ) {
+		var slug = o.storedOrder[ i ];
+		if ( ! isCarried( slug ) || order.indexOf( slug ) !== -1 ) { continue; }
+
+		var at = 0;
+		for ( var j = i - 1; j >= 0; j-- ) {
+			var prev = order.indexOf( o.storedOrder[ j ] );
+			if ( prev !== -1 ) {
+				at = prev + 1;
+				break;
+			}
+		}
+		order.splice( at, 0, slug );
+	}
+
+	return { order: order, added: added };
+}
+
 /* ---------- dual-export guard ----------------------------------------- */
 
 var api = {
@@ -316,6 +378,7 @@ var api = {
 	removeUserTarget:          removeUserTarget,
 	userTargetIds:             userTargetIds,
 	isSelfTarget:              isSelfTarget,
+	carrySeparators:           carrySeparators,
 };
 
 if ( typeof module !== 'undefined' && module.exports ) {

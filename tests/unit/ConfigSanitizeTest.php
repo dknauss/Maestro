@@ -1102,4 +1102,70 @@ class ConfigSanitizeTest extends TestCase {
 
 		$this->assertSame( $expected, $this->config->sanitize( $raw ) );
 	}
+
+	/* -----------------------------------------------------------------------
+	 * Separators: 'separators' holds the ids of rows Maestro adds;
+	 * 'removed_separators' names existing separator rows to drop.
+	 * -------------------------------------------------------------------- */
+
+	public function test_added_separator_ids_are_kept() {
+		$out = $this->config->sanitize(
+			array( 'separators' => array( 'separator-maestro-k3x9', 'separator-maestro-1' ) )
+		);
+
+		$this->assertSame( array( 'separator-maestro-k3x9', 'separator-maestro-1' ), $out['separators'] );
+	}
+
+	public function test_added_separator_ids_outside_the_maestro_namespace_are_dropped() {
+		// Only ids Maestro minted may be CREATED: never a core slug, never markup.
+		$out = $this->config->sanitize(
+			array(
+				'separators' => array(
+					'separator1',
+					'edit.php',
+					'separator-maestro-',
+					'separator-maestro-UPPER',
+					'separator-maestro-<b>',
+					'separator-maestro-' . str_repeat( 'a', 21 ),
+					array( 'nested' ),
+					'separator-maestro-ok',
+				),
+			)
+		);
+
+		$this->assertSame( array( 'separator-maestro-ok' ), $out['separators'] );
+	}
+
+	public function test_added_separator_ids_are_deduplicated_and_capped() {
+		$ids = array( 'separator-maestro-a', 'separator-maestro-a' );
+		for ( $i = 0; $i < Config::MAX_SEPARATORS + 5; $i++ ) {
+			$ids[] = 'separator-maestro-n' . $i;
+		}
+
+		$out = $this->config->sanitize( array( 'separators' => $ids ) );
+
+		$this->assertCount( Config::MAX_SEPARATORS, $out['separators'] );
+		$this->assertSame( 'separator-maestro-a', $out['separators'][0] );
+		$this->assertSame( 'separator-maestro-n0', $out['separators'][1] );
+	}
+
+	public function test_removed_separators_are_cleaned_deduplicated_and_capped() {
+		$slugs = array( 'separator1', 'separator1', '<b>separator-woocommerce</b>', '' );
+		for ( $i = 0; $i < Config::MAX_SEPARATORS + 5; $i++ ) {
+			$slugs[] = 'sep-' . $i;
+		}
+
+		$out = $this->config->sanitize( array( 'removed_separators' => $slugs ) );
+
+		$this->assertCount( Config::MAX_SEPARATORS, $out['removed_separators'] );
+		$this->assertSame( array( 'separator1', 'separator-woocommerce', 'sep-0' ), array_slice( $out['removed_separators'], 0, 3 ) );
+	}
+
+	public function test_no_separator_keys_when_none_are_set() {
+		// Sparse: a config without separator changes keeps its existing shape.
+		$out = $this->config->sanitize( array( 'separators' => array(), 'removed_separators' => 'separator1' ) );
+
+		$this->assertArrayNotHasKey( 'separators', $out );
+		$this->assertArrayNotHasKey( 'removed_separators', $out );
+	}
 }

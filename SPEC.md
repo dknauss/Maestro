@@ -64,8 +64,10 @@ Two free functions in the bootstrap: `Maestro\capability()` (filterable via `mae
       'hidden_roles' => [ 'author', 'editor' ],  // optional; roles that do NOT see it
     ],
   ],
-  'top_order' => [ '<slug>', '<slug>', ... ],            // desired top-level order
+  'top_order' => [ '<slug>', '<slug>', ... ],            // desired top-level order, separators included
   'sub_order' => [ '<parent_slug>' => [ '<slug>', ... ] ],
+  'separators'         => [ 'separator-maestro-<id>', ... ], // optional; separator rows Maestro adds
+  'removed_separators' => [ '<slug>', ... ],                 // optional; existing separator rows to drop
 ]
 ```
 
@@ -86,6 +88,7 @@ Both methods obey the same rules:
 2. Live items not named in the desired order are appended afterward, in their original relative order (newcomers sink to the bottom).
 3. Desired names that no longer exist are skipped.
 4. A duplicated desired name is honoured once.
+5. (`top` only) A separator the desired order does not name is not a newcomer: it goes right after whichever item of the group it closed now sits lowest (else after the previous separator, else first), so core's adjacent/trailing trim cannot delete it.
 
 Empty desired order ⇒ passthrough. These are pure functions (no WP dependency) and carry the densest unit coverage.
 
@@ -182,7 +185,7 @@ Coverage targets the seams most likely to break: the pure ordering logic (unit),
 ## Edge Cases & Known Limits
 
 - **Rename drops count badges.** Core injects badge markup (pending comments, plugin updates) *inside* the title string, so a renamed item loses its badge. Inherent to renaming; documented, not patched.
-- **Separators are preserved, not editable.** Their generated slugs (`separator1`…) have no stable identity to key against. Sorting restricts itself to `li.menu-top.maestro-item`, leaving separators in place.
+- **Separators are top-level rows.** Core prints each as an id-less `li.wp-menu-separator`, so the editor pairs the rendered rows with `Replay::get_separators()` by position; both come from the same sorted, trimmed `$menu`, and on a count mismatch every separator is left unmanaged (collapsed, as before) rather than bound to the wrong slug. Their positions are saved in `top_order`. A separator Maestro adds gets an id `separator-maestro-[a-z0-9]{1,20}` (the `separator` prefix is what core's `add_menu_classes()` keys group-edge classes on) listed in `separators`; removing an existing one lists its slug in `removed_separators`, which replay applies only to rows that really are separators. A separator `top_order` does not name stays after the lowest item of the group it closed (`Ordering::top()`), so orders saved before separators were editable keep their grouping. Because saves replace the whole config, a stored separator the editor did not render (core trimmed it as adjacent/trailing, or pairing bailed) is carried forward with its stored id and place (`maestroLogic.carrySeparators()`, fed by `Replay::get_known_separators()`, which lists every separator before core's trim) unless the user removed it.
 - **Late submenu registration.** Items registered on an unusually late hook (after `admin_menu` `PHP_INT_MAX`) may escape capture. Acceptable for v1; documented.
 - **Custom top-level icons** accept all four native WordPress forms (dashicon / `none` / base64 image data-URI / image URL). Bundled data-URI icons (e.g. Bootstrap Icons) are baked to a fixed grey and so do **not** recolour on hover/active the way dashicon fonts do — a known cosmetic limitation of background-image icons. Arbitrary user-uploaded/pasted SVG (which would need deep markup sanitisation for inline rendering) remains out of scope.
 - **`menu-icon-*` must be stripped for custom image icons.** Core gives its own items (Posts, Pages, Media, …) a `menu-icon-{slug}` class — printed on *both* the `<li>` and its `<a>` — whose CSS sets `background-image: none !important` on `div.wp-menu-image`. That rule would hide a data-URI/URL icon. The replay engine drops `menu-icon-*` from the menu row's class field when applying such an icon (and the editor mirrors this on the live `<li>`+`<a>` during preview); a dashicon, which paints via `::before`, keeps the class. Do not reinstate the class for custom-image items.
@@ -209,7 +212,7 @@ Coverage targets the seams most likely to break: the pure ordering logic (unit),
 
 
 1. **Reparenting.** Move items between top-level and submenu. Requires hand-splicing the globals plus `parent_file`/`submenu_file` highlighting fixes — the known minefield. Highest-value v2 feature; gated on a solid highlighting strategy (study Admin Menu Editor's approach).
-2. **Separator management.** Add/move/delete separators, with a synthetic stable id scheme to survive plugin churn.
+2. ~~**Separator management.** Add/move/delete separators, with a synthetic stable id scheme to survive plugin churn.~~ **Done** — top-level separators can be moved, removed, and added (ids `separator-maestro-*`); see the separators note under Edge Cases & Known Limits above.
 3. ~~**Keyboard-accessible reordering.** Move-up/move-down controls and/or ARIA grab semantics, removing the mouse-only dependency.~~ **Done** — `Alt+ArrowUp`/`Alt+ArrowDown` keyboard reorder with polite/assertive `wp.a11y.speak()` announcements, chained focus retention, and `aria-keyshortcuts` on the selected row.
 4. ~~**Per-item reset in the UI surfaced as an explicit affordance** with a visible "modified" indicator diffing against pristine.~~ **Done** — non-color-only modified indicator (•glyph + screen-reader text, ≥5.5:1 contrast) driven by `maestroLogic.diffItem`; reset button keyboard-reachable and emphasised when the item is modified.
 5. ~~**Custom icon support.** Dashicons picker plus URL/SVG and `none`, with appropriate sanitization.~~ **Done** — the validator accepts all four native forms and the picker bundles dashicons + Bootstrap Icons. Remaining: media-library/URL input in the UI, arbitrary SVG upload with deep sanitisation, a `mask-image` path so bundled SVGs recolour with the admin scheme. (V2-11, the heavier/solid bundled set, is **done** — Phase 7 shipped the fill-resolution policy in v1.1; see the header of [`includes/icons-bootstrap.php`](includes/icons-bootstrap.php)).

@@ -153,17 +153,17 @@ class Assets {
 			'maestro',
 			'maestroData',
 			array(
-				'restUrl'        => esc_url_raw( rest_url( Rest::NS . '/config' ) ),
-				'nonce'          => wp_create_nonce( 'wp_rest' ),
-				'exitUrl'        => esc_url_raw( remove_query_arg( 'maestro_edit' ) ),
+				'restUrl'         => esc_url_raw( rest_url( Rest::NS . '/config' ) ),
+				'nonce'           => wp_create_nonce( 'wp_rest' ),
+				'exitUrl'         => esc_url_raw( remove_query_arg( 'maestro_edit' ) ),
 				// ROLE-02: the per-user picker searches CORE's users endpoint
 				// rather than a Maestro route — it is already capability-gated by
 				// `list_users`, so we inherit core's authorization instead of
 				// re-implementing it. The `nonce` above is a `wp_rest` nonce and
 				// authenticates this endpoint too; no second nonce is needed.
-				'usersUrl'       => esc_url_raw( rest_url( 'wp/v2/users' ) ),
+				'usersUrl'        => esc_url_raw( rest_url( 'wp/v2/users' ) ),
 				// Drives the self-target caution only. Never a permission check.
-				'userId'         => get_current_user_id(),
+				'userId'          => get_current_user_id(),
 				// ROLE-02: `maestro_capability` lets a site hand Maestro to a
 				// custom role that may NOT hold `list_users`. Core's users
 				// collection would then return only published authors — so the
@@ -173,17 +173,23 @@ class Assets {
 				// Maestro endpoint: widening who can enumerate site users would
 				// trade away exactly the "zero risk to access" property the
 				// plugin exists to protect. Role-based hiding still works.
-				'canPickUsers'   => current_user_can( 'list_users' ),
+				'canPickUsers'    => current_user_can( 'list_users' ),
 				// Mirrors Config::MAX_HIDDEN_USERS so the picker can stop AT the
 				// cap instead of letting the server silently truncate a save the
 				// editor reported as successful.
-				'maxHiddenUsers' => Config::MAX_HIDDEN_USERS,
-				'roles'          => wp_roles()->get_names(),
-				'iconSets'       => $this->icon_sets(),
-				'config'         => $this->config->get(),
-				'menu'           => $this->replay->get_menu_model(),
-				'pristine'       => $this->replay->get_pristine(),
-				'i18n'           => array(
+				'maxHiddenUsers'  => Config::MAX_HIDDEN_USERS,
+				'roles'           => wp_roles()->get_names(),
+				'iconSets'        => $this->icon_sets(),
+				'config'          => $this->config->get(),
+				'menu'            => $this->replay->get_menu_model(),
+				// Separator slugs in rendered order; the editor pairs them with
+				// core's id-less separator <li>s by position.
+				'separators'      => $this->replay->get_separators(),
+				// Including rows core trimmed, so the editor keeps their stored place.
+				'knownSeparators' => $this->replay->get_known_separators(),
+				'separatorPrefix' => Config::SEPARATOR_PREFIX,
+				'pristine'        => $this->replay->get_pristine(),
+				'i18n'            => array(
 					'saving'             => __( 'Saving…', 'maestro-menu-editor' ),
 					'saved'              => __( 'Saved', 'maestro-menu-editor' ),
 					'saveError'          => __( 'Save failed. Retrying on next change.', 'maestro-menu-editor' ),
@@ -196,6 +202,11 @@ class Assets {
 					'iconNoneHint'       => __( 'Remove the icon (uses the menu default).', 'maestro-menu-editor' ),
 					'visibility'         => __( 'Visibility', 'maestro-menu-editor' ),
 					'resetItem'          => __( 'Reset Item', 'maestro-menu-editor' ),
+					'separator'          => __( 'Separator', 'maestro-menu-editor' ),
+					'addSeparator'       => __( 'Add separator below', 'maestro-menu-editor' ),
+					'removeSeparator'    => __( 'Remove separator', 'maestro-menu-editor' ),
+					'separatorAdded'     => __( 'Separator added', 'maestro-menu-editor' ),
+					'separatorRemoved'   => __( 'Separator removed', 'maestro-menu-editor' ),
 					'resetAll'           => __( 'Reset All', 'maestro-menu-editor' ),
 					/* translators: Heading for the role-checkbox group that hides THIS menu item (parent or submenu row). */
 					'hideFrom'           => __( 'Hide this item from:', 'maestro-menu-editor' ),

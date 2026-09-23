@@ -29,14 +29,28 @@ class Ordering {
 	/**
 	 * Reorder a flat list of top-level slugs.
 	 *
-	 * @param string[] $desired Stored desired order (slugs).
-	 * @param string[] $current Live order (slugs) from the menu_order filter.
+	 * A separator the desired order does not name (an order saved before
+	 * separators were editable, or a newly activated plugin's own separator) is
+	 * not treated as a newcomer. Sinking it to the end would put it where core's
+	 * adjacent/trailing-separator trim deletes it, erasing the menu's grouping.
+	 * Instead it closes the same group it closed naturally: it goes right after
+	 * whichever item of that group now sits lowest.
+	 *
+	 * @param string[] $desired    Stored desired order (slugs).
+	 * @param string[] $current    Live order (slugs) from the menu_order filter.
+	 * @param string[] $separators Slugs in $current that are separator rows.
 	 * @return string[]
 	 */
-	public static function top( array $desired, array $current ) {
+	public static function top( array $desired, array $current, array $separators = array() ) {
 		if ( empty( $desired ) ) {
 			return $current;
 		}
+
+		$is_sep   = array_flip( $separators );
+		$is_named = array_flip( $desired );
+		$floating = function ( $slug ) use ( $is_sep, $is_named ) {
+			return isset( $is_sep[ $slug ] ) && ! isset( $is_named[ $slug ] );
+		};
 
 		$ordered = array();
 		$seen    = array();
@@ -48,10 +62,46 @@ class Ordering {
 			}
 		}
 		foreach ( $current as $slug ) {
-			if ( empty( $seen[ $slug ] ) ) {
+			if ( empty( $seen[ $slug ] ) && ! $floating( $slug ) ) {
 				$ordered[]     = $slug;
 				$seen[ $slug ] = true;
 			}
+		}
+
+		// Re-seat the unnamed separators, walking the natural order to learn
+		// which items each one closed.
+		$group    = array();
+		$prev_sep = null;
+		foreach ( $current as $slug ) {
+			if ( ! $floating( $slug ) ) {
+				if ( isset( $is_sep[ $slug ] ) ) {
+					$group    = array();
+					$prev_sep = $slug;
+				} else {
+					$group[] = $slug;
+				}
+				continue;
+			}
+			if ( ! empty( $seen[ $slug ] ) ) {
+				continue;
+			}
+
+			$pos = -1;
+			foreach ( $group as $member ) {
+				$at = array_search( $member, $ordered, true );
+				if ( false !== $at && $at > $pos ) {
+					$pos = $at;
+				}
+			}
+			if ( -1 === $pos && null !== $prev_sep ) {
+				$at  = array_search( $prev_sep, $ordered, true );
+				$pos = false === $at ? -1 : $at;
+			}
+
+			array_splice( $ordered, $pos + 1, 0, array( $slug ) );
+			$seen[ $slug ] = true;
+			$group         = array();
+			$prev_sep      = $slug;
 		}
 
 		return $ordered;

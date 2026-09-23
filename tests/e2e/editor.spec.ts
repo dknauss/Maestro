@@ -1042,19 +1042,28 @@ test.describe( 'UX-07 — tap-target floor: every button and rename input >=44px
 		const panel = page.locator( '.maestro-toolbar .maestro-panel' );
 		await expect( panel ).toBeVisible();
 
-		// Check every .maestro-toolbar .button element.
+		// Check every VISIBLE .maestro-toolbar .button: the panel hides the
+		// controls that do not apply to the selection (no icon for a submenu row,
+		// only move/remove for a separator), and a hidden button is no tap target.
+		// A separator is selected too, so its own controls are measured as well.
 		const toolbar = page.locator( '.maestro-toolbar' );
-		const buttons = await toolbar.locator( '.button' ).all();
-		expect( buttons.length ).toBeGreaterThan( 0 );
-
-		for ( const btn of buttons ) {
-			const box = await btn.boundingBox();
-			expect( box, 'boundingBox must not be null for toolbar button' ).not.toBeNull();
-			expect(
-				box!.height,
-				`toolbar button must be >= 44px tall (got ${ box!.height }px)`
-			).toBeGreaterThanOrEqual( 44 );
-		}
+		const measure = async () => {
+			const buttons = await toolbar.locator( '.button:visible' ).all();
+			expect( buttons.length ).toBeGreaterThan( 0 );
+			for ( const btn of buttons ) {
+				const box = await btn.boundingBox();
+				expect( box, 'boundingBox must not be null for toolbar button' ).not.toBeNull();
+				expect(
+					box!.height,
+					`toolbar button must be >= 44px tall (got ${ box!.height }px)`
+				).toBeGreaterThanOrEqual( 44 );
+			}
+		};
+		await measure();
+		await page.locator( '#adminmenu > li.maestro-separator' ).first().click();
+		await expect( panel.locator( '.maestro-remove-separator' ) ).toBeVisible();
+		await measure();
+		await page.locator( '#menu-posts > a.menu-top' ).click();
 
 		// Check the rename input specifically.
 		const renameInput = page.locator( '.maestro-rename-input' );
