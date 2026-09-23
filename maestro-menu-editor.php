@@ -35,6 +35,7 @@ require_once MAESTRO_DIR . 'includes/class-replay.php';
 require_once MAESTRO_DIR . 'includes/class-rest.php';
 require_once MAESTRO_DIR . 'includes/class-admin-bar.php';
 require_once MAESTRO_DIR . 'includes/class-assets.php';
+require_once MAESTRO_DIR . 'includes/class-conflict-notice.php';
 
 /**
  * The capability required to edit the menu. Filterable so a role/cap manager
@@ -142,6 +143,7 @@ function boot() {
 
 	new Rest( $config );
 	new Admin_Bar();
+	new Conflict_Notice();
 	new Assets( $config, $replay );
 }
 add_action( 'plugins_loaded', __NAMESPACE__ . '\\boot' );
