@@ -70,8 +70,10 @@ function is_edit_mode() {
  * autosave then posted the network menu's model to rest_url(), which is the
  * main site, overwriting that site's config.
  *
- * Both checks read the current screen, so this is false wherever no admin
- * screen is set (front end, REST).
+ * Both checks read the current screen once it is set. Before that, which
+ * includes `menu_order`, they fall back to the WP_NETWORK_ADMIN /
+ * WP_USER_ADMIN constants that those screens' entry files define. On the
+ * front end and in REST requests neither is set, so this is false.
  *
  * @return bool
  */
