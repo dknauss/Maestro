@@ -10,9 +10,9 @@
  * commit, icon pick, visibility toggle, per-item reset) schedules a debounced
  * full-config POST.
  *
- * The menu is forced to a stable expanded state while editing: body.folded
- * and body.auto-fold are stripped on init and re-stripped if common.js puts
- * them back. The collapse button is neutralised. This is what makes editing
+ * The menu is forced to a stable expanded state while editing: body.folded,
+ * and body.auto-fold from 783px up (where it folds the menu), are stripped on
+ * init and re-stripped if common.js puts them back. The collapse button is neutralised. This is what makes editing
  * work in folded mode without the previous CSS layout fights.
  *
  * jQuery is used only for the sortable drag layer.
@@ -197,19 +197,45 @@
 
 	/* ---------- folded-mode override -------------------------------------- */
 
-	// The menu must edit in its expanded form. Strip folded/auto-fold on init,
-	// re-strip if common.js writes them back, and neutralise the collapse
-	// control for the duration of the session.
+	// The menu must edit in its expanded form. Strip folded on init, and
+	// auto-fold where it would fold the menu; re-strip if common.js writes them
+	// back, and neutralise the collapse control for the duration of the session.
+	//
+	// auto-fold only folds the menu to icons from 783px up. At 782px and below,
+	// core's responsive code adds it and lays the open menu out under it: below
+	// the admin bar, with touch-sized rows. Stripping it there put the first row
+	// under the admin bar, so below 783px it stays. Core adds it there in
+	// responsive.activate() regardless of user settings, but only when that mode
+	// first activates, so after an edit session stripped it at a wide width,
+	// narrowing again has to put it back here.
 	function forceUnfold() {
 		var body = document.body;
-		body.classList.remove( 'folded', 'auto-fold' );
+		var wide = window.matchMedia( '(min-width: 783px)' );
+
+		function unfold() {
+			body.classList.remove( 'folded' );
+			if ( wide.matches ) {
+				body.classList.remove( 'auto-fold' );
+			} else if ( ! body.classList.contains( 'auto-fold' ) ) {
+				body.classList.add( 'auto-fold' );
+			}
+		}
+		unfold();
 
 		var mo = new MutationObserver( function () {
-			if ( body.classList.contains( 'folded' ) || body.classList.contains( 'auto-fold' ) ) {
-				body.classList.remove( 'folded', 'auto-fold' );
+			if ( body.classList.contains( 'folded' ) || ( wide.matches && body.classList.contains( 'auto-fold' ) ) ) {
+				unfold();
 			}
 		} );
 		mo.observe( body, { attributes: true, attributeFilter: [ 'class' ] } );
+
+		// Crossing into the wide range with auto-fold already set changes no
+		// class, so the observer would not see it.
+		if ( wide.addEventListener ) {
+			wide.addEventListener( 'change', unfold );
+		} else if ( wide.addListener ) {
+			wide.addListener( unfold );
+		}
 
 		var collapse = document.getElementById( 'collapse-menu' );
 		if ( collapse ) {
