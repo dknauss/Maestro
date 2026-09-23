@@ -12,16 +12,17 @@
 - ✅ **v1.4 Compatibility, Roles & Showcase** — Phases 19–24 (shipped 2026-08-04; release tag `v1.4.0`, patch `v1.4.1` 2026-08-05). Shipped **without** Phase 21 (ROLE-02, deferred to v1.5 under the Release Binding fallback) and Phase 22 (not reached; still open).
 - ✅ **v1.5 Per-User Visibility** — Phase 21 + Phase 26 (shipped as the v1.5.x line; latest release `v1.5.3` on 2026-08-19). Delivered ROLE-02's **per-user half**; the cloned-role "profiles" half remains a backlog item. Phase 25 was completed post-release and is included in the v1.5.3 line; Phase 22 remains open.
 - ✅ **v1.5.4 Compatibility and E2E hardening** — patch on the v1.5 line, shipped 2026-09-21 (PR #192, tag `v1.5.4`, live on WordPress.org). Ships the Google Site Kit menu-order fix (#189) and removes Edit Menu from the block post editor (#176, #179). The rest of the range (#173–#190) is tests, CI, dev dependencies and planning docs.
+- [~] **v1.6.0 Separator editing** — minor release cut 2026-09-23, tagged `v1.6.0` on merge of the release PR; the WordPress.org deploy awaits approval. Ships separator add/move/remove (#197), the Admin Menu Editor warning (#196), the image-icon preview fix and full Dashicons set (#195), the toolbar following a widened menu (#199), multisite network/user admin gating (#198), and the release-review fixes (#200).
 
 ## Next up
 
-**v1.5.4 shipped** 2026-09-21 (PR #192). Resume feature work in the order
-**Phase 28 → Phase 27**.
+**v1.6.0 is cut.** Once its WordPress.org deploy is approved and verified,
+resume feature work in the order **Phase 28 → Phase 27**.
 
 **Phase 28 input (2026-09-15):** on sites where Keel or PX already widen the
-menu, Maestro's edit-mode toolbar overlaps it, because the toolbar assumes 160px
-(reproduced in wp-env). 28-01 should measure the live `#adminmenuwrap` width
-rather than substitute a stored one, and 28-02's `menu_width` should stand down
+menu, Maestro's edit-mode toolbar overlapped it, because the toolbar assumed
+160px. The measuring half shipped early in #199 (v1.6.0): the toolbar now reads
+the live `#adminmenuwrap` width. 28-02's `menu_width` should still stand down
 where something else already sets the width.
 
 

@@ -4,7 +4,7 @@ Donate link: https://github.com/sponsors/dknauss
 Tags: admin menu, menu editor, hide menu items, rename menu items, menu icons
 Requires at least: 6.4
 Tested up to: 7.1
-Stable tag: 1.5.4
+Stable tag: 1.6.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -169,6 +169,16 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 
 == Changelog ==
 
+= 1.6.0 =
+* **New: add, move, and remove menu separators.** In edit mode, separators show as dashed rows you can select. Move one with ▲/▼, Alt+Arrow, or drag. Remove it with **Remove separator**. To add one, select a top-level item and choose **Add separator below**. Separators are top-level only, as in WordPress itself.
+* **Fixed: separators disappeared after you reordered the menu.** Saving a top-level order in 1.5.4 or earlier moved every separator to the end of the menu, where WordPress deletes them. They now come back after this update, each closing the group it belongs to. You don't need to do anything.
+* **New: a warning when Admin Menu Editor is active.** Admin Menu Editor rebuilds the menu from its own settings, so the two plugins can override each other's changes. Edit mode now names it in a notice you can dismiss.
+* **Fixed: a new icon did not show on plugins that ship an image icon.** For plugins such as UpdraftPlus, the plugin's own picture stayed on top. For plugins such as Yoast SEO and Smush, the old logo came back the next time you hovered. The new icon now shows straight away and stays. The icon picker also offers every Dashicon (342), not a short list.
+* **Fixed: the editing toolbar covered a widened admin menu.** When another plugin makes the menu wider than WordPress's 160px, the toolbar now starts where the menu ends.
+* **Fixed: submenus did not line up in edit mode.** Edit mode shows every submenu at once. All but the current one sat slightly indented, and on a widened menu each stuck out past the menu's right edge, leaving a jagged edge. They now line up with the menu.
+* **Fixed on multisite: the network admin menu could pick up a site's menu order, and editing there could overwrite that site's settings.** Maestro now stays out of the network admin and user admin screens. It never offers edit mode there and never changes the order of those menus.
+* **Accessibility: focused toolbar buttons stay readable.** Since WordPress 7.1, a focused button in the editing toolbar turned a dark blue that was hard to read on the dark toolbar. It now keeps its normal colour, and the focus ring shows which button has focus.
+
 = 1.5.4 =
 * **Fixed: moving Google Site Kit in the menu did nothing.** Site Kit moves its menu item back under Dashboard on every page load. It did this after Maestro applied your order, so your move never showed. Maestro now applies your saved order last. Items you have not moved keep the order other plugins give them.
 * **Changed: Edit Menu is gone from the post editor, and so is the unsaved-post handling 1.5.3 added there.** 1.5.3 showed Edit Menu in the post editor when fullscreen mode was off, and saved your unsaved post before you entered or left the menu editor. Both directions still meant leaving a post mid-edit, and the admin menu is one click away on every other screen, so Edit Menu no longer appears in the post editor in either fullscreen state, and there is nothing to save on the way in or out. A bookmarked Edit Menu link opened there no longer starts the editor behind your post either. The site editor keeps its Edit Menu button, which still autosaves your work before taking you to the Dashboard. The Classic Editor is unaffected.
@@ -256,6 +266,9 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 * Editor: click-to-select with a shared panel, debounced single-flight autosave, and folded-mode neutralization.
 
 == Upgrade Notice ==
+
+= 1.6.0 =
+Adds separator editing and brings back separators lost after reordering. Fixes icon previews on image-icon plugins, the toolbar over widened menus, and multisite network admin. Warns when Admin Menu Editor is active. Cosmetic only — no access changed.
 
 = 1.5.4 =
 Fixes Google Site Kit ignoring where you moved it in the menu. Edit Menu no longer appears in the post editor, so 1.5.3's unsaved-post handling there is gone too; use Edit Menu from any other admin screen. Cosmetic only — no access changed. No configuration changes.
