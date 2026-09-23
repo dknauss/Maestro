@@ -440,6 +440,10 @@ class Replay {
 	 * @return bool
 	 */
 	public function has_top_order( $enabled = false ) {
+		if ( is_outside_site_admin() ) {
+			return $enabled;
+		}
+
 		$cfg = $this->config->get();
 		return ! empty( $cfg['top_order'] ) ? true : $enabled;
 	}
@@ -453,6 +457,11 @@ class Replay {
 	 * @return array
 	 */
 	public function reorder_top( $menu_order ) {
+		// The stored order is this site's; network and user admin menus are not.
+		if ( is_outside_site_admin() ) {
+			return $menu_order;
+		}
+
 		$cfg     = $this->config->get();
 		$desired = isset( $cfg['top_order'] ) ? $cfg['top_order'] : array();
 		return Ordering::top( $desired, (array) $menu_order );

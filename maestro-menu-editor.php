@@ -54,7 +54,28 @@ function capability() {
  * @return bool
  */
 function is_edit_mode() {
-	return isset( $_GET['maestro_edit'] ) && current_user_can( capability() ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	return isset( $_GET['maestro_edit'] ) && ! is_outside_site_admin() && current_user_can( capability() ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+}
+
+/**
+ * Is this multisite's network admin or user admin rather than a site's own?
+ *
+ * Maestro edits one site's menu, stored in that site's option. Network admin
+ * and the user admin (wp-admin/user/) build different menus: core fires
+ * `network_admin_menu` / `user_admin_menu` there, so replay() never runs, but
+ * `custom_menu_order` / `menu_order` still do. Left ungated, the site's
+ * top-level order leaked onto the network menu without its renames or hides,
+ * and a super admin could open edit mode on it. The editor's full-replace
+ * autosave then posted the network menu's model to rest_url(), which is the
+ * main site, overwriting that site's config.
+ *
+ * Both checks read the current screen, so this is false wherever no admin
+ * screen is set (front end, REST).
+ *
+ * @return bool
+ */
+function is_outside_site_admin() {
+	return is_network_admin() || is_user_admin();
 }
 
 /**
