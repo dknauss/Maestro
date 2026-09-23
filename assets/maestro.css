@@ -12,6 +12,10 @@
  * The JS strips body.folded / body.auto-fold on init and re-strips them if
  * common.js writes them back. These rules are defensive: if anything sneaks
  * the class in for a frame, the layout still holds at the expanded width.
+ *
+ * --maestro-menu-width is that expanded width as MEASURED by trackMenuWidth()
+ * in maestro.js, so a menu another plugin widened is held at its own width
+ * rather than shrunk to core's. 160px is the fallback before the JS runs.
  */
 body.maestro-editing.folded #adminmenu,
 body.maestro-editing.folded #adminmenuwrap,
@@ -19,13 +23,13 @@ body.maestro-editing.folded #adminmenuback,
 body.maestro-editing.auto-fold #adminmenu,
 body.maestro-editing.auto-fold #adminmenuwrap,
 body.maestro-editing.auto-fold #adminmenuback {
-	width: 160px !important;
+	width: var( --maestro-menu-width, 160px ) !important;
 }
 body.maestro-editing.folded #wpcontent,
 body.maestro-editing.folded #wpfooter,
 body.maestro-editing.auto-fold #wpcontent,
 body.maestro-editing.auto-fold #wpfooter {
-	margin-left: 160px !important;
+	margin-left: var( --maestro-menu-width, 160px ) !important;
 }
 /* ---------- expanded submenus while editing ------------------------------ */
 .maestro-editing #adminmenu .wp-submenu {
@@ -548,7 +552,7 @@ body.maestro-editing.auto-fold #wpfooter {
 .maestro-toolbar {
 	position: fixed;
 	bottom: 0;
-	left: 160px; /* clears the admin menu column */
+	left: var( --maestro-menu-width, 160px ); /* clears the admin menu column, at its measured width */
 	right: 0;
 	z-index: 99999;
 	display: flex;

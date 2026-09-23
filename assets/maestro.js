@@ -280,12 +280,48 @@
 		openMenu();
 	}
 
+	/*
+	 * Phase 28-01: the menu column width, measured rather than assumed.
+	 *
+	 * The toolbar's left edge and the folded-mode backstop in maestro.css both
+	 * need the width of the menu being edited. That used to be a hardcoded
+	 * 160px, which is only core's width. Keel and PX widen the menu with their
+	 * own !important rules, and the toolbar then sat over the menu's right edge.
+	 *
+	 * forceUnfold() has already run, so what #adminmenuwrap renders now is the
+	 * expanded width from every source at once — core, another plugin, or a
+	 * width Maestro stores later. Exposing that one number as
+	 * --maestro-menu-width means nothing downstream has to know which of them
+	 * set it. The ResizeObserver keeps it current when a breakpoint turns a
+	 * widening rule on or off, or another plugin previews a change.
+	 *
+	 * A zero reading means the menu is hidden (the <782px overlay before it
+	 * opens); the last good value is kept rather than collapsing the offset.
+	 */
+	function trackMenuWidth() {
+		var wrap = document.getElementById( 'adminmenuwrap' );
+		if ( ! wrap ) { return; }
+
+		function apply() {
+			var width = Math.round( wrap.getBoundingClientRect().width );
+			if ( width > 0 ) {
+				document.body.style.setProperty( '--maestro-menu-width', width + 'px' );
+			}
+		}
+
+		apply();
+		if ( window.ResizeObserver ) {
+			new window.ResizeObserver( apply ).observe( wrap );
+		}
+	}
+
 	/* ---------- build model + wire the DOM --------------------------------- */
 
 	function init() {
 		document.body.classList.add( 'maestro-editing' );
 		forceUnfold();
 		forceResponsiveOpen();
+		trackMenuWidth();
 
 		D.menu.forEach( function ( node ) {
 			model[ node.slug ] = {
