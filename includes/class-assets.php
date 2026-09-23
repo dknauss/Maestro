@@ -52,6 +52,11 @@ class Assets {
 	 * @return void
 	 */
 	public function enqueue() {
+		// No toggle and no edit mode outside a site's own admin, so nothing to style.
+		if ( is_outside_site_admin() ) {
+			return;
+		}
+
 		// Always-loaded: keep the editor ENTER/EXIT toggle reachable in the admin bar at <=782px,
 		// regardless of edit mode (the heavy editor assets below stay edit-mode-gated). UX-08a.
 		wp_enqueue_style(
