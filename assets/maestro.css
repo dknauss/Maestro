@@ -38,6 +38,11 @@ body.maestro-editing.auto-fold #wpfooter {
 	width: auto !important;
 	box-shadow: none !important;
 	min-width: 0 !important;
+	/* A flyout's 5px transparent left border (its arrow's room) and 1px right
+	 * border indent its links past the open submenu's, and where a plugin
+	 * forces the submenu width they overhang the menu's edge by 6px. Core's own
+	 * open submenu has no border; match it. */
+	border: 0 !important;
 }
 /* WordPress repeats the parent title in a hidden .wp-submenu-head for folded
  * flyouts. With submenus force-expanded here it would show as a second, icon-
