@@ -184,7 +184,10 @@ test.describe( 'Directory screenshots — v1.2 editor UI (MAESTRO_CAPTURE-gated)
 		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
 		await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
 
-		const item = page.locator( '#adminmenu > li.menu-top.maestro-item' ).nth( 3 );
+		// Grab the group's own top-level link. Edit mode expands every submenu, so
+		// the centre of the whole <li> lands on a sub-item ("All Pages"), and the
+		// capture then showed a sub-item drag under a caption about groups.
+		const item = page.locator( '#adminmenu > li.menu-top.maestro-item' ).nth( 3 ).locator( '> a.menu-top' );
 		await expect( item ).toBeVisible();
 		const b = ( await item.boundingBox() )!;
 

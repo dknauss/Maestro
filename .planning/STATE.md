@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.5.4
-milestone_name: Post-v1.5.3 maintenance and compatibility hardening
+milestone: v1.6.0
+milestone_name: Separator editing and post-v1.5.4 compatibility fixes
 status: in_progress
-stopped_at: "v1.5.4 SHIPPED 2026-09-21 — PR #192, tag v1.5.4 on 93934c3, GitHub Release with ZIP, WordPress.org deploy approved and verified live (plugins API reports 1.5.4)."
-last_updated: "2026-09-21T00:00:00.000Z"
-last_activity: "2026-09-21 — Shipped v1.5.4: #192 merged, tag v1.5.4 on 93934c3, GitHub Release with the ZIP, WordPress.org deploy approved and confirmed live via the plugins API. Ships #189 (Google Site Kit can be moved) and #176/#179 (no Edit Menu in the block post editor, so the 1.5.3 unsaved-post handling there is gone; the Site Editor keeps its toggle and guard). Follow-up #193 takes adm-zip to 0.6.1 after a new advisory failed the npm audit, and empties the audit allowlist. Next: Phase 28 → Phase 27."
+stopped_at: "v1.6.0 cut 2026-09-23 in the release/v1.6.0 PR (tag v1.6.0 on merge); the WordPress.org deploy will await approval."
+last_updated: "2026-09-23T00:00:00.000Z"
+last_activity: "2026-09-23 — Cut v1.6.0: separator add/move/remove (#197), Admin Menu Editor warning (#196), image-icon preview fix and full Dashicons set (#195), toolbar follows a widened menu (#199), multisite network/user admin gating (#198), and the release-review fixes (#200: focused toolbar button contrast, edit-mode submenu alignment on widened menus, separator-removal capability guard, separator-id anchor). Release review: security and correctness passes found no P1/P2; live checks with Yoast, Smush, UpdraftPlus, Admin Menu Editor, Keel and a real multisite network passed. Four separator UX edge cases deferred to todos/pending/2026-09-22-separator-edit-edge-cases.md. Next: Phase 28 → Phase 27."
 progress:
   total_phases: 2
   completed_phases: 0
@@ -579,10 +579,19 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-09-21
-Stopped at: v1.5.4 shipped and live on WordPress.org; next is Phase 28.
+Last session: 2026-09-23
+Stopped at: v1.6.0 cut in the release/v1.6.0 PR and tagged on merge; the WordPress.org deploy awaits approval.
 
-**START HERE — the state in one paragraph.** **v1.5.4 is live on WordPress.org**
+**Update 2026-09-23 — v1.6.0.** Minor release: separator editing (#197) is the
+headline, plus the Admin Menu Editor warning (#196) and fixes #195, #198, #199
+and #200. Sites that saved a top-level order in 1.5.4 or earlier get their
+separators back, because the old ordering sank unnamed separators to the end
+where core trimmed them. After the deploy, verify from SVN as before, then
+resume Phase 28 → Phase 27. Phase 28's 28-01 input (measure the live
+`#adminmenuwrap` width) shipped early as #199; 28-02's `menu_width` still needs
+to stand down where something else sets the width.
+
+**START HERE — the state in one paragraph (as of v1.5.4).** **v1.5.4 is live on WordPress.org**
 (PR #192, tag `v1.5.4` on `93934c3`, shipped 2026-09-21); v1.5.3 was the
 previous release. It ships the Google Site Kit menu-order fix (#189) and the
 removal of Edit Menu from the block post editor (#176, #179); the rest of the
