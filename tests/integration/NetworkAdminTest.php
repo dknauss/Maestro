@@ -96,6 +96,7 @@ class NetworkAdminTest extends WP_UnitTestCase {
 
 		$this->assertFalse( wp_script_is( 'maestro', 'enqueued' ) );
 		$this->assertFalse( wp_style_is( 'maestro', 'enqueued' ) );
+		$this->assertFalse( wp_style_is( 'maestro-admin-bar', 'enqueued' ) );
 	}
 
 	/**
@@ -151,5 +152,7 @@ class NetworkAdminTest extends WP_UnitTestCase {
 		wp_dequeue_style( 'maestro' );
 		wp_deregister_script( 'maestro' );
 		wp_deregister_style( 'maestro' );
+		wp_dequeue_style( 'maestro-admin-bar' );
+		wp_deregister_style( 'maestro-admin-bar' );
 	}
 }
