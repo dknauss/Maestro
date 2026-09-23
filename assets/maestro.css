@@ -200,6 +200,13 @@ body.maestro-editing.auto-fold #wpfooter {
 	outline: 2px solid #72aee6;
 	outline-offset: 1px;
 }
+/* Core's button focus colour (#3858e9 since WordPress 7.1) is 2.82:1 on the
+ * #1d2327 toolbar, below WCAG 1.4.3. Focus keeps the neutral text colour; the
+ * ring above carries the focus signal. Reset All's rule below still wins. */
+.maestro-toolbar .button:focus,
+.maestro-toolbar .button:active {
+	color: #c3c4c7;
+}
 /* A control with nothing to do (Reset Item on an unmodified item) is dimmed and
  * non-interactive — enabled-vs-dimmed is the whole signal now (no amber). */
 .maestro-toolbar .button:disabled {
