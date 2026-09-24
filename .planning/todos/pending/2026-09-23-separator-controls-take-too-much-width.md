@@ -41,7 +41,7 @@ menu item".
    The cleanest toolbar, but less discoverable, and a new UI pattern for one
    action.
 
-**Recommendation:** 1 with 2's Add glyph. It matches the existing toolbar
+**Recommendation (approved by Dan, 2026-09-23):** 1 with 2's Add glyph. It matches the existing toolbar
 pattern and changes no behaviour. It also pairs with the separator edge-case
 todo (2026-09-22): Enter on a separator lands focus on Remove, so check that the
 icon-only Remove still announces clearly what it removes.

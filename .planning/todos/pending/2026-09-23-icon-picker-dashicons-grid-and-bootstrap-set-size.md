@@ -12,6 +12,11 @@ files:
 
 Raised by Dan after 1.6.0 shipped, with screenshots of both tabs.
 
+**Approved by Dan, 2026-09-23:** the fixes and recommendations below: glyph
+in a child element for the Dashicons tab, one icon colour for both tabs,
+on-demand loading for the Bootstrap set, and roughly Dashicons parity chosen by
+admin-menu usage.
+
 ## 1. The Dashicons tab is not a square grid
 
 **Cause, from the CSS (matches the screenshot; measure when fixing).** Each
