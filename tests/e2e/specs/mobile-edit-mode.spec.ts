@@ -41,6 +41,61 @@ test.describe( 'UX-10 — edit mode at <=782px', () => {
 		).toBeVisible();
 	} );
 
+	/*
+	 * Core lays the narrow-screen menu out under body.auto-fold: it starts below
+	 * the 46px admin bar and its rows are touch-sized. Edit mode used to strip
+	 * auto-fold at every width, which put the first row (Dashboard) under the
+	 * admin bar and shrank the rows. auto-fold only folds the menu to icons from
+	 * 783px up, so that is the only range where edit mode needs it gone.
+	 */
+	test( "edit mode keeps core's narrow-screen menu layout", async ( { page } ) => {
+		const layout = () => page.evaluate( () => {
+			const bar = document.getElementById( 'wpadminbar' )!.getBoundingClientRect();
+			const first = document.querySelector( '#adminmenu > li.menu-top > a' )!.getBoundingClientRect();
+			return {
+				barBottom: Math.round( bar.bottom ),
+				firstTop: Math.round( first.top ),
+				rowHeight: Math.round( first.height ),
+				contentLeft: Math.round( document.getElementById( 'wpcontent' )!.getBoundingClientRect().left ),
+			};
+		} );
+
+		// Core's own open menu, for reference.
+		await page.goto( '/wp-admin/index.php' );
+		await page.locator( '#wp-admin-bar-menu-toggle a' ).click();
+		await expect( page.locator( '#wpwrap' ) ).toHaveClass( /wp-responsive-open/ );
+		const core = await layout();
+
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
+		const edit = await layout();
+
+		expect( edit.firstTop, 'first row clears the admin bar' ).toBeGreaterThanOrEqual( edit.barBottom );
+		expect( edit ).toEqual( core );
+	} );
+
+	test( 'resizing across 783px keeps the right fold state in edit mode', async ( { page } ) => {
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
+		const body = page.locator( 'body' );
+		await expect( body ).toHaveClass( /\bauto-fold\b/ );
+
+		// Into the range where auto-fold would fold the menu to icons.
+		await page.setViewportSize( { width: 900, height: 812 } );
+		await expect( body ).not.toHaveClass( /\bauto-fold\b/ );
+		await expect( body ).not.toHaveClass( /\bfolded\b/ );
+		await expect( page.locator( '#adminmenu .wp-menu-name' ).first() ).toBeVisible();
+
+		// And back: core's narrow layout returns, first row below the admin bar.
+		await page.setViewportSize( MOBILE );
+		await expect( body ).toHaveClass( /\bauto-fold\b/ );
+		const gap = await page.evaluate( () =>
+			document.querySelector( '#adminmenu > li.menu-top > a' )!.getBoundingClientRect().top -
+			document.getElementById( 'wpadminbar' )!.getBoundingClientRect().bottom
+		);
+		expect( gap ).toBeGreaterThanOrEqual( 0 );
+	} );
+
 	test( 'the menu stays open while using the editor toolbar', async ( {
 		page,
 	} ) => {

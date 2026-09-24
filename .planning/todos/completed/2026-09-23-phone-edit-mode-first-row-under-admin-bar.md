@@ -36,3 +36,13 @@ Keep `auto-fold` below 783px and strip it only where it would fold the menu to
 icons (783–960px), or re-supply the offset and row height for edit mode on
 narrow screens. Check against the 2026-08-18 todo, which covers opening the menu
 on entry at narrow widths.
+
+## Resolved (2026-09-23)
+
+`forceUnfold()` now strips `auto-fold` only from 783px up and restores it below
+that. A `matchMedia` change listener re-applies on crossing the breakpoint,
+because core's `responsive.activate()` only adds the class when its responsive
+mode first activates. The folded-mode backstop CSS is limited to the same range.
+Covered in `tests/e2e/specs/mobile-edit-mode.spec.ts`: at 375px, edit mode's
+first-row top, row height and content offset match core's own open menu, and
+the fold state is right after resizing to 900px and back.
