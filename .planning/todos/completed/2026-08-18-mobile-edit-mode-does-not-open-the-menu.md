@@ -88,3 +88,14 @@ absence of any breakpoint handling in `maestro.js` is verified; the exact class
 or control core uses to open the off-canvas menu is **not** — confirm against a
 running 782px viewport before implementing, and confirm whether 7.1 changed it
 (#65250 touched collapsed-menu behaviour).
+
+## Resolved (moved 2026-09-23)
+
+Fixed in #163 (`aaf455a`, 2026-08-18), first shipped in v1.5.3.
+`forceResponsiveOpen()` opens the off-canvas menu on entry through core's own
+`click.wp-responsive` handler, and the toolbar is attached inside
+`#adminmenuwrap` at narrow widths so core's outside-click handler never closes
+it. Covered by `tests/e2e/specs/mobile-edit-mode.spec.ts` ("entering edit mode
+reveals the collapsed admin menu", "the menu stays open while using the editor
+toolbar"). The todo was left in `pending/` by oversight. The related phone
+layout defect (first row under the admin bar) was fixed separately in #203.
