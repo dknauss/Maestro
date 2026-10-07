@@ -2,7 +2,16 @@
 /**
  * npm audit wrapper with a narrow, documented dev-tooling allowlist.
  *
- * No exceptions are currently allowlisted.
+ * Open exceptions:
+ *
+ * - GHSA-v5rq-49vh-5v5c (@simple-git/argv-parser < 2.0.1), GHSA-x6jw-m9v5-85vh,
+ *   GHSA-g4wm-2vf7-vfgr and GHSA-858h-whjf-mvg5 (simple-git 3.x), via
+ *   @wordpress/env: allowlisted 2026-10-07. All four are bypasses of
+ *   simple-git's guard against unsafe git options. The only fixed release is
+ *   simple-git 4.0.2; @wordpress/env 11.17.0 requires ^3.32.3 and fails to
+ *   start with 4.x ("SimpleGit is not a function"). wp-env only passes
+ *   simple-git the source URL and ref from .wp-env.json, which this repo
+ *   controls. Remove these once @wordpress/env supports simple-git 4.
  *
  * Closed exceptions, kept for the record:
  *
@@ -25,7 +34,12 @@
  */
 import { spawnSync } from 'node:child_process';
 
-const allowed = new Set( [] );
+const allowed = new Set( [
+	'GHSA-v5rq-49vh-5v5c',
+	'GHSA-x6jw-m9v5-85vh',
+	'GHSA-g4wm-2vf7-vfgr',
+	'GHSA-858h-whjf-mvg5',
+] );
 const result = spawnSync( 'npm', [ 'audit', '--json' ], { encoding: 'utf8' } );
 const stdout = result.stdout || '{}';
 let report;
