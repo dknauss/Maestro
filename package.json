@@ -32,6 +32,9 @@
 	},
 	"overrides": {
 		"adm-zip": "^0.6.1",
-		"express": "^4.22.3"
+		"express": "^4.22.3",
+		"js-yaml": {
+			"argparse": "^2.0.1"
+		}
 	}
 }
