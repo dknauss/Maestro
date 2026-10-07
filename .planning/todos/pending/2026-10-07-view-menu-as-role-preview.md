@@ -57,27 +57,50 @@ run as the real admin.
 5. **Gate** on `capability()`, checked before the filter attaches, plus the
    nonce. The flag does nothing for anyone else.
 
-## Interface direction: a role-attached edit mode
+## Interface direction: one scope selector
 
-Proposed by Dan, 2026-10-07. Rather than stopping at a read-only preview, the
-role picker enters a narrower edit mode bound to that role:
+Proposed by Dan, 2026-10-07, and refined in discussion the same day. Rather
+than stopping at a read-only preview, edit mode gains a scope selector, and
+the scope decides which controls are live:
 
-- Edit mode gains a "View as: Editor / Author / Contributor / ..." list.
-- Choosing a role shows the menu as that role sees it. Each row carries one
-  control, a show/hide toggle, which writes that role into (or out of) the
-  item's `hidden_roles`.
-- Rename, reorder, icon, separators and reset are unavailable in this mode;
-  they are global and belong to the main edit mode.
-- Rows Maestro hides from the role stay in the menu, dimmed, so the rule can
-  be undone. This is the same reasoning as the edit-mode suspension of the
-  per-user axis in `is_hidden_for_current_user()`. Rows core strips for lack
-  of capability are simply absent: there is nothing to hide.
+| Scope | What you see | Controls live |
+|---|---|---|
+| Everyone (default) | The admin's full menu | Everything Maestro does today |
+| Role: Editor, Author, ... | That role's menu, hidden rows dimmed | Show/hide toggle per row only |
+| Person (later) | That person's menu, hidden rows dimmed | Show/hide toggle per row only |
 
-Undecided: whether the existing per-role checkboxes in the global panel are
-removed or kept. They are the same `hidden_roles` data seen along the other
-axis (one item, all roles) and also carry `child_hidden_roles` and
-`hidden_users`, which this mode has no control for. Decide after using the
-role mode, not before.
+- **Scope is always visible.** A banner names it and the menu gets a visual
+  frame, so it is never unclear whose menu is being changed.
+- **Toggles write one thing.** In role scope, that role in the item's
+  `hidden_roles`; in person scope, that person in `hidden_users`.
+- **Hidden rows stay in the menu, dimmed,** so a rule can be undone. Same
+  reasoning as the edit-mode suspension of the per-user axis in
+  `is_hidden_for_current_user()`. Rows core strips for lack of capability are
+  absent: there is nothing to hide.
+- **Rename, reorder, icon, separators, reset and `child_hidden_roles` stay in
+  the Everyone scope.** They have no per-role meaning in the data today.
+
+### Keep the global per-role checkboxes
+
+An imperfect simulation does not break the edits made inside it. A rule
+written in role scope is stored as "hide X from Editor" and applies to every
+real Editor however accurate the preview was. The simulation only decides
+which rows are there to click:
+
+- A row appears that the real role would not see: harmless, the rule hides
+  something already absent.
+- A row is missing that a real user does see (a plugin keyed on user ID, a
+  direct capability grant, a second role): it cannot be hidden from this view.
+
+The second case is why the Everyone scope keeps its per-role checkboxes. The
+administrator's full menu is the superset of every menu, so it is the one view
+where every item is always reachable. Removing it would make some items
+impossible to hide. The two controls are not two layers of data: both write
+`hidden_roles`, seen along different axes (one role across all items, one item
+across all roles).
+
+Possible refinements once role scope exists: a "view as this role" shortcut
+beside each checkbox, and greying out roles that cannot see the item anyway.
 
 The read-only preview below is the first step toward this and can ship alone.
 
@@ -109,6 +132,27 @@ The read-only preview below is the first step toward this and can ship alone.
 - Say so in the banner or the user guide, so the preview is not read as a
   guarantee.
 
+## Later addition: "View as: [person]"
+
+Lifts most of the limits above with the same mechanism, still without a
+session switch. Not part of the first cut.
+
+- The "View as" list gains a person search, reusing the ROLE-02 picker (and
+  its `list_users` gate: no `canPickUsers`, no person option).
+- The capability filter intersects with that user's `allcaps` instead of a
+  role's, which covers capabilities granted to the user directly and users
+  holding more than one role.
+- `is_hidden_for_current_user()` reads that user's roles and ID, so
+  `hidden_users` rules apply. As with role mode, rows Maestro hides stay
+  visible and dimmed.
+- If the role-attached edit mode exists by then, the per-row toggle here
+  writes `hidden_users` rather than `hidden_roles`, subject to the existing
+  `MAX_HIDDEN_USERS` cap and the multisite super-admin exemption.
+- Still imperfect: plugins that grant capabilities on the fly, or build their
+  menus, from the logged-in user's ID see the admin, not the person.
+- Subtract-only still holds. If the person has a capability the admin lacks,
+  the item stays absent; say so rather than imply a complete view.
+
 ## Check when doing it
 
 - Integration: preview as each core role and compare `$menu` / `$submenu`
@@ -122,4 +166,5 @@ The read-only preview below is the first step toward this and can ship alone.
 - Multisite: whichever behaviour is chosen for super admins.
 
 See also [[2026-08-02-cloned-role-hiding-profiles]],
+[[2026-10-07-delegated-menu-editing]],
 [[2026-09-24-network-admin-menu-editing]].
