@@ -12,6 +12,12 @@
  *   via @wordpress/env): closed 2026-09-21 by overriding adm-zip to 0.6.1,
  *   the first release outside its affected range. The same bump fixes
  *   GHSA-7q85-xj36-vmfc (adm-zip DoS via declared uncompressed size, < 0.6.1).
+ * - GHSA-hp3w-g68c-fv3c (sprintf-js, every release affected, via
+ *   @wordpress/env > js-yaml 3.x > argparse 1.x): closed 2026-10-07 by
+ *   overriding js-yaml's argparse to 2.x, which has no sprintf-js dependency.
+ *   Only js-yaml's own CLI (bin/js-yaml.js) uses argparse, and that CLI does
+ *   not work with argparse 2.x; nothing here runs it. Drop the override once
+ *   @wordpress/env moves to js-yaml 4+.
  *
  * Keep any future entry small, dev-scope only (never a runtime-shipped
  * dependency), and remove it as soon as upstream publishes a non-vulnerable
