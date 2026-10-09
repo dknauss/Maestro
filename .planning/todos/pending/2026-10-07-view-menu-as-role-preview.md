@@ -11,6 +11,8 @@ files:
   - SPEC.md (Principle 3 and the "never changes a capability" wording)
 ---
 
+**Scheduled:** the read-only preview is v1.7 Client-Site Workflow, Phase 30 (#215). The scope selector's editing scopes and "View as: [person]" are not scheduled.
+
 ## The idea
 
 Let an admin see the admin menu as a given role would, so they can tell at a
