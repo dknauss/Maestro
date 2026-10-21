@@ -163,6 +163,42 @@ class Config {
 	const MAX_CONFIG_BYTES = 1048576;
 
 	/**
+	 * Core's admin menu width, and the value `menu_width` means when absent.
+	 *
+	 * Never stored (sparse contract): a config that holds the default would be
+	 * indistinguishable from one that never set a width, and reset means absent.
+	 *
+	 * @var int
+	 */
+	const DEFAULT_MENU_WIDTH = 160;
+
+	/**
+	 * Narrowest stored menu width (Phase 28-02).
+	 *
+	 * The feature exists so renamed labels stop wrapping, which only ever needs
+	 * a WIDER menu. Below core's 160px, core's own layout starts to break: open
+	 * submenus and flyouts are sized against 160px, and labels that fit today
+	 * would begin to wrap. So the floor is the default, and a narrower request
+	 * clamps to it and is then dropped as the default.
+	 *
+	 * @var int
+	 */
+	const MIN_MENU_WIDTH = 160;
+
+	/**
+	 * Widest stored menu width (Phase 28-02).
+	 *
+	 * The width applies from 961px up, where core stops auto-folding. A third of
+	 * that is ~320px; past it the menu starts eating the content column on the
+	 * smallest screen it applies to. 320px also doubles core's width, which is
+	 * room for any label a person would type. Raise it only with that trade in
+	 * mind, not because the number looks arbitrary.
+	 *
+	 * @var int
+	 */
+	const MAX_MENU_WIDTH = 320;
+
+	/**
 	 * Schema version stamped onto every config this plugin writes.
 	 *
 	 * What it gates (v1 → v2, COMPAT-04 completion):
@@ -209,6 +245,44 @@ class Config {
 			$this->cache = is_array( $stored ) ? $stored : array();
 		}
 		return $this->cache;
+	}
+
+	/**
+	 * The stored admin menu width, or null when none is set.
+	 *
+	 * Re-bounded on read, so a value written by hand or by a version with other
+	 * bounds can never reach the page unchecked.
+	 *
+	 * @return int|null
+	 */
+	public function menu_width() {
+		$cfg = $this->get();
+		if ( ! isset( $cfg['menu_width'] ) ) {
+			return null;
+		}
+		return self::clean_menu_width( $cfg['menu_width'] );
+	}
+
+	/**
+	 * Coerce and bound a menu width.
+	 *
+	 * Accepts an int, a float, or a string of digits; anything else (a unit
+	 * suffix, exponent notation, a bool) is refused rather than guessed at.
+	 * Out-of-range values clamp, so one bad field never rejects a whole save.
+	 *
+	 * @param mixed $width Raw width.
+	 * @return int|null Bounded width, or null when absent, invalid or the default.
+	 */
+	public static function clean_menu_width( $width ) {
+		if ( is_int( $width ) || is_float( $width ) ) {
+			$width = (int) round( $width );
+		} elseif ( is_string( $width ) && '' !== $width && ctype_digit( $width ) ) {
+			$width = (int) $width;
+		} else {
+			return null;
+		}
+		$width = max( self::MIN_MENU_WIDTH, min( self::MAX_MENU_WIDTH, $width ) );
+		return self::DEFAULT_MENU_WIDTH === $width ? null : $width;
 	}
 
 	/**
@@ -655,6 +729,14 @@ class Config {
 			}
 			if ( $slugs ) {
 				$out['removed_separators'] = array_slice( array_map( 'strval', array_keys( $slugs ) ), 0, self::MAX_SEPARATORS );
+			}
+		}
+
+		// Phase 28-02: one global, sparse like everything else here.
+		if ( isset( $raw['menu_width'] ) ) {
+			$width = self::clean_menu_width( $raw['menu_width'] );
+			if ( null !== $width ) {
+				$out['menu_width'] = $width;
 			}
 		}
 

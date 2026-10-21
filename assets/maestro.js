@@ -2043,6 +2043,9 @@
 		// Sparse, like items: the keys appear only when there is something to say.
 		if ( carried.added.length ) { cfg.separators = carried.added; }
 		if ( removedSeparators.length ) { cfg.removed_separators = removedSeparators.slice(); }
+		// The save is full-replace and nothing in the menu DOM holds the width,
+		// so carry the stored value forward or any edit would erase it (28-02).
+		if ( D.config && D.config.menu_width ) { cfg.menu_width = D.config.menu_width; }
 
 		return cfg;
 	}

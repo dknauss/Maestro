@@ -1178,4 +1178,81 @@ class ConfigSanitizeTest extends TestCase {
 		$this->assertArrayNotHasKey( 'separators', $out );
 		$this->assertArrayNotHasKey( 'removed_separators', $out );
 	}
+
+	/* -----------------------------------------------------------------------
+	 * Admin menu width (Phase 28-02)
+	 * --------------------------------------------------------------------- */
+
+	public function test_menu_width_in_range_is_stored_as_an_int() {
+		$out = $this->config->sanitize( array( 'menu_width' => 220 ) );
+
+		$this->assertSame( 220, $out['menu_width'] );
+	}
+
+	public function test_menu_width_numeric_string_is_coerced_and_a_float_rounded() {
+		$this->assertSame( 240, $this->config->sanitize( array( 'menu_width' => '240' ) )['menu_width'] );
+		$this->assertSame( 201, $this->config->sanitize( array( 'menu_width' => 200.6 ) )['menu_width'] );
+	}
+
+	public function test_menu_width_default_is_never_stored() {
+		// Sparse: storing the default would be indistinguishable from never
+		// setting it, and reset means absent.
+		$out = $this->config->sanitize( array( 'menu_width' => Config::DEFAULT_MENU_WIDTH ) );
+
+		$this->assertArrayNotHasKey( 'menu_width', $out );
+	}
+
+	public function test_menu_width_below_the_minimum_clamps_and_so_is_dropped() {
+		// MIN_MENU_WIDTH is the default, so a narrower value clamps to it and
+		// the sparse rule then leaves the key out.
+		foreach ( array( Config::MIN_MENU_WIDTH - 1, 36, 0, -500 ) as $width ) {
+			$this->assertArrayNotHasKey( 'menu_width', $this->config->sanitize( array( 'menu_width' => $width ) ), (string) $width );
+		}
+	}
+
+	public function test_menu_width_above_the_maximum_clamps_rather_than_rejecting() {
+		$out = $this->config->sanitize(
+			array(
+				'menu_width' => 99999,
+				'top_order'  => array( 'index.php' ),
+			)
+		);
+
+		$this->assertSame( Config::MAX_MENU_WIDTH, $out['menu_width'] );
+		$this->assertSame( array( 'index.php' ), $out['top_order'], 'The rest of the save survives a clamp.' );
+	}
+
+	public function test_menu_width_that_is_not_a_number_never_reaches_storage() {
+		foreach ( array( 'wide', '200px', '', true, null, array( 200 ), '1e9' ) as $width ) {
+			$out = $this->config->sanitize( array( 'menu_width' => $width ) );
+			$this->assertArrayNotHasKey( 'menu_width', $out, var_export( $width, true ) );
+		}
+	}
+
+	public function test_a_config_without_menu_width_sanitizes_exactly_as_before() {
+		$raw = array(
+			'items'     => array( 'index.php' => array( 'title' => 'Home' ) ),
+			'top_order' => array( 'index.php', 'edit.php' ),
+		);
+
+		$this->assertSame(
+			array( 'schema_version', 'items', 'top_order', 'sub_order' ),
+			array_keys( $this->config->sanitize( $raw ) )
+		);
+	}
+
+	public function test_menu_width_accessor_reads_the_stored_value() {
+		$this->assertNull( $this->config->menu_width() );
+
+		$GLOBALS['maestro_unit_options'][ MAESTRO_OPTION ] = array( 'menu_width' => 230 );
+		$this->assertSame( 230, ( new Config() )->menu_width() );
+
+		// A value written by hand, or by a future version with wider bounds, is
+		// re-bounded on read rather than trusted.
+		$GLOBALS['maestro_unit_options'][ MAESTRO_OPTION ] = array( 'menu_width' => 5000 );
+		$this->assertSame( Config::MAX_MENU_WIDTH, ( new Config() )->menu_width() );
+
+		$GLOBALS['maestro_unit_options'][ MAESTRO_OPTION ] = array( 'menu_width' => 'wide' );
+		$this->assertNull( ( new Config() )->menu_width() );
+	}
 }

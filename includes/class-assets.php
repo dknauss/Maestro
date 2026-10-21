@@ -47,6 +47,41 @@ class Assets {
 	}
 
 	/**
+	 * The CSS that applies a stored admin menu width (Phase 28-02).
+	 *
+	 * Mirrors core's own 160px rules in admin-menu.css and common.css: the menu
+	 * column, the open submenu, the flyout offset, and the content column's
+	 * matching margin (setting the width without the margin overlaps or gaps the
+	 * content). Scoped like core:
+	 *
+	 * - from 961px up, because at 960px and below core auto-folds the menu to
+	 *   its 36px rail (and below 783px it becomes an overlay);
+	 * - never on body.folded, so the collapse control still folds to 36px;
+	 * - LTR and RTL separately, because core flips the offsets for RTL and an
+	 *   inline style is not flipped for us.
+	 *
+	 * No !important, deliberately. `body:not(.folded) #adminmenu` outranks
+	 * core's `#adminmenu`, and any plugin that forces a width with !important
+	 * (Keel and PX both do) outranks Maestro with no detection code. Edit mode
+	 * measures the rendered menu (28-01), so it follows whichever width won.
+	 *
+	 * @param int $width Bounded width in px, from Config::menu_width().
+	 * @return string
+	 */
+	public static function menu_width_css( $width ) {
+		$px = (int) $width . 'px';
+
+		return '@media screen and (min-width: 961px){'
+			. 'body:not(.folded) #adminmenuback,body:not(.folded) #adminmenuwrap,body:not(.folded) #adminmenu,'
+			. 'body:not(.folded) #adminmenu .wp-has-current-submenu .wp-submenu{width:' . $px . '}'
+			. 'body:not(.rtl):not(.folded) #wpcontent,body:not(.rtl):not(.folded) #wpfooter{margin-left:' . $px . '}'
+			. 'body.rtl:not(.folded) #wpcontent,body.rtl:not(.folded) #wpfooter{margin-right:' . $px . '}'
+			. 'body:not(.rtl):not(.folded) #adminmenu .wp-not-current-submenu .wp-submenu{left:' . $px . '}'
+			. 'body.rtl:not(.folded) #adminmenu .wp-not-current-submenu .wp-submenu{right:' . $px . '}'
+			. '}';
+	}
+
+	/**
 	 * Enqueue the editor script and stylesheet, and pass runtime data to JS.
 	 *
 	 * @return void
@@ -65,6 +100,15 @@ class Assets {
 			array( 'dashicons' ),
 			MAESTRO_VERSION
 		);
+
+		// Phase 28-02: a stored menu width applies while browsing, not only while
+		// editing. It rides on the stylesheet above, so it costs no request, and
+		// it reads the config Replay already loaded for this request, so it
+		// costs no query. A site that never set a width gets nothing new.
+		$menu_width = $this->config->menu_width();
+		if ( null !== $menu_width ) {
+			wp_add_inline_style( 'maestro-admin-bar', self::menu_width_css( $menu_width ) );
+		}
 
 		/*
 		 * UX-13: the toggle navigates away from content that may be unsaved,

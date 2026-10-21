@@ -209,3 +209,4 @@ require_once $amm_inc . 'class-slug.php';
 require_once $amm_inc . 'class-config.php';
 require_once $amm_inc . 'class-title.php';
 require_once $amm_inc . 'class-cascade.php';
+require_once $amm_inc . 'class-assets.php';
