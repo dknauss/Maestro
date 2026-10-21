@@ -13,7 +13,7 @@ Hide admin menu items per user role, rename them, reorder them, swap their icons
 
 == Description ==
 
-**Maestro lets you orchestrate the appearance of the WordPress admin menu — rename admin menu items, reorder them, change their icons, and hide admin menu items from the roles and people who don't need them.**
+Maestro lets you orchestrate the appearance of the WordPress admin menu. Rename admin menu items, reorder them, change their icons, and hide admin menu items from the roles and people who don't need them. **Do it all within the admin menu directly with no separate settings screen.**
 
 Every WordPress install accumulates menu clutter. A dozen plugins each claim a top-level slot, submenus sit in an order nobody chose, and clients meet a dashboard full of tools that aren't theirs. Maestro is how you customize the admin menu back into shape: **declutter** it for a client site, **rename** cryptic plugin labels into the words your team actually uses, **reorder** the admin menu so what you touch daily is at the top, and **hide admin menu items per user role** — or from one named person — so everyone sees only their own work.
 
