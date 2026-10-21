@@ -2,7 +2,7 @@
 
 Three layers, smallest and fastest first.
 
-> **Current expected status:** unit 178/178 with 238 assertions, integration 162/162 with 666 assertions single-site (12 skipped) + 162/162 with 689 under WP_MULTISITE=1, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, (COMPAT-04) independent shared-slug top-level/submenu editing, (COMPAT-10) the "Hide its sub-items from:" role group's independent child-hiding behavior, and (ROLE-02) per-user hiding asserted in a targeted user's own authenticated session — including a same-role bystander who must keep every row, which is the assertion that proves the rule did not widen to the whole role. (Phase 25) the toolbar's reserved status slot (no layout shift across a save), its widened focus-ring contrast, focused buttons keeping readable text on the dark surface, and the derived-locked checkbox's aria-disabled/aria-describedby semantics are covered in [`tests/e2e/specs/toolbar-dark-surface.spec.ts`](tests/e2e/specs/toolbar-dark-surface.spec.ts).
+> **Current expected status:** unit 191/191 with 286 assertions, integration 162/162 with 666 assertions single-site (12 skipped) + 162/162 with 689 under WP_MULTISITE=1, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, (COMPAT-04) independent shared-slug top-level/submenu editing, (COMPAT-10) the "Hide its sub-items from:" role group's independent child-hiding behavior, and (ROLE-02) per-user hiding asserted in a targeted user's own authenticated session — including a same-role bystander who must keep every row, which is the assertion that proves the rule did not widen to the whole role. (Phase 25) the toolbar's reserved status slot (no layout shift across a save), its widened focus-ring contrast, focused buttons keeping readable text on the dark surface, and the derived-locked checkbox's aria-disabled/aria-describedby semantics are covered in [`tests/e2e/specs/toolbar-dark-surface.spec.ts`](tests/e2e/specs/toolbar-dark-surface.spec.ts).
 
 ## Gotchas (first run)
 
@@ -32,7 +32,11 @@ the parent-only rule for the child axis, and a zero-regression guard asserting a
 role-only config sanitizes byte-identically. `Cascade::effective_hidden_users()`'s
 per-user union is covered alongside the role union in
 [`tests/unit/CascadeTest.php`](tests/unit/CascadeTest.php), including a case
-asserting the two axes never bleed into one another. Fast, runs anywhere with
+asserting the two axes never bleed into one another. (Phase 28-02) the stored
+`menu_width` is covered in the same file (bounded, clamped, sparse, re-bounded on
+read), and the CSS it emits in
+[`tests/unit/MenuWidthCssTest.php`](tests/unit/MenuWidthCssTest.php): desktop-only,
+never on `body.folded`, RTL mirrored, and never `!important`. Fast, runs anywhere with
 PHP + Composer.
 
 ```bash
@@ -55,6 +59,12 @@ union-with-a-child's-own-rule, and the mandatory cosmetic-only guardrail
 (`current_user_can()` byte-for-byte unchanged; the hidden child's own
 capability requirement still resolves true) in
 [`tests/integration/ReplayTest.php`](tests/integration/ReplayTest.php).
+
+(Phase 28-02) [`tests/integration/MenuWidthAssetTest.php`](tests/integration/MenuWidthAssetTest.php)
+asserts that a stored menu width reaches ordinary admin pages as inline CSS on
+the always-loaded `maestro-admin-bar` stylesheet, that a site with no width gets
+none, that applying it costs no query beyond the config read Replay already
+makes, and the REST save/reset round trip.
 
 (ROLE-02) the per-user axes are covered in
 [`tests/integration/ReplayHiddenUsersTest.php`](tests/integration/ReplayHiddenUsersTest.php)
@@ -166,6 +176,14 @@ gated fixture CPT ([`tests/e2e/fixtures/maestro-e2e-shared-slug.php`](tests/e2e/
 reproduces WordPress's post-type self-link convention (the WooCommerce
 Products / "All Products" shape) without depending on a real third-party
 plugin.
+
+(Phase 28) [`tests/e2e/specs/menu-width-measured.spec.ts`](tests/e2e/specs/menu-width-measured.spec.ts)
+proves edit mode follows the menu's measured width, and
+[`tests/e2e/specs/menu-width-stored.spec.ts`](tests/e2e/specs/menu-width-stored.spec.ts)
+proves a stored width while browsing: menu and content column at the stored
+width, flyouts opening at its edge, folded still 36px, core's auto-fold at 960px
+and below, a Keel-style `!important` width winning, and an unrelated edit-mode
+autosave carrying the width forward.
 
 (COMPAT-10) [`tests/e2e/specs/cascade-hide.spec.ts`](tests/e2e/specs/cascade-hide.spec.ts) proves the "Hide its
 sub-items from:" role group is gated to parents with children (absent on a

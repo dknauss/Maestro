@@ -26,7 +26,7 @@
 		"test:unit": "phpunit -c phpunit-unit.xml.dist",
 		"test:integration": "phpunit -c phpunit-integration.xml.dist",
 		"lint": "phpcs --standard=phpcs.xml.dist maestro-menu-editor.php uninstall.php includes/",
-		"analyse:phpstan": "phpstan analyse --configuration=phpstan.neon.dist --memory-limit=512M --no-progress"
+		"analyse:phpstan": "phpstan analyse --configuration=phpstan.neon.dist --memory-limit=1G --no-progress"
 	},
 	"config": {
 		"allow-plugins": {
