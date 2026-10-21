@@ -34,7 +34,8 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '24'
+          check-latest: true
           cache: npm
 
       - name: Validate Composer metadata
@@ -144,7 +145,8 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '24'
+          check-latest: true
           cache: npm
 
       - name: Install npm dependencies
@@ -189,7 +191,8 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '24'
+          check-latest: true
           cache: npm
 
       # vendor/ is mounted into the wp-env container, so the integration
@@ -269,7 +272,8 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '24'
+          check-latest: true
           cache: npm
 
       - name: Install npm dependencies
