@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.6.0
 milestone_name: Separator editing and post-v1.5.4 compatibility fixes
 status: in_progress
-stopped_at: "v1.6.0 cut 2026-09-23 in the release/v1.6.0 PR (tag v1.6.0 on merge); the WordPress.org deploy will await approval."
-last_updated: "2026-09-23T00:00:00.000Z"
-last_activity: "2026-09-23 — Cut v1.6.0: separator add/move/remove (#197), Admin Menu Editor warning (#196), image-icon preview fix and full Dashicons set (#195), toolbar follows a widened menu (#199), multisite network/user admin gating (#198), and the release-review fixes (#200: focused toolbar button contrast, edit-mode submenu alignment on widened menus, separator-removal capability guard, separator-id anchor). Release review: security and correctness passes found no P1/P2; live checks with Yoast, Smush, UpdraftPlus, Admin Menu Editor, Keel and a real multisite network passed. Four separator UX edge cases deferred to todos/pending/2026-09-22-separator-edit-edge-cases.md. Next: Phase 28 → Phase 27."
+stopped_at: "v1.6.0 is SHIPPED — tagged 2026-09-23 and live on WordPress.org the same day (api.wordpress.org: version 1.6.0, last_updated 2026-09-23, tested up to 7.1.3; verified 2026-10-21). The milestone stays open on its two unstarted phases, 28 then 27; the live question is whether they or v1.7 go first."
+last_updated: "2026-10-21T00:00:00.000Z"
+last_activity: "2026-10-21 — Housekeeping, no feature work. Merged the four open docs PRs: network-admin research backlog (#211), readme description intro (#212), select-all role control backlog (#213), and the v1.7 Client-Site Workflow milestone plan (#217, phases 29-31, issues #214-#216). #217 needed its add/add conflict with #213 resolved on the shared todo file. Earlier today: CI Node bumped off EOL 18/20 to 24 (#222) and wp-env core pinned to WordPress 7.1.3 so the PHPUnit library matches (#223). Confirmed v1.6.0 is live on WordPress.org and that this record said otherwise. Still next: Phase 28 -> Phase 27, unless v1.7 displaces them (ROADMAP D1-D6)."
 progress:
   total_phases: 2
   completed_phases: 0
@@ -20,14 +20,21 @@ progress:
 
 See: .planning/PROJECT.md (updated 2026-07-03)
 
-**Current focus:** v1.5.4 candidate review and release evidence; after the release decision, Phase 28 then Phase 27.
+**Current focus:** v1.6.0 is shipped and live (2026-09-23). The next call is an ordering one — Phase 28 then Phase 27, or the v1.7 Client-Site Workflow milestone first. No phase is in flight.
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
 **Historical focus at the time this section was written:** v1.3.1 shipped and
 the v1.4 compatibility/roles work was being planned. The current focus is
-recorded above as the v1.5.4 candidate release review.
+recorded above; this note is kept only to date the paragraph that follows it.
 
 ## Current Position
+
+Milestone: **v1.6.0 Separator editing and post-v1.5.4 compatibility fixes** (active) — the release itself ✅ **SHIPPED 2026-09-23**: tag `v1.6.0`, live on WordPress.org the same day. The milestone stays open on its two phases, **0/2 complete**.
+Phase: **Phase 28 (Configurable Admin Menu Width)** next, then **Phase 27 (Cloned-Role Hiding Profiles)** — neither started. Phase 28's 28-01 input (measure the live `#adminmenuwrap` width) already shipped early as #199, so 28-02's `menu_width` is the first real build step.
+Plan: none open. Everything since the release has been fixes and record-keeping: editor fixes #202/#203, `env:clean` teardown #205, six backlog entries (#204, #206, #207, #209, #211, #213), npm audit clearance #210, CI Node 24 #222, wp-env core pinned to 7.1.3 #223, readme intro #212, and the v1.7 plan #217. **Open decision:** v1.7 versus Phase 28 → 27 (ROADMAP v1.7 open decisions D1–D6; Phase 30 is blocked on D2).
+Verified 2026-10-21: WordPress.org serving 1.6.0; `main` at 3be2375 with CI green.
+
+### Historical position (the v1.5 cycle, written 2026-08-09)
 
 Milestone: **v1.5 Per-User Visibility** (active) — Phase 21 ✅ MERGED 2026-08-09 + Phase 26 (release, created 2026-08-09); Phases 22/25 optional inclusions. v1.4 SHIPPED (v1.4.0 + v1.4.1).
 Phase: Phase 19 ✅, Phase 20 ✅, Phase 23 ✅ (shipped as v1.3.1), **Phase 26 (Release v1.5.0) ✅ SHIPPED 2026-08-09**. **Phase 21 (Cosmetic Per-User Hiding) ✅ COMPLETE — 5/5 plans, merged to `main` 2026-08-09 via PR #120 (merge commit, history preserved). Task 5 accepted on automated evidence rather than a human browser pass — see the note below.**
@@ -580,8 +587,20 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-09-23
-Stopped at: v1.6.0 cut in the release/v1.6.0 PR and tagged on merge; the WordPress.org deploy awaits approval.
+Last session: 2026-10-21
+Stopped at: four docs PRs merged (#211, #212, #213, #217) and `main` green; v1.6.0 confirmed live. Next: decide v1.7 versus Phase 28 → Phase 27.
+
+**Update 2026-10-21 — the deploy landed, and this file had not noticed.** The
+v1.6.0 approval step was taken on 2026-09-23: api.wordpress.org reports version
+1.6.0, `last_updated` 2026-09-23, tested up to 7.1.3, and all three local Studio
+sites run 1.6.0. This record still said the deploy "will await approval" a month
+later, so the staleness itself is the finding: the release pipeline's approval
+step produces no commit, which means nothing updates STATE.md unless someone
+does it by hand. Also merged today: #211, #212, #213 and #217 (the v1.7 plan,
+whose add/add conflict with #213 on the select-all todo was resolved in favour of
+the scheduled marker), on top of #222 (CI Node 24) and #223 (wp-env core pinned
+to 7.1.3). `main` is at 3be2375, CI green. No feature work; Phase 28 and Phase 27
+are still unstarted.
 
 **Update 2026-09-23 — v1.6.0.** Minor release: separator editing (#197) is the
 headline, plus the Admin Menu Editor warning (#196) and fixes #195, #198, #199
@@ -592,7 +611,19 @@ resume Phase 28 → Phase 27. Phase 28's 28-01 input (measure the live
 `#adminmenuwrap` width) shipped early as #199; 28-02's `menu_width` still needs
 to stand down where something else sets the width.
 
-**START HERE — the state in one paragraph (as of v1.5.4).** **v1.5.4 is live on WordPress.org**
+**START HERE — the state in one paragraph (as of v1.6.0).** **v1.6.0 is live on
+WordPress.org** (tag `v1.6.0`, shipped 2026-09-23), headlined by separator
+add/move/remove (#197) with the Admin Menu Editor conflict warning (#196) and
+fixes #195, #198, #199, #200, #202, #203. Nothing has been built since: the month
+after the release is backlog entries, dev-tooling upkeep and the v1.7 plan.
+**Two phases remain planned, unblocked and unstarted — Phase 28 (menu width +
+fold honesty) and Phase 27 (cloned-role profiles, completes ROLE-02)** — and
+`#217` added a third option, the **v1.7 Client-Site Workflow** milestone (phases
+29–31: select-all roles, view-as-role preview, config export/import), which has
+not been ordered against them. Phase 22 (Playground demo) remains scoped but
+unplanned. Pick the order first; the open decisions are D1–D6 in ROADMAP.md.
+
+**Earlier state paragraph (as of v1.5.4).** **v1.5.4 is live on WordPress.org**
 (PR #192, tag `v1.5.4` on `93934c3`, shipped 2026-09-21); v1.5.3 was the
 previous release. It ships the Google Site Kit menu-order fix (#189) and the
 removal of Edit Menu from the block post editor (#176, #179); the rest of the
