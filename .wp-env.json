@@ -1,5 +1,5 @@
 {
-	"core": "WordPress/WordPress#7.1-branch",
+	"core": "WordPress/WordPress#7.1.3",
 	"plugins": [],
 	"mappings": {
 		"wp-content/plugins/maestro-menu-editor": ".",
