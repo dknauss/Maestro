@@ -189,7 +189,9 @@ autosave carrying the width forward.
 applies on an ordinary admin page after reload; the slider is keyboard-operable;
 **Use default** clears the width; the edge handle resizes by drag and by
 keyboard; **Reset this item** leaves the width alone; the dialog stays inside the
-viewport; and the dialog says so when another plugin owns the width. The pure
+viewport; the dialog says so when another plugin owns the width, and the
+handle saves nothing then; **Reset All** clears the width; and the handle is
+hidden below 961px. The pure
 helpers behind them (clamping, the preview CSS, pointer-to-width) are in
 [`tests/js/menu-width.test.mjs`](tests/js/menu-width.test.mjs), which asserts the
 same CSS literal as the PHP `MenuWidthCssTest`, so preview and reload cannot drift.

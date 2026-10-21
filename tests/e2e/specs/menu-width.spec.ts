@@ -23,6 +23,15 @@ function wp( args: string[] ): string {
 
 const SAVE = ( url: string ) => url.includes( '/maestro/v1/config' );
 
+// Waits for the save that drops the width, not just the next save: an earlier
+// change may already have one queued.
+function savedWithoutWidth( page ) {
+	return page.waitForResponse( ( r ) =>
+		SAVE( r.url() ) && r.request().method() === 'POST' && r.ok() &&
+		! ( 'menu_width' in ( r.request().postDataJSON()?.config ?? {} ) )
+	);
+}
+
 async function menuWidth( page ) {
 	return page.evaluate( () => Math.round( document.getElementById( 'adminmenuwrap' )!.getBoundingClientRect().width ) );
 }
@@ -91,10 +100,10 @@ test.describe( 'Phase 28-03 — menu width controls', () => {
 		await page.keyboard.press( 'ArrowRight' );
 		await expect.poll( () => menuWidth( page ) ).toBe( 201 );
 
-		const saved = page.waitForResponse( ( r ) => SAVE( r.url() ) && r.request().method() === 'POST' && r.ok() );
+		const saved = savedWithoutWidth( page );
 		await dialog.getByRole( 'button', { name: 'Use default' } ).click();
 		await expect.poll( () => menuWidth( page ) ).toBe( 160 );
-		expect( ( await saved ).request().postDataJSON().config ).not.toHaveProperty( 'menu_width' );
+		await saved;
 
 		// Escape closes and returns focus to the toolbar button.
 		await page.keyboard.press( 'Escape' );
@@ -122,10 +131,10 @@ test.describe( 'Phase 28-03 — menu width controls', () => {
 		await page.keyboard.press( 'End' );
 		await expect.poll( () => menuWidth( page ) ).toBe( 320 );
 
-		const saved = page.waitForResponse( ( r ) => SAVE( r.url() ) && r.request().method() === 'POST' && r.ok() );
+		const saved = savedWithoutWidth( page );
 		await page.keyboard.press( 'Home' );
 		await expect.poll( () => menuWidth( page ) ).toBe( 160 );
-		expect( ( await saved ).request().postDataJSON().config ).not.toHaveProperty( 'menu_width' );
+		await saved;
 	} );
 
 	test( 'Reset Item leaves the width alone', async ( { page } ) => {
@@ -149,5 +158,41 @@ test.describe( 'Phase 28-03 — menu width controls', () => {
 		await dialog.getByLabel( 'Menu width in pixels' ).fill( '260' );
 		await expect( dialog.getByText( /Another plugin sets the menu width \(200px\)/ ) ).toBeVisible();
 		expect( await menuWidth( page ) ).toBe( 200 );
+	} );
+
+	test( 'when another plugin forces the width, the edge handle saves nothing', async ( { page } ) => {
+		wp( [ 'option', 'update', 'maestro_e2e_wide_menu', '200' ] );
+		const posts: string[] = [];
+		page.on( 'request', ( r ) => { if ( SAVE( r.url() ) && r.method() === 'POST' ) { posts.push( r.url() ); } } );
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+
+		const handle = page.getByRole( 'separator', { name: 'Resize menu' } );
+		await handle.focus();
+		await page.keyboard.press( 'Shift+ArrowRight' );
+		await expect( handle ).toHaveAttribute( 'aria-valuenow', '160' );
+		await expect( page.locator( '#a11y-speak-polite' ) ).toContainText( /Another plugin sets the menu width/ );
+		// Longer than the autosave debounce.
+		await page.waitForTimeout( 800 );
+		expect( posts ).toHaveLength( 0 );
+	} );
+
+	test( 'Reset All clears the width', async ( { page } ) => {
+		wp( [ 'eval', "update_option( 'maestro_config', array( 'menu_width' => 240 ), false );" ] );
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		expect( await menuWidth( page ) ).toBe( 240 );
+
+		page.once( 'dialog', ( d ) => d.accept() );
+		// Reset All reloads the page once the DELETE lands.
+		const reloaded = page.waitForEvent( 'load' );
+		await page.locator( '.maestro-toolbar .maestro-reset-all' ).click();
+		await reloaded;
+		expect( await menuWidth( page ) ).toBe( 160 );
+		expect( wp( [ 'option', 'get', 'maestro_config', '--format=json' ] ) ).not.toContain( 'menu_width' );
+	} );
+
+	test( 'the edge handle is hidden below 961px', async ( { page } ) => {
+		await page.setViewportSize( { width: 900, height: 900 } );
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		await expect( page.locator( '.maestro-width-handle' ) ).toBeHidden();
 	} );
 } );

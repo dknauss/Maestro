@@ -1433,7 +1433,10 @@
 			if ( n >= widthBounds.min && n <= widthBounds.max ) { setMenuWidth( n ); }
 		} );
 		number.addEventListener( 'change', function () {
-			setMenuWidth( number.value === '' ? widthBounds.default : number.value );
+			// Number() so "250.5" or "1e3" round and clamp like the server does;
+			// anything unparseable keeps the current width instead of resetting it.
+			var n = number.value === '' ? widthBounds.default : Number( number.value );
+			setMenuWidth( isFinite( n ) ? n : ( menuWidth || widthBounds.default ) );
 			number.value = String( menuWidth || widthBounds.default );
 		} );
 		reset.addEventListener( 'click', function () {
@@ -1496,32 +1499,54 @@
 		h.setAttribute( 'aria-label', I.menuWidthHandle );
 		h.setAttribute( 'aria-valuemin', String( widthBounds.min ) );
 		h.setAttribute( 'aria-valuemax', String( widthBounds.max ) );
+		h.setAttribute( 'aria-controls', 'adminmenuwrap' );
 		h.title = I.menuWidthHandle;
 		wrap.appendChild( h );
 		widthHandle = h;
 		syncWidthControls();
 
+		// When another plugin holds the width, say so instead of saving a value
+		// that would change nothing on screen.
+		function blockedByOverride() {
+			var over = widthOverriddenAt();
+			if ( over ) {
+				speak( I.widthOverridden.replace( '%d', String( over ) ) );
+			}
+			return !! over;
+		}
+
+		var dragging = null;
 		h.addEventListener( 'pointerdown', function ( e ) {
-			if ( e.button !== 0 ) { return; }
+			if ( e.button !== 0 || dragging !== null ) { return; }
 			e.preventDefault();
+			if ( blockedByOverride() ) { return; }
+			dragging = e.pointerId;
 			h.setPointerCapture( e.pointerId );
 			document.body.classList.add( 'maestro-resizing' );
 
 			function move( ev ) {
+				if ( ev.pointerId !== dragging ) { return; }
 				var r = wrap.getBoundingClientRect();
 				var w = window.maestroLogic.menuWidthFromPointer( ev.clientX, r, rtl, widthBounds );
 				setMenuWidth( w === null ? widthBounds.default : w );
 			}
-			function end() {
+			function end( ev ) {
+				if ( ev.pointerId !== dragging ) { return; }
+				dragging = null;
 				document.body.classList.remove( 'maestro-resizing' );
 				h.removeEventListener( 'pointermove', move );
 				h.removeEventListener( 'pointerup', end );
 				h.removeEventListener( 'pointercancel', end );
+				h.removeEventListener( 'lostpointercapture', end );
 			}
 			h.addEventListener( 'pointermove', move );
 			h.addEventListener( 'pointerup', end );
 			h.addEventListener( 'pointercancel', end );
+			h.addEventListener( 'lostpointercapture', end );
 		} );
+		// The click that ends a drag must not count as a click outside an open
+		// popover and close it.
+		h.addEventListener( 'click', function ( e ) { e.stopPropagation(); } );
 
 		h.addEventListener( 'keydown', function ( e ) {
 			var current = menuWidth || widthBounds.default;
@@ -1535,6 +1560,7 @@
 			else if ( e.key === 'End' ) { next = widthBounds.max; }
 			if ( next === null ) { return; }
 			e.preventDefault();
+			if ( blockedByOverride() ) { return; }
 			setMenuWidth( next );
 		} );
 	}
@@ -2197,6 +2223,13 @@
 
 		setTimeout( function () {
 			document.addEventListener( 'click', function handler( e ) {
+				// Closed some other way (Done, Escape, another popover): drop the
+				// listener without moving focus, or it would pull focus out of
+				// whatever opened next.
+				if ( ! document.contains( pop ) ) {
+					document.removeEventListener( 'click', handler );
+					return;
+				}
 				if ( ! pop.contains( e.target ) && e.target !== anchorBtn ) {
 					pop.remove();
 					document.removeEventListener( 'click', handler );

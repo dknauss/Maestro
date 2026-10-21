@@ -41,9 +41,29 @@ owed; see `28-VERIFICATION.md`.
 
 - `tests/e2e/specs/menu-width.spec.ts`: 5 tests (field to reload to ordinary
   page to folded; slider keyboard + Use default + Escape focus return; drag and
-  keyboard on the handle; Reset Item; another plugin's width).
+  keyboard on the handle; Reset Item; another plugin's width). After the
+  independent review, 3 more: the handle saves nothing under another plugin's
+  width, Reset All clears the width, and the handle is hidden below 961px.
 - Docs: README quick start and footprint, readme.txt feature list and
   performance, `docs/user-guide.md` "Widen The Menu", TESTING.md.
 - Local: unit 192/192, WPCS, PHPStan, JS 99/99, doc links. All 18 width e2e
   tests (28-01, 28-02, 28-03) passed against a local SQLite WordPress 7.1.3.
   CI runs the full gate.
+
+## Independent review fixes
+
+A fresh reviewer found nothing blocking. Fixed in the follow-up commit:
+
+- A stale outside-click listener from a closed popover pulled focus to the
+  anchor on the next click. The listener now drops itself without moving focus.
+- Typing a decimal or exponent ("250.5", "1e3") and leaving the field reset the
+  width to the default. The field now converts with `Number()`, and unparseable
+  input keeps the current width.
+- The edge handle saved widths another plugin overrode. It now announces the
+  override and saves nothing.
+- The handle ignores a second pointer, ends on `lostpointercapture`, has
+  `aria-controls`, and its click no longer closes an open popover.
+- `menuWidthCss()` truncates like PHP's `(int)`, so the builders also agree
+  on fractional input.
+- The e2e save waiters match the save that drops the width, not just the next
+  save.

@@ -397,7 +397,8 @@ function clampMenuWidth( value, bounds ) {
  * @return {string}
  */
 function menuWidthCss( width ) {
-	var n  = typeof width === 'number' ? Math.round( width ) : parseInt( width, 10 );
+	// parseInt truncates like PHP's (int) cast, so the two builders agree.
+	var n  = parseInt( width, 10 );
 	var px = ( n || 0 ) + 'px';
 
 	return '@media screen and (min-width: 961px){' +

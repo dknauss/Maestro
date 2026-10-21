@@ -56,7 +56,7 @@ test( 'menuWidthCss: matches the PHP rule byte for byte', () => {
 
 test( 'menuWidthCss: casts to an integer so no value can inject CSS', () => {
 	assert.ok( menuWidthCss( '200px;}body{display:none' ).indexOf( 'display' ) === -1 );
-	assert.ok( menuWidthCss( 199.7 ).indexOf( 'width:200px' ) !== -1 );
+	assert.ok( menuWidthCss( 199.7 ).indexOf( 'width:199px' ) !== -1 );
 } );
 
 /* ---------- menuWidthFromPointer ---------------------------------------- */
