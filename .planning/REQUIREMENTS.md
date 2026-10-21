@@ -64,6 +64,33 @@ first; neither blocks the cut.
 
 ---
 
+## v1.7 Requirements
+
+**Milestone framing:** three requests from one WordPress.org support thread
+(2026-10-07) that together cover setting up a client site: find what a role
+sees, hide it in one step, carry the setup to the next site. Planned
+2026-10-09; the version number is provisional.
+
+### Editor UX
+
+- [ ] **UX-14**: Each role-visibility group offers one control that hides the item from every role the editing user does not hold, in a single save, and a matching way to clear them. Locked rows are untouched; the per-person group has no such control.
+
+### Roles (cosmetic only)
+
+- [ ] **ROLE-03**: An admin can preview the admin menu as a chosen role, read-only, without switching user. The mechanism may only narrow the viewing admin's own capabilities for the menu build of that request; it never grants a capability and never affects another user.
+
+### Portability
+
+- [ ] **PORT-01**: An admin can export the current configuration as a JSON file with a schema version. Per-person rules are not exported.
+- [ ] **PORT-02**: An admin can import such a file. Import is capability- and nonce-gated and writes only through `Config::sanitize()`; unknown roles are dropped, an unsupported schema version is refused, and the user is told what was not applied.
+
+### Cross-cutting
+
+- The v1.4 cross-cutting rules (cosmetic-only guardrail, non-destructive, zero regression, TDD for pure logic) apply unchanged.
+- ROLE-03 and PORT-02 are high-risk diffs and take a mandatory deep review.
+
+---
+
 ## Deferred (future milestone)
 
 - **COMPAT-05/06/08/09/11/12/13** — documented WordPress menu-model limitations from R1; docs-only, correct by design (carried as user-guidance, not code).
@@ -101,6 +128,10 @@ Which phases cover which requirements. Populated during roadmap creation.
 | BUG-08 | Phase 23 | ✅ Complete 2026-07-05 |
 | REL-10 | Phase 24 | ✅ Complete 2026-08-04 (v1.4.0; patch v1.4.1 2026-08-05) |
 | REL-11 | Phase 26 (v1.5) | ✅ Complete 2026-08-09 (tag v1.5.0 on 694b1bf; SVN verified) |
+| UX-14 | Phase 29 (v1.7) | Pending |
+| ROLE-03 | Phase 30 (v1.7) | Pending — blocked on the capability-principle decision |
+| PORT-01 | Phase 31 (v1.7) | Pending |
+| PORT-02 | Phase 31 (v1.7) | Pending |
 
 **Coverage:**
 - v1.4 requirements: 11 total
@@ -110,3 +141,4 @@ Which phases cover which requirements. Populated during roadmap creation.
 ---
 *Requirements defined: 2026-07-03*
 *Last updated: 2026-07-05 — Phase 23-05 complete: UX-13 marked Complete; Phase 23 fully delivered (UX-09, UX-12, UX-13, BUG-08)*
+*v1.7 requirements added: 2026-10-09 — UX-14, ROLE-03, PORT-01, PORT-02 (4 total, all mapped to Phases 29–31)*

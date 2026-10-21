@@ -10,6 +10,8 @@ files:
   - languages/maestro-menu-editor.pot (new strings)
 ---
 
+**Scheduled:** v1.7 Client-Site Workflow, Phase 29 (#214).
+
 ## Where it came from
 
 Requested by ChrisL (@chrslcy) in the WordPress.org support thread

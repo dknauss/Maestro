@@ -13,11 +13,16 @@
 - ✅ **v1.5 Per-User Visibility** — Phase 21 + Phase 26 (shipped as the v1.5.x line; latest release `v1.5.3` on 2026-08-19). Delivered ROLE-02's **per-user half**; the cloned-role "profiles" half remains a backlog item. Phase 25 was completed post-release and is included in the v1.5.3 line; Phase 22 remains open.
 - ✅ **v1.5.4 Compatibility and E2E hardening** — patch on the v1.5 line, shipped 2026-09-21 (PR #192, tag `v1.5.4`, live on WordPress.org). Ships the Google Site Kit menu-order fix (#189) and removes Edit Menu from the block post editor (#176, #179). The rest of the range (#173–#190) is tests, CI, dev dependencies and planning docs.
 - [~] **v1.6.0 Separator editing** — minor release cut 2026-09-23, tagged `v1.6.0` on merge of the release PR; the WordPress.org deploy awaits approval. Ships separator add/move/remove (#197), the Admin Menu Editor warning (#196), the image-icon preview fix and full Dashicons set (#195), the toolbar following a widened menu (#199), multisite network/user admin gating (#198), and the release-review fixes (#200).
+- [ ] **v1.7 Client-Site Workflow** — Phases 29–31 (planned 2026-10-09; version number provisional). Three requests from one WordPress.org support thread that together cover setting up a client site: see what a role sees, hide from every other role in one step, carry the result to the next site. GitHub milestone [v1.7 Client-site workflow](https://github.com/dknauss/Maestro/milestone/1).
 
 ## Next up
 
 **v1.6.0 is cut.** Once its WordPress.org deploy is approved and verified,
 resume feature work in the order **Phase 28 → Phase 27**.
+
+**v1.7 Client-Site Workflow (Phases 29–31) was planned 2026-10-09 and is not
+yet placed in that order.** Whether it runs before, after, or between Phases 28
+and 27 is undecided; see the open decisions under its Phase Details.
 
 **Phase 28 input (2026-09-15):** on sites where Keel or PX already widen the
 menu, Maestro's edit-mode toolbar overlapped it, because the toolbar assumed
@@ -485,6 +490,93 @@ documented in `readme.txt`; the release should not quietly drop it.
 
 ---
 
+## Phase Details (v1.7 — Client-Site Workflow)
+
+**Milestone goal:** an admin setting up a client site can see what a lower role
+sees, hide what that role should not see in one step, and carry the result to
+the next site.
+
+**Source:** the WordPress.org support thread "Great plugin! Just a couple of
+suggestions.." (ChrisL, 2026-10-07). Dan confirmed all three in the thread.
+
+**Why one milestone:** the three are steps of one job (find, hide, replicate),
+they touch the same role-visibility surface, and they share decisions that
+should be made once.
+
+- [ ] **Phase 29: Select-All Role Control** — one control per role group that ticks every role the editing user does not hold ([#214](https://github.com/dknauss/Maestro/issues/214))
+- [ ] **Phase 30: View-as-Role Preview (read-only)** — filter the admin menu to what a chosen role sees, without switching user ([#215](https://github.com/dknauss/Maestro/issues/215))
+- [ ] **Phase 31: Config Export/Import** — a versioned JSON export and a validated import, for carrying a setup between sites ([#216](https://github.com/dknauss/Maestro/issues/216))
+
+### Open decisions (shared; settle before the phase that needs them)
+
+| # | Decision | Needed by | Status |
+|---|----------|-----------|--------|
+| D1 | Where v1.7 sits relative to Phase 28 → Phase 27 | Before Phase 29 starts | Open |
+| D2 | Whether a request-scoped, viewer-only, subtract-only capability filter fits SPEC's "never changes a capability", or the wording gets a carve-out | Phase 30 | Open — blocks Phase 30 |
+| D3 | Label and form of the select-all control ("All other roles"; tri-state checkbox or a pair of links) | Phase 29 | Open |
+| D4 | Import behaviour for rules whose menu item is missing on the target site: keep dormant, or drop and report | Phase 31 | Open |
+| D5 | Release shape: one v1.7.0 after all three, or cut after Phases 29–30 and let Phase 31 follow | Before the cut | Open — proposed: cut after 29–30, 31 rides if ready |
+| D6 | Whether "v1.7" is this milestone's number or Phase 28's release takes it | Before the cut | Open |
+
+### Shared seams (build once, reuse)
+
+- **The current user's roles in the editor.** Phase 29 needs them to skip the
+  editor's own roles. Phase 30's banner and picker read the same value. Send
+  them once from `Assets::enqueue()`.
+- **The role list.** `D.roles` already feeds the visibility checkboxes; the
+  Phase 30 picker uses it rather than a second source.
+- **`Config::sanitize()` as the only write path.** Phase 31's import goes
+  through it, so role intersection, caps and the per-user authorization
+  boundary hold for imported data exactly as for a save.
+
+### Phase 29: Select-All Role Control
+**Goal**: Hiding a menu item from every role but your own takes one action, not one per role
+**Depends on**: nothing
+**Requirements**: UX-14
+**Success Criteria** (what must be TRUE):
+  1. One activation ticks every role the editing user does not hold, in a single save; a second clears them
+  2. The editing user still sees the item after reload — their own roles are never ticked by the control
+  3. It is offered on both role groups and never on the per-person group
+  4. Locked rows stay derived: never written to the model, still checked and `aria-disabled`
+  5. The control has an accessible name that includes its group heading, and the result is announced
+  6. Zero regression: unit, JS, both integration lanes, e2e, WPCS, PHPStan, Plugin Check
+**Plans**: TBD — expected 29-01 pure helper (TDD) + roles payload · 29-02 control, a11y, e2e
+**Notes**: [select-all todo](todos/pending/2026-10-08-select-all-roles-control.md)
+
+### Phase 30: View-as-Role Preview (read-only)
+**Goal**: An admin can see the admin menu as a chosen role would, to decide what still needs hiding, while staying logged in as themselves
+**Depends on**: D2. Reuses Phase 29's roles payload if that has landed; does not require it
+**Requirements**: ROLE-03
+**Success Criteria** (what must be TRUE):
+  1. Choosing a role shows the menu core and plugins build for that role's capabilities, plus Maestro's own rules for that role, with a banner naming the role and an exit
+  2. The capability filter can only remove capabilities, is attached only for a user who holds `capability()` and presents a valid nonce, and is detached before `user_can_access_admin_page()` runs
+  3. The preview is read-only: no selection, no autosave, no config write
+  4. For each core role, the previewed `$menu` / `$submenu` match a real user of that role, with and without Maestro rules
+  5. The known limits (per-user capabilities, multiple roles, plugins keyed on user ID, multisite super admins) are stated in the UI or the user guide
+  6. Zero regression across the same gates as Phase 29
+**Plans**: TBD — 30-01 is a decisions checkpoint (D2, super-admin handling, picker placement)
+**Out of this phase**: editing inside the preview (the scope selector's role and person scopes) and "View as: [person]". Both stay in the todo.
+**Notes**: [view-as-role todo](todos/pending/2026-10-07-view-menu-as-role-preview.md)
+**Review**: high-risk diff (touches capability resolution) — mandatory deep review before merge
+
+### Phase 31: Config Export/Import
+**Goal**: A menu set up on one site can be carried to another as a file
+**Depends on**: nothing in this milestone
+**Requirements**: PORT-01, PORT-02
+**Success Criteria** (what must be TRUE):
+  1. Export produces a JSON envelope with a `schema_version`, and omits per-person rules
+  2. Import is gated by `capability()` and the REST nonce, parses and structurally validates the envelope, then passes every field through `Config::sanitize()`; nothing reaches storage any other way
+  3. Roles missing on the target are dropped; an unknown or newer `schema_version` is refused with a clear message
+  4. Rules for menu items absent on the target follow D4, and the user is told what was not applied
+  5. An importing user without `list_users` cannot use import to destroy or write per-person rules (the boundary `sanitize()` and `reset()` already hold)
+  6. Zero regression across the same gates as Phase 29
+**Plans**: TBD
+**Out of this phase**: named presets, a preset manager, bundled starter presets. They stay in the todo.
+**Notes**: [presets and export/import todo](todos/pending/2026-07-03-config-presets-export-import.md)
+**Review**: high-risk diff (new REST endpoint, deserialization) — mandatory deep review before merge
+
+---
+
 ## Progress
 
 **Execution Order:**
@@ -527,3 +619,6 @@ originated under the v1.4 roadmap and were not renumbered when they slipped.
 | 24. Release v1.4.0 | v1.4 | n/a (shipped as PR #113, not numbered plans) | Complete — v1.4.0 shipped; patch v1.4.1 2026-08-05 | 2026-08-04 |
 | 25. Edit-Mode Toolbar Dark-Surface Polish | v1.5 | 2/2 | Complete; included in the v1.5.3 line | 2026-08-09 |
 | 26. Release v1.5.0 | v1.5 | n/a | Complete; superseded by the v1.5.3 release line | 2026-08-19 |
+| 29. Select-All Role Control | v1.7 | 0/TBD | Not started | - |
+| 30. View-as-Role Preview (read-only) | v1.7 | 0/TBD | Not started — blocked on D2 | - |
+| 31. Config Export/Import | v1.7 | 0/TBD | Not started | - |

@@ -8,6 +8,8 @@ files:
   - SPEC.md:199 (Roadmap item 6 — "Import/export config as JSON", already-deferred precursor)
 ---
 
+**Scheduled:** plain export/import is v1.7 Client-Site Workflow, Phase 31 (#216). Named and bundled presets are not scheduled.
+
 ## Problem
 
 Maestro configs can't be named, saved as alternatives, shared between sites, or
