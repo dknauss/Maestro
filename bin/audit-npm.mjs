@@ -2,18 +2,20 @@
 /**
  * npm audit wrapper with a narrow, documented dev-tooling allowlist.
  *
- * Open exceptions:
+ * Open exceptions: none.
+ *
+ * Closed exceptions, kept for the record:
  *
  * - GHSA-v5rq-49vh-5v5c (@simple-git/argv-parser < 2.0.1), GHSA-x6jw-m9v5-85vh,
  *   GHSA-g4wm-2vf7-vfgr and GHSA-858h-whjf-mvg5 (simple-git 3.x), via
- *   @wordpress/env: allowlisted 2026-10-07. All four are bypasses of
- *   simple-git's guard against unsafe git options. The only fixed release is
- *   simple-git 4.0.2; @wordpress/env 11.17.0 requires ^3.32.3 and fails to
- *   start with 4.x ("SimpleGit is not a function"). wp-env only passes
- *   simple-git the source URL and ref from .wp-env.json, which this repo
- *   controls. Remove these once @wordpress/env supports simple-git 4.
- *
- * Closed exceptions, kept for the record:
+ *   @wordpress/env: allowlisted 2026-10-07, closed 2026-10-21. All four are
+ *   bypasses of simple-git's guard against unsafe git options, fixed in
+ *   simple-git 4.x. The allowlist existed because @wordpress/env 11.17.0
+ *   required ^3.32.3 and failed to start against 4.x ("SimpleGit is not a
+ *   function"). @wordpress/env 12.0.0 requires ^4.0.2, so bumping the
+ *   devDependency to ^12.0.0 closed all four with no override: the tree now
+ *   resolves simple-git 4.0.2 and @simple-git/argv-parser 2.0.1. wp-env 12
+ *   needs Node >= 22.13.0, which CI has since the Node 24 bump (#222).
  *
  * - GHSA-h67p-54hq-rp68 (js-yaml 3.x via @wordpress/env): closed by pinning
  *   js-yaml >= 3.15.2 in the lockfile.
@@ -34,12 +36,7 @@
  */
 import { spawnSync } from 'node:child_process';
 
-const allowed = new Set( [
-	'GHSA-v5rq-49vh-5v5c',
-	'GHSA-x6jw-m9v5-85vh',
-	'GHSA-g4wm-2vf7-vfgr',
-	'GHSA-858h-whjf-mvg5',
-] );
+const allowed = new Set();
 const result = spawnSync( 'npm', [ 'audit', '--json' ], { encoding: 'utf8' } );
 const stdout = result.stdout || '{}';
 let report;
