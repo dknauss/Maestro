@@ -4,7 +4,7 @@ title: Configurable admin-menu width (V2-09)
 area: editor-ux
 files:
   - includes/class-config.php (a global `menu_width`, sibling to items/top_order/sub_order — NOT a per-item key)
-  - includes/class-assets.php (would need a stylesheet OUTSIDE edit mode, which nothing currently loads)
+  - includes/class-assets.php (would need a menu rule OUTSIDE edit mode; only maestro-admin-bar.css loads there today)
   - assets/maestro-admin-bar.css (the only always-loaded stylesheet today — the natural home or the model for a new one)
 ---
 
@@ -25,11 +25,13 @@ the same `#adminmenu` / `#wpcontent` rules the folded-mode override already uses
 
 ## What makes this harder than it looks
 
-**It is the first thing Maestro would load outside edit mode.** Every current
-asset is edit-mode-gated except `maestro-admin-bar.css`. A width override has to
-apply while merely *browsing* wp-admin, which changes the plugin's footprint on
-every page load for every admin user — worth being deliberate about, since
-"costs nothing unless you are editing" is currently true and would stop being.
+**It is the first menu styling Maestro would apply outside edit mode.** Every
+current asset is edit-mode-gated except `maestro-admin-bar.css`. A width override
+has to apply while merely *browsing* wp-admin, so it adds one CSS rule to every
+admin page load for every admin user, on sites that set a width. The option read
+is not new: `Replay::replay()` already reads `maestro_config` on every admin
+request. (Corrected 2026-10-21: this note said the plugin would stop "costing
+nothing unless you are editing", which overstated the change.)
 
 Three interactions to get right, none optional:
 - **Folded mode** (`.folded`, 36px) must still fold — a fixed width that ignores

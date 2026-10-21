@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.6.0
 milestone_name: Separator editing and post-v1.5.4 compatibility fixes
 status: in_progress
-stopped_at: "v1.6.0 is SHIPPED — tagged 2026-09-23 and live on WordPress.org the same day (api.wordpress.org: version 1.6.0, last_updated 2026-09-23, tested up to 7.1.3; verified 2026-10-21). The milestone stays open on its two unstarted phases, 28 then 27; the live question is whether they or v1.7 go first."
+stopped_at: "v1.6.0 is SHIPPED — tagged 2026-09-23 and live on WordPress.org the same day (api.wordpress.org: version 1.6.0, last_updated 2026-09-23, tested up to 7.1.3; verified 2026-10-21). The milestone stays open on its two unstarted phases. Order decided 2026-10-21 (D1): Phase 28 → Phase 27 → v1.7. Phase 28 is next."
 last_updated: "2026-10-21T00:00:00.000Z"
 last_activity: "2026-10-21 — Housekeeping, no feature work. Merged the four open docs PRs: network-admin research backlog (#211), readme description intro (#212), select-all role control backlog (#213), and the v1.7 Client-Site Workflow milestone plan (#217, phases 29-31, issues #214-#216). #217 needed its add/add conflict with #213 resolved on the shared todo file. Earlier today: CI Node bumped off EOL 18/20 to 24 (#222) and wp-env core pinned to WordPress 7.1.3 so the PHPUnit library matches (#223). Confirmed v1.6.0 is live on WordPress.org and that this record said otherwise. Still next: Phase 28 -> Phase 27, unless v1.7 displaces them (ROADMAP D1-D6)."
 progress:
@@ -20,7 +20,7 @@ progress:
 
 See: .planning/PROJECT.md (updated 2026-07-03)
 
-**Current focus:** v1.6.0 is shipped and live (2026-09-23). The next call is an ordering one — Phase 28 then Phase 27, or the v1.7 Client-Site Workflow milestone first. No phase is in flight.
+**Current focus:** v1.6.0 is shipped and live (2026-09-23). The order is decided (D1, 2026-10-21): **Phase 28 → Phase 27 → v1.7 Client-Site Workflow**. Phase 28 is next.
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
 **Historical focus at the time this section was written:** v1.3.1 shipped and
@@ -31,7 +31,7 @@ recorded above; this note is kept only to date the paragraph that follows it.
 
 Milestone: **v1.6.0 Separator editing and post-v1.5.4 compatibility fixes** (active) — the release itself ✅ **SHIPPED 2026-09-23**: tag `v1.6.0`, live on WordPress.org the same day. The milestone stays open on its two phases, **0/2 complete**.
 Phase: **Phase 28 (Configurable Admin Menu Width)** next, then **Phase 27 (Cloned-Role Hiding Profiles)** — neither started. Phase 28's 28-01 input (measure the live `#adminmenuwrap` width) already shipped early as #199, so 28-02's `menu_width` is the first real build step.
-Plan: none open. Everything since the release has been fixes and record-keeping: editor fixes #202/#203, `env:clean` teardown #205, six backlog entries (#204, #206, #207, #209, #211, #213), npm audit clearance #210, CI Node 24 #222, wp-env core pinned to 7.1.3 #223, readme intro #212, and the v1.7 plan #217. **Open decision:** v1.7 versus Phase 28 → 27 (ROADMAP v1.7 open decisions D1–D6; Phase 30 is blocked on D2).
+Plan: none open. Everything since the release has been fixes and record-keeping: editor fixes #202/#203, `env:clean` teardown #205, six backlog entries (#204, #206, #207, #209, #211, #213), npm audit clearance #210, CI Node 24 #222, wp-env core pinned to 7.1.3 #223, readme intro #212, and the v1.7 plan #217. **Order decided 2026-10-21 (D1):** Phase 28 → Phase 27 → v1.7. D2–D6 stay open; Phase 30 is blocked on D2.
 Verified 2026-10-21: WordPress.org serving 1.6.0; `main` at 3be2375 with CI green.
 
 ### Historical position (the v1.5 cycle, written 2026-08-09)
@@ -588,7 +588,16 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-10-21
-Stopped at: four docs PRs merged (#211, #212, #213, #217) and `main` green; v1.6.0 confirmed live. Next: decide v1.7 versus Phase 28 → Phase 27.
+Stopped at: order decided (D1): Phase 28 → Phase 27 → v1.7. Next: Phase 28.
+
+**Update 2026-10-21 (later) — order decided, and the Phase 28 load note corrected.**
+Dan placed v1.7 after both remaining v1.6 phases: **Phase 28 → Phase 27 → v1.7**
+(ROADMAP D1). Dependabot bumps #218, #220 and #221 merged. The Phase 28 notes
+said 28-02 makes Maestro load outside edit mode "for the first time"; that
+overstated it. `Replay::replay()` already reads `maestro_config` on every admin
+request, and `Assets` shares the same memoized `Config`, so the width adds no
+option read. The new cost is one inline CSS rule, only on sites that store a
+width. The ROADMAP note, the 28-02 plan and the width todo now say so.
 
 **Update 2026-10-21 — the deploy landed, and this file had not noticed.** The
 v1.6.0 approval step was taken on 2026-09-23: api.wordpress.org reports version

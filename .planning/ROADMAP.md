@@ -20,9 +20,9 @@
 **v1.6.0 is cut.** Once its WordPress.org deploy is approved and verified,
 resume feature work in the order **Phase 28 → Phase 27**.
 
-**v1.7 Client-Site Workflow (Phases 29–31) was planned 2026-10-09 and is not
-yet placed in that order.** Whether it runs before, after, or between Phases 28
-and 27 is undecided; see the open decisions under its Phase Details.
+**v1.7 Client-Site Workflow (Phases 29–31) runs after both** (D1, decided
+2026-10-21): **Phase 28 → Phase 27 → v1.7**. The remaining open decisions are
+under its Phase Details.
 
 **Phase 28 input (2026-09-15):** on sites where Keel or PX already widen the
 menu, Maestro's edit-mode toolbar overlapped it, because the toolbar assumed
@@ -451,9 +451,13 @@ M2/M3 items from `todos/pending/2026-08-02-a11y-locked-checkbox-refinements.md`.
 > mode width applies to the expanded menu and folding works normally; inside edit
 > mode folding is off, so width just applies.
 >
-> **This phase turns Maestro into something that loads outside edit mode** for the
-> first time (28-02). "Costs nothing unless you are editing" is true today and
-> stops being — hence the measured-footprint checkpoint rather than an assumption.
+> **This phase adds a little to what Maestro loads on ordinary admin pages** (28-02).
+> Most of it is already there: `maestro-admin-bar.css` loads on every admin page, and `Replay::replay()` reads `maestro_config` on every admin
+> request to apply renames, hides and order, and `Assets` shares that memoized
+> `Config` instance, so the width adds no option read. What is new is one inline
+> rule that styles the menu itself, emitted only when a non-default width is stored. Corrected 2026-10-21:
+> this note used to say Maestro would load outside edit mode "for the first
+> time", which overstated the change. The measured-footprint checkpoint stays.
 
 ## Phase Details (v1.5 — Per-User Visibility)
 
@@ -511,7 +515,7 @@ should be made once.
 
 | # | Decision | Needed by | Status |
 |---|----------|-----------|--------|
-| D1 | Where v1.7 sits relative to Phase 28 → Phase 27 | Before Phase 29 starts | Open |
+| D1 | Where v1.7 sits relative to Phase 28 → Phase 27 | Before Phase 29 starts | **Decided 2026-10-21:** after both, Phase 28 → Phase 27 → v1.7 |
 | D2 | Whether a request-scoped, viewer-only, subtract-only capability filter fits SPEC's "never changes a capability", or the wording gets a carve-out | Phase 30 | Open — blocks Phase 30 |
 | D3 | Label and form of the select-all control ("All other roles"; tri-state checkbox or a pair of links) | Phase 29 | Open |
 | D4 | Import behaviour for rules whose menu item is missing on the target site: keep dormant, or drop and report | Phase 31 | Open |
@@ -586,7 +590,7 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 
 **v1.5 is shipped** as the v1.5.x release line; v1.5.4 (PR #192, shipped 2026-09-21) is
 the latest release, adding post-release compatibility fixes (#176, #179, #189) and E2E
-hardening. Next, resume planned feature work in the order Phase 28 → Phase 27. Phase numbers remain non-contiguous by design because 21, 22, and 25
+hardening. Next, resume planned feature work in the order Phase 28 → Phase 27 → v1.7 (D1). Phase numbers remain non-contiguous by design because 21, 22, and 25
 originated under the v1.4 roadmap and were not renumbered when they slipped.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
