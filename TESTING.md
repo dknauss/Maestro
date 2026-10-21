@@ -2,7 +2,7 @@
 
 Three layers, smallest and fastest first.
 
-> **Current expected status:** unit 191/191 with 286 assertions, integration 162/162 with 666 assertions single-site (12 skipped) + 162/162 with 689 under WP_MULTISITE=1, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, (COMPAT-04) independent shared-slug top-level/submenu editing, (COMPAT-10) the "Hide its sub-items from:" role group's independent child-hiding behavior, and (ROLE-02) per-user hiding asserted in a targeted user's own authenticated session — including a same-role bystander who must keep every row, which is the assertion that proves the rule did not widen to the whole role. (Phase 25) the toolbar's reserved status slot (no layout shift across a save), its widened focus-ring contrast, focused buttons keeping readable text on the dark surface, and the derived-locked checkbox's aria-disabled/aria-describedby semantics are covered in [`tests/e2e/specs/toolbar-dark-surface.spec.ts`](tests/e2e/specs/toolbar-dark-surface.spec.ts).
+> **Current expected status:** unit 192/192 with 287 assertions, integration 162/162 with 666 assertions single-site (12 skipped) + 162/162 with 689 under WP_MULTISITE=1, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, (COMPAT-04) independent shared-slug top-level/submenu editing, (COMPAT-10) the "Hide its sub-items from:" role group's independent child-hiding behavior, and (ROLE-02) per-user hiding asserted in a targeted user's own authenticated session — including a same-role bystander who must keep every row, which is the assertion that proves the rule did not widen to the whole role. (Phase 25) the toolbar's reserved status slot (no layout shift across a save), its widened focus-ring contrast, focused buttons keeping readable text on the dark surface, and the derived-locked checkbox's aria-disabled/aria-describedby semantics are covered in [`tests/e2e/specs/toolbar-dark-surface.spec.ts`](tests/e2e/specs/toolbar-dark-surface.spec.ts).
 
 ## Gotchas (first run)
 
@@ -184,6 +184,15 @@ proves a stored width while browsing: menu and content column at the stored
 width, flyouts opening at its edge, folded still 36px, core's auto-fold at 960px
 and below, a Keel-style `!important` width winning, and an unrelated edit-mode
 autosave carrying the width forward.
+[`tests/e2e/specs/menu-width.spec.ts`](tests/e2e/specs/menu-width.spec.ts)
+(28-03) covers the controls: the Menu settings field previews live, saves, and
+applies on an ordinary admin page after reload; the slider is keyboard-operable;
+**Use default** clears the width; the edge handle resizes by drag and by
+keyboard; **Reset this item** leaves the width alone; the dialog stays inside the
+viewport; and the dialog says so when another plugin owns the width. The pure
+helpers behind them (clamping, the preview CSS, pointer-to-width) are in
+[`tests/js/menu-width.test.mjs`](tests/js/menu-width.test.mjs), which asserts the
+same CSS literal as the PHP `MenuWidthCssTest`, so preview and reload cannot drift.
 
 (COMPAT-10) [`tests/e2e/specs/cascade-hide.spec.ts`](tests/e2e/specs/cascade-hide.spec.ts) proves the "Hide its
 sub-items from:" role group is gated to parents with children (absent on a

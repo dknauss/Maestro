@@ -94,6 +94,34 @@ For real access control, pair Maestro with a capability manager such
 as [User Role Editor](https://wordpress.org/plugins/user-role-editor/) or
 [PublishPress Capabilities](https://wordpress.org/plugins/capability-manager-enhanced/).
 
+## Widen The Menu
+
+Renaming creates its own problem: WordPress's admin menu is 160px wide, so a
+longer label wraps onto two lines. Maestro can widen the menu to fit.
+
+- **Drag the menu's edge.** In edit mode, a handle runs down the right edge of
+  the menu. Drag it and the menu resizes under your pointer.
+- **Or set an exact width.** Choose **Menu settings** (the gear in the toolbar's
+  right zone) and use the **Menu width** slider or number field. The menu
+  previews each change as you make it.
+- **With the keyboard,** focus the edge handle and use the arrow keys (`Shift`
+  for bigger steps, `Home` for the WordPress default, `End` for the widest
+  setting), or use the slider and number field in **Menu settings**.
+
+The width is a global setting, like everything else in Maestro: it applies on
+every admin page, for everyone, not only while you are editing. It goes from
+160px (the WordPress default) to 320px and applies on screens 961px and wider.
+Below that, WordPress folds the menu to icons or turns it into an overlay, and
+the width does not apply. Folding still works at any width.
+
+If another plugin already sets the menu width, that plugin wins. **Menu
+settings** tells you when this happens, so a value that has no effect never
+looks like it does.
+
+To go back to WordPress's width, choose **Use default** in **Menu settings**.
+**Reset this item** never changes the width. **Reset all** does, because it
+returns everything to WordPress's defaults.
+
 ## Language Support
 
 Maestro is translation-ready with the `maestro` text

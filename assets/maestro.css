@@ -277,6 +277,7 @@
 .maestro-toolbar .maestro-icon-btn .maestro-btn-label,
 .maestro-toolbar .maestro-vis-btn .maestro-btn-label,
 .maestro-toolbar .maestro-reset-item .maestro-btn-label,
+.maestro-toolbar .maestro-settings-btn .maestro-btn-label,
 .maestro-toolbar .maestro-tour-help .maestro-btn-label {
 	display: none;
 }
@@ -766,6 +767,91 @@
 }
 /* (Reset All shares the unified control box near the top of this file. Exit
  * lives on the WP Toolbar admin-bar toggle, not this right-side group — UX-09.) */
+
+/* ---------- menu-wide settings: menu width (Phase 28-03) -------------- */
+
+.maestro-settings-popover {
+	width: 320px;
+	max-width: 92vw;
+}
+.maestro-settings-title {
+	margin: 0 0 10px;
+	font-size: 14px;
+}
+.maestro-width-label {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 4px;
+}
+.maestro-width-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.maestro-width-range {
+	flex: 1;
+	min-width: 0;
+}
+.maestro-width-number {
+	width: 72px;
+}
+.maestro-width-range:focus-visible,
+.maestro-width-number:focus-visible {
+	outline: 2px solid #2271b1;
+	outline-offset: 1px;
+}
+.maestro-width-state {
+	margin: 8px 0 4px;
+}
+.maestro-width-state.is-overridden {
+	color: #8a2424; /* core's error-notice text tone; 7.9:1 on white */
+}
+.maestro-width-hint {
+	margin: 0;
+}
+.maestro-settings-actions {
+	display: flex;
+	justify-content: space-between;
+	margin-top: 12px;
+}
+
+/* The menu-edge handle. Only where the width applies: 961px and up, unfolded
+ * (edit mode keeps the menu unfolded). Below that core owns the layout. */
+.maestro-width-handle {
+	display: none;
+}
+@media screen and ( min-width: 961px ) {
+	.maestro-editing .maestro-width-handle {
+		display: block;
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		right: -4px;
+		width: 8px;
+		cursor: col-resize;
+		z-index: 2;
+		touch-action: none;
+	}
+	.rtl.maestro-editing .maestro-width-handle {
+		right: auto;
+		left: -4px;
+	}
+	.maestro-editing .maestro-width-handle:hover,
+	.maestro-editing .maestro-width-handle:focus-visible,
+	.maestro-resizing .maestro-width-handle {
+		background: #2271b1;
+	}
+	.maestro-editing .maestro-width-handle:focus-visible {
+		outline: 2px solid #72aee6;
+		outline-offset: 0;
+	}
+	/* Keep the drag from selecting menu text or showing the wrong cursor. */
+	.maestro-resizing,
+	.maestro-resizing * {
+		cursor: col-resize !important;
+		user-select: none;
+	}
+}
 
 /* ---------- guided tour (coachmarks) ----------------------------------- */
 

@@ -237,6 +237,13 @@ class Assets {
 				// Including rows core trimmed, so the editor keeps their stored place.
 				'knownSeparators' => $this->replay->get_known_separators(),
 				'separatorPrefix' => Config::SEPARATOR_PREFIX,
+				// Phase 28: the editor clamps exactly as Config::clean_menu_width() does.
+				'menuWidth'       => array(
+					'min'     => Config::MIN_MENU_WIDTH,
+					'max'     => Config::MAX_MENU_WIDTH,
+					'default' => Config::DEFAULT_MENU_WIDTH,
+					'value'   => $this->config->menu_width(),
+				),
 				'pristine'        => $this->replay->get_pristine(),
 				'i18n'            => array(
 					'saving'             => __( 'Saving…', 'maestro-menu-editor' ),
@@ -314,6 +321,23 @@ class Assets {
 					'tourStep3'          => __( 'Reorder items by dragging — or use the up and down arrows.', 'maestro-menu-editor' ),
 					'tourStep4'          => __( 'Your changes save automatically. Reset one item, or Reset All to start over.', 'maestro-menu-editor' ),
 					'tourStep5'          => __( 'Click Exit when you are done. Your changes stay live for everyone.', 'maestro-menu-editor' ),
+					/* translators: Accessible label / tooltip for the toolbar button, and title of the dialog, holding menu-wide settings. */
+					'settings'           => __( 'Menu settings', 'maestro-menu-editor' ),
+					'menuWidth'          => __( 'Menu width', 'maestro-menu-editor' ),
+					'menuWidthPx'        => __( 'Menu width in pixels', 'maestro-menu-editor' ),
+					'menuWidthHint'      => __( 'Widen the menu so longer labels fit on one line. Applies on every admin page, for everyone, on screens 961px and wider.', 'maestro-menu-editor' ),
+					/* translators: %d: WordPress's default admin menu width in pixels. */
+					'menuWidthDefault'   => __( 'Using the WordPress default (%dpx).', 'maestro-menu-editor' ),
+					/* translators: %d: the stored admin menu width in pixels. */
+					'menuWidthCustom'    => __( 'Custom width: %dpx.', 'maestro-menu-editor' ),
+					/* translators: %d: the width in pixels another plugin is holding the admin menu at. */
+					'widthOverridden'    => __( 'Another plugin sets the menu width (%dpx), so this setting has no effect while that plugin is active.', 'maestro-menu-editor' ),
+					'widthUseDefault'    => __( 'Use default', 'maestro-menu-editor' ),
+					'widthDefaultSet'    => __( 'Menu width reset to the WordPress default.', 'maestro-menu-editor' ),
+					/* translators: Accessible label / tooltip for the handle on the admin menu's edge that resizes it. */
+					'menuWidthHandle'    => __( 'Resize menu', 'maestro-menu-editor' ),
+					/* translators: %d: a width in pixels, read out by screen readers. */
+					'menuWidthValue'     => __( '%d pixels', 'maestro-menu-editor' ),
 				),
 			)
 		);

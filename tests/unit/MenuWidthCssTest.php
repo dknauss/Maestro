@@ -62,4 +62,19 @@ class MenuWidthCssTest extends TestCase {
 	public function test_width_is_cast_to_an_integer() {
 		$this->assertStringContainsString( 'width:200px', Assets::menu_width_css( '200px;}body{display:none' ) );
 	}
+
+	public function test_rule_matches_the_js_preview_byte_for_byte() {
+		// tests/js/menu-width.test.mjs asserts the same literal against
+		// maestroLogic.menuWidthCss(), so the edit-mode preview is what a reload shows.
+		$expected = '@media screen and (min-width: 961px){'
+			. 'body:not(.folded) #adminmenuback,body:not(.folded) #adminmenuwrap,body:not(.folded) #adminmenu,'
+			. 'body:not(.folded) #adminmenu .wp-has-current-submenu .wp-submenu{width:240px}'
+			. 'body:not(.rtl):not(.folded) #wpcontent,body:not(.rtl):not(.folded) #wpfooter{margin-left:240px}'
+			. 'body.rtl:not(.folded) #wpcontent,body.rtl:not(.folded) #wpfooter{margin-right:240px}'
+			. 'body:not(.rtl):not(.folded) #adminmenu .wp-not-current-submenu .wp-submenu{left:240px}'
+			. 'body.rtl:not(.folded) #adminmenu .wp-not-current-submenu .wp-submenu{right:240px}'
+			. '}';
+
+		$this->assertSame( $expected, Assets::menu_width_css( 240 ) );
+	}
 }

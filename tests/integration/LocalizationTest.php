@@ -87,6 +87,17 @@ class LocalizationTest extends WP_UnitTestCase {
 			'tourStep3',
 			'tourStep4',
 			'tourStep5',
+			'settings',
+			'menuWidth',
+			'menuWidthPx',
+			'menuWidthHint',
+			'menuWidthDefault',
+			'menuWidthCustom',
+			'widthOverridden',
+			'widthUseDefault',
+			'widthDefaultSet',
+			'menuWidthHandle',
+			'menuWidthValue',
 		);
 	}
 
