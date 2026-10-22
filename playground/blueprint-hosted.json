@@ -3,12 +3,12 @@
 	"meta": {
 		"title": "Maestro — live demo",
 		"author": "dknauss",
-		"description": "In-place admin menu editor, with User Switching and test users (editor, author, contributor, subscriber) for trying per-role menu visibility."
+		"description": "In-place admin menu editor, with User Switching, an admin-bar user picker, and named test users (Adam Admin, Emma Editor, Andy Author, Carrie Contributor, Steven Subscriber) for trying per-role menu visibility."
 	},
 	"landingPage": "/wp-admin/index.php?maestro_edit=1",
 	"preferredVersions": { "php": "8.3", "wp": "latest" },
 	"login": true,
-	"plugins": [ "user-switching" ],
+	"plugins": [ "user-switching", "admin-bar-user-switching" ],
 	"steps": [
 		{
 			"step": "installPlugin",
@@ -21,19 +21,23 @@
 		},
 		{
 			"step": "wp-cli",
-			"command": "wp user create editor editor@example.com --role=editor --user_pass=password"
+			"command": "wp user update admin --first_name=Adam --last_name=Admin --display_name=\"Adam Admin\""
 		},
 		{
 			"step": "wp-cli",
-			"command": "wp user create author author@example.com --role=author --user_pass=password"
+			"command": "wp user create editor editor@example.com --role=editor --user_pass=password --first_name=Emma --last_name=Editor --display_name=\"Emma Editor\""
 		},
 		{
 			"step": "wp-cli",
-			"command": "wp user create contributor contributor@example.com --role=contributor --user_pass=password"
+			"command": "wp user create author author@example.com --role=author --user_pass=password --first_name=Andy --last_name=Author --display_name=\"Andy Author\""
 		},
 		{
 			"step": "wp-cli",
-			"command": "wp user create subscriber subscriber@example.com --role=subscriber --user_pass=password"
+			"command": "wp user create contributor contributor@example.com --role=contributor --user_pass=password --first_name=Carrie --last_name=Contributor --display_name=\"Carrie Contributor\""
+		},
+		{
+			"step": "wp-cli",
+			"command": "wp user create subscriber subscriber@example.com --role=subscriber --user_pass=password --first_name=Steven --last_name=Subscriber --display_name=\"Steven Subscriber\""
 		}
 	]
 }
