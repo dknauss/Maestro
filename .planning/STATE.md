@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.6.0
 milestone_name: Separator editing and post-v1.5.4 compatibility fixes
 status: in_progress
-stopped_at: "v1.6.0 is SHIPPED — tagged 2026-09-23 and live on WordPress.org the same day (api.wordpress.org: version 1.6.0, last_updated 2026-09-23, tested up to 7.1.3; verified 2026-10-21). The milestone stays open on its two unstarted phases. Order decided 2026-10-21 (D1): Phase 28 → Phase 27 → v1.7. Phase 28 is next."
-last_updated: "2026-10-21T00:00:00.000Z"
-last_activity: "2026-10-21 — Housekeeping, no feature work. Merged the four open docs PRs: network-admin research backlog (#211), readme description intro (#212), select-all role control backlog (#213), and the v1.7 Client-Site Workflow milestone plan (#217, phases 29-31, issues #214-#216). #217 needed its add/add conflict with #213 resolved on the shared todo file. Earlier today: CI Node bumped off EOL 18/20 to 24 (#222) and wp-env core pinned to WordPress 7.1.3 so the PHPUnit library matches (#223). Confirmed v1.6.0 is live on WordPress.org and that this record said otherwise. Still next: Phase 28 -> Phase 27, unless v1.7 displaces them (ROADMAP D1-D6)."
+stopped_at: "v1.7.0 release PR open (Phase 28 menu width alone, decided 2026-10-22). Merging it tags v1.7.0; the WordPress.org deploy then waits for approval. Phase 27 (users-only hiding profiles, v1.8) is next; 27-01 context in PR #230."
+last_updated: "2026-10-22T00:00:00.000Z"
+last_activity: "2026-10-22 — Phase 28 (configurable menu width) complete: #226 plan, #227 stored width + inline CSS, #228 Settings dialog and edge handle (with independent-review fixes). Dan decided width ships alone as v1.7.0; profiles become v1.8 and the Client-Site Workflow v1.9. Release PR for v1.7.0 opened."
 progress:
   total_phases: 2
   completed_phases: 0
@@ -20,7 +20,7 @@ progress:
 
 See: .planning/PROJECT.md (updated 2026-07-03)
 
-**Current focus:** v1.6.0 is shipped and live (2026-09-23). The order is decided (D1, 2026-10-21): **Phase 28 → Phase 27 → v1.7 Client-Site Workflow**. Phase 28 is next.
+**Current focus:** **v1.7.0 (menu width, Phase 28 alone)** is in its release PR (decided 2026-10-22). Then **Phase 27 → v1.8 hiding profiles (users only)**, then the Client-Site Workflow (Phases 29–31, renumbered v1.9). Order from D1 (2026-10-21) is unchanged.
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
 **Historical focus at the time this section was written:** v1.3.1 shipped and
