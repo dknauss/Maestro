@@ -1255,4 +1255,629 @@ class ConfigSanitizeTest extends TestCase {
 		$GLOBALS['maestro_unit_options'][ MAESTRO_OPTION ] = array( 'menu_width' => 'wide' );
 		$this->assertNull( ( new Config() )->menu_width() );
 	}
+
+	/* -----------------------------------------------------------------------
+	 * Phase 27: the `profiles` authoring map
+	 *
+	 * Members validate against the same 60-user get_users() stub as the item
+	 * axes, so IDs at or above 61 are "not a live user" here too.
+	 * --------------------------------------------------------------------- */
+
+	/**
+	 * A well-formed profile round-trips with every list in stored order.
+	 */
+	public function test_profile_round_trips() {
+		$out = $this->config->sanitize(
+			array(
+				'profiles' => array(
+					'p_1' => array(
+						'name'        => 'Reduced view',
+						'users'       => array( 3, '7' ),
+						'hides'       => array( 'tools.php', 'parent.php>child.php' ),
+						'child_hides' => array( 'edit.php' ),
+					),
+				),
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'p_1' => array(
+					'name'        => 'Reduced view',
+					'users'       => array( 3, 7 ),
+					'hides'       => array( 'tools.php', 'parent.php>child.php' ),
+					'child_hides' => array( 'edit.php' ),
+				),
+			),
+			$out['profiles']
+		);
+	}
+
+	/**
+	 * A config with no profiles writes no `profiles` key at all (sparse).
+	 */
+	public function test_no_profiles_key_when_none_are_set() {
+		$out = $this->config->sanitize( array( 'profiles' => array() ) );
+		$this->assertArrayNotHasKey( 'profiles', $out );
+
+		$out = $this->config->sanitize( array( 'items' => array( 'a.php' => array( 'title' => 'A' ) ) ) );
+		$this->assertArrayNotHasKey( 'profiles', $out );
+	}
+
+	/**
+	 * IDs are generated `p_<n>` keys. Anything else is not a profile Maestro
+	 * minted — and a numeric key would be renumbered by PHP — so it is dropped.
+	 */
+	public function test_profile_ids_outside_the_pattern_are_dropped() {
+		$out = $this->config->sanitize(
+			array(
+				'profiles' => array(
+					'p_1'           => array( 'name' => 'Kept' ),
+					'p_0'           => array( 'name' => 'Zero' ),
+					'p_01'          => array( 'name' => 'Leading zero' ),
+					'reduced-view'  => array( 'name' => 'Slug key' ),
+					'p_2<script>'   => array( 'name' => 'Markup' ),
+					"p_3\n"         => array( 'name' => 'Newline' ),
+					7               => array( 'name' => 'Integer key' ),
+					'p_9999999999'  => array( 'name' => 'Too long' ),
+					'p_4'           => 'not an array',
+				),
+			)
+		);
+
+		$this->assertSame( array( 'p_1' ), array_keys( $out['profiles'] ) );
+	}
+
+	/**
+	 * Names are untrusted text people read: trimmed, bounded in CHARACTERS,
+	 * and a profile with no usable name is dropped.
+	 */
+	public function test_profile_names_are_cleaned_and_bounded_in_characters() {
+		$out = $this->config->sanitize(
+			array(
+				'profiles' => array(
+					'p_1' => array( 'name' => '  Spaced  ' ),
+					'p_2' => array( 'name' => str_repeat( 'x', Config::MAX_PROFILE_NAME_CHARS + 5 ) ),
+					'p_3' => array( 'name' => str_repeat( "\xE6\xBC\xA2", Config::MAX_PROFILE_NAME_CHARS + 5 ) ),
+					'p_4' => array( 'name' => '   ' ),
+					'p_5' => array( 'name' => array( 'not', 'text' ) ),
+					'p_6' => array(),
+					'p_7' => array( 'name' => "bad \xC3\x28 utf8" ),
+				),
+			)
+		);
+
+		$this->assertSame( array( 'p_1', 'p_2', 'p_3' ), array_keys( $out['profiles'] ) );
+		$this->assertSame( 'Spaced', $out['profiles']['p_1']['name'] );
+		$this->assertSame( Config::MAX_PROFILE_NAME_CHARS, strlen( $out['profiles']['p_2']['name'] ) );
+		$this->assertSame(
+			Config::MAX_PROFILE_NAME_CHARS * 3,
+			strlen( $out['profiles']['p_3']['name'] ),
+			'Forty CJK characters, not forty bytes.'
+		);
+	}
+
+	/**
+	 * Names are unique ignoring case; the first in incoming order wins.
+	 */
+	public function test_profile_names_are_unique_ignoring_case() {
+		$out = $this->config->sanitize(
+			array(
+				'profiles' => array(
+					'p_1' => array( 'name' => 'Clients' ),
+					'p_2' => array( 'name' => 'CLIENTS' ),
+					'p_3' => array( 'name' => 'Editors' ),
+				),
+			)
+		);
+
+		$this->assertSame( array( 'p_1', 'p_3' ), array_keys( $out['profiles'] ) );
+	}
+
+	/**
+	 * A profile with a name but nothing else is KEPT. The autosave is
+	 * full-replace, so dropping it would delete a profile the moment it was
+	 * created — or the moment its last member's account was deleted.
+	 */
+	public function test_a_named_profile_with_no_members_or_hides_is_kept() {
+		$out = $this->config->sanitize(
+			array(
+				'profiles' => array(
+					'p_1' => array(
+						'name'  => 'New profile',
+						'users' => array( 999 ),
+						'hides' => array( '' ),
+					),
+				),
+			)
+		);
+
+		$this->assertSame( array( 'p_1' => array( 'name' => 'New profile' ) ), $out['profiles'] );
+	}
+
+	/**
+	 * Members are coerced, deduplicated and intersected against live users,
+	 * exactly like hidden_users.
+	 */
+	public function test_profile_members_are_cleaned_like_hidden_users() {
+		$out = $this->config->sanitize(
+			array(
+				'profiles' => array(
+					'p_1' => array(
+						'name'  => 'P',
+						'users' => array( '4', 4, 0, -2, 999, array( 5 ), null, 6 ),
+					),
+				),
+			)
+		);
+
+		$this->assertSame( array( 4, 6 ), $out['profiles']['p_1']['users'] );
+	}
+
+	/**
+	 * Members are capped at MAX_PROFILE_MEMBERS.
+	 */
+	public function test_profile_members_are_capped() {
+		$out = $this->config->sanitize(
+			array(
+				'profiles' => array(
+					'p_1' => array(
+						'name'  => 'P',
+						'users' => range( 1, Config::MAX_PROFILE_MEMBERS + 5 ),
+					),
+				),
+			)
+		);
+
+		$this->assertCount( Config::MAX_PROFILE_MEMBERS, $out['profiles']['p_1']['users'] );
+	}
+
+	/**
+	 * At most MAX_PROFILES profiles are stored; the first N in order win.
+	 */
+	public function test_profiles_are_capped() {
+		$raw = array();
+		for ( $i = 1; $i <= Config::MAX_PROFILES + 3; $i++ ) {
+			$raw[ 'p_' . $i ] = array( 'name' => 'Profile ' . $i );
+		}
+
+		$out = $this->config->sanitize( array( 'profiles' => $raw ) );
+
+		$this->assertCount( Config::MAX_PROFILES, $out['profiles'] );
+		$this->assertArrayHasKey( 'p_1', $out['profiles'] );
+		$this->assertArrayNotHasKey( 'p_' . ( Config::MAX_PROFILES + 1 ), $out['profiles'] );
+	}
+
+	/**
+	 * Hide-lists clean slugs by the item-key rule. child_hides is per-parent,
+	 * so a qualified submenu key is dropped there, as child_hidden_roles is.
+	 */
+	public function test_profile_hide_lists_clean_slugs_like_item_keys() {
+		$out = $this->config->sanitize(
+			array(
+				'profiles' => array(
+					'p_1' => array(
+						'name'        => 'P',
+						'hides'       => array( ' tools.php ', 'parent.php>', array( 'x' ), 'a&gt;b' ),
+						'child_hides' => array( 'edit.php', 'parent.php>child.php' ),
+					),
+				),
+			)
+		);
+
+		$this->assertSame( array( 'tools.php', 'a>b' ), $out['profiles']['p_1']['hides'] );
+		$this->assertSame( array( 'edit.php' ), $out['profiles']['p_1']['child_hides'] );
+	}
+
+	/**
+	 * Profile members ride the ONE bounded membership query, not a full scan.
+	 */
+	public function test_profile_members_share_the_single_bounded_user_query() {
+		$GLOBALS['maestro_unit_get_users_calls'] = array();
+
+		$this->config->sanitize(
+			array(
+				'items'    => array( 'a.php' => array( 'hidden_users' => array( 2 ) ) ),
+				'profiles' => array(
+					'p_1' => array( 'name' => 'P', 'users' => array( 3, 4 ) ),
+					'p_2' => array( 'name' => 'Q', 'users' => array( 4, 5 ) ),
+				),
+			)
+		);
+
+		$calls = $GLOBALS['maestro_unit_get_users_calls'];
+		$this->assertCount( 1, $calls, 'Exactly one membership query per sanitize.' );
+		$this->assertEqualsCanonicalizing( array( 2, 3, 4, 5 ), $calls[0]['include'] );
+	}
+
+	/* -----------------------------------------------------------------------
+	 * Phase 27: compiling profiles onto items[slug].hidden_profiles
+	 * --------------------------------------------------------------------- */
+
+	/**
+	 * A profile hiding A and B writes its ID onto both items, creating the
+	 * entries when the payload has none. child_hides compiles onto the
+	 * per-parent child axis.
+	 */
+	public function test_profile_compiles_onto_the_items_it_hides() {
+		$out = $this->config->sanitize(
+			array(
+				'items'    => array( 'tools.php' => array( 'title' => 'Tools' ) ),
+				'profiles' => array(
+					'p_1' => array(
+						'name'        => 'P',
+						'hides'       => array( 'tools.php', 'parent.php>child.php' ),
+						'child_hides' => array( 'edit.php' ),
+					),
+					'p_2' => array(
+						'name'  => 'Q',
+						'hides' => array( 'tools.php' ),
+					),
+				),
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'tools.php'            => array(
+					'title'           => 'Tools',
+					'hidden_profiles' => array( 'p_1', 'p_2' ),
+				),
+				'parent.php>child.php' => array( 'hidden_profiles' => array( 'p_1' ) ),
+				'edit.php'             => array( 'child_hidden_profiles' => array( 'p_1' ) ),
+			),
+			$out['items']
+		);
+	}
+
+	/**
+	 * The map is the ONLY source of the compiled axes. A payload claiming
+	 * hidden_profiles on an item directly — including a profile that does not
+	 * exist — writes nothing.
+	 */
+	public function test_payload_profile_axes_are_ignored_in_favour_of_the_map() {
+		$out = $this->config->sanitize(
+			array(
+				'items'    => array(
+					'a.php' => array(
+						'title'                 => 'A',
+						'hidden_profiles'       => array( 'p_1', 'p_99' ),
+						'child_hidden_profiles' => array( 'p_1' ),
+					),
+					'b.php' => array( 'hidden_profiles' => array( 'p_1' ) ),
+				),
+				'profiles' => array( 'p_1' => array( 'name' => 'P' ) ),
+			)
+		);
+
+		$this->assertSame( array( 'a.php' => array( 'title' => 'A' ) ), $out['items'] );
+	}
+
+	/**
+	 * Removing a slug from a profile removes the ID from that item, and an
+	 * entry that only existed for the profile is dropped (sparse).
+	 */
+	public function test_removing_a_slug_from_a_profile_clears_that_item() {
+		$first = $this->config->sanitize(
+			array(
+				'profiles' => array(
+					'p_1' => array( 'name' => 'P', 'hides' => array( 'a.php', 'b.php' ) ),
+				),
+			)
+		);
+		$this->assertSame( array( 'a.php', 'b.php' ), array_keys( $first['items'] ) );
+
+		// The editor sends back what it was given, minus b.php in the profile.
+		$next                         = $first;
+		$next['profiles']['p_1']['hides'] = array( 'a.php' );
+		$out                          = $this->config->sanitize( $next );
+
+		$this->assertSame( array( 'a.php' => array( 'hidden_profiles' => array( 'p_1' ) ) ), $out['items'] );
+	}
+
+	/**
+	 * Deleting a profile leaves no reference to it on any item, cleaned at
+	 * compile time (27-01 Q4). Resolve-time self-healing stays as the net.
+	 */
+	public function test_deleting_a_profile_removes_every_reference_on_the_same_save() {
+		$first = $this->config->sanitize(
+			array(
+				'items'    => array( 'a.php' => array( 'title' => 'A' ) ),
+				'profiles' => array(
+					'p_1' => array( 'name' => 'P', 'hides' => array( 'a.php', 'b.php' ), 'child_hides' => array( 'c.php' ) ),
+					'p_2' => array( 'name' => 'Q', 'hides' => array( 'a.php' ) ),
+				),
+			)
+		);
+
+		$next = $first;
+		unset( $next['profiles']['p_1'] );
+		$out = $this->config->sanitize( $next );
+
+		$this->assertSame(
+			array(
+				'a.php' => array(
+					'title'           => 'A',
+					'hidden_profiles' => array( 'p_2' ),
+				),
+			),
+			$out['items']
+		);
+		$this->assertSame( array( 'p_2' ), array_keys( $out['profiles'] ) );
+	}
+
+	/**
+	 * Deleting the last profile is an empty map, which clears everything.
+	 */
+	public function test_an_empty_profiles_map_deletes_every_profile() {
+		$GLOBALS['maestro_unit_options'][ MAESTRO_OPTION ] = $this->config->sanitize(
+			array( 'profiles' => array( 'p_1' => array( 'name' => 'P', 'hides' => array( 'a.php' ) ) ) )
+		);
+
+		$out = ( new Config() )->sanitize( array( 'items' => array(), 'profiles' => array() ) );
+
+		$this->assertArrayNotHasKey( 'profiles', $out );
+		$this->assertSame( array(), $out['items'] );
+	}
+
+	/**
+	 * A payload with NO profiles key keeps the stored map: an editor that
+	 * predates profiles must not wipe them with an unrelated edit.
+	 */
+	public function test_a_payload_without_a_profiles_key_keeps_the_stored_map() {
+		$this->config->save(
+			array( 'profiles' => array( 'p_1' => array( 'name' => 'P', 'users' => array( 3 ), 'hides' => array( 'a.php' ) ) ) )
+		);
+
+		$out = ( new Config() )->sanitize( array( 'items' => array( 'b.php' => array( 'title' => 'B' ) ) ) );
+
+		$this->assertSame(
+			array( 'p_1' => array( 'name' => 'P', 'users' => array( 3 ), 'hides' => array( 'a.php' ) ) ),
+			$out['profiles']
+		);
+		$this->assertSame( array( 'p_1' ), $out['items']['a.php']['hidden_profiles'] );
+	}
+
+	/**
+	 * Slugs attach by NORMALIZED key: a profile naming an equivalent spelling
+	 * lands on the existing entry instead of creating a second, ambiguous key,
+	 * and the profile's list is rewritten to the key it landed on.
+	 */
+	public function test_equivalent_slug_spellings_attach_to_one_entry() {
+		$out = $this->config->sanitize(
+			array(
+				'items'    => array( 'upload.php' => array( 'title' => 'Media' ) ),
+				'profiles' => array(
+					'p_1' => array( 'name' => 'P', 'hides' => array( 'upload.php?ver=9', 'upload.php' ) ),
+				),
+			)
+		);
+
+		$this->assertSame( array( 'upload.php' ), array_keys( $out['items'] ) );
+		$this->assertSame( array( 'p_1' ), $out['items']['upload.php']['hidden_profiles'] );
+		$this->assertSame( array( 'upload.php' ), $out['profiles']['p_1']['hides'] );
+	}
+
+	/**
+	 * The compile is idempotent: sanitizing its own output again — what every
+	 * full-replace autosave does — produces identical output, every time.
+	 */
+	public function test_compile_is_idempotent_over_repeated_saves() {
+		$raw = array(
+			'items'    => array(
+				'upload.php' => array( 'title' => 'Media', 'hidden_roles' => array( 'role-1' ) ),
+				'tools.php'  => array( 'hidden_users' => array( 3 ) ),
+			),
+			'profiles' => array(
+				'p_2' => array( 'name' => 'Second', 'users' => array( 5 ), 'hides' => array( 'tools.php', 'upload.php?ver=2' ) ),
+				'p_1' => array( 'name' => 'First', 'users' => array( 4 ), 'hides' => array( 'new.php' ), 'child_hides' => array( 'upload.php' ) ),
+			),
+		);
+
+		$once = $this->config->sanitize( $raw );
+		$out  = $once;
+		for ( $i = 0; $i < 5; $i++ ) {
+			$out = $this->config->sanitize( $out );
+		}
+
+		$this->assertSame( $once, $out );
+	}
+
+	/**
+	 * Compiled entries respect MAX_ITEMS. A profile naming more new slugs than
+	 * there is room for never evicts an existing override; the slugs that did
+	 * not fit are dropped from the profile so the map never claims a hide that
+	 * is not compiled.
+	 */
+	public function test_compile_respects_max_items_without_evicting_overrides() {
+		$items = array();
+		for ( $i = 1; $i < Config::MAX_ITEMS; $i++ ) {
+			$items[ 'item-' . $i ] = array( 'title' => 'T' . $i );
+		}
+
+		$out = $this->config->sanitize(
+			array(
+				'items'    => $items,
+				'profiles' => array(
+					'p_1' => array( 'name' => 'P', 'hides' => array( 'item-1', 'new-a', 'new-b', 'new-c' ) ),
+				),
+			)
+		);
+
+		$this->assertCount( Config::MAX_ITEMS, $out['items'] );
+		foreach ( $items as $slug => $entry ) {
+			$this->assertSame( $entry['title'], $out['items'][ $slug ]['title'], "{$slug} must survive." );
+		}
+		$this->assertSame( array( 'item-1', 'new-a' ), $out['profiles']['p_1']['hides'] );
+		$this->assertArrayNotHasKey( 'new-b', $out['items'] );
+	}
+
+	/* -----------------------------------------------------------------------
+	 * Phase 27: the list_users gate on profiles
+	 * --------------------------------------------------------------------- */
+
+	/**
+	 * A saver without list_users can neither change the profiles map nor
+	 * destroy it, and the compiled axes come through intact.
+	 */
+	public function test_profiles_are_preserved_and_unchangeable_without_list_users() {
+		$this->config->save(
+			array(
+				'profiles' => array(
+					'p_1' => array( 'name' => 'Reduced', 'users' => array( 3 ), 'hides' => array( 'tools.php' ) ),
+				),
+			)
+		);
+		$stored = $GLOBALS['maestro_unit_options'][ MAESTRO_OPTION ];
+
+		$GLOBALS['maestro_unit_caps'] = array( 'list_users' => false );
+		$out = ( new Config() )->sanitize(
+			array(
+				'items'    => array(
+					'tools.php' => array( 'title' => 'Renamed' ),
+					'other.php' => array( 'hidden_profiles' => array( 'p_1' ) ),
+				),
+				'profiles' => array(
+					'p_1' => array( 'name' => 'Hijacked', 'users' => array( 9 ), 'hides' => array( 'other.php' ) ),
+					'p_2' => array( 'name' => 'New', 'users' => array( 9 ) ),
+				),
+			)
+		);
+
+		$this->assertSame( $stored['profiles'], $out['profiles'] );
+		$this->assertSame(
+			array( 'title' => 'Renamed', 'hidden_profiles' => array( 'p_1' ) ),
+			$out['items']['tools.php']
+		);
+		$this->assertArrayNotHasKey( 'other.php', $out['items'] );
+	}
+
+	/**
+	 * ...including when the payload fills every item slot with filler: the
+	 * profile's item is reserved, not starved.
+	 */
+	public function test_profile_items_are_not_starved_by_filler_without_list_users() {
+		$this->config->save(
+			array( 'profiles' => array( 'p_1' => array( 'name' => 'P', 'hides' => array( 'tools.php' ) ) ) )
+		);
+
+		$GLOBALS['maestro_unit_caps'] = array( 'list_users' => false );
+		$junk                         = array();
+		for ( $i = 0; $i < Config::MAX_ITEMS + 10; $i++ ) {
+			$junk[ 'junk-' . $i ] = array( 'title' => 'J' );
+		}
+		$out = ( new Config() )->sanitize( array( 'items' => $junk ) );
+
+		$this->assertLessThanOrEqual( Config::MAX_ITEMS, count( $out['items'] ) );
+		$this->assertSame( array( 'p_1' ), $out['items']['tools.php']['hidden_profiles'] );
+	}
+
+	/**
+	 * Reset All by such a saver keeps the profiles and their compiled axes.
+	 */
+	public function test_reset_without_list_users_keeps_profiles() {
+		$this->config->save(
+			array(
+				'items'    => array( 'a.php' => array( 'title' => 'A' ) ),
+				'profiles' => array( 'p_1' => array( 'name' => 'P', 'hides' => array( 'tools.php' ) ) ),
+			)
+		);
+
+		$GLOBALS['maestro_unit_caps'] = array( 'list_users' => false );
+		$config                       = new Config();
+		$config->reset();
+		$kept = $config->get();
+
+		$this->assertArrayNotHasKey( 'a.php', $kept['items'] );
+		$this->assertSame( array( 'p_1' ), $kept['items']['tools.php']['hidden_profiles'] );
+		$this->assertSame( array( 'name' => 'P', 'hides' => array( 'tools.php' ) ), $kept['profiles']['p_1'] );
+	}
+
+	/* -----------------------------------------------------------------------
+	 * Phase 27: zero-regression guard
+	 * --------------------------------------------------------------------- */
+
+	/**
+	 * ZERO-REGRESSION GUARD: a config carrying only the shipped role and user
+	 * axes sanitizes byte-identically now that profiles exist.
+	 */
+	public function test_role_and_user_config_is_unchanged_by_profiles() {
+		$raw = array(
+			'items'      => array(
+				'index.php'            => array(
+					'title'              => 'Home',
+					'hidden_roles'       => array( 'role-1' ),
+					'child_hidden_roles' => array( 'role-2' ),
+					'hidden_users'       => array( 3, 4 ),
+					'child_hidden_users' => array( 5 ),
+				),
+				'parent.php>child.php' => array(
+					'title'        => 'Child',
+					'hidden_users' => array( 6 ),
+				),
+			),
+			'top_order'  => array( 'index.php' ),
+			'sub_order'  => array( 'parent.php' => array( 'child.php' ) ),
+			'menu_width' => 220,
+		);
+
+		$expected = array(
+			'schema_version' => Config::SCHEMA_VERSION,
+			'items'          => array(
+				'index.php'            => array(
+					'title'              => 'Home',
+					'hidden_roles'       => array( 'role-1' ),
+					'child_hidden_roles' => array( 'role-2' ),
+					'hidden_users'       => array( 3, 4 ),
+					'child_hidden_users' => array( 5 ),
+				),
+				'parent.php>child.php' => array(
+					'title'        => 'Child',
+					'hidden_users' => array( 6 ),
+				),
+			),
+			'top_order'      => array( 'index.php' ),
+			'sub_order'      => array( 'parent.php' => array( 'child.php' ) ),
+			'menu_width'     => 220,
+		);
+
+		$this->assertSame( $expected, $this->config->sanitize( $raw ) );
+	}
+
+	/**
+	 * All six visibility axes coexist on one entry, independently.
+	 */
+	public function test_all_six_visibility_axes_coexist() {
+		$out = $this->config->sanitize(
+			array(
+				'items'    => array(
+					'menu-slug' => array(
+						'hidden_roles'       => array( 'role-1' ),
+						'child_hidden_roles' => array( 'role-2' ),
+						'hidden_users'       => array( 11 ),
+						'child_hidden_users' => array( 12 ),
+					),
+				),
+				'profiles' => array(
+					'p_1' => array(
+						'name'        => 'P',
+						'hides'       => array( 'menu-slug' ),
+						'child_hides' => array( 'menu-slug' ),
+					),
+				),
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'hidden_roles'          => array( 'role-1' ),
+				'child_hidden_roles'    => array( 'role-2' ),
+				'hidden_users'          => array( 11 ),
+				'child_hidden_users'    => array( 12 ),
+				'hidden_profiles'       => array( 'p_1' ),
+				'child_hidden_profiles' => array( 'p_1' ),
+			),
+			$out['items']['menu-slug']
+		);
+	}
 }

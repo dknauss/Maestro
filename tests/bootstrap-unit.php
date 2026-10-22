@@ -59,6 +59,8 @@ if ( ! function_exists( 'get_users' ) ) {
 	 * @return int[]
 	 */
 	function get_users( $args = array() ) {
+		// Recorded so a test can assert how many membership queries ran.
+		$GLOBALS['maestro_unit_get_users_calls'][] = $args;
 		$population = range( 1, 60 );
 		if ( ! empty( $args['include'] ) ) {
 			return array_values( array_intersect( $population, array_map( 'intval', (array) $args['include'] ) ) );
