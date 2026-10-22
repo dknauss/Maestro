@@ -3,13 +3,19 @@
 	"meta": {
 		"title": "Maestro — latest stable release demo",
 		"author": "dknauss",
-		"description": "In-place admin menu editor, with User Switching, an admin-bar user picker, and named test users (Adam Admin, Emma Editor, Andy Author, Carrie Contributor, Steven Subscriber) for trying per-role menu visibility. (installs the latest released version)."
+		"description": "In-place admin menu editor, with User Switching, an admin-bar user switcher, and named test users (Adam Admin, Emma Editor, Andy Author, Carrie Contributor, Steven Subscriber) for trying per-role menu visibility. (installs the latest released version)."
 	},
 	"landingPage": "/wp-admin/index.php?maestro_edit=1",
 	"preferredVersions": { "php": "8.3", "wp": "latest" },
 	"login": true,
-	"plugins": [ "user-switching", "admin-bar-user-switching" ],
+	"plugins": [ "user-switching" ],
 	"steps": [
+		{
+			"step": "writeFile",
+			"path": "/wordpress/wp-content/mu-plugins/maestro-demo-user-switcher.php",
+			"data": "<?php\n/**\n * Plugin Name: Maestro demo user switcher\n * Description: Playground demo only. Adds a \"Switch user\" admin bar menu listing the demo users. Requires User Switching.\n */\n\nadd_action(\n\t'admin_bar_menu',\n\tstatic function ( WP_Admin_Bar $bar ) {\n\t\tif ( ! class_exists( 'user_switching' ) || ! is_user_logged_in() ) {\n\t\t\treturn;\n\t\t}\n\n\t\t$current = wp_get_current_user();\n\t\t$users   = get_users(\n\t\t\tarray(\n\t\t\t\t'login__in' => array( 'admin', 'editor', 'author', 'contributor', 'subscriber' ),\n\t\t\t\t'orderby'   => 'login__in',\n\t\t\t)\n\t\t);\n\n\t\t$items = array();\n\t\tforeach ( $users as $user ) {\n\t\t\tif ( $user->ID === $current->ID ) {\n\t\t\t\tcontinue;\n\t\t\t}\n\t\t\t$url = user_switching::maybe_switch_url( $user );\n\t\t\tif ( $url ) {\n\t\t\t\t$items[ $user->user_login ] = array( $user, $url );\n\t\t\t}\n\t\t}\n\n\t\tif ( ! $items ) {\n\t\t\treturn;\n\t\t}\n\n\t\t$bar->add_node(\n\t\t\tarray(\n\t\t\t\t'id'    => 'maestro-demo-switch',\n\t\t\t\t'title' => esc_html( sprintf( 'Viewing as %s', $current->display_name ) ),\n\t\t\t)\n\t\t);\n\n\t\tforeach ( $items as $login => $item ) {\n\t\t\tlist( $user, $url ) = $item;\n\t\t\t$role               = $user->roles ? translate_user_role( wp_roles()->role_names[ $user->roles[0] ] ) : '';\n\t\t\t$bar->add_node(\n\t\t\t\tarray(\n\t\t\t\t\t'parent' => 'maestro-demo-switch',\n\t\t\t\t\t'id'     => 'maestro-demo-switch-' . $login,\n\t\t\t\t\t'title'  => esc_html( 'admin' === $login && user_switching::get_old_user() ? sprintf( 'Switch back to %s', $user->display_name ) : sprintf( 'Switch to %s (%s)', $user->display_name, $role ) ),\n\t\t\t\t\t'href'   => $url,\n\t\t\t\t)\n\t\t\t);\n\t\t}\n\t},\n\t100\n);\n",
+			"progress": { "caption": "Adding the demo user switcher" }
+		},
 		{
 			"step": "installPlugin",
 			"pluginData": {

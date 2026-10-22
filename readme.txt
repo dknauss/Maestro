@@ -21,7 +21,7 @@ Instead of a separate settings screen, Maestro turns the admin menu into somethi
 
 And it stays out of the way. Maestro adds **no autoloaded options** and does no work at all on the front end, so a menu you tidied for the dashboard costs your visitors nothing (see **Performance & footprint** below).
 
-**Try Maestro right here.** Launch a demo in [WordPress Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/main/playground/blueprint-hosted.json) — it boots a throwaway site with the plugin active in edit mode, plus User Switching with an admin-bar user picker and named test users (Adam Admin, Emma Editor, Andy Author, Carrie Contributor, Steven Subscriber; password `password`) so you can try per-role visibility by switching to another user's account.
+**Try Maestro right here.** Launch a demo in [WordPress Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/main/playground/blueprint-hosted.json) — it boots a throwaway site with the plugin active in edit mode, plus User Switching with a one-click admin-bar user switcher and named test users (Adam Admin, Emma Editor, Andy Author, Carrie Contributor, Steven Subscriber; password `password`) so you can try per-role visibility by switching to another user's account.
 
 = What you can do — as a site administrator =
 

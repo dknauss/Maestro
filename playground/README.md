@@ -1,8 +1,9 @@
 # Playground blueprints
 
 This directory contains three WordPress Playground blueprints for Maestro. They
-share the same setup (User Switching plus Admin Bar User Switching for a quick
-"Switch to User" picker, the admin renamed Adam Admin, four named test users,
+share the same setup (User Switching plus a demo-only must-use plugin,
+written inline by a `writeFile` step, that adds a "Viewing as" admin-bar menu for
+one-click switching between the demo users, the admin renamed Adam Admin, four named test users,
 edit mode landing page) but differ in how the plugin is installed.
 
 | Display name | Login | Role | Password |
