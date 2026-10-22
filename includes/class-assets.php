@@ -316,10 +316,8 @@ class Assets {
 					'tourSkip'           => __( 'Skip', 'maestro-menu-editor' ),
 					/* translators: 1: current step number, 2: total steps. e.g. "2 of 5". */
 					'tourProgress'       => esc_html__( '%1$d of %2$d', 'maestro-menu-editor' ),
-					/*
-					 * Guided-tour steps, in the order the tour shows them: one per
-					 * editing control, so every toolbar glyph is named once.
-					 */
+					// Guided-tour steps, in the order the tour shows them: one per
+					// editing control, so every toolbar glyph is named once.
 					'tourStep1'          => __( 'Click any menu item to edit it right here on the menu.', 'maestro-menu-editor' ),
 					'tourStep2'          => __( 'Type a new name for the selected item here.', 'maestro-menu-editor' ),
 					'tourStep3'          => __( 'Reorder items by dragging — or use the up and down arrows.', 'maestro-menu-editor' ),
