@@ -50,6 +50,13 @@ class ProfilesCompileTest extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
+		// The REST route runs on the plugin's ONE shared Config, whose in-request
+		// cache outlives this test (delete_option() in another class's set_up
+		// does not clear it). Reset through that same instance, as an admin, so
+		// no later test inherits these profiles from the cache.
+		wp_set_current_user( $this->admin );
+		rest_get_server()->dispatch( new WP_REST_Request( 'DELETE', self::ROUTE ) );
+
 		global $wp_rest_server;
 		$wp_rest_server = null;
 		remove_role( 'maestro_delegate' );
