@@ -39,7 +39,11 @@
 	}
 }
 /* ---------- expanded submenus while editing ------------------------------ */
-.maestro-editing #adminmenu .wp-submenu {
+/* Keel's saved widths include a submenu min-width, and its live preview sets
+ * width with !important. Include the menu-top ancestor so both lose to this
+ * inline-edit layout even when Keel shrinks the parent after page load. The
+ * submenu must size to that parent, not keep the saved flyout minimum. */
+body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 	display: block !important;
 	position: static !important;
 	width: auto !important;
