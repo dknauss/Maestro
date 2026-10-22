@@ -195,4 +195,47 @@ test.describe( 'Phase 28-03 — menu width controls', () => {
 		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
 		await expect( page.locator( '.maestro-width-handle' ) ).toBeHidden();
 	} );
+
+	for ( const width of [ 160, 240, 320 ] ) {
+		test( `RTL toolbar clears the right menu at ${ width }px`, async ( { page } ) => {
+			wp( [ 'option', 'update', 'maestro_config', JSON.stringify( { menu_width: width } ), '--format=json' ] );
+			await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+			await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
+			await page.evaluate( () => {
+				document.body.classList.add( 'rtl' );
+				document.documentElement.dir = 'rtl';
+			} );
+			await expect.poll( () => page.evaluate( () => {
+				const bar = document.querySelector( '.maestro-toolbar' )!.getBoundingClientRect();
+				return { left: Math.round( bar.left ), right: Math.round( bar.right ) };
+			} ) ).toEqual( { left: 0, right: 1280 - width } );
+		} );
+	}
+
+	for ( const width of [ 375, 782 ] ) {
+		test( `mobile settings preserve the open overlay at ${ width }px`, async ( { page } ) => {
+			await page.setViewportSize( { width, height: 900 } );
+			wp( [ 'option', 'update', 'maestro_config', '{"menu_width":240}', '--format=json' ] );
+			await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+			const menu = page.locator( '#adminmenu' );
+			await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
+			await expect( menu ).toBeVisible();
+			const dialog = await openSettings( page );
+			await dialog.getByLabel( 'Menu width in pixels' ).click();
+			await dialog.getByLabel( 'Menu width in pixels' ).fill( '260' );
+			await expect( menu ).toBeVisible();
+			await page.keyboard.press( 'Tab' );
+			await expect( menu ).toBeVisible();
+			await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
+			await page.keyboard.press( 'Escape' );
+			await expect( dialog ).toHaveCount( 0 );
+			await expect( menu ).toBeVisible();
+			await expect( page.locator( '.maestro-settings-btn' ) ).toBeFocused();
+			await page.locator( '#wp-admin-bar-menu-toggle a' ).click();
+			await expect( menu ).toBeHidden();
+			await page.locator( '#wp-admin-bar-menu-toggle a' ).click();
+			await expect( menu ).toBeVisible();
+		} );
+	}
+
 } );

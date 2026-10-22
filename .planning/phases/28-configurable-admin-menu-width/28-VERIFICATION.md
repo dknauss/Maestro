@@ -49,3 +49,23 @@ These have **not** been done by a person:
 What a machine did check: screenshots of the dialog, the edge handle, and a
 flyout at 232px under the default scheme at 1280px, taken against the local
 SQLite site while building. They showed and fixed the off-screen dialog.
+
+## Follow-up lab pass and fixes — 2026-10-22
+
+See [the local lab record](28-LAB-2026-10-22.md) for the baseline findings and
+follow-up. The RTL toolbar offset is fixed with logical CSS offsets. The mobile
+settings dialog stays inside the responsive menu and handles its own Tab/Escape
+keyup events, preventing core from closing the menu during dialog interaction.
+
+Targeted E2E: **11 passed** (setup, three RTL width regressions, settings at
+375/782px, and all five existing mobile editor tests). JavaScript: **99 passed**;
+syntax, doc links and whitespace checks pass. A real Arabic admin also passed
+toolbar-edge checks at 160/240/320px and settings interaction at 375/782px.
+The prior mobile visibility
+failures were investigated; assertions now check the visible menu, not its
+wrapper, and real settings-input clicks exposed and verified the containment fix.
+
+**Human pass still owed:** the four person-only checklist items above remain
+unchecked. Automated evidence covers the listed layouts and real Keel, but does
+not replace a person's colour-scheme, touch/mobile, RTL and compatibility
+acceptance. Phase 28 stays open; its todo has not moved to completed.
