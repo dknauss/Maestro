@@ -316,10 +316,20 @@ class Assets {
 					'tourSkip'           => __( 'Skip', 'maestro-menu-editor' ),
 					/* translators: 1: current step number, 2: total steps. e.g. "2 of 5". */
 					'tourProgress'       => esc_html__( '%1$d of %2$d', 'maestro-menu-editor' ),
+					// Guided-tour steps, in the order the tour shows them: one per
+					// editing control, so every toolbar glyph is named once.
 					'tourStep1'          => __( 'Click any menu item to edit it right here on the menu.', 'maestro-menu-editor' ),
-					'tourStep2'          => __( 'Rename it, change its icon, or hide it from roles using these controls.', 'maestro-menu-editor' ),
+					'tourStep2'          => __( 'Type a new name for the selected item here.', 'maestro-menu-editor' ),
 					'tourStep3'          => __( 'Reorder items by dragging — or use the up and down arrows.', 'maestro-menu-editor' ),
-					'tourStep4'          => __( 'Your changes save automatically. Reset one item, or Reset All to start over.', 'maestro-menu-editor' ),
+					'tourStepIcon'       => __( 'Change the item\'s icon. Pick one from Dashicons or Bootstrap, or choose no icon.', 'maestro-menu-editor' ),
+					'tourStepVisibility' => __( 'Hide the item from chosen roles or people. Everyone else still sees it.', 'maestro-menu-editor' ),
+					'tourStepResetItem'  => __( 'Undo every change to just this item.', 'maestro-menu-editor' ),
+					'tourStepSeparator'  => __( 'Add a separator line below this item. To remove one, select the separator and use the trash button.', 'maestro-menu-editor' ),
+					/* translators: Guided-tour step pointing at the draggable edge of the admin menu. */
+					'tourStepWidth'      => __( 'Drag the menu\'s edge to make it wider or narrower. When the edge has focus, the arrow keys work too.', 'maestro-menu-editor' ),
+					'tourStepSettings'   => __( 'Menu settings let you type an exact menu width or go back to the default.', 'maestro-menu-editor' ),
+					'tourStepHelp'       => __( 'Want this tour again? Use the help button anytime.', 'maestro-menu-editor' ),
+					'tourStep4'          => __( 'Your changes save automatically. Reset All returns the whole menu to the WordPress defaults.', 'maestro-menu-editor' ),
 					'tourStep5'          => __( 'Click Exit when you are done. Your changes stay live for everyone.', 'maestro-menu-editor' ),
 					/* translators: Accessible label / tooltip for the toolbar button, and title of the dialog, holding menu-wide settings. */
 					'settings'           => __( 'Menu settings', 'maestro-menu-editor' ),

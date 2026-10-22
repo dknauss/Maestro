@@ -131,3 +131,17 @@ those states aligned rather than changing Keel's preview semantics.
 Evidence retained locally in `/Users/dan-knauss/.cache/maestro-keel-review/`:
 `before.log`, `after.log`, `real-results.json` and `real-unchanged.png`.
 **Real touch-device testing and the affected human rechecks remain open.**
+
+
+## Tour navigation follow-up — PR #234
+
+The expanded tour skips the width handle below 961px. Back now skips missing
+anchors in the backward direction instead of returning to Settings. At a 900px
+viewport the new `tour.spec.ts` regression failed before the fix (Settings
+remained visible after Back) and passed afterward. It checks backward traversal
+across the hidden width step, forward traversal, return to the first step,
+Back disabled there, and Escape. The existing 12-step desktop tour also passes;
+JavaScript tests: 99/99; doc links and JavaScript syntax pass.
+
+**Real touch-device testing and the affected human rechecks remain outstanding.**
+These desktop browser checks do not close Phase 28 acceptance.
