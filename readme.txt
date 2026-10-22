@@ -177,7 +177,7 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 * If another plugin already sets the menu width (Keel or PX, for example), Maestro leaves it alone. Menu settings shows the other plugin's width, even when it changes while you edit, and dragging the edge saves nothing.
 * **Fixed: in right-to-left languages, the editing toolbar sat under the menu.** It reserved space on the left and ran under the menu on the right. It now starts where the menu ends, on the correct side.
 * **Fixed: on a narrow screen the editing toolbar stacked every control on its own line.** Settings, Help and Reset All now get their own row, and the other controls sit side by side.
-* **Fixed: in right-to-left languages, untranslated text read backwards.** Any editor text still in English now keeps its own left-to-right order, so its punctuation and the tour's step counter appear where they should.
+* **Fixed: in right-to-left languages, untranslated editor text showed its punctuation in the wrong place.** Text still in English now keeps its own left-to-right order, so its punctuation and the tour's step counter sit where they should.
 * **Fixed: on a phone, edit mode hid the first menu row under the admin bar and shrank the touch targets.** Edit mode now keeps WordPress's own narrow-screen menu layout.
 * **Fixed: submenu text in edit mode started 2px further in than the open submenu's.** Every submenu now lines up.
 
