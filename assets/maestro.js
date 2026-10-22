@@ -65,8 +65,20 @@
 	function el( tag, cls, text ) {
 		var n = document.createElement( tag );
 		if ( cls ) { n.className = cls; }
-		if ( text != null ) { n.textContent = text; }
+		if ( text != null ) { setText( n, text ); }
 		return n;
+	}
+	/*
+	 * Set visible text with its own base direction. In an RTL admin any string
+	 * without a translation arrives in English, and inheriting the page's RTL
+	 * direction moves its punctuation and reorders "Step 1 of 5" around the
+	 * digits. dir="auto" takes the direction from the text itself: English
+	 * reads left to right, a translation (or an Arabic menu title) right to left,
+	 * and an LTR admin sees no change.
+	 */
+	function setText( n, text ) {
+		n.textContent = text;
+		n.dir = 'auto';
 	}
 	function closePopovers() {
 		document.querySelectorAll( '.maestro-popover' ).forEach( function ( p ) { p.remove(); } );
@@ -187,7 +199,7 @@
 			}
 			if ( labelTarget && ! labelTarget.querySelector( '.maestro-modified-sr' ) ) {
 				var srText = el( 'span', 'screen-reader-text maestro-modified-sr' );
-				srText.textContent = I.modified;
+				setText( srText, I.modified );
 				labelTarget.appendChild( srText );
 			}
 		} else {
@@ -340,6 +352,10 @@
 			if ( width > 0 ) {
 				document.body.style.setProperty( '--maestro-menu-width', width + 'px' );
 			}
+			// Another plugin can resize the menu while the editor is open (Keel's
+			// width slider previews live). Re-read who owns the width so the
+			// handle and an open Menu settings dialog stop showing a stale one.
+			syncWidthControls();
 		}
 
 		apply();
@@ -798,11 +814,12 @@
 		// carries the same string.
 		var renameLabel = el( 'label', 'screen-reader-text' );
 		renameLabel.setAttribute( 'for', 'maestro-rename-field' );
-		renameLabel.textContent = I.renamePlaceholder;
+		setText( renameLabel, I.renamePlaceholder );
 		var rename = el( 'input', 'maestro-rename-input' );
 		rename.type = 'text';
 		rename.id = 'maestro-rename-field';
 		rename.placeholder = I.renamePlaceholder;
+		rename.dir = 'auto'; // a typed or translated title sets its own direction
 		rename.addEventListener( 'keydown', function ( e ) {
 			if ( e.key === 'Enter' ) {
 				e.preventDefault();
@@ -1020,7 +1037,7 @@
 		var crumb = m.isSub
 			? ( ( model[ m.parent ] ? model[ m.parent ].title : m.parent ) + ' › ' + m.title )
 			: m.title;
-		panel.label.textContent = crumb;
+		setText( panel.label, crumb );
 
 		// A separator can only be moved or removed; an item can gain one below
 		// it (top level only, and not where core would drop it as a duplicate).
@@ -1115,6 +1132,7 @@
 		search.type = 'search';
 		search.setAttribute( 'aria-label', I.iconSearch );
 		search.placeholder = I.iconSearch;
+		search.dir = 'auto';
 		pop.appendChild( search );
 
 		// --- "no icon" escape hatch ---
@@ -1336,8 +1354,16 @@
 		var valueText = I.menuWidthValue.replace( '%d', String( current ) );
 
 		if ( widthHandle ) {
-			widthHandle.setAttribute( 'aria-valuenow', String( current ) );
-			widthHandle.setAttribute( 'aria-valuetext', valueText );
+			// While another plugin holds the width, the handle reports the width
+			// on screen and says why it cannot change it, rather than a value
+			// that moving it would not produce.
+			var held = widthOverriddenAt();
+			// aria-valuenow must stay within valuemin..valuemax; the exact width
+			// goes in the valuetext.
+			widthHandle.setAttribute( 'aria-valuenow', String( held ? Math.min( widthBounds.max, Math.max( widthBounds.min, held ) ) : current ) );
+			widthHandle.setAttribute( 'aria-valuetext', held ? widthStateText( held ) : valueText );
+			widthHandle.setAttribute( 'aria-disabled', held ? 'true' : 'false' );
+			widthHandle.classList.toggle( 'is-overridden', !! held );
 		}
 		// A click outside closes the dialog without going through close().
 		if ( widthControls && ! document.contains( widthControls.range ) ) {
@@ -1359,7 +1385,7 @@
 		window.requestAnimationFrame( function () {
 			if ( widthControls === c ) {
 				var over = widthOverriddenAt();
-				c.state.textContent = widthStateText( over );
+				setText( c.state, widthStateText( over ) );
 				c.state.classList.toggle( 'is-overridden', !! over );
 			}
 		} );
@@ -1538,6 +1564,12 @@
 
 			function move( ev ) {
 				if ( ev.pointerId !== dragging ) { return; }
+				// Taken over mid-drag: stop rather than save widths that no
+				// longer show.
+				if ( blockedByOverride() ) {
+					end( ev );
+					return;
+				}
 				var r = wrap.getBoundingClientRect();
 				var w = window.maestroLogic.menuWidthFromPointer( ev.clientX, r, rtl, widthBounds );
 				setMenuWidth( w === null ? widthBounds.default : w );
@@ -1788,7 +1820,7 @@
 						r.cb.setAttribute( 'aria-disabled', 'true' );
 						r.row.classList.add( 'maestro-vis-locked' );
 						var reason = opts.lockedHint( roleKey );
-						r.hint.textContent = reason;
+						setText( r.hint, reason );
 						r.row.title = reason;
 					} else {
 						r.cb.checked  = getSet().indexOf( roleKey ) !== -1;
@@ -1899,6 +1931,7 @@
 			search.type = 'search';
 			search.id = searchId;
 			search.placeholder = I.userSearch;
+			search.dir = 'auto';
 			search.setAttribute( 'autocomplete', 'off' );
 			group.appendChild( srLabel );
 			group.appendChild( search );
@@ -1919,7 +1952,7 @@
 			group.appendChild( warn );
 
 			function say( text ) {
-				status.textContent = text;
+				setText( status, text );
 				status.hidden = ! text;
 			}
 
@@ -1928,7 +1961,7 @@
 				getSet().forEach( function ( t ) {
 					if ( window.maestroLogic.isSelfTarget( t.id, D.userId ) ) { isSelf = true; }
 				} );
-				warn.textContent = isSelf ? I.userSelfWarning : '';
+				setText( warn, isSelf ? I.userSelfWarning : '' );
 				warn.hidden = ! isSelf;
 			}
 
@@ -2007,7 +2040,7 @@
 					var li  = el( 'li' );
 					var btn = el( 'button', 'maestro-user-result' );
 					btn.type = 'button';
-					btn.textContent = u.name;
+					setText( btn, u.name );
 					// Same detach-before-outside-click hazard as the chip remove
 					// button above: pick() empties this list synchronously.
 					btn.addEventListener( 'click', function ( e ) {
@@ -2400,7 +2433,7 @@
 		statusEl.className = 'maestro-status maestro-status-' + state;
 		var label = window.maestroLogic.modeStatusLabel( state, I );
 		var textEl = statusEl.querySelector( '.maestro-status-text' );
-		if ( textEl ) { textEl.textContent = label; }
+		if ( textEl ) { setText( textEl, label ); }
 		statusEl.setAttribute( 'title', label ); // hover hint reflects state ('' at idle)
 		if ( state === 'saved' || state === 'error' ) {
 			speak( label );
