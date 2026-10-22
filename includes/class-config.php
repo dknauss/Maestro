@@ -126,6 +126,42 @@ class Config {
 	const MAX_HIDDEN_USERS = 50;
 
 	/**
+	 * Maximum number of hiding profiles (Phase 27).
+	 *
+	 * Lower than the per-item caps on purpose: a profile is a named bundle of
+	 * hides edited as one unit in a modal list, and no plausible site needs more
+	 * than a handful. Twenty keeps that list usable and bounds every item's
+	 * compiled `hidden_profiles` list by the same number.
+	 *
+	 * @var int
+	 */
+	const MAX_PROFILES = 20;
+
+	/**
+	 * Maximum members per profile. The same ceiling, and the same reasoning, as
+	 * MAX_HIDDEN_USERS: a profile names people, and the stored list is bounded.
+	 *
+	 * @var int
+	 */
+	const MAX_PROFILE_MEMBERS = 50;
+
+	/**
+	 * Maximum profile name length, in CHARACTERS (not bytes — a name is a label
+	 * people read, so a CJK name gets the same 40 as a Latin one).
+	 *
+	 * @var int
+	 */
+	const MAX_PROFILE_NAME_CHARS = 40;
+
+	/**
+	 * Stable profile IDs are `p_<n>`. Items store the ID, the editor shows the
+	 * name, so a rename never rewrites a single item.
+	 *
+	 * @var string
+	 */
+	const PROFILE_ID_PATTERN = '/^p_[1-9][0-9]{0,8}\z/';
+
+	/**
 	 * Maximum byte length of a data-URI icon (128 KB raw string).
 	 * ~57x the largest bundled Bootstrap icon (2,242 bytes). A truncated
 	 * base64 string is corrupt, so over-limit data-URIs are dropped to ''.
@@ -331,21 +367,25 @@ class Config {
 			? array()
 			: $this->protected_user_axes( function_exists( 'admin_url' ) ? admin_url( '' ) : '' );
 
-		if ( $protected ) {
+		// Phase 27: profiles name people too, so the same saver keeps the whole
+		// map — a profile with no items yet is still someone's authored work.
+		$stored_profiles = current_user_can( 'list_users' ) ? array() : $this->stored_profiles();
+
+		if ( $protected || $stored_profiles ) {
 			$items = array();
 			foreach ( $protected as $entry ) {
 				$items[ $entry['slug'] ] = $entry['axes'];
 			}
-			update_option(
-				MAESTRO_OPTION,
-				array(
-					'schema_version' => self::SCHEMA_VERSION,
-					'items'          => $items,
-					'top_order'      => array(),
-					'sub_order'      => array(),
-				),
-				false
+			$kept = array(
+				'schema_version' => self::SCHEMA_VERSION,
+				'items'          => $items,
+				'top_order'      => array(),
+				'sub_order'      => array(),
 			);
+			if ( $stored_profiles ) {
+				$kept['profiles'] = $stored_profiles;
+			}
+			update_option( MAESTRO_OPTION, $kept, false );
 			$this->cache = null;
 			return;
 		}
@@ -385,6 +425,16 @@ class Config {
 			}
 			if ( ! empty( $entry['child_hidden_users'] ) ) {
 				$axes['child_hidden_users'] = $entry['child_hidden_users'];
+			}
+			// Phase 27: a profile names people, so assigning one to an item hides
+			// it from those people by proxy. Same authority, same protection. The
+			// compile step re-derives these from the preserved map; carrying them
+			// here is what reserves their item slots against filler entries.
+			if ( ! empty( $entry['hidden_profiles'] ) ) {
+				$axes['hidden_profiles'] = $entry['hidden_profiles'];
+			}
+			if ( ! empty( $entry['child_hidden_profiles'] ) ) {
+				$axes['child_hidden_profiles'] = $entry['child_hidden_profiles'];
 			}
 			if ( ! $axes ) {
 				continue;
@@ -527,21 +577,14 @@ class Config {
 				// contract normalize() is written against, and widening the decode
 				// to every key would rewrite `&amp;` slugs that FIX-03 already
 				// resolves correctly in either form.
-				$decoded_key  = html_entity_decode( (string) $slug, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
-				$is_qualified = Slug::is_qualified( $decoded_key );
-				if ( $is_qualified ) {
-					list( $parent_half, $child_half ) = Slug::split_qualified( $decoded_key );
-					$parent_half                      = $this->clean_slug( $parent_half );
-					$child_half                       = $this->clean_slug( $child_half );
-
-					if ( '' === $parent_half || '' === $child_half ) {
-						continue; // Malformed qualified key — skip, mirroring an empty bare slug.
-					}
-
-					$slug = $parent_half . Slug::QUALIFIED_SEPARATOR . $child_half;
-				} else {
-					$slug = $this->clean_slug( $slug );
+				//
+				// The cleaning itself lives in clean_item_key(), so a profile's
+				// hide-list cleans its slugs by the identical rule.
+				$key = $this->clean_item_key( $slug );
+				if ( null === $key ) {
+					continue; // Malformed qualified key — skip, mirroring an empty bare slug.
 				}
+				list( $slug, $is_qualified ) = $key;
 
 				// ONE stored key per NORMALIZED identity.
 				//
@@ -677,6 +720,31 @@ class Config {
 			$out['items'][ $unclaimed['slug'] ] = $unclaimed['axes'];
 		}
 
+		// Phase 27 — hiding profiles. The `profiles` map is AUTHORING: a name, the
+		// people it applies to, and the items it hides. What replay resolves is
+		// the compiled `items[slug].hidden_profiles` list, written here from the
+		// map and from nowhere else, so resolution keeps one seam.
+		//
+		// A saver without `list_users` keeps the stored map wholesale, for the
+		// same reason they keep stored per-user rules: a profile names people.
+		//
+		// A payload with NO `profiles` key also keeps the stored map. The save is
+		// otherwise full-replace, but an editor that predates profiles (a stale
+		// cached script) would send no key at all, and treating that as "delete
+		// every profile" would let any unrelated edit wipe them. A client that
+		// means to delete the last profile sends an empty map.
+		if ( ! $can_target_users || ! array_key_exists( 'profiles', $raw ) ) {
+			$profiles = $this->stored_profiles();
+		} else {
+			$profiles = $this->clean_profiles( $raw['profiles'], $valid_users );
+		}
+
+		$this->compile_profiles( $out['items'], $profiles, $base );
+
+		if ( $profiles ) {
+			$out['profiles'] = $profiles;
+		}
+
 		if ( ! empty( $raw['top_order'] ) && is_array( $raw['top_order'] ) ) {
 			$out['top_order'] = array_slice(
 				array_values( array_map( array( $this, 'clean_slug' ), $raw['top_order'] ) ),
@@ -744,6 +812,255 @@ class Config {
 	}
 
 	/**
+	 * Clean one item key: a bare slug, or a qualified `parent>child` key whose
+	 * halves are cleaned independently and recomposed.
+	 *
+	 * Qualification is decided on the ENTITY-DECODED key (see the comment at
+	 * the call site in sanitize() for why). Shared with the profile hide-lists
+	 * so a slug a profile names is cleaned by exactly the rule an item key is.
+	 *
+	 * @param mixed $slug Raw key.
+	 * @return array{0: string, 1: bool}|null [ cleaned key, is_qualified ], or
+	 *                                        null for a malformed qualified key.
+	 */
+	private function clean_item_key( $slug ) {
+		$decoded_key = html_entity_decode( (string) $slug, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+		if ( ! Slug::is_qualified( $decoded_key ) ) {
+			return array( $this->clean_slug( $slug ), false );
+		}
+
+		list( $parent_half, $child_half ) = Slug::split_qualified( $decoded_key );
+		$parent_half                      = $this->clean_slug( $parent_half );
+		$child_half                       = $this->clean_slug( $child_half );
+
+		if ( '' === $parent_half || '' === $child_half ) {
+			return null;
+		}
+
+		return array( $parent_half . Slug::QUALIFIED_SEPARATOR . $child_half, true );
+	}
+
+	/**
+	 * The stored profiles map, or an empty array. (Phase 27)
+	 *
+	 * Already sanitized when it was written, so it is carried as stored.
+	 *
+	 * @return array
+	 */
+	private function stored_profiles() {
+		$existing = $this->get();
+		return ( ! empty( $existing['profiles'] ) && is_array( $existing['profiles'] ) )
+			? $existing['profiles']
+			: array();
+	}
+
+	/**
+	 * Clean an incoming profiles map into stored form. (Phase 27)
+	 *
+	 * Stored shape, every list sparse (absent when empty):
+	 *
+	 *     'profiles' => [
+	 *         'p_1' => [
+	 *             'name'        => 'Reduced view',
+	 *             'users'       => [ 3, 7 ],
+	 *             'hides'       => [ 'tools.php', 'edit.php?post_type=page' ],
+	 *             'child_hides' => [ 'edit.php' ],
+	 *         ],
+	 *     ]
+	 *
+	 * The key is a stable generated ID; the name is free text people read, so it
+	 * is treated as untrusted and bounded, and must be unique ignoring case. A
+	 * profile is kept while it has a valid ID and name, even with no members or
+	 * hides: under a full-replace autosave, dropping it would delete the
+	 * profile someone just created, and deleting a member's account would
+	 * silently delete the profile they were in.
+	 *
+	 * Members go through clean_user_ids(), so they are intersected against live
+	 * users by the same single bounded query as the item axes.
+	 *
+	 * @param mixed $raw_profiles Incoming map.
+	 * @param int[] $valid_users  Live user IDs from valid_user_ids().
+	 * @return array
+	 */
+	private function clean_profiles( $raw_profiles, array $valid_users ) {
+		if ( empty( $raw_profiles ) || ! is_array( $raw_profiles ) ) {
+			return array();
+		}
+
+		$out   = array();
+		$names = array();
+
+		foreach ( $raw_profiles as $id => $profile ) {
+			if ( count( $out ) >= self::MAX_PROFILES ) {
+				break; // Deterministic: first N profiles in incoming object order win.
+			}
+			if ( ! is_string( $id ) || 1 !== preg_match( self::PROFILE_ID_PATTERN, $id ) || ! is_array( $profile ) ) {
+				continue;
+			}
+
+			$name = self::clean_profile_name( isset( $profile['name'] ) ? $profile['name'] : '' );
+			if ( '' === $name ) {
+				continue;
+			}
+			$fold = function_exists( 'mb_strtolower' ) ? mb_strtolower( $name, 'UTF-8' ) : strtolower( $name );
+			if ( isset( $names[ $fold ] ) ) {
+				continue; // Names are unique ignoring case; the first one wins.
+			}
+
+			$entry = array( 'name' => $name );
+
+			if ( ! empty( $profile['users'] ) && is_array( $profile['users'] ) ) {
+				$users = $this->clean_user_ids( $profile['users'], $valid_users );
+				if ( $users ) {
+					$entry['users'] = array_slice( $users, 0, self::MAX_PROFILE_MEMBERS );
+				}
+			}
+
+			foreach ( array(
+				'hides'       => true,
+				'child_hides' => false,
+			) as $list => $allow_qualified ) {
+				if ( empty( $profile[ $list ] ) || ! is_array( $profile[ $list ] ) ) {
+					continue;
+				}
+				$slugs = array();
+				foreach ( $profile[ $list ] as $slug ) {
+					if ( ! is_scalar( $slug ) ) {
+						continue;
+					}
+					$key = $this->clean_item_key( $slug );
+					// child_hides is per-PARENT, like child_hidden_roles: a
+					// qualified submenu key has no children to hide.
+					if ( null === $key || '' === $key[0] || ( $key[1] && ! $allow_qualified ) ) {
+						continue;
+					}
+					$slugs[] = $key[0];
+					if ( count( $slugs ) >= self::MAX_ITEMS ) {
+						break;
+					}
+				}
+				if ( $slugs ) {
+					$entry[ $list ] = $slugs;
+				}
+			}
+
+			$names[ $fold ] = true;
+			$out[ $id ]     = $entry;
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Bound a profile name to MAX_PROFILE_NAME_CHARS characters.
+	 *
+	 * Counted in characters without depending on mbstring: a /u match takes
+	 * whole UTF-8 characters, and fails (so the name is refused) on invalid
+	 * UTF-8 rather than storing a broken label.
+	 *
+	 * @param mixed $name Raw name.
+	 * @return string Cleaned name, or '' when unusable.
+	 */
+	private static function clean_profile_name( $name ) {
+		if ( ! is_scalar( $name ) ) {
+			return '';
+		}
+		$name = trim( sanitize_text_field( (string) $name ) );
+		if ( '' === $name || 1 !== preg_match( '/^.{1,' . self::MAX_PROFILE_NAME_CHARS . '}/us', $name, $m ) ) {
+			return '';
+		}
+		return trim( $m[0] );
+	}
+
+	/**
+	 * Compile the profiles map onto the items' `hidden_profiles` and
+	 * `child_hidden_profiles` axes. (Phase 27)
+	 *
+	 * Runs on EVERY save, over its own earlier output, because the autosave is a
+	 * full replace. So it is built to be idempotent: it first strips whatever
+	 * profile axes the items carry (the payload's, or ones merged from stored
+	 * protected rules) and rebuilds them from the map alone. A profile that was
+	 * deleted, or a slug removed from a profile, therefore leaves nothing behind,
+	 * and the stored axes can never drift from the map over repeated saves.
+	 *
+	 * Slugs attach by NORMALIZED key, so a profile naming `upload.php?ver=9`
+	 * lands on a stored `upload.php` entry rather than creating a second key the
+	 * Axis-1 guard would resolve to "apply nothing". The profile's list is then
+	 * rewritten to the key it actually landed on, which is what makes the next
+	 * save produce the same output.
+	 *
+	 * Bounded by MAX_ITEMS without evicting anything: a slug that would need a
+	 * NEW entry when the item map is full is dropped from the profile instead,
+	 * so the stored map never claims a hide that is not compiled.
+	 *
+	 * @param array  $items    Sanitized items, modified in place.
+	 * @param array  $profiles Clean profiles map, modified in place.
+	 * @param string $base     Admin base for Slug::normalize_qualified().
+	 * @return void
+	 */
+	private function compile_profiles( array &$items, array &$profiles, $base ) {
+		foreach ( $items as $slug => $entry ) {
+			unset( $entry['hidden_profiles'], $entry['child_hidden_profiles'] );
+			if ( $entry ) {
+				$items[ $slug ] = $entry;
+			} else {
+				unset( $items[ $slug ] ); // Existed only to carry profile axes.
+			}
+		}
+
+		if ( ! $profiles ) {
+			return;
+		}
+
+		$by_norm = array();
+		foreach ( array_keys( $items ) as $slug ) {
+			$nk = Slug::normalize_qualified( (string) $slug, $base );
+			if ( '' !== $nk && ! isset( $by_norm[ $nk ] ) ) {
+				$by_norm[ $nk ] = (string) $slug;
+			}
+		}
+
+		$axes = array(
+			'hides'       => 'hidden_profiles',
+			'child_hides' => 'child_hidden_profiles',
+		);
+
+		foreach ( $profiles as $id => $profile ) {
+			foreach ( $axes as $list => $axis ) {
+				if ( empty( $profile[ $list ] ) ) {
+					continue;
+				}
+				$kept = array();
+				$seen = array();
+				foreach ( $profile[ $list ] as $slug ) {
+					$nk = Slug::normalize_qualified( (string) $slug, $base );
+					if ( '' === $nk || isset( $seen[ $nk ] ) ) {
+						continue;
+					}
+					if ( isset( $by_norm[ $nk ] ) ) {
+						$target = $by_norm[ $nk ];
+					} elseif ( count( $items ) < self::MAX_ITEMS ) {
+						$target           = (string) $slug;
+						$by_norm[ $nk ]   = $target;
+						$items[ $target ] = array();
+					} else {
+						continue; // No room for a new entry; never evict one.
+					}
+					$seen[ $nk ]                 = true;
+					$items[ $target ][ $axis ][] = $id;
+					$kept[]                      = $target;
+				}
+				if ( $kept ) {
+					$profile[ $list ] = $kept;
+				} else {
+					unset( $profile[ $list ] );
+				}
+			}
+			$profiles[ $id ] = $profile;
+		}
+	}
+
+	/**
 	 * Is this a separator id Maestro could have minted?
 	 *
 	 * @param mixed $id Candidate id.
@@ -779,8 +1096,24 @@ class Config {
 	 */
 	private static function candidate_user_ids( array $raw ) {
 		$ids = array();
+
+		// Phase 27: profile members are validated by the same one query. The
+		// profile and member caps keep this bounded exactly as the item axes are.
+		if ( ! empty( $raw['profiles'] ) && is_array( $raw['profiles'] ) ) {
+			foreach ( array_slice( $raw['profiles'], 0, self::MAX_PROFILES, true ) as $profile ) {
+				if ( empty( $profile['users'] ) || ! is_array( $profile['users'] ) ) {
+					continue;
+				}
+				foreach ( array_slice( $profile['users'], 0, self::MAX_PROFILE_MEMBERS ) as $id ) {
+					if ( is_scalar( $id ) && (int) $id > 0 ) {
+						$ids[] = (int) $id;
+					}
+				}
+			}
+		}
+
 		if ( empty( $raw['items'] ) || ! is_array( $raw['items'] ) ) {
-			return $ids;
+			return array_values( array_unique( $ids ) );
 		}
 		foreach ( $raw['items'] as $item ) {
 			if ( ! is_array( $item ) ) {

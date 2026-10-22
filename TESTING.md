@@ -2,7 +2,7 @@
 
 Three layers, smallest and fastest first.
 
-> **Current expected status:** unit 192/192 with 287 assertions, integration 162/162 with 666 assertions single-site (12 skipped) + 162/162 with 689 under WP_MULTISITE=1, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, (COMPAT-04) independent shared-slug top-level/submenu editing, (COMPAT-10) the "Hide its sub-items from:" role group's independent child-hiding behavior, and (ROLE-02) per-user hiding asserted in a targeted user's own authenticated session — including a same-role bystander who must keep every row, which is the assertion that proves the rule did not widen to the whole role. (Phase 25) the toolbar's reserved status slot (no layout shift across a save), its widened focus-ring contrast, focused buttons keeping readable text on the dark surface, and the derived-locked checkbox's aria-disabled/aria-describedby semantics are covered in [`tests/e2e/specs/toolbar-dark-surface.spec.ts`](tests/e2e/specs/toolbar-dark-surface.spec.ts).
+> **Current expected status:** unit 217/217 with 533 assertions, integration 168/168 single-site (12 skipped) + 168/168 under WP_MULTISITE=1, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, (COMPAT-04) independent shared-slug top-level/submenu editing, (COMPAT-10) the "Hide its sub-items from:" role group's independent child-hiding behavior, and (ROLE-02) per-user hiding asserted in a targeted user's own authenticated session — including a same-role bystander who must keep every row, which is the assertion that proves the rule did not widen to the whole role. (Phase 25) the toolbar's reserved status slot (no layout shift across a save), its widened focus-ring contrast, focused buttons keeping readable text on the dark surface, and the derived-locked checkbox's aria-disabled/aria-describedby semantics are covered in [`tests/e2e/specs/toolbar-dark-surface.spec.ts`](tests/e2e/specs/toolbar-dark-surface.spec.ts).
 
 ## Gotchas (first run)
 
@@ -65,6 +65,17 @@ asserts that a stored menu width reaches ordinary admin pages as inline CSS on
 the always-loaded `maestro-admin-bar` stylesheet, that a site with no width gets
 none, that applying it costs no query beyond the config read Replay already
 makes, and the REST save/reset round trip.
+
+(Phase 27-02) hiding-profile storage is covered in
+[`tests/integration/ProfilesCompileTest.php`](tests/integration/ProfilesCompileTest.php):
+a profile's hide-lists compile onto `items[slug].hidden_profiles` and
+`child_hidden_profiles` through the real REST save, repeated full-replace saves
+do not drift, members are intersected against live users (a deleted account
+drops out, the profile stays), and a saver without `list_users` can neither
+change nor destroy profiles on save or Reset All. The caps, name rules, the
+MAX_ITEMS bound on compiled entries and the zero-regression guard for the role
+and user axes are unit tests in
+[`tests/unit/ConfigSanitizeTest.php`](tests/unit/ConfigSanitizeTest.php).
 
 (ROLE-02) the per-user axes are covered in
 [`tests/integration/ReplayHiddenUsersTest.php`](tests/integration/ReplayHiddenUsersTest.php)
