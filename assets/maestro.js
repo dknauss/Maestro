@@ -46,6 +46,13 @@
 	// Separators Maestro added that the user removed this session. Recorded so
 	// the save does not carry them forward as merely unrendered.
 	var droppedSeparators = [];
+	// Phase 28: the one menu-wide setting so far. null means "use WordPress's
+	// default"; the sparse contract never stores the default itself.
+	var widthBounds = D.menuWidth || { min: 160, max: 320, default: 160, value: null };
+	var menuWidth = widthBounds.value || null;
+	var widthPreviewEl = null;  // <style> holding the live preview rule
+	var widthControls = null;   // the open Settings dialog's inputs, if any
+	var widthHandle = null;     // the drag handle at the menu edge
 
 	/* ---------- helpers ---------------------------------------------------- */
 
@@ -417,6 +424,7 @@
 
 		bindSeparators();
 		buildToolbar();
+		bindWidthHandle();
 		bindMenuSelection();
 		initSortables();
 		// First-run guided tour — after the toolbar/panel and selection wiring
@@ -918,6 +926,17 @@
 		iconButton( help, 'dashicons-editor-help', I.tourHelp );
 		help.addEventListener( 'click', startTour );
 
+		// Menu-wide settings (Phase 28-03; DECISION-settings-surface.md). The
+		// right zone already holds the one global control, Reset All, so a
+		// global setting reads as global here rather than as a property of the
+		// selected row.
+		var settings = el( 'button', 'button maestro-settings-btn' );
+		settings.type = 'button';
+		settings.setAttribute( 'aria-haspopup', 'dialog' );
+		iconButton( settings, 'dashicons-admin-settings', I.settings );
+		settings.addEventListener( 'click', function () { openSettings( settings ); } );
+
+		right.appendChild( settings );
 		right.appendChild( help );
 		right.appendChild( resetAll );
 		bar.appendChild( right );
@@ -1251,6 +1270,299 @@
 		placePopover( pop, anchorBtn );
 		applyFilter();
 		search.focus();
+	}
+
+	/* ---------- menu-wide settings: menu width (Phase 28-03) -------------- */
+
+	/*
+	 * The width has two controls on purpose (DECISION-settings-surface.md): a
+	 * field in the Settings dialog, which is the precise and labelled path, and
+	 * a handle on the menu's edge, which is the discoverable one. Both go
+	 * through setMenuWidth(), so there is one preview and one save path.
+	 *
+	 * The preview changes the MENU, not --maestro-menu-width: 28-01 measures the
+	 * rendered menu, so the toolbar follows by itself, and a width another
+	 * plugin forces with !important visibly does not change. That is also how
+	 * the dialog knows to say so.
+	 */
+	function previewMenuWidth() {
+		if ( ! widthPreviewEl ) {
+			widthPreviewEl = el( 'style' );
+			widthPreviewEl.id = 'maestro-menu-width-preview';
+			// After the server's own rule, so at equal specificity this one wins.
+			document.body.appendChild( widthPreviewEl );
+		}
+		widthPreviewEl.textContent = window.maestroLogic.menuWidthCss( menuWidth || widthBounds.default );
+	}
+
+	function setMenuWidth( value ) {
+		var next = window.maestroLogic.clampMenuWidth( value, widthBounds );
+		if ( next === menuWidth ) {
+			syncWidthControls();
+			return;
+		}
+		menuWidth = next;
+		previewMenuWidth();
+		syncWidthControls();
+		// Debounced: the preview is immediate, the writes are not one per pixel.
+		scheduleAutosave();
+	}
+
+	/**
+	 * The width another plugin is holding the menu at, or null when the
+	 * rendered menu is the width Maestro asked for. Only meaningful where the
+	 * width applies at all: 961px and up, not folded.
+	 */
+	function widthOverriddenAt() {
+		var wrap = document.getElementById( 'adminmenuwrap' );
+		if ( ! wrap || window.innerWidth < 961 || document.body.classList.contains( 'folded' ) ) {
+			return null;
+		}
+		var rendered = Math.round( wrap.getBoundingClientRect().width );
+		return rendered && rendered !== ( menuWidth || widthBounds.default ) ? rendered : null;
+	}
+
+	function widthStateText( overridden ) {
+		if ( overridden ) {
+			return I.widthOverridden.replace( '%d', String( overridden ) );
+		}
+		return menuWidth
+			? I.menuWidthCustom.replace( '%d', String( menuWidth ) )
+			: I.menuWidthDefault.replace( '%d', String( widthBounds.default ) );
+	}
+
+	function syncWidthControls() {
+		var current = menuWidth || widthBounds.default;
+		var valueText = I.menuWidthValue.replace( '%d', String( current ) );
+
+		if ( widthHandle ) {
+			widthHandle.setAttribute( 'aria-valuenow', String( current ) );
+			widthHandle.setAttribute( 'aria-valuetext', valueText );
+		}
+		// A click outside closes the dialog without going through close().
+		if ( widthControls && ! document.contains( widthControls.range ) ) {
+			widthControls = null;
+		}
+		if ( ! widthControls ) { return; }
+
+		var c = widthControls;
+		c.range.value = String( current );
+		c.range.setAttribute( 'aria-valuetext', valueText );
+		// Leave the number alone while someone is typing in it: "2" on the way
+		// to "240" must not snap to the minimum under their cursor.
+		if ( document.activeElement !== c.number ) {
+			c.number.value = String( current );
+		}
+		c.reset.disabled = ! menuWidth;
+
+		// Measure after the preview has laid out.
+		window.requestAnimationFrame( function () {
+			if ( widthControls === c ) {
+				var over = widthOverriddenAt();
+				c.state.textContent = widthStateText( over );
+				c.state.classList.toggle( 'is-overridden', !! over );
+			}
+		} );
+	}
+
+	function openSettings( anchorBtn ) {
+		closePopovers();
+
+		var pop = el( 'div', 'maestro-popover maestro-settings-popover' );
+		pop.setAttribute( 'role', 'dialog' );
+		pop.setAttribute( 'aria-modal', 'true' );
+		pop.setAttribute( 'aria-labelledby', 'maestro-settings-title' );
+
+		var title = el( 'h2', 'maestro-settings-title', I.settings );
+		title.id = 'maestro-settings-title';
+		pop.appendChild( title );
+
+		var group = el( 'div', 'maestro-width-field' );
+		var label = el( 'label', 'maestro-width-label', I.menuWidth );
+		label.htmlFor = 'maestro-width-range';
+		group.appendChild( label );
+
+		var row = el( 'div', 'maestro-width-row' );
+		var range = el( 'input', 'maestro-width-range' );
+		range.type = 'range';
+		range.id = 'maestro-width-range';
+		range.min = String( widthBounds.min );
+		range.max = String( widthBounds.max );
+		range.step = '1';
+		range.setAttribute( 'aria-describedby', 'maestro-width-state maestro-width-hint' );
+		row.appendChild( range );
+
+		var number = el( 'input', 'maestro-width-number' );
+		number.type = 'number';
+		number.min = range.min;
+		number.max = range.max;
+		number.step = '1';
+		number.setAttribute( 'aria-label', I.menuWidthPx );
+		number.setAttribute( 'aria-describedby', 'maestro-width-state' );
+		row.appendChild( number );
+
+		var unit = el( 'span', 'maestro-width-unit', 'px' );
+		unit.setAttribute( 'aria-hidden', 'true' );
+		row.appendChild( unit );
+		group.appendChild( row );
+
+		var state = el( 'p', 'maestro-width-state' );
+		state.id = 'maestro-width-state';
+		group.appendChild( state );
+
+		var hint = el( 'p', 'maestro-width-hint description', I.menuWidthHint );
+		hint.id = 'maestro-width-hint';
+		group.appendChild( hint );
+		pop.appendChild( group );
+
+		var actions = el( 'div', 'maestro-settings-actions' );
+		var reset = el( 'button', 'button maestro-width-reset', I.widthUseDefault );
+		reset.type = 'button';
+		var done = el( 'button', 'button button-primary maestro-settings-done', I.tourDone );
+		done.type = 'button';
+		actions.appendChild( reset );
+		actions.appendChild( done );
+		pop.appendChild( actions );
+
+		widthControls = { range: range, number: number, state: state, reset: reset };
+
+		range.addEventListener( 'input', function () { setMenuWidth( range.value ); } );
+		// While typing, apply only values already in range; settle on change.
+		number.addEventListener( 'input', function () {
+			var n = parseInt( number.value, 10 );
+			if ( n >= widthBounds.min && n <= widthBounds.max ) { setMenuWidth( n ); }
+		} );
+		number.addEventListener( 'change', function () {
+			// Number() so "250.5" or "1e3" round and clamp like the server does;
+			// anything unparseable keeps the current width instead of resetting it.
+			var n = number.value === '' ? widthBounds.default : Number( number.value );
+			setMenuWidth( isFinite( n ) ? n : ( menuWidth || widthBounds.default ) );
+			number.value = String( menuWidth || widthBounds.default );
+		} );
+		reset.addEventListener( 'click', function () {
+			setMenuWidth( widthBounds.default );
+			speak( I.widthDefaultSet );
+			range.focus();
+		} );
+
+		function close() {
+			widthControls = null;
+			closePopovers();
+			anchorBtn.focus();
+		}
+		done.addEventListener( 'click', close );
+
+		// Escape closes and restores focus; Tab is trapped within the dialog.
+		pop.addEventListener( 'keydown', function ( e ) {
+			if ( e.key === 'Escape' ) {
+				e.preventDefault();
+				close();
+				return;
+			}
+			if ( e.key !== 'Tab' ) { return; }
+			var focusable = Array.prototype.filter.call(
+				pop.querySelectorAll( 'input, button' ),
+				function ( n ) { return ! n.disabled && n.offsetParent !== null; }
+			);
+			if ( ! focusable.length ) { return; }
+			var first = focusable[ 0 ];
+			var last  = focusable[ focusable.length - 1 ];
+			if ( e.shiftKey && document.activeElement === first ) {
+				e.preventDefault();
+				last.focus();
+			} else if ( ! e.shiftKey && document.activeElement === last ) {
+				e.preventDefault();
+				first.focus();
+			}
+		} );
+
+		placePopover( pop, anchorBtn );
+		syncWidthControls();
+		range.focus();
+	}
+
+	/*
+	 * The edge handle follows the WAI-ARIA window-splitter pattern: a focusable
+	 * role="separator" with a value, so the drag has a keyboard twin (arrows,
+	 * Shift for bigger steps, Home for the default, End for the maximum) and is
+	 * not a pointer-only control.
+	 */
+	function bindWidthHandle() {
+		var wrap = document.getElementById( 'adminmenuwrap' );
+		if ( ! wrap ) { return; }
+
+		var rtl = document.body.classList.contains( 'rtl' );
+		var h = el( 'div', 'maestro-width-handle' );
+		h.tabIndex = 0;
+		h.setAttribute( 'role', 'separator' );
+		h.setAttribute( 'aria-orientation', 'vertical' );
+		h.setAttribute( 'aria-label', I.menuWidthHandle );
+		h.setAttribute( 'aria-valuemin', String( widthBounds.min ) );
+		h.setAttribute( 'aria-valuemax', String( widthBounds.max ) );
+		h.setAttribute( 'aria-controls', 'adminmenuwrap' );
+		h.title = I.menuWidthHandle;
+		wrap.appendChild( h );
+		widthHandle = h;
+		syncWidthControls();
+
+		// When another plugin holds the width, say so instead of saving a value
+		// that would change nothing on screen.
+		function blockedByOverride() {
+			var over = widthOverriddenAt();
+			if ( over ) {
+				speak( I.widthOverridden.replace( '%d', String( over ) ) );
+			}
+			return !! over;
+		}
+
+		var dragging = null;
+		h.addEventListener( 'pointerdown', function ( e ) {
+			if ( e.button !== 0 || dragging !== null ) { return; }
+			e.preventDefault();
+			if ( blockedByOverride() ) { return; }
+			dragging = e.pointerId;
+			h.setPointerCapture( e.pointerId );
+			document.body.classList.add( 'maestro-resizing' );
+
+			function move( ev ) {
+				if ( ev.pointerId !== dragging ) { return; }
+				var r = wrap.getBoundingClientRect();
+				var w = window.maestroLogic.menuWidthFromPointer( ev.clientX, r, rtl, widthBounds );
+				setMenuWidth( w === null ? widthBounds.default : w );
+			}
+			function end( ev ) {
+				if ( ev.pointerId !== dragging ) { return; }
+				dragging = null;
+				document.body.classList.remove( 'maestro-resizing' );
+				h.removeEventListener( 'pointermove', move );
+				h.removeEventListener( 'pointerup', end );
+				h.removeEventListener( 'pointercancel', end );
+				h.removeEventListener( 'lostpointercapture', end );
+			}
+			h.addEventListener( 'pointermove', move );
+			h.addEventListener( 'pointerup', end );
+			h.addEventListener( 'pointercancel', end );
+			h.addEventListener( 'lostpointercapture', end );
+		} );
+		// The click that ends a drag must not count as a click outside an open
+		// popover and close it.
+		h.addEventListener( 'click', function ( e ) { e.stopPropagation(); } );
+
+		h.addEventListener( 'keydown', function ( e ) {
+			var current = menuWidth || widthBounds.default;
+			var step = e.shiftKey ? 20 : 4;
+			var grow = rtl ? 'ArrowLeft' : 'ArrowRight';
+			var shrink = rtl ? 'ArrowRight' : 'ArrowLeft';
+			var next = null;
+			if ( e.key === grow || e.key === 'ArrowUp' ) { next = current + step; }
+			else if ( e.key === shrink || e.key === 'ArrowDown' ) { next = current - step; }
+			else if ( e.key === 'Home' ) { next = widthBounds.min; }
+			else if ( e.key === 'End' ) { next = widthBounds.max; }
+			if ( next === null ) { return; }
+			e.preventDefault();
+			if ( blockedByOverride() ) { return; }
+			setMenuWidth( next );
+		} );
 	}
 
 	// Reflect an icon value into the rendered menu image. The picker supplies a
@@ -1903,10 +2215,21 @@
 			top = window.scrollY + r.bottom + 4;
 		}
 		pop.style.top  = top + 'px';
-		pop.style.left = ( window.scrollX + r.left ) + 'px';
+		// Anchored at its left edge, but never past the viewport's right edge:
+		// a control in the toolbar's right zone would otherwise push the dialog
+		// off-screen and scroll the whole page sideways.
+		var left = Math.min( r.left, document.documentElement.clientWidth - pop.offsetWidth - 8 );
+		pop.style.left = ( window.scrollX + Math.max( 8, left ) ) + 'px';
 
 		setTimeout( function () {
 			document.addEventListener( 'click', function handler( e ) {
+				// Closed some other way (Done, Escape, another popover): drop the
+				// listener without moving focus, or it would pull focus out of
+				// whatever opened next.
+				if ( ! document.contains( pop ) ) {
+					document.removeEventListener( 'click', handler );
+					return;
+				}
 				if ( ! pop.contains( e.target ) && e.target !== anchorBtn ) {
 					pop.remove();
 					document.removeEventListener( 'click', handler );
@@ -2044,8 +2367,8 @@
 		if ( carried.added.length ) { cfg.separators = carried.added; }
 		if ( removedSeparators.length ) { cfg.removed_separators = removedSeparators.slice(); }
 		// The save is full-replace and nothing in the menu DOM holds the width,
-		// so carry the stored value forward or any edit would erase it (28-02).
-		if ( D.config && D.config.menu_width ) { cfg.menu_width = D.config.menu_width; }
+		// so it rides along on every save or any edit would erase it (28-02).
+		if ( menuWidth ) { cfg.menu_width = menuWidth; }
 
 		return cfg;
 	}

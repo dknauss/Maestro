@@ -364,6 +364,66 @@ function carrySeparators( o ) {
 	return { order: order, added: added };
 }
 
+/* ---------- admin menu width (Phase 28) -------------------------------- */
+
+/**
+ * Bound a requested menu width, mirroring PHP's Config::clean_menu_width().
+ *
+ * @param {*}      value  Raw value (a number, or a string of digits).
+ * @param {Object} bounds { min, max, default } from Config's constants.
+ * @return {number|null} Bounded integer, or null when invalid or the default
+ *                       (the sparse contract never stores the default).
+ */
+function clampMenuWidth( value, bounds ) {
+	var n;
+	if ( typeof value === 'number' ) {
+		if ( ! isFinite( value ) ) { return null; }
+		n = Math.round( value );
+	} else if ( typeof value === 'string' && /^[0-9]+$/.test( value ) ) {
+		n = parseInt( value, 10 );
+	} else {
+		return null;
+	}
+	n = Math.max( bounds.min, Math.min( bounds.max, n ) );
+	return n === bounds.default ? null : n;
+}
+
+/**
+ * The CSS that applies a menu width. Must stay byte-identical to PHP's
+ * Assets::menu_width_css(), so the live preview is what a reload will show;
+ * the JS and PHP suites assert the same literal.
+ *
+ * @param {number} width Width in px.
+ * @return {string}
+ */
+function menuWidthCss( width ) {
+	// parseInt truncates like PHP's (int) cast, so the two builders agree.
+	var n  = parseInt( width, 10 );
+	var px = ( n || 0 ) + 'px';
+
+	return '@media screen and (min-width: 961px){' +
+		'body:not(.folded) #adminmenuback,body:not(.folded) #adminmenuwrap,body:not(.folded) #adminmenu,' +
+		'body:not(.folded) #adminmenu .wp-has-current-submenu .wp-submenu{width:' + px + '}' +
+		'body:not(.rtl):not(.folded) #wpcontent,body:not(.rtl):not(.folded) #wpfooter{margin-left:' + px + '}' +
+		'body.rtl:not(.folded) #wpcontent,body.rtl:not(.folded) #wpfooter{margin-right:' + px + '}' +
+		'body:not(.rtl):not(.folded) #adminmenu .wp-not-current-submenu .wp-submenu{left:' + px + '}' +
+		'body.rtl:not(.folded) #adminmenu .wp-not-current-submenu .wp-submenu{right:' + px + '}' +
+		'}';
+}
+
+/**
+ * Turn a pointer position during the edge drag into a bounded width.
+ *
+ * @param {number}  clientX Pointer x.
+ * @param {Object}  rect    The menu's { left, right } edges.
+ * @param {boolean} rtl     Whether the admin is right-to-left.
+ * @param {Object}  bounds  { min, max, default }.
+ * @return {number|null} As clampMenuWidth().
+ */
+function menuWidthFromPointer( clientX, rect, rtl, bounds ) {
+	return clampMenuWidth( rtl ? rect.right - clientX : clientX - rect.left, bounds );
+}
+
 /* ---------- dual-export guard ----------------------------------------- */
 
 var api = {
@@ -379,6 +439,9 @@ var api = {
 	userTargetIds:             userTargetIds,
 	isSelfTarget:              isSelfTarget,
 	carrySeparators:           carrySeparators,
+	clampMenuWidth:            clampMenuWidth,
+	menuWidthCss:              menuWidthCss,
+	menuWidthFromPointer:      menuWidthFromPointer,
 };
 
 if ( typeof module !== 'undefined' && module.exports ) {

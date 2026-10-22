@@ -52,9 +52,13 @@ Hiding a menu item only declutters the menu — the underlying page still loads 
    shared role who doesn't need a tool). A parent's sub-items can be hidden per
    person too, with the parent left visible. Same cosmetic-only guarantee: the
    page still loads by URL for anyone authorized to see it.
-7. Use **Reset this item** to discard one item's customizations, or **Reset
+8. Widen the menu so longer labels fit: drag the handle on the menu's edge, or
+   set an exact width under **Menu settings** (the gear in the toolbar). It
+   applies on every admin page for everyone, from 961px wide, and stands aside
+   when another plugin already sets the width.
+9. Use **Reset this item** to discard one item's customizations, or **Reset
    all** to delete the saved configuration and return to WordPress defaults.
-8. Choose **Exit Menu Editing** when finished. Pending autosaves are flushed
+10. Choose **Exit Menu Editing** when finished. Pending autosaves are flushed
    before the page reloads.
 
 For the longer walkthrough, see [`docs/user-guide.md`](docs/user-guide.md).
@@ -101,6 +105,7 @@ Maestro is deliberately lightweight. *Figures are a v1.3.1 snapshot from a stati
 
 - **Front end: 0 extra queries.** Every hook is admin-gated (the admin-bar node bails on `!is_admin()`), so the plugin is inert for public traffic.
 - **Admin page: exactly 1 extra query** — a single non-autoloaded `get_option`, cached in-request by [`Config::get()`](includes/class-config.php) (one read no matter how many consumers) and served from the object cache after first read → **0 queries with a persistent object cache**. Not autoloaded, so it adds nothing to `alloptions`.
+- **A stored menu width: 0 extra queries.** It reads the same cached config and adds one inline CSS rule to the always-loaded `maestro-admin-bar` stylesheet. Sites that never set a width get nothing.
 - **Save: 1 `update_option`**, via the REST endpoint while actively editing. Rename/reorder/hide are applied by mutating the in-memory `$menu`/`$submenu` globals during `admin_menu` — no queries.
 
 ## Install (to a site)

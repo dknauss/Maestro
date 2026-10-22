@@ -588,7 +588,15 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-10-21
-Stopped at: order decided (D1): Phase 28 → Phase 27 → v1.7. Next: Phase 28.
+Stopped at: Phase 28 built. 28-02 merged (#227); 28-03 (width control) in review. Next: the 28-03 human pass (`28-VERIFICATION.md`), then Phase 27.
+
+**Update 2026-10-21 (evening) — Phase 28 built.** 28-02 (stored `menu_width`,
+applied while browsing, no new query) merged as #227, with PHPStan's memory cap
+raised to 1G (main peaked at 504 of 512 MB). 28-03 adds the control: a Menu
+settings dialog (slider + number, live preview, a notice when another plugin owns
+the width) and a keyboard-operable drag handle on the menu edge. Dan confirmed
+v1.7 waits until after Phases 28 and 27. Phase 28 closes after the human checks
+listed in `28-VERIFICATION.md`.
 
 **Update 2026-10-21 (later) — order decided, and the Phase 28 load note corrected.**
 Dan placed v1.7 after both remaining v1.6 phases: **Phase 28 → Phase 27 → v1.7**
