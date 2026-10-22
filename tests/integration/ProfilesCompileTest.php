@@ -191,11 +191,17 @@ class ProfilesCompileTest extends WP_UnitTestCase {
 	 */
 	public function test_replay_reads_the_profiles_map_only_for_membership() {
 		$replay = file_get_contents( dirname( __DIR__, 2 ) . '/includes/class-replay.php' );
-		$this->assertSame( 1, substr_count( $replay, "['profiles']" ), 'Replay may read the profiles map once, for membership.' );
 
 		$start = strpos( $replay, 'function current_profile_ids(' );
-		$this->assertNotFalse( $start );
-		$end = strpos( $replay, 'function ', $start + 10 );
-		$this->assertStringContainsString( "['profiles']", substr( $replay, $start, $end - $start ), 'That one read is the membership lookup.' );
+		$this->assertNotFalse( $start, 'The membership lookup exists.' );
+		$end    = strpos( $replay, 'function ', $start + 10 );
+		$helper = substr( $replay, $start, $end - $start );
+
+		$this->assertStringContainsString( "['profiles']", $helper, 'The membership lookup reads the map.' );
+		$this->assertStringNotContainsString(
+			"['profiles']",
+			str_replace( $helper, '', $replay ),
+			'Nothing else in replay may read the profiles map.'
+		);
 	}
 }
