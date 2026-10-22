@@ -1,9 +1,11 @@
 # Phase 28 · Plan 03 — Summary
 
 **Date:** 2026-10-21
-**Status:** Built and tested. Task 1's choices were offered to Dan with a
-recommended option, which this build implements. Task 4's human pass is still
-owed; see `28-VERIFICATION.md`.
+**Status:** Built; human acceptance remains open after the qualified sign-off.
+#235 addressed toolbar crowding, English fallback direction and width-control
+feedback. The follow-up fixes real Keel's saved submenu minimum during live
+width changes and adds alignment regressions. See `28-VERIFICATION.md`.
+Real touch-device testing remains outstanding; Phase 27 was not started here.
 
 ## Task 1 — the control's form
 

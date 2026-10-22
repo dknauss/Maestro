@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.6.0
 milestone_name: Separator editing and post-v1.5.4 compatibility fixes
 status: in_progress
-stopped_at: "v1.7.0 release PR open (Phase 28 menu width alone, decided 2026-10-22). Merging it tags v1.7.0; the WordPress.org deploy then waits for approval. Phase 27 (users-only hiding profiles, v1.8) is next; 27-01 context in PR #230."
+stopped_at: "Phase 28 implementation built; acceptance remains open after narrow-toolbar, English fallback RTL and Keel live-width findings. #235 and release #232 merged; this follow-up fixes the remaining submenu alignment. Real touch-device testing remains outstanding. Phase 27 not started here."
 last_updated: "2026-10-22T00:00:00.000Z"
-last_activity: "2026-10-22 — Phase 28 (configurable menu width) complete: #226 plan, #227 stored width + inline CSS, #228 Settings dialog and edge handle (with independent-review fixes). Dan decided width ships alone as v1.7.0; profiles become v1.8 and the Client-Site Workflow v1.9. Release PR for v1.7.0 opened."
+last_activity: "2026-10-22 — Follow-up to #235: actual Keel preview retained a saved submenu minimum and overlapped content when shrinking. Added two failing-then-passing alignment regressions and verified real Keel on a separate local site. Reconciled Phase 28 acceptance; retained available-core-scheme/width pass and left touch-device and affected human rechecks open."
 progress:
   total_phases: 2
   completed_phases: 0
   total_plans: 8
-  completed_plans: 0
-  percent: 0
+  completed_plans: 2
+  percent: 25
 ---
 
 # Project State
@@ -20,7 +20,10 @@ progress:
 
 See: .planning/PROJECT.md (updated 2026-07-03)
 
-**Current focus:** **v1.7.0 (menu width, Phase 28 alone)** is in its release PR (decided 2026-10-22). Then **Phase 27 → v1.8 hiding profiles (users only)**, then the Client-Site Workflow (Phases 29–31, renumbered v1.9). Order from D1 (2026-10-21) is unchanged.
+**Current focus:** Phase 28 live-width compatibility follow-up and outstanding
+human acceptance. #232 (v1.7.0 release) and #235 merged; deployment was not
+verified in this follow-up. Preserve the release decision: profiles are v1.8,
+Client-Site Workflow v1.9. No Phase 27 implementation was started here.
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
 **Historical focus at the time this section was written:** v1.3.1 shipped and
@@ -30,9 +33,13 @@ recorded above; this note is kept only to date the paragraph that follows it.
 ## Current Position
 
 Milestone: **v1.6.0 Separator editing and post-v1.5.4 compatibility fixes** (active) — the release itself ✅ **SHIPPED 2026-09-23**: tag `v1.6.0`, live on WordPress.org the same day. The milestone stays open on its two phases, **0/2 complete**.
-Phase: **Phase 28 (Configurable Admin Menu Width)** next, then **Phase 27 (Cloned-Role Hiding Profiles)** — neither started. Phase 28's 28-01 input (measure the live `#adminmenuwrap` width) already shipped early as #199, so 28-02's `menu_width` is the first real build step.
-Plan: none open. Everything since the release has been fixes and record-keeping: editor fixes #202/#203, `env:clean` teardown #205, six backlog entries (#204, #206, #207, #209, #211, #213), npm audit clearance #210, CI Node 24 #222, wp-env core pinned to 7.1.3 #223, readme intro #212, and the v1.7 plan #217. **Order decided 2026-10-21 (D1):** Phase 28 → Phase 27 → v1.7. D2–D6 stay open; Phase 30 is blocked on D2.
-Verified 2026-10-21: WordPress.org serving 1.6.0; `main` at 3be2375 with CI green.
+Phase: **Phase 28 implementation built, acceptance open.** Plans 28-01/02 complete;
+28-03 awaits affected human rechecks and real touch-device testing. Phase 27 has
+not started in this work.
+Plan: preserve #235's toolbar/bidi/control-feedback fixes and correct only the
+remaining real Keel submenu alignment. Regression assertions cover menu rows,
+all expanded submenus, background, content and toolbar, not just root widths.
+Release: #232 merged as `46ef918`; no new release/deploy is claimed by this fix.
 
 ### Historical position (the v1.5 cycle, written 2026-08-09)
 
@@ -587,8 +594,15 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-10-21
-Stopped at: Phase 28 built. 28-02 merged (#227); 28-03 (width control) in review. Next: the 28-03 human pass (`28-VERIFICATION.md`), then Phase 27.
+Last session: 2026-10-22
+Stopped at: Phase 28 follow-up to #235; acceptance and real touch-device checks remain open. No Phase 27 work.
+
+**Update 2026-10-22 — real Keel transition follow-up.** The live preview retained
+Keel's saved submenu minimum when shrinking to 160px. A more specific edit-mode
+submenu selector resolves the overlap; two regression cases and a separate real
+Keel lab verify alignment through width changes and reload. Preserve the earlier
+core-scheme/width human pass, but keep the affected rechecks and real touch-device
+testing outstanding. #235 and #232 already merged; do not redo their work.
 
 **Update 2026-10-21 (evening) — Phase 28 built.** 28-02 (stored `menu_width`,
 applied while browsing, no new query) merged as #227, with PHPStan's memory cap

@@ -8,6 +8,16 @@ files:
   - assets/maestro-admin-bar.css (the only always-loaded stylesheet today — the natural home or the model for a new one)
 ---
 
+## Current status — 2026-10-22
+
+Implementation built (#227, #228, #231, #235), but acceptance remains open after
+Dan's follow-up screenshots. Retain the available-core-scheme/width pass; recheck
+narrow layout, English fallback in Arabic RTL, and real Keel's live width
+transitions after the fixes. The follow-up to #235 adds the missing submenu/
+content alignment regression. Real touch-device testing is still outstanding.
+Modern is no longer a required core colour scheme. Do not move this todo to
+completed until the remaining human checks are accepted.
+
 ## Problem
 
 WordPress hard-codes the admin sidebar at 160px. Renaming an item to something
