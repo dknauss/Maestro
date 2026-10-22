@@ -12,7 +12,7 @@
 
 In-place editing of the WordPress admin menu — rename items, reorder them, swap top-level icons, and hide items per role. Global configuration, no separate settings screen: the editor is toggled from the admin bar and operates on the menu itself.
 
-**▶ [Try it live in WordPress Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/main/playground/blueprint-stable.json)** — boots a throwaway site with the plugin active in edit mode, User Switching, and test users (editor / author / contributor / subscriber, password `password`) so you can try per-role visibility by switching users. This demo installs the **latest released version**. ([Development build (main)](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/main/playground/blueprint-hosted.json) also available.)
+**▶ [Try it live in WordPress Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/main/playground/blueprint-stable.json)** — boots a throwaway site with the plugin active in edit mode, User Switching with a "Viewing as" admin-bar user switcher, and named test users (Adam Admin, Emma Editor, Andy Author, Carrie Contributor, Steven Subscriber; logins `editor` / `author` / `contributor` / `subscriber`, password `password`) so you can try per-role visibility by switching users. This demo installs the **latest released version**. ([Development build (main)](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/main/playground/blueprint-hosted.json) also available.)
 
 ## Screenshots
 
@@ -133,8 +133,11 @@ See [`TESTING.md`](TESTING.md) for details and the standalone (non-Docker) paths
 
 A WordPress Playground blueprint ([`playground/blueprint.json`](playground/blueprint.json)) spins up a throwaway
 site for trying the editor — including **per-role visibility** — without a local
-WordPress. It installs [User Switching](https://wordpress.org/plugins/user-switching/),
-creates four test users (`editor`, `author`, `contributor`, `subscriber`, all
+WordPress. It installs [User Switching](https://wordpress.org/plugins/user-switching/)
+plus a small demo-only must-use plugin that adds a "Viewing as" admin-bar menu
+for one-click switching between the demo users, names the admin **Adam Admin**,
+creates four named test users (**Emma Editor** `editor`, **Andy Author** `author`,
+**Carrie Contributor** `contributor`, **Steven Subscriber** `subscriber`, all
 password `password`), activates Maestro, and drops you into edit mode
 as `admin`.
 

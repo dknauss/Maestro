@@ -39,7 +39,11 @@
 	}
 }
 /* ---------- expanded submenus while editing ------------------------------ */
-.maestro-editing #adminmenu .wp-submenu {
+/* Keel's saved widths include a submenu min-width, and its live preview sets
+ * width with !important. Include the menu-top ancestor so both lose to this
+ * inline-edit layout even when Keel shrinks the parent after page load. The
+ * submenu must size to that parent, not keep the saved flyout minimum. */
+body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 	display: block !important;
 	position: static !important;
 	width: auto !important;
@@ -580,8 +584,8 @@
 .maestro-toolbar {
 	position: fixed;
 	bottom: 0;
-	left: var( --maestro-menu-width, 160px ); /* clears the admin menu column, at its measured width */
-	right: 0;
+	inset-inline-start: var( --maestro-menu-width, 160px ); /* clears the menu column in either direction */
+	inset-inline-end: 0;
 	z-index: 99999;
 	display: flex;
 	flex-wrap: wrap; /* BUG-03: wrap zones onto extra rows when narrow, never overlap */
@@ -707,8 +711,8 @@
 	gap: 8px;
 	flex: 1;
 	min-width: 0;
-	padding-left: 12px; /* inset reinforces the left-separator as a zone boundary */
-	border-left: 1px solid #3c434a; /* subtle zone divider (matches right-actions); no WP scheme variable exists for this custom surface, so hardcoded */
+	padding-inline-start: 12px; /* inset reinforces the separator as a zone boundary; logical so RTL mirrors it */
+	border-inline-start: 1px solid #3c434a; /* subtle zone divider (matches right-actions); no WP scheme variable exists for this custom surface, so hardcoded */
 }
 .maestro-panel[hidden] { display: none; }
 .maestro-panel-label {
@@ -760,10 +764,10 @@
 .maestro-toolbar-right {
 	display: flex;
 	gap: 8px;
-	margin-left: auto;
+	margin-inline-start: auto;
 	flex-shrink: 0; /* keeps help/reset-all reachable; never squeezed */
-	padding-left: 12px;
-	border-left: 1px solid #3c434a; /* subtle zone divider (mirrors panel separator) */
+	padding-inline-start: 12px;
+	border-inline-start: 1px solid #3c434a; /* subtle zone divider (mirrors panel separator) */
 }
 /* (Reset All shares the unified control box near the top of this file. Exit
  * lives on the WP Toolbar admin-bar toggle, not this right-side group — UX-09.) */
@@ -844,6 +848,13 @@
 	.maestro-editing .maestro-width-handle:focus-visible {
 		outline: 2px solid #72aee6;
 		outline-offset: 0;
+	}
+	/* Another plugin holds the width: still focusable, so it can say why. */
+	.maestro-editing .maestro-width-handle.is-overridden {
+		cursor: not-allowed;
+	}
+	.maestro-editing .maestro-width-handle.is-overridden:hover {
+		background: transparent;
 	}
 	/* Keep the drag from selecting menu text or showing the wrong cursor. */
 	.maestro-resizing,
@@ -973,7 +984,7 @@
 
 /* Inherit the WP admin column collapse breakpoint. */
 @media screen and ( max-width: 782px ) {
-	.maestro-toolbar { left: 0; }
+	.maestro-toolbar { inset-inline-start: 0; }
 	.maestro-panel-label { max-width: 120px; }
 	.maestro-rename-input { width: 120px; }
 
@@ -984,6 +995,17 @@
 	.maestro-toolbar {
 		gap: 6px 10px;
 		padding: 8px 10px;
+	}
+	/* The right zone (Settings, Help, Reset All) never shrinks, so on one row
+	 * with it the panel was squeezed to a single control's width and stacked
+	 * every button on its own line. Give the right zone a row of its own and the
+	 * panel the whole first row, where its controls wrap side by side. */
+	.maestro-toolbar-right {
+		flex: 1 0 100%;
+		justify-content: flex-end;
+		margin-inline-start: 0;
+		padding-inline-start: 0;
+		border-inline-start: 0;
 	}
 	.maestro-toolbar .button {
 		padding: 4px 8px;

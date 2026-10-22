@@ -1,0 +1,61 @@
+/* Keel Defaults, GPL-2.0-or-later.
+ * Exact menu-width preview rules from assets/css/settings.css at 3a19720.
+ * Keep selector specificity and !important flags: the saved submenu minimum
+ * must remain present while the preview returns to Leave unchanged (160px).
+ */
+@media screen and (min-width: 961px) {
+	body.keel-menu-width-preview:not(.folded) #adminmenu,
+	body.keel-menu-width-preview:not(.folded) #adminmenuback,
+	body.keel-menu-width-preview:not(.folded) #adminmenuwrap,
+	body.keel-menu-width-preview:not(.folded) #adminmenu li.menu-top,
+	body.keel-menu-width-preview:not(.folded) #adminmenu .wp-submenu {
+		width: var(--keel-menu-preview-width) !important;
+	}
+
+	body.keel-menu-width-preview:not(.folded) #adminmenuback {
+		position: fixed;
+		top: 0;
+		bottom: -120px;
+		background: var(--keel-menu-preview-bg, #1d2327);
+	}
+
+	body.keel-menu-width-preview:not(.folded) #adminmenu li.menu-top > a.menu-top,
+	body.keel-menu-width-preview:not(.folded) #adminmenu .wp-has-current-submenu a.wp-has-current-submenu,
+	body.keel-menu-width-preview:not(.folded) #adminmenu li.current a.menu-top {
+		width: auto !important;
+	}
+
+	body.keel-menu-width-preview:not(.folded) #adminmenu li.menu-top:not(.wp-has-current-submenu) .wp-submenu {
+		left: var(--keel-menu-preview-width);
+	}
+
+	body.keel-menu-width-preview:not(.folded) #adminmenu .wp-has-current-submenu .wp-submenu.wp-submenu-wrap {
+		left: auto;
+	}
+
+	body.keel-menu-width-preview:not(.folded) #wpcontent,
+	body.keel-menu-width-preview:not(.folded) #wpfooter {
+		margin-left: var(--keel-menu-preview-width) !important;
+	}
+
+	body.rtl.keel-menu-width-preview:not(.folded) #adminmenu li.menu-top:not(.wp-has-current-submenu) .wp-submenu {
+		right: var(--keel-menu-preview-width);
+		left: auto;
+	}
+
+	body.rtl.keel-menu-width-preview:not(.folded) #adminmenu .wp-has-current-submenu .wp-submenu.wp-submenu-wrap {
+		right: auto;
+	}
+
+	/*
+	 * Both declarations are !important. The left-to-right rule above sets margin-left
+	 * !important and also matches an .rtl body, and the saved widen sets margin-right
+	 * !important, so plain declarations here lost to both: the preview pushed the
+	 * content from the wrong side while the saved margin stayed on the right one.
+	 */
+	body.rtl.keel-menu-width-preview:not(.folded) #wpcontent,
+	body.rtl.keel-menu-width-preview:not(.folded) #wpfooter {
+		margin-right: var(--keel-menu-preview-width) !important;
+		margin-left: 0 !important;
+	}
+}

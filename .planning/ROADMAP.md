@@ -19,8 +19,10 @@
 
 ## Next up
 
-**v1.6.0 is cut.** Once its WordPress.org deploy is approved and verified,
-resume feature work in the order **Phase 28 → Phase 27**.
+**Phase 28 is built; human acceptance remains open.** #235 and release #232
+merged. The Keel live-preview submenu alignment needed the follow-up recorded
+in `28-VERIFICATION.md`. Real touch-device testing and affected human rechecks
+remain outstanding. Phase 27 was not started in this work.
 
 **The Client-Site Workflow (Phases 29–31, now v1.9) runs after both** (D1,
 decided 2026-10-21): **Phase 28 → Phase 27 → Phases 29–31**. Release decision (2026-10-22):
@@ -429,6 +431,7 @@ M2/M3 items from `todos/pending/2026-08-02-a11y-locked-checkbox-refinements.md`.
 > contact, since membership is a property of the USER rather than the item.
 
 ### Phase 28: Configurable Admin Menu Width
+**Status:** Built; 28-01/02 complete, 28-03 acceptance open. Retain Dan's core-scheme/width pass, but recheck the screenshot exceptions after #235 and the real Keel alignment follow-up. Real touch-device testing remains outstanding; todo stays pending.
 **Goal**: A renamed menu item that used to wrap at WordPress's hardcoded 160px no longer has to — a global width, applied while browsing, with folding still working everywhere it should
 **Depends on**: nothing (28-01 is independently shippable)
 **Requirements**: (none formal — V2-09, extracted from SPEC.md item 9 during the 2026-08-09 backlog reconciliation)

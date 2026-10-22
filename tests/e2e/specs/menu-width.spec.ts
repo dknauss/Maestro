@@ -169,7 +169,8 @@ test.describe( 'Phase 28-03 — menu width controls', () => {
 		const handle = page.getByRole( 'separator', { name: 'Resize menu' } );
 		await handle.focus();
 		await page.keyboard.press( 'Shift+ArrowRight' );
-		await expect( handle ).toHaveAttribute( 'aria-valuenow', '160' );
+		await expect( handle ).toHaveAttribute( 'aria-valuenow', '200' ); // the width on screen, not one it cannot produce
+		await expect( handle ).toHaveAttribute( 'aria-disabled', 'true' );
 		await expect( page.locator( '#a11y-speak-polite' ) ).toContainText( /Another plugin sets the menu width/ );
 		// Longer than the autosave debounce.
 		await page.waitForTimeout( 800 );
@@ -194,5 +195,194 @@ test.describe( 'Phase 28-03 — menu width controls', () => {
 		await page.setViewportSize( { width: 900, height: 900 } );
 		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
 		await expect( page.locator( '.maestro-width-handle' ) ).toBeHidden();
+	} );
+
+	for ( const width of [ 160, 240, 320 ] ) {
+		test( `RTL toolbar clears the right menu at ${ width }px`, async ( { page } ) => {
+			wp( [ 'option', 'update', 'maestro_config', JSON.stringify( { menu_width: width } ), '--format=json' ] );
+			await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+			await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
+			await page.evaluate( () => {
+				document.body.classList.add( 'rtl' );
+				document.documentElement.dir = 'rtl';
+			} );
+			await expect.poll( () => page.evaluate( () => {
+				const bar = document.querySelector( '.maestro-toolbar' )!.getBoundingClientRect();
+				return { left: Math.round( bar.left ), right: Math.round( bar.right ) };
+			} ) ).toEqual( { left: 0, right: 1280 - width } );
+		} );
+	}
+
+	for ( const width of [ 375, 782 ] ) {
+		test( `mobile settings preserve the open overlay at ${ width }px`, async ( { page } ) => {
+			await page.setViewportSize( { width, height: 900 } );
+			wp( [ 'option', 'update', 'maestro_config', '{"menu_width":240}', '--format=json' ] );
+			await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+			const menu = page.locator( '#adminmenu' );
+			await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
+			await expect( menu ).toBeVisible();
+			const dialog = await openSettings( page );
+			await dialog.getByLabel( 'Menu width in pixels' ).click();
+			await dialog.getByLabel( 'Menu width in pixels' ).fill( '260' );
+			await expect( menu ).toBeVisible();
+			await page.keyboard.press( 'Tab' );
+			await expect( menu ).toBeVisible();
+			await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
+			await page.keyboard.press( 'Escape' );
+			await expect( dialog ).toHaveCount( 0 );
+			await expect( menu ).toBeVisible();
+			await expect( page.locator( '.maestro-settings-btn' ) ).toBeFocused();
+			await page.locator( '#wp-admin-bar-menu-toggle a' ).click();
+			await expect( menu ).toBeHidden();
+			await page.locator( '#wp-admin-bar-menu-toggle a' ).click();
+			await expect( menu ).toBeVisible();
+		} );
+	}
+
+	for ( const width of [ 320, 375, 600 ] ) {
+		test( `narrow toolbar lays the panel controls out in rows at ${ width }px`, async ( { page } ) => {
+			await page.setViewportSize( { width, height: 900 } );
+			await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+			await page.locator( '#menu-posts > a.menu-top' ).click();
+			await expect( page.locator( '.maestro-panel' ) ).toBeVisible();
+
+			const layout = await page.evaluate( () => {
+				const box = ( n: Element ) => n.getBoundingClientRect();
+				const visible = ( sel: string ) => Array.from( document.querySelectorAll( sel ) )
+					.filter( ( n ) => ( n as HTMLElement ).offsetParent !== null )
+					.map( box );
+				const panel = visible( '.maestro-panel button, .maestro-panel input' );
+				const right = visible( '.maestro-toolbar-right button' );
+				const rows = new Set( panel.map( ( r ) => Math.round( r.top ) ) );
+				return {
+					panelControls: panel.length,
+					panelRows: rows.size,
+					panelBottom: Math.max( ...panel.map( ( r ) => r.bottom ) ),
+					rightTop: Math.min( ...right.map( ( r ) => r.top ) ),
+					rightEdge: Math.max( ...right.map( ( r ) => r.right ) ),
+					viewport: document.documentElement.clientWidth,
+				};
+			} );
+
+			// Before the fix the panel was squeezed to one control's width and
+			// every control took a row of its own.
+			expect( layout.panelRows ).toBeLessThanOrEqual( Math.ceil( layout.panelControls / 2 ) );
+			expect( layout.panelRows ).toBeLessThanOrEqual( 3 );
+			// Settings, Help and Reset All get their own row, below the panel.
+			expect( layout.rightTop ).toBeGreaterThanOrEqual( layout.panelBottom );
+			expect( layout.rightEdge ).toBeLessThanOrEqual( layout.viewport );
+		} );
+	}
+
+	test( 'in an RTL admin, untranslated English keeps its own direction', async ( { page } ) => {
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
+		await page.evaluate( () => {
+			document.body.classList.add( 'rtl' );
+			document.documentElement.dir = 'rtl';
+		} );
+		const dialog = await openSettings( page );
+
+		const dirs = await dialog.evaluate( ( d ) => {
+			const dir = ( sel: string ) => getComputedStyle( d.querySelector( sel )! ).direction;
+			return {
+				dialog: getComputedStyle( d ).direction,
+				title: dir( '.maestro-settings-title' ),
+				state: dir( '.maestro-width-state' ),
+				hint: dir( '.maestro-width-hint' ),
+			};
+		} );
+		// The page is RTL; the English strings inside it read left to right.
+		expect( dirs ).toEqual( { dialog: 'rtl', title: 'ltr', state: 'ltr', hint: 'ltr' } );
+
+		// A translated (RTL-script) string takes RTL from its own text.
+		const arabic = await page.evaluate( () => {
+			const n = document.querySelector( '.maestro-settings-title' )!;
+			n.textContent = 'إعدادات القائمة';
+			return getComputedStyle( n ).direction;
+		} );
+		expect( arabic ).toBe( 'rtl' );
+	} );
+
+	test( 'the tour counter keeps its digits in order in an RTL admin', async ( { page } ) => {
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
+		await page.evaluate( () => {
+			document.body.classList.add( 'rtl' );
+			document.documentElement.dir = 'rtl';
+		} );
+		await page.locator( '.maestro-toolbar .maestro-tour-help' ).click();
+		const progress = page.locator( '.maestro-tour-progress' );
+		await expect( progress ).toBeVisible();
+		await expect( progress ).toHaveAttribute( 'dir', 'auto' );
+		expect( await progress.evaluate( ( n ) => getComputedStyle( n ).direction ) ).toBe( 'ltr' );
+	} );
+
+	test( 'a width another plugin changes live updates the dialog and the handle', async ( { page } ) => {
+		const posts: string[] = [];
+		page.on( 'request', ( r ) => { if ( SAVE( r.url() ) && r.method() === 'POST' ) { posts.push( r.url() ); } } );
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		const handle = page.getByRole( 'separator', { name: 'Resize menu' } );
+		const dialog = await openSettings( page );
+		await expect( dialog.getByText( 'Using the WordPress default (160px).' ) ).toBeVisible();
+
+		// What Keel's settings slider does while previewing: an !important width
+		// applied after the page has loaded, with Maestro's editor already open.
+		const takeOver = ( px: number | null ) => page.evaluate( ( w ) => {
+			let s = document.getElementById( 'e2e-live-width' );
+			if ( ! s ) {
+				s = document.createElement( 'style' );
+				s.id = 'e2e-live-width';
+				document.head.appendChild( s );
+			}
+			s.textContent = w ? `#adminmenu,#adminmenuback,#adminmenuwrap{width:${ w }px !important}` : '';
+		}, px );
+
+		await takeOver( 220 );
+		await expect( dialog.getByText( /Another plugin sets the menu width \(220px\)/ ) ).toBeVisible();
+		await expect( handle ).toHaveAttribute( 'aria-disabled', 'true' );
+		await expect( handle ).toHaveAttribute( 'aria-valuenow', '220' );
+		await expect( page.locator( '.maestro-toolbar' ) ).toHaveCSS( 'left', '220px' );
+
+		// Released while the dialog is open: Maestro's own width state comes back.
+		await takeOver( null );
+		await expect( dialog.getByText( 'Using the WordPress default (160px).' ) ).toBeVisible();
+		await expect( handle ).toHaveAttribute( 'aria-disabled', 'false' );
+		await expect( handle ).toHaveAttribute( 'aria-valuenow', '160' );
+
+		// Taken over again, a drag on the handle saves nothing. (The drag ends
+		// outside the dialog, which closes it like any outside click.)
+		await takeOver( 220 );
+		await expect( handle ).toHaveAttribute( 'aria-disabled', 'true' );
+		const box = ( await handle.boundingBox() )!;
+		await page.mouse.move( box.x + box.width / 2, box.y + 100 );
+		await page.mouse.down();
+		await page.mouse.move( 280, box.y + 100, { steps: 5 } );
+		await page.mouse.up();
+		await page.waitForTimeout( 800 );
+		expect( posts ).toHaveLength( 0 );
+		expect( await menuWidth( page ) ).toBe( 220 );
+	} );
+
+	test( 'a takeover that starts mid-drag stops the drag without saving the rest', async ( { page } ) => {
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		const handle = page.getByRole( 'separator', { name: 'Resize menu' } );
+		const box = ( await handle.boundingBox() )!;
+		await page.mouse.move( box.x + box.width / 2, box.y + 100 );
+		await page.mouse.down();
+		await page.mouse.move( 200, box.y + 100, { steps: 3 } );
+		await expect.poll( () => menuWidth( page ) ).toBe( 200 );
+
+		await page.evaluate( () => {
+			const s = document.createElement( 'style' );
+			s.textContent = '#adminmenu,#adminmenuback,#adminmenuwrap{width:230px !important}';
+			document.head.appendChild( s );
+		} );
+		const saved = page.waitForResponse( ( r ) => SAVE( r.url() ) && r.request().method() === 'POST' && r.ok() );
+		await page.mouse.move( 300, box.y + 100, { steps: 5 } );
+		await page.mouse.up();
+		// The last width Maestro could actually show is what gets saved.
+		expect( ( await saved ).request().postDataJSON().config.menu_width ).toBe( 200 );
+		await expect( handle ).toHaveAttribute( 'aria-disabled', 'true' );
 	} );
 } );

@@ -1,7 +1,10 @@
 # Phase 28 — Verification
 
-**Status:** Automated gate green. **Human pass owed** (Task 4) before the phase
-closes and the width todo moves to `completed/`.
+**Status: implementation built; human acceptance remains open.** The initial
+2026-10-22 sign-off was qualified by Dan's screenshots. #235 addressed narrow
+layout, English fallback direction and width-control feedback; the follow-up
+below fixes the remaining real Keel submenu alignment. **Real touch-device
+testing is still outstanding.** Phase 27 has not started in this work.
 
 ## Measured always-loaded cost (28-02)
 
@@ -35,17 +38,96 @@ all** clears it along with everything else.
 | Integration | `MenuWidthAssetTest` (single-site and multisite lanes) |
 | e2e | `menu-width-measured.spec.ts`, `menu-width-stored.spec.ts`, `menu-width.spec.ts` |
 
-## Human checks still owed
+## Human acceptance — retained passes and outstanding follow-ups
 
-These have **not** been done by a person:
+Dan initially passed the available core colour schemes and widths, then
+qualified the overall sign-off with screenshots of three exceptions. Modern
+is no longer a core colour scheme and must not be required for acceptance.
+Historical `modern` measurements do not establish current core-scheme coverage.
 
-- [ ] Several widths (e.g. 180, 240, 320) across the **fresh**, **modern** and
-      **midnight** admin colour schemes, browsing and editing.
-- [ ] Below the 782px breakpoint at a custom width (the overlay menu), and
-      between 783 and 960px (auto-fold).
-- [ ] An RTL admin language.
-- [ ] Keel or PX installed for real, not only the fixture.
+- [x] Available core colour schemes and several widths, browsing and editing —
+      accepted by Dan on 2026-10-22.
+- [ ] A person rechecks the narrow toolbar after #235, including populated
+      controls at wrapping boundaries and responsive menu interaction.
+- [ ] A person rechecks English fallback direction in an Arabic admin after #235.
+- [ ] A person rechecks real Keel's width slider while Maestro edit mode is on,
+      including shrinking to Leave unchanged and saving/reloading.
+- [ ] **Real touch-device testing remains outstanding.** Desktop emulation and
+      automated screenshots do not complete this check.
 
 What a machine did check: screenshots of the dialog, the edge handle, and a
 flyout at 232px under the default scheme at 1280px, taken against the local
 SQLite site while building. They showed and fixed the off-screen dialog.
+
+## Follow-up lab pass and fixes — 2026-10-22
+
+See [the local lab record](28-LAB-2026-10-22.md) for the baseline findings and
+follow-up. The RTL toolbar offset is fixed with logical CSS offsets. The mobile
+settings dialog stays inside the responsive menu and handles its own Tab/Escape
+keyup events, preventing core from closing the menu during dialog interaction.
+
+Targeted E2E: **11 passed** (setup, three RTL width regressions, settings at
+375/782px, and all five existing mobile editor tests). JavaScript: **99 passed**;
+syntax, doc links and whitespace checks pass. A real Arabic admin also passed
+toolbar-edge checks at 160/240/320px and settings interaction at 375/782px.
+The prior mobile visibility
+failures were investigated; assertions now check the visible menu, not its
+wrapper, and real settings-input clicks exposed and verified the containment fix.
+
+**Human acceptance remains open** as detailed above; the width todo stays
+pending. Automated evidence does not replace the outstanding person-only checks.
+
+## Acceptance exceptions and fixes — 2026-10-22 (afternoon)
+
+Dan's acceptance pass (with Codex) reopened Phase 28 on three exceptions. Dan
+had already passed the two independent-review checks by hand: Escape and reopen
+keep focus on the slider, and typing 250.5 gives 251.
+
+| Exception | Cause | Fix | Regression test (`menu-width.spec.ts`) |
+|---|---|---|---|
+| Narrow viewports: toolbar icons crowd together | At 782px and below the right zone (Settings, Help, Reset All) never shrinks, so on a shared row it squeezed the panel to one control's width and every panel control took a row of its own (374px tall at 320px) | The right zone takes its own row below 783px; the panel gets the first row and its controls wrap side by side (216px at 320px, 164px at 375px). Panel and right-zone dividers now use logical properties, so they also sit on the correct side in RTL | "narrow toolbar lays the panel controls out in rows" at 320, 375, 600px |
+| Arabic RTL: untranslated English inherits RTL, misplacing punctuation and the tour counter | Untranslated strings arrive in English and took the page's RTL base direction | Every editor string is set through `setText()`, which adds `dir="auto"`, so each string takes its direction from its own text. English reads LTR, a translation or an Arabic menu title RTL, and an LTR admin is unchanged. The rename and search fields and the admin-bar label get `dir="auto"` too | "untranslated English keeps its own direction"; "the tour counter keeps its digits in order" |
+| Keel live width changes during edit mode — #235 partial fix | Maestro checked for another plugin's width only when the dialog opened or a drag started, so a width changed live (Keel's slider preview) left the handle and dialog stale, and a takeover mid-drag kept saving widths that did not show | The menu's ResizeObserver now re-reads who owns the width. The handle reports the width on screen with `aria-disabled="true"` and the override text, the open dialog's notice updates live, and a drag stops when a takeover begins, keeping the last width that actually showed | "a width another plugin changes live updates the dialog and the handle"; "a takeover that starts mid-drag stops the drag" |
+
+Machine verification on the local SQLite WordPress 7.1.3 site: 91 e2e tests
+pass across the width, mobile, editor, toolbar, picker, separator, save-race
+and tour specs. JS 99/99, PHP unit 192/192, WPCS clean. CI runs the full gate.
+RTL was exercised by switching the page to RTL, not with installed Arabic
+translations, and Keel's live preview was reproduced with an injected
+`!important` width, not real Keel.
+
+**Still outstanding:**
+
+- [ ] Real touch-device testing (Dan's call to keep it open).
+- [ ] A person re-checks the three exceptions above on a real site: narrow
+      toolbar, Arabic admin, and real Keel's slider moved during edit mode.
+- [ ] The affected person-only checks above stay open; the earlier core colour-scheme/width pass is retained.
+
+## Remaining Keel alignment — follow-up to merged #235
+
+The review reproduced a gap after #235: a 240px saved Keel submenu minimum
+survived its 300px → Leave unchanged (160px) preview transition. Menu, content
+and toolbar moved to 160px, but expanded submenus stayed 240px and covered the
+page. Updating the handle/notice did not resolve that layout conflict.
+
+The edit-mode submenu selector now includes the `body` and menu-top ancestor,
+so its existing `width: auto !important` and `min-width: 0 !important` outrank
+Keel's saved and live-preview rules. Browsing rules and Keel's settings are
+unchanged. This extends #235; it does not redo its toolbar or bidi work.
+
+`keel-live-width.spec.ts` adds two regressions (Maestro width unset and stored
+240px). They use snapshots of Keel's real preview CSS/slider handler at
+`3a19720`, keep the saved submenu minimum loaded, and check every expanded
+submenu plus rows, menu, background, content and toolbar through repeated
+300/160/200px transitions and reload. Both failed on the merged code at the
+160px submenu-containment assertion; both pass with this selector correction.
+
+A separate local Studio site with real Keel also passed saved 240px → 300px →
+Leave unchanged 160px → 200px → 160px → reload (saved 240px). This verifies
+Keel's existing preview behavior: Leave unchanged previews 160px; reload
+restores its saved 240px setting when the form was not saved. The fix keeps
+those states aligned rather than changing Keel's preview semantics.
+
+Evidence retained locally in `/Users/dan-knauss/.cache/maestro-keel-review/`:
+`before.log`, `after.log`, `real-results.json` and `real-unchanged.png`.
+**Real touch-device testing and the affected human rechecks remain open.**
