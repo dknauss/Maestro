@@ -1,10 +1,13 @@
 # Phase 27 — Context (27-01 decisions)
 
 **Status:** 2026-10-22. Task 2 (re-verify the architecture) is done against
-`main` at the Phase 28 merge. **Locked by Dan 2026-10-22:** Task 1 question 2
-(users only) and Task 3 (ship width now as v1.7.0). Task 1 questions 1, 3, 4
-and 5 are recommendations, not yet confirmed. No storage, seam or UI code has
-been written.
+`main` at the Phase 28 merge. **All recommendations approved by Dan on
+2026-10-22:** modal-only creation, users-only membership, assignment checkboxes,
+counted deletion confirmation and cleanup, 20 profiles / 50 members, and unique
+case-insensitive 1–40 character names under generated stable IDs. The child
+profile axis recommendation is also approved. Release shape was already locked:
+width v1.7.0, profiles v1.8, Client-Site Workflow v1.9. These are planning
+decisions; no profile storage, seam or UI implementation has been written.
 
 Inputs: `19-FEASIBILITY-NOTE.md` (§4, §5c, §7, §9, §12), the pending todo
 `2026-08-02-cloned-role-hiding-profiles.md`, and
@@ -64,19 +67,19 @@ The feasibility note's line refs (`:299`, `:391`) are stale. Current anchors on
 5. **The child axis.** The popover already has "Hide its sub-items from" groups
    for roles and users. For parity, add `child_hidden_profiles`, resolved through
    `resolved_child_override_list()` and merged by a `Cascade` helper alongside
-   `effective_hidden_users()`. (Recommendation: include it. Leaving it out makes
+   `effective_hidden_users()`. (Decision: include it. Leaving it out makes
    the profile group the only one without a sub-items twin.)
 
 ---
 
-## Task 1 — Authoring UX (recommendations, awaiting decision)
+## Task 1 — Authoring UX (LOCKED by Dan, 2026-10-22)
 
 Frame already decided (2026-08-10): profiles are created, renamed, deleted and
 have members edited in a **Profiles modal** from a right-zone toolbar icon;
 assigning a profile to an item is a fifth group in the visibility popover; no
 wp-admin settings page. The Phase 28 Settings dialog is the shell to reuse.
 
-| # | Question | Recommendation | Rejected alternative, and why |
+| # | Question | Decision | Rejected alternative, and why |
 |---|---|---|---|
 | 1 | Inline create from the popover? | **No.** One creation path, the modal. The popover's profile group shows a "Manage profiles…" link that opens it. | Inline "New profile…" in the popover: convenient, but a second create path with its own naming, validation and empty-membership states to keep consistent, inside a popover already at four groups. |
 | 2 | What can a profile contain? | **LOCKED (Dan, 2026-10-22): users only in v1.** | Users + roles (§5c allows both): a role inside a profile does what `hidden_roles` already does, so two controls produce the same effect and the popover can no longer say plainly why an item is hidden. Roles can be added later without a storage change, since §5c's shape already has room. |
@@ -84,7 +87,7 @@ wp-admin settings page. The Phase 28 Settings dialog is the shell to reuse.
 | 4 | What happens on delete? | **Confirm with the count.** "Delete Reduced view? It hides 6 items for 3 people. They will see those items again." Deleting removes the name from every `hidden_profiles` on the same save. Self-healing at read time stays as the safety net. | Silent delete relying on self-heal: technically safe, but rules disappear without the admin being told. |
 | 5 | Caps? | **20 profiles**, **50 members per profile** (= `MAX_HIDDEN_USERS`), and an item's `hidden_profiles` bounded by the profile count. | 50 profiles to match the other caps: no plausible site needs 50 named hide-bundles, and the modal's list stays usable at 20. |
 
-Also recommended: profile names are free text, 1-40 characters, unique
+Also decided: profile names are free text, 1-40 characters, unique
 case-insensitively, stored under a generated stable ID (`p_<n>`) so a rename
 does not rewrite every item. Items store IDs, the UI shows names.
 
@@ -92,10 +95,11 @@ does not rewrite every item. Items store IDs, the UI shows names.
 
 ## Task 3 — Release shape (LOCKED by Dan, 2026-10-22)
 
-Phase 28 (menu width) is merged on `main` and unreleased. Decided:
-**ship Phase 28 on its own as v1.7.0** once Dan's hands-on checks pass, rather
-than holding a finished, small feature behind Phase 27, which is the largest
-phase since Phase 21 (5 plans). Profiles then ship as the next minor.
+Decision: **ship Phase 28 on its own as v1.7.0**, independently of Phase 27,
+which is the largest phase since Phase 21 (5 plans). Release PR #232 has since
+merged. This records the release shape, not WordPress.org deployment approval
+or verification. Phase 28 acceptance still has affected human rechecks and real
+touch-device testing outstanding; see `../28-configurable-admin-menu-width/28-VERIFICATION.md`.
 
 Profiles then ship as v1.8.0. The Client-Site Workflow milestone's number was
 already marked provisional; it moves to v1.9. Changelog framing for profiles:

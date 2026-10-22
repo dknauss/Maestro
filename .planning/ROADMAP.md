@@ -13,8 +13,8 @@
 - ✅ **v1.5 Per-User Visibility** — Phase 21 + Phase 26 (shipped as the v1.5.x line; latest release `v1.5.3` on 2026-08-19). Delivered ROLE-02's **per-user half**; the cloned-role "profiles" half remains a backlog item. Phase 25 was completed post-release and is included in the v1.5.3 line; Phase 22 remains open.
 - ✅ **v1.5.4 Compatibility and E2E hardening** — patch on the v1.5 line, shipped 2026-09-21 (PR #192, tag `v1.5.4`, live on WordPress.org). Ships the Google Site Kit menu-order fix (#189) and removes Edit Menu from the block post editor (#176, #179). The rest of the range (#173–#190) is tests, CI, dev dependencies and planning docs.
 - [~] **v1.6.0 Separator editing** — minor release cut 2026-09-23, tagged `v1.6.0` on merge of the release PR; the WordPress.org deploy awaits approval. Ships separator add/move/remove (#197), the Admin Menu Editor warning (#196), the image-icon preview fix and full Dashicons set (#195), the toolbar following a widened menu (#199), multisite network/user admin gating (#198), and the release-review fixes (#200).
-- [ ] **v1.7.0 Menu width** — Phase 28 alone (release decision, 2026-10-22: ship width now rather than wait for profiles). Merged in #226, #227, #228; release after Dan's hands-on checks.
-- [ ] **v1.8 Hiding profiles** — Phase 27 (users-only profiles, decided 2026-10-22; see `27-CONTEXT.md`).
+- [ ] **v1.7.0 Menu width** — Phase 28 alone (release decision, 2026-10-22: ship width now rather than wait for profiles). Release #232 merged; Phase 28 human acceptance remains open, including real touch-device testing.
+- [ ] **v1.8 Hiding profiles** — Phase 27 (all profile UX recommendations approved 2026-10-22; see `27-CONTEXT.md`; implementation not started).
 - [ ] **v1.9 Client-Site Workflow** — Phases 29–31 (planned 2026-10-09; renumbered from the provisional v1.7 on 2026-10-22). Three requests from one WordPress.org support thread that together cover setting up a client site: see what a role sees, hide from every other role in one step, carry the result to the next site. GitHub milestone [v1.9 Client-site workflow](https://github.com/dknauss/Maestro/milestone/1).
 
 ## Next up
