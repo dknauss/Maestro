@@ -20,10 +20,27 @@ test( 'guided tour: auto-launch, step through, seen-flag, replay, Esc', async ( 
 	await expect( page.locator( '.maestro-tour-progress' ) ).toContainText( '1' );
 
 	// Step through to the end (Next becomes Done on the last step and closes).
-	for ( let i = 0; i < 6; i++ ) {
-		if ( ( await tour.count() ) === 0 ) {
-			break;
-		}
+	// At the default desktop viewport every control is on screen, so no step
+	// is skipped: each toolbar control and the menu's width edge gets its
+	// own coachmark, in toolbar order.
+	const expected = [
+		'Click any menu item',
+		'Type a new name',
+		'Reorder items',
+		'icon',
+		'Hide the item',
+		'Undo every change',
+		'separator',
+		'edge',
+		'Menu settings',
+		'tour again',
+		'Reset All',
+		'Exit',
+	];
+	await expect( page.locator( '.maestro-tour-progress' ) ).toHaveText( `1 of ${ expected.length }` );
+	for ( const [ i, text ] of expected.entries() ) {
+		await expect( page.locator( '.maestro-tour-progress' ) ).toHaveText( `${ i + 1 } of ${ expected.length }` );
+		await expect( page.locator( '.maestro-tour-text' ) ).toContainText( text );
 		await page.locator( '.maestro-tour-next' ).click();
 	}
 	await expect( tour ).toHaveCount( 0 );

@@ -2543,19 +2543,36 @@
 		}
 	}
 
+	// The anchor only if it is rendered: a control can exist yet be hidden
+	// (the width handle below 961px, the separator buttons on a submenu
+	// item), and pointing a coachmark at nothing is worse than skipping it.
+	function tourShown( node ) {
+		return node && node.getClientRects().length ? node : null;
+	}
+
 	function tourSteps() {
-		// Steps 2–4 reference the controls panel / move buttons, which only exist
-		// once an item is selected — so those steps select the first item first.
+		// One step per editing control, in toolbar order, so every glyph the
+		// editor shows has been named once. The panel steps reference controls
+		// that only exist once an item is selected — so they select the first
+		// item first. A step whose control is not on screen is skipped.
 		return [
 			{ text: I.tourStep1, placement: 'right', anchor: firstMenuItem },
-			{ text: I.tourStep2, placement: 'top', before: tourSelectFirst, anchor: function () { return panel.rename; } },
-			{ text: I.tourStep3, placement: 'top', before: tourSelectFirst, anchor: function () { return document.querySelector( '.maestro-move-up' ); } },
-			{ text: I.tourStep4, placement: 'top', anchor: function () { return document.querySelector( '.maestro-reset-all' ); } },
-			// Step 5 anchors to the WP Toolbar (admin-bar) "Exit Menu Editor"
-			// toggle — the single entry/exit (UX-09) — not a bottom-toolbar
-			// control. positionTour's 'top' placement falls back to below the
-			// anchor when there's no room above, which is always the case this
-			// near the top of the viewport.
+			{ text: I.tourStep2, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.rename ); } },
+			{ text: I.tourStep3, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.moveUp ); } },
+			{ text: I.tourStepIcon, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.iconBtn ); } },
+			{ text: I.tourStepVisibility, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.visBtn ); } },
+			{ text: I.tourStepResetItem, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.resetBtn ); } },
+			{ text: I.tourStepSeparator, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.addSepBtn ); } },
+			// The edge handle only renders at 961px and wider (maestro.css).
+			{ text: I.tourStepWidth, placement: 'right', anchor: function () { return tourShown( widthHandle ); } },
+			{ text: I.tourStepSettings, placement: 'top', anchor: function () { return tourShown( document.querySelector( '.maestro-settings-btn' ) ); } },
+			{ text: I.tourStepHelp, placement: 'top', anchor: function () { return tourShown( document.querySelector( '.maestro-tour-help' ) ); } },
+			{ text: I.tourStep4, placement: 'top', anchor: function () { return tourShown( document.querySelector( '.maestro-reset-all' ) ); } },
+			// The last step anchors to the WP Toolbar (admin-bar) "Exit Menu
+			// Editor" toggle — the single entry/exit (UX-09) — not a
+			// bottom-toolbar control. positionTour's 'top' placement falls back
+			// to below the anchor when there's no room above, which is always
+			// the case this near the top of the viewport.
 			{ text: I.tourStep5, placement: 'top', anchor: function () { return document.getElementById( 'wp-admin-bar-maestro-toggle' ); } },
 		];
 	}
