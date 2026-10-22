@@ -111,8 +111,8 @@ class Admin_Bar {
 			array(
 				'id'    => 'maestro-toggle',
 				'title' => $show_exit
-					? '<span class="ab-icon dashicons dashicons-exit" style="margin-top:2px;"></span><span class="maestro-ab-label">' . esc_html__( 'Exit Menu Editor', 'maestro-menu-editor' ) . '</span>'
-					: '<span class="ab-icon dashicons dashicons-edit" style="margin-top:2px;"></span><span class="maestro-ab-label">' . esc_html__( 'Edit Menu', 'maestro-menu-editor' ) . '</span>',
+					? '<span class="ab-icon dashicons dashicons-exit" style="margin-top:2px;"></span><span class="maestro-ab-label" dir="auto">' . esc_html__( 'Exit Menu Editor', 'maestro-menu-editor' ) . '</span>'
+					: '<span class="ab-icon dashicons dashicons-edit" style="margin-top:2px;"></span><span class="maestro-ab-label" dir="auto">' . esc_html__( 'Edit Menu', 'maestro-menu-editor' ) . '</span>',
 				'href'  => esc_url( $href ),
 				'meta'  => $meta,
 			)
