@@ -15,7 +15,7 @@
 - [~] **v1.6.0 Separator editing** — minor release cut 2026-09-23, tagged `v1.6.0` on merge of the release PR; the WordPress.org deploy awaits approval. Ships separator add/move/remove (#197), the Admin Menu Editor warning (#196), the image-icon preview fix and full Dashicons set (#195), the toolbar following a widened menu (#199), multisite network/user admin gating (#198), and the release-review fixes (#200).
 - [ ] **v1.7.0 Menu width** — Phase 28 alone (release decision, 2026-10-22: ship width now rather than wait for profiles). Merged in #226, #227, #228; release after Dan's hands-on checks.
 - [ ] **v1.8 Hiding profiles** — Phase 27 (users-only profiles, decided 2026-10-22; see `27-CONTEXT.md`).
-- [ ] **v1.9 Client-Site Workflow** — Phases 29–31 (planned 2026-10-09; renumbered from the provisional v1.7 on 2026-10-22). Three requests from one WordPress.org support thread that together cover setting up a client site: see what a role sees, hide from every other role in one step, carry the result to the next site. GitHub milestone [v1.7 Client-site workflow](https://github.com/dknauss/Maestro/milestone/1).
+- [ ] **v1.9 Client-Site Workflow** — Phases 29–31 (planned 2026-10-09; renumbered from the provisional v1.7 on 2026-10-22). Three requests from one WordPress.org support thread that together cover setting up a client site: see what a role sees, hide from every other role in one step, carry the result to the next site. GitHub milestone [v1.9 Client-site workflow](https://github.com/dknauss/Maestro/milestone/1).
 
 ## Next up
 
