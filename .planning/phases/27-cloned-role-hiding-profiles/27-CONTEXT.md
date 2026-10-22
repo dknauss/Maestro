@@ -1,9 +1,10 @@
 # Phase 27 — Context (27-01 decisions)
 
-**Status:** DRAFT, 2026-10-22. Task 2 (re-verify the architecture) is done
-against `main` at the Phase 28 merge. Tasks 1 and 3 are **recommendations
-awaiting Dan's decision**. Nothing below is locked until marked so. No storage,
-seam or UI code has been written.
+**Status:** 2026-10-22. Task 2 (re-verify the architecture) is done against
+`main` at the Phase 28 merge. **Locked by Dan 2026-10-22:** Task 1 question 2
+(users only) and Task 3 (ship width now as v1.7.0). Task 1 questions 1, 3, 4
+and 5 are recommendations, not yet confirmed. No storage, seam or UI code has
+been written.
 
 Inputs: `19-FEASIBILITY-NOTE.md` (§4, §5c, §7, §9, §12), the pending todo
 `2026-08-02-cloned-role-hiding-profiles.md`, and
@@ -78,7 +79,7 @@ wp-admin settings page. The Phase 28 Settings dialog is the shell to reuse.
 | # | Question | Recommendation | Rejected alternative, and why |
 |---|---|---|---|
 | 1 | Inline create from the popover? | **No.** One creation path, the modal. The popover's profile group shows a "Manage profiles…" link that opens it. | Inline "New profile…" in the popover: convenient, but a second create path with its own naming, validation and empty-membership states to keep consistent, inside a popover already at four groups. |
-| 2 | What can a profile contain? | **Users only in v1.** | Users + roles (§5c allows both): a role inside a profile does what `hidden_roles` already does, so two controls produce the same effect and the popover can no longer say plainly why an item is hidden. Roles can be added later without a storage change, since §5c's shape already has room. |
+| 2 | What can a profile contain? | **LOCKED (Dan, 2026-10-22): users only in v1.** | Users + roles (§5c allows both): a role inside a profile does what `hidden_roles` already does, so two controls produce the same effect and the popover can no longer say plainly why an item is hidden. Roles can be added later without a storage change, since §5c's shape already has room. |
 | 3 | Does the popover show which profiles hide an item? | **Yes**, as checkboxes, one per profile, checked when it hides the item. This is a direct read of `items[].hidden_profiles`; no backwards resolution is needed. | Add-only control: the user cannot see or undo an existing assignment without opening the modal. |
 | 4 | What happens on delete? | **Confirm with the count.** "Delete Reduced view? It hides 6 items for 3 people. They will see those items again." Deleting removes the name from every `hidden_profiles` on the same save. Self-healing at read time stays as the safety net. | Silent delete relying on self-heal: technically safe, but rules disappear without the admin being told. |
 | 5 | Caps? | **20 profiles**, **50 members per profile** (= `MAX_HIDDEN_USERS`), and an item's `hidden_profiles` bounded by the profile count. | 50 profiles to match the other caps: no plausible site needs 50 named hide-bundles, and the modal's list stays usable at 20. |
@@ -89,15 +90,15 @@ does not rewrite every item. Items store IDs, the UI shows names.
 
 ---
 
-## Task 3 — Release shape (recommendation, awaiting decision)
+## Task 3 — Release shape (LOCKED by Dan, 2026-10-22)
 
-Phase 28 (menu width) is merged on `main` and unreleased. Recommendation:
+Phase 28 (menu width) is merged on `main` and unreleased. Decided:
 **ship Phase 28 on its own as v1.7.0** once Dan's hands-on checks pass, rather
 than holding a finished, small feature behind Phase 27, which is the largest
 phase since Phase 21 (5 plans). Profiles then ship as the next minor.
 
-The Client-Site Workflow milestone's number is already marked provisional; it
-moves to whichever minor follows profiles. Changelog framing for profiles:
+Profiles then ship as v1.8.0. The Client-Site Workflow milestone's number was
+already marked provisional; it moves to v1.9. Changelog framing for profiles:
 "new: hiding profiles", with a line noting it completes per-user hiding from
 v1.5. Both framings are honest; the feature framing is the one users read.
 
