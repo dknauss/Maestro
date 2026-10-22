@@ -2681,7 +2681,8 @@
 		}
 	}
 
-	function renderTourStep() {
+	function renderTourStep( direction ) {
+		direction = direction === -1 ? -1 : 1;
 		// Suppress the focus-containment redirect while we tear down/rebuild the
 		// tooltip and run step.before() (which may select an item / move focus).
 		tour.rendering = true;
@@ -2690,11 +2691,12 @@
 
 		var anchor = step.anchor();
 		// A missing anchor (unusual menu / hidden control) — skip ahead gracefully
-		// rather than dead-ending the tour.
+		// in the navigation direction rather than sending Back forward again.
 		if ( ! anchor ) {
-			if ( tour.idx < tour.steps.length - 1 ) {
-				tour.idx++;
-				renderTourStep();
+			var nextIdx = tour.idx + direction;
+			if ( nextIdx >= 0 && nextIdx < tour.steps.length ) {
+				tour.idx = nextIdx;
+				renderTourStep( direction );
 			} else {
 				endTour();
 			}
@@ -2742,7 +2744,7 @@
 		back.addEventListener( 'click', function () {
 			if ( tour.idx > 0 ) {
 				tour.idx--;
-				renderTourStep();
+				renderTourStep( -1 );
 			}
 		} );
 
