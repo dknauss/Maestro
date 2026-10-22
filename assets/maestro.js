@@ -1456,7 +1456,7 @@
 		pop.addEventListener( 'keydown', function ( e ) {
 			if ( e.key === 'Escape' ) {
 				e.preventDefault();
-				close();
+				e.stopPropagation();
 				return;
 			}
 			if ( e.key !== 'Tab' ) { return; }
@@ -1473,6 +1473,18 @@
 			} else if ( ! e.shiftKey && document.activeElement === last ) {
 				e.preventDefault();
 				first.focus();
+			}
+		} );
+
+		// Core dismisses the responsive menu on Escape keyup. Keep the dialog
+		// mounted until that event so it can consume it before returning focus.
+		pop.addEventListener( 'keyup', function ( e ) {
+			// The dialog owns Tab. Core otherwise queues an outside-focus
+			// check against this node, which becomes detached if Escape follows.
+			if ( e.key === 'Tab' ) { e.stopPropagation(); }
+			if ( e.key === 'Escape' ) {
+				e.stopPropagation();
+				close();
 			}
 		} );
 
@@ -2206,20 +2218,27 @@
 	/* ---------- popover placement ----------------------------------------- */
 
 	function placePopover( pop, anchorBtn ) {
-		document.body.appendChild( pop );
+		// Core treats clicks and Tab outside #adminmenuwrap as dismissal of
+		// the responsive menu. Settings belongs to that menu, like its toolbar.
+		var responsiveParent = pop.classList.contains( 'maestro-settings-popover' )
+			? anchorBtn.closest( '#adminmenuwrap' ) : null;
+		( responsiveParent || document.body ).appendChild( pop );
+		if ( responsiveParent ) { pop.style.position = 'fixed'; }
+		var scrollY = responsiveParent ? 0 : window.scrollY;
+		var scrollX = responsiveParent ? 0 : window.scrollX;
 		var r = anchorBtn.getBoundingClientRect();
 		// Toolbar lives at the bottom — prefer placing the popover above the
 		// anchor so it doesn't overflow off-screen.
-		var top = window.scrollY + r.top - pop.offsetHeight - 6;
-		if ( top < window.scrollY + 8 ) {
-			top = window.scrollY + r.bottom + 4;
+		var top = scrollY + r.top - pop.offsetHeight - 6;
+		if ( top < scrollY + 8 ) {
+			top = scrollY + r.bottom + 4;
 		}
 		pop.style.top  = top + 'px';
 		// Anchored at its left edge, but never past the viewport's right edge:
 		// a control in the toolbar's right zone would otherwise push the dialog
 		// off-screen and scroll the whole page sideways.
 		var left = Math.min( r.left, document.documentElement.clientWidth - pop.offsetWidth - 8 );
-		pop.style.left = ( window.scrollX + Math.max( 8, left ) ) + 'px';
+		pop.style.left = ( scrollX + Math.max( 8, left ) ) + 'px';
 
 		setTimeout( function () {
 			document.addEventListener( 'click', function handler( e ) {

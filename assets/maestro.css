@@ -580,8 +580,8 @@
 .maestro-toolbar {
 	position: fixed;
 	bottom: 0;
-	left: var( --maestro-menu-width, 160px ); /* clears the admin menu column, at its measured width */
-	right: 0;
+	inset-inline-start: var( --maestro-menu-width, 160px ); /* clears the menu column in either direction */
+	inset-inline-end: 0;
 	z-index: 99999;
 	display: flex;
 	flex-wrap: wrap; /* BUG-03: wrap zones onto extra rows when narrow, never overlap */
@@ -973,7 +973,7 @@
 
 /* Inherit the WP admin column collapse breakpoint. */
 @media screen and ( max-width: 782px ) {
-	.maestro-toolbar { left: 0; }
+	.maestro-toolbar { inset-inline-start: 0; }
 	.maestro-panel-label { max-width: 120px; }
 	.maestro-rename-input { width: 120px; }
 
