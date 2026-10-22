@@ -174,8 +174,10 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 = 1.7.0 =
 * **New: set the admin menu's width.** In edit mode, open **Menu settings** with the gear button in the toolbar and pick a width from 160px (the WordPress default) to 320px, with the slider or by typing a number. You can also drag the menu's right edge (left edge in right-to-left languages), or focus that edge and use the arrow keys. Shift moves 20px at a time, Home goes back to the default and End to the widest. Long menu names get room instead of wrapping, and the width applies on every admin page, not just while editing. **Use default** sets it back, and so does **Reset All**. **Reset Item** leaves it alone.
 * The width applies only where WordPress shows the full menu: 961px and wider, with the menu expanded. Folded menus and phones keep WordPress's own layout.
-* If another plugin already sets the menu width (Keel or PX, for example), Maestro leaves it alone. Menu settings shows the other plugin's width, and dragging the edge saves nothing.
+* If another plugin already sets the menu width (Keel or PX, for example), Maestro leaves it alone. Menu settings shows the other plugin's width, even when it changes while you edit, and dragging the edge saves nothing.
 * **Fixed: in right-to-left languages, the editing toolbar sat under the menu.** It reserved space on the left and ran under the menu on the right. It now starts where the menu ends, on the correct side.
+* **Fixed: on a narrow screen the editing toolbar stacked every control on its own line.** Settings, Help and Reset All now get their own row, and the other controls sit side by side.
+* **Fixed: in right-to-left languages, untranslated text read backwards.** Any editor text still in English now keeps its own left-to-right order, so its punctuation and the tour's step counter appear where they should.
 * **Fixed: on a phone, edit mode hid the first menu row under the admin bar and shrank the touch targets.** Edit mode now keeps WordPress's own narrow-screen menu layout.
 * **Fixed: submenu text in edit mode started 2px further in than the open submenu's.** Every submenu now lines up.
 
