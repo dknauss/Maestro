@@ -184,12 +184,18 @@ class ProfilesCompileTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The map is authoring only: replay may read the compiled axis (27-03),
-	 * never the map, for anything but live membership — and in 27-02 it reads
-	 * neither. A cheap tripwire on the property the whole design rests on.
+	 * The map is authoring only. Replay reads it in exactly ONE place, the
+	 * live-membership lookup (27-03); which items a profile hides comes from the
+	 * compiled item axis. A cheap tripwire on the property the design rests on:
+	 * a second read of the map is a second resolve path.
 	 */
-	public function test_replay_never_resolves_from_the_profiles_map() {
+	public function test_replay_reads_the_profiles_map_only_for_membership() {
 		$replay = file_get_contents( dirname( __DIR__, 2 ) . '/includes/class-replay.php' );
-		$this->assertStringNotContainsString( "['profiles']", $replay, 'Replay must never resolve from the profiles map.' );
+		$this->assertSame( 1, substr_count( $replay, "['profiles']" ), 'Replay may read the profiles map once, for membership.' );
+
+		$start = strpos( $replay, 'function current_profile_ids(' );
+		$this->assertNotFalse( $start );
+		$end = strpos( $replay, 'function ', $start + 10 );
+		$this->assertStringContainsString( "['profiles']", substr( $replay, $start, $end - $start ), 'That one read is the membership lookup.' );
 	}
 }

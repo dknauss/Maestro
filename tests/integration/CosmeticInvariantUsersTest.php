@@ -1,6 +1,6 @@
 <?php
 /**
- * THE COSMETIC-ONLY GUARDRAIL for ROLE-02's per-user axes.
+ * THE COSMETIC-ONLY GUARDRAIL for ROLE-02's per-user and hiding-profile axes.
  *
  * Phase 19 gated this whole feature on one claim being provable: applying a hide
  * changes what a user SEES and never what they can DO. This file is where that
@@ -251,6 +251,109 @@ class CosmeticInvariantUsersTest extends WP_UnitTestCase {
 			'Removing a child_hidden_users rule must not change any capability.'
 		);
 		$this->assertContains( 'post-new.php', $this->child_slugs_in_model( 'edit.php' ), 'Removing the rule must restore the children.' );
+	}
+
+	/**
+	 * Phase 27: the same six steps for a HIDING PROFILE on the item axis. Term 3
+	 * reaches the drop path through a membership lookup the other axes do not
+	 * have, so it gets its own proof rather than inheriting theirs.
+	 */
+	public function test_hidden_profiles_never_changes_what_the_user_can_do() {
+		$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor );
+
+		$caps = $this->capability_set( 'editor' );
+
+		// STEP 1 — baseline.
+		$baseline = $this->snapshot_caps( $caps );
+		$this->assertTrue( $baseline['edit_posts'], 'Precondition: an editor holds edit_posts.' );
+		$this->assertFalse( $baseline['manage_options'], 'Precondition: an editor lacks manage_options.' );
+
+		$this->run_replay();
+		$this->assertContains( 'upload.php', $this->top_slugs_in_model(), 'Precondition: the row is visible before the rule.' );
+
+		// STEP 2 — apply, through a profile the editor is a member of.
+		$this->save_as_admin(
+			array(
+				'profiles' => array(
+					'p_1' => array( 'name' => 'Reduced view', 'users' => array( $editor ), 'hides' => array( 'upload.php' ) ),
+				),
+			)
+		);
+		$this->seed_menu();
+		$this->run_replay();
+
+		// STEP 3 — the invariant holds WHILE the rule is active.
+		$this->assertSame(
+			$baseline,
+			$this->snapshot_caps( $caps ),
+			'Applying a hiding profile must not change any capability.'
+		);
+
+		// STEP 4 — and the row is genuinely gone.
+		$this->assertNotContains( 'upload.php', $this->top_slugs_in_model(), 'The profile must actually change visibility.' );
+
+		// STEP 5 — remove. An empty profiles map deletes the profile; a payload
+		// with no `profiles` key would keep it (27-02), so it is sent explicitly.
+		$this->save_as_admin( array( 'items' => array(), 'profiles' => array() ) );
+		$stored = ( new Config() )->get();
+		$this->assertArrayNotHasKey( 'profiles', $stored );
+		$this->assertArrayNotHasKey( 'upload.php', $stored['items'], 'Deleting the profile must delete the compiled key.' );
+
+		$this->seed_menu();
+		$this->run_replay();
+
+		// STEP 6 — the invariant still holds after removal.
+		$this->assertSame(
+			$baseline,
+			$this->snapshot_caps( $caps ),
+			'Removing a hiding profile must not change any capability.'
+		);
+		$this->assertContains( 'upload.php', $this->top_slugs_in_model(), 'Removing the profile must restore the row.' );
+	}
+
+	/**
+	 * The six steps for the profile CHILD axis, which drops rows through the
+	 * cascade union.
+	 */
+	public function test_child_hidden_profiles_never_changes_what_the_user_can_do() {
+		$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor );
+
+		$caps     = $this->capability_set( 'editor' );
+		$baseline = $this->snapshot_caps( $caps );
+
+		$this->run_replay();
+		$this->assertContains( 'post-new.php', $this->child_slugs_in_model( 'edit.php' ), 'Precondition: the child is visible.' );
+
+		$this->save_as_admin(
+			array(
+				'profiles' => array(
+					'p_1' => array( 'name' => 'Reduced view', 'users' => array( $editor ), 'child_hides' => array( 'edit.php' ) ),
+				),
+			)
+		);
+		$this->seed_menu();
+		$this->run_replay();
+
+		$this->assertSame(
+			$baseline,
+			$this->snapshot_caps( $caps ),
+			'Applying a profile child hide must not change any capability.'
+		);
+		$this->assertContains( 'edit.php', $this->top_slugs_in_model(), 'The parent must stay visible.' );
+		$this->assertSame( array(), $this->child_slugs_in_model( 'edit.php' ), 'Every child must be hidden.' );
+
+		$this->save_as_admin( array( 'items' => array(), 'profiles' => array() ) );
+		$this->seed_menu();
+		$this->run_replay();
+
+		$this->assertSame(
+			$baseline,
+			$this->snapshot_caps( $caps ),
+			'Removing a profile child hide must not change any capability.'
+		);
+		$this->assertContains( 'post-new.php', $this->child_slugs_in_model( 'edit.php' ), 'Removing the profile must restore the children.' );
 	}
 
 	/**

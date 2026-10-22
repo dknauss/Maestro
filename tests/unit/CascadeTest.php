@@ -160,4 +160,20 @@ class CascadeTest extends TestCase {
 		$this->assertSame( array( 1, 2 ), $users );
 	}
 
+	/* -----------------------------------------------------------------------
+	 * Phase 27 profile union — effective_hidden_profiles()
+	 * --------------------------------------------------------------------- */
+
+	/**
+	 * Same union, profile IDs: inherit, keep own, merge and dedupe.
+	 */
+	public function test_profiles_union_inherits_keeps_own_and_dedupes() {
+		$this->assertSame( array( 'p_2' ), Cascade::effective_hidden_profiles( array(), array( 'p_2' ) ) );
+		$this->assertSame( array( 'p_1' ), Cascade::effective_hidden_profiles( array( 'p_1' ), array() ) );
+		$this->assertSame(
+			array( 'p_1', 'p_2' ),
+			Cascade::effective_hidden_profiles( array( 'p_1', 'p_2' ), array( 'p_2' ) )
+		);
+		$this->assertSame( array(), Cascade::effective_hidden_profiles( array(), array() ) );
+	}
 }
