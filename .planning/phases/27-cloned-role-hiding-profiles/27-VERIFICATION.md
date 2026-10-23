@@ -93,3 +93,20 @@ checks passed. New strings are included in the translation template.
 Dan's earlier desktop functional sign-off is retained. This automated follow-up
 does not claim human acceptance of the new wording or coachmark. **Real
 touch-device testing remains outstanding.**
+
+## Approved terminology follow-up — 2026-10-23
+
+After #249, Dan approved **Visibility groups** as the user-facing name and:
+“A visibility group lets you hide a menu item from everyone in the group.”
+The introduction continues with adding people, selecting the group in a menu
+item's Visibility controls, and hiding links without changing page access.
+Toolbar/dialog labels, actions, validation/announcements, tour and current user
+documentation use group terminology. Internal `profiles` storage/API keys stay
+unchanged; no migration is required. This supersedes the earlier note that no
+rename had been approved, without changing its historical context.
+
+Four desktop Playwright cases passed with the new labels and copy, including
+saved-group reload and validation recovery; the new dialog-name expectation
+failed before the rename. Earlier desktop functional acceptance is retained;
+new copy is not claimed human-tested. **Real touch-device testing remains
+outstanding.**

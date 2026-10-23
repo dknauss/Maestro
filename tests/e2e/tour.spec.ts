@@ -32,7 +32,7 @@ test( 'guided tour: auto-launch, step through, seen-flag, replay, Esc', async ( 
 		'Undo every change',
 		'separator',
 		'edge',
-		'Hiding profiles',
+		'Visibility groups',
 		'Menu settings',
 		'tour again',
 		'Reset All',
@@ -87,11 +87,11 @@ test( 'narrow tour: Back crosses the hidden width step', async ( { page } ) => {
 	}
 	await expect( text ).toContainText( 'Menu settings' );
 	await page.locator( '.maestro-tour-back' ).click();
-	await expect( text ).toContainText( 'Hiding profiles' );
+	await expect( text ).toContainText( 'Visibility groups' );
 	await page.locator( '.maestro-tour-back' ).click();
 	await expect( text ).toContainText( 'Add a separator' );
 	await page.locator( '.maestro-tour-next' ).click();
-	await expect( text ).toContainText( 'Hiding profiles' );
+	await expect( text ).toContainText( 'Visibility groups' );
 	await page.locator( '.maestro-tour-next' ).click();
 	await expect( text ).toContainText( 'Menu settings' );
 	// Back must keep moving across every remaining step and stop at the first.

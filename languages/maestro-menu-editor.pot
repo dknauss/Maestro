@@ -442,47 +442,47 @@ msgstr ""
 
 #. translators: Heading for the group of checkboxes, one per hiding profile, that hide THIS menu item from everyone in the ticked profiles (Phase 27).
 #: includes/class-assets.php:300
-msgid "Hide this item for profiles:"
+msgid "Hide this item for visibility groups:"
 msgstr ""
 
 #. translators: Heading for the group of checkboxes, one per hiding profile, that hide ALL of a parent's sub-items from everyone in the ticked profiles. Shown only for parents that have children.
 #: includes/class-assets.php:302
-msgid "Hide its sub-items for profiles:"
+msgid "Hide its sub-items for visibility groups:"
 msgstr ""
 
 #. translators: Shown in the Visibility popover when no hiding profiles exist yet.
 #: includes/class-assets.php:304
-msgid "No profiles yet."
+msgid "No visibility groups yet."
 msgstr ""
 
 #. translators: Button in the Visibility popover and toolbar label that opens the dialog for creating and editing hiding profiles.
 #: includes/class-assets.php:306
-msgid "Manage profiles…"
+msgid "Manage groups…"
 msgstr ""
 
 #. translators: Title of the dialog for creating and editing hiding profiles (named groups of people that items can be hidden from).
 #: includes/class-assets.php:308
-msgid "Hiding profiles"
+msgid "Visibility groups"
 msgstr ""
 
 #. translators: Explanation at the top of the hiding-profiles dialog.
 #: includes/class-assets.php:310
-msgid "Create a profile for people who need the same menu. Add people, then choose the profile in a menu item's Visibility controls. This hides menu links only; it does not change page access."
+msgid "A visibility group lets you hide a menu item from everyone in the group. Add people to the group, then select it in the menu item's Visibility controls. This hides the menu link without changing page access."
 msgstr ""
 
 #. translators: Accessible label for the text field that renames a hiding profile.
 #: includes/class-assets.php:312
-msgid "Profile name"
+msgid "Group name"
 msgstr ""
 
 #. translators: Placeholder and accessible label for the field where a new hiding profile's name is typed.
 #: includes/class-assets.php:314
-msgid "New profile name"
+msgid "New group name"
 msgstr ""
 
 #. translators: Button that creates a hiding profile with the name typed beside it.
 #: includes/class-assets.php:316
-msgid "Add profile"
+msgid "Add group"
 msgstr ""
 
 #. translators: %s: profile name. Heading for the list of people in that hiding profile.
@@ -505,33 +505,33 @@ msgstr ""
 
 #. translators: Caution shown in the hiding-profiles dialog while the editor's own account is among a profile's people.
 #: includes/class-assets.php:324
-msgid "You are in this profile, so the items it hides are hidden from your own account too. You can still reach those pages by URL, and the editor stays available."
+msgid "You are in this group, so the items it hides are hidden from your own account too. You can still reach those pages by URL, and the editor stays available."
 msgstr ""
 
 #. translators: Shown when a hiding profile's name is left empty.
 #: includes/class-assets.php:326
-msgid "Enter a name for the profile."
+msgid "Enter a name for the group."
 msgstr ""
 
 #. translators: Shown when a hiding profile is given a name another profile already uses (names are compared ignoring case).
 #: includes/class-assets.php:328
-msgid "Another profile already has that name."
+msgid "Another group already has that name."
 msgstr ""
 
 #. translators: %d: maximum number of hiding profiles. Shown when the limit is reached.
 #: includes/class-assets.php:330
 #, php-format
-msgid "Limit reached — up to %d profiles."
+msgid "Limit reached — up to %d groups."
 msgstr ""
 
 #. translators: Screen-reader announcement after a hiding profile is created.
 #: includes/class-assets.php:332
-msgid "Profile added"
+msgid "Group added"
 msgstr ""
 
 #. translators: Screen-reader announcement after a hiding profile is deleted.
 #: includes/class-assets.php:334
-msgid "Profile deleted"
+msgid "Group deleted"
 msgstr ""
 
 #: includes/class-assets.php:368
@@ -573,10 +573,10 @@ msgstr ""
 
 #. translators: Persistent next-step guidance beside each saved hiding profile.
 #: includes/class-assets.php:327
-msgid "Add people below, then select this profile in a menu item's Visibility controls. Changes save automatically."
+msgid "Add people below, then select this group in a menu item's Visibility controls. Changes save automatically."
 msgstr ""
 
-#. translators: Guided-tour step pointing at the Hiding profiles toolbar button.
+#. translators: Guided-tour step pointing at the Visibility groups toolbar button.
 #: includes/class-assets.php:394
-msgid "Hiding profiles let you reuse a group of people. Create a profile, add people, then select it in a menu item's Visibility controls to hide that item from them."
+msgid "Visibility groups let you hide a menu item from everyone in a group. Add people to the group, then select it in the menu item's Visibility controls."
 msgstr ""
