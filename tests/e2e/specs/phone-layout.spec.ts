@@ -31,7 +31,9 @@ const menuOpen = ( page: Page ) =>
 
 // Every step but the width handle's and Settings', which only render at
 // 961px and up: the menu width they set does not apply below that.
-const PHONE_STEPS = [
+// The profiles tip is matched by either name, so this spec survives the
+// Visibility groups rename (#250) in either merge order.
+const PHONE_STEPS: ( string | RegExp )[] = [
 	'Click any menu item',
 	'Type a new name',
 	'Reorder items',
@@ -39,7 +41,7 @@ const PHONE_STEPS = [
 	'Hide the item',
 	'Undo every change',
 	'separator',
-	'Hiding profiles',
+	/Hiding profiles|Visibility groups/,
 	'tour again',
 	'Reset All',
 	'Exit',

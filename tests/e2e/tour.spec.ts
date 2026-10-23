@@ -92,11 +92,11 @@ test( 'narrow tour: the hidden width and Settings steps are dropped, and Back wa
 	await expect( text ).toContainText( 'tour again' );
 	await expect( progress ).toHaveText( '9 of 11' );
 	await page.locator( '.maestro-tour-back' ).click();
-	await expect( text ).toContainText( 'Hiding profiles' );
+	await expect( text ).toContainText( /Hiding profiles|Visibility groups/ );
 	await page.locator( '.maestro-tour-back' ).click();
 	await expect( text ).toContainText( 'Add a separator' );
 	await page.locator( '.maestro-tour-next' ).click();
-	await expect( text ).toContainText( 'Hiding profiles' );
+	await expect( text ).toContainText( /Hiding profiles|Visibility groups/ );
 	await page.locator( '.maestro-tour-next' ).click();
 	await expect( text ).toContainText( 'tour again' );
 	// Back must keep moving across every remaining step and stop at the first.
