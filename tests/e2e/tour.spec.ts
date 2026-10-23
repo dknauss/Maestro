@@ -81,11 +81,11 @@ test( 'narrow tour: Back crosses the hidden width step', async ( { page } ) => {
 	await page.reload();
 	const text = page.locator( '.maestro-tour-text' );
 	await expect( page.locator( '.maestro-tour' ) ).toBeVisible();
-	// Eight visible steps precede Settings, including Profiles; width is skipped.
+	// Eight visible steps precede Help; width and width-only Settings are skipped.
 	for ( let i = 0; i < 8; i++ ) {
 		await page.locator( '.maestro-tour-next' ).click();
 	}
-	await expect( text ).toContainText( 'Menu settings' );
+	await expect( text ).toContainText( 'tour again' );
 	await page.locator( '.maestro-tour-back' ).click();
 	await expect( text ).toContainText( 'Visibility groups' );
 	await page.locator( '.maestro-tour-back' ).click();
@@ -93,7 +93,7 @@ test( 'narrow tour: Back crosses the hidden width step', async ( { page } ) => {
 	await page.locator( '.maestro-tour-next' ).click();
 	await expect( text ).toContainText( 'Visibility groups' );
 	await page.locator( '.maestro-tour-next' ).click();
-	await expect( text ).toContainText( 'Menu settings' );
+	await expect( text ).toContainText( 'tour again' );
 	// Back must keep moving across every remaining step and stop at the first.
 	for ( let i = 0; i < 8; i++ ) {
 		await page.locator( '.maestro-tour-back' ).click();

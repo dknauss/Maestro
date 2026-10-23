@@ -94,8 +94,12 @@
 		n.textContent = text;
 		n.dir = 'auto';
 	}
+	function removePopover( pop ) {
+		if ( pop.maestroCleanup ) { pop.maestroCleanup(); }
+		pop.remove();
+	}
 	function closePopovers() {
-		document.querySelectorAll( '.maestro-popover' ).forEach( function ( p ) { p.remove(); } );
+		document.querySelectorAll( '.maestro-popover' ).forEach( removePopover );
 	}
 	// The row marker means "this row has a hide rule of its own", on any axis.
 	function refreshHiddenMarker( key ) {
@@ -1430,6 +1434,7 @@
 	}
 
 	function openSettings( anchorBtn ) {
+		if ( window.innerWidth < 961 ) { return; }
 		closePopovers();
 
 		var pop = el( 'div', 'maestro-popover maestro-settings-popover' );
@@ -2740,6 +2745,10 @@
 	/* ---------- popover placement ----------------------------------------- */
 
 	function placePopover( pop, anchorBtn ) {
+		if ( window.innerWidth <= 782 ) {
+			placeMobilePopover( pop, anchorBtn );
+			return;
+		}
 		// Core treats clicks and Tab outside #adminmenuwrap as dismissal of
 		// the responsive menu. Settings belongs to that menu, like its toolbar.
 		var responsiveParent = pop.classList.contains( 'maestro-settings-popover' )
@@ -2773,39 +2782,145 @@
 		// measured at 1280x720). Re-anchor on resize so it grows upward instead.
 		// Other popovers keep a fixed place, so filtering icons does not move
 		// the grid under the pointer.
+		var ro;
 		var grows = pop.classList.contains( 'maestro-vis-popover' ) || pop.classList.contains( 'maestro-profiles-popover' );
 		if ( grows && window.ResizeObserver ) {
-			var ro = new window.ResizeObserver( function () {
+			ro = new window.ResizeObserver( function () {
 				if ( ! document.contains( pop ) ) { ro.disconnect(); return; }
 				position();
 			} );
 			ro.observe( pop );
 		}
 
-		setTimeout( function () {
-			document.addEventListener( 'click', function handler( e ) {
-				// Closed some other way (Done, Escape, another popover): drop the
-				// listener without moving focus, or it would pull focus out of
-				// whatever opened next.
-				if ( ! document.contains( pop ) ) {
-					document.removeEventListener( 'click', handler );
-					return;
-				}
-				if ( ! pop.contains( e.target ) && e.target !== anchorBtn ) {
-					pop.remove();
-					document.removeEventListener( 'click', handler );
-					// Phase 25 (M3): return focus to the anchor, mirroring what the
-					// Escape handler already does. Without this, dismissing by
-					// clicking away drops focus to <body> and a keyboard user has to
-					// tab back from the top of the document — WCAG 2.4.3, and an
-					// inconsistency INSIDE one component, which is the kind users
-					// experience as the thing being broken rather than merely spare.
-					if ( anchorBtn && document.contains( anchorBtn ) ) {
-						anchorBtn.focus();
-					}
-				}
-			} );
+		function outside( e ) {
+			if ( ! pop.contains( e.target ) && ! anchorBtn.contains( e.target ) ) {
+				removePopover( pop );
+				if ( document.contains( anchorBtn ) ) { anchorBtn.focus(); }
+			}
+		}
+		var outsideTimer = setTimeout( function () {
+			if ( document.contains( pop ) ) { document.addEventListener( 'click', outside ); }
 		}, 0 );
+		function cleanup() {
+			clearTimeout( outsideTimer );
+			document.removeEventListener( 'click', outside );
+			window.removeEventListener( 'resize', resize );
+			if ( ro ) { ro.disconnect(); }
+			pop.maestroCleanup = null;
+		}
+		function resize() {
+			if ( window.innerWidth < 961 && pop.classList.contains( 'maestro-settings-popover' ) && ! pop.classList.contains( 'maestro-profiles-popover' ) ) {
+				removePopover( pop );
+				var help = document.querySelector( '.maestro-tour-help' );
+				if ( help ) { help.focus(); }
+			} else if ( window.innerWidth <= 782 ) {
+				cleanup();
+				placeMobilePopover( pop, anchorBtn );
+			} else {
+				position();
+			}
+		}
+		pop.maestroCleanup = cleanup;
+		window.addEventListener( 'resize', resize );
+	}
+
+	// Phone dialogs use a scrollable sheet and explicit dismissal. All controls
+	// stay within core's responsive-menu subtree, including detached click targets.
+	function placeMobilePopover( pop, anchorBtn ) {
+		var previousFocus = document.activeElement;
+		forceResponsiveOpen();
+		var parent = document.getElementById( 'adminmenuwrap' ) || document.body;
+		var content = el( 'div', 'maestro-mobile-body' );
+		var actions = pop.querySelector( '.maestro-settings-actions' );
+		if ( actions ) { actions.remove(); }
+		while ( pop.firstChild ) { content.appendChild( pop.firstChild ); }
+		pop.appendChild( content );
+		if ( ! actions ) {
+			actions = el( 'div', 'maestro-settings-actions' );
+			var done = el( 'button', 'button button-primary', I.tourDone );
+			done.type = 'button';
+			done.addEventListener( 'click', close );
+			actions.appendChild( done );
+		}
+		pop.appendChild( actions );
+		pop.classList.add( 'maestro-mobile-sheet' );
+		parent.appendChild( pop );
+		var oldBodyOverflow = document.body.style.overflow;
+		var oldRootOverflow = document.documentElement.style.overflow;
+		document.body.style.overflow = 'hidden';
+		document.documentElement.style.overflow = 'hidden';
+		var viewport = window.visualViewport;
+		var frame;
+
+		function close() {
+			closePopovers();
+			anchorBtn.focus( { preventScroll: true } );
+		}
+		function position() {
+			if ( ! document.contains( pop ) ) { return; }
+			var v = window.visualViewport;
+			pop.style.left = ( ( v ? v.offsetLeft : 0 ) + 8 ) + 'px';
+			var bar = document.getElementById( 'wpadminbar' );
+			var top = Math.max( ( v ? v.offsetTop : 0 ) + 8, bar ? bar.getBoundingClientRect().bottom + 8 : 8 );
+			var bottom = ( v ? v.offsetTop + v.height : window.innerHeight ) - 8;
+			pop.style.top = top + 'px';
+			pop.style.width = Math.max( 0, ( v ? v.width : window.innerWidth ) - 16 ) + 'px';
+			pop.style.height = Math.max( 0, bottom - top ) + 'px';
+			pop.style.maxHeight = pop.style.height;
+			cancelAnimationFrame( frame );
+			frame = requestAnimationFrame( function () {
+				var focused = document.activeElement;
+				if ( content.contains( focused ) ) { focused.scrollIntoView( { block: 'nearest' } ); }
+			} );
+		}
+		function outside( e ) {
+			if ( ! pop.contains( e.target ) ) {
+				e.preventDefault();
+				e.stopPropagation();
+			}
+		}
+		// A result/chip/button can remove itself before core's document handler
+		// runs. Stop bubbling while the event still passes through the sheet.
+		pop.addEventListener( 'click', function ( e ) { e.stopPropagation(); } );
+		pop.addEventListener( 'keydown', function ( e ) {
+			if ( e.key === 'Escape' ) {
+				e.preventDefault(); e.stopImmediatePropagation(); return;
+			}
+			if ( e.key !== 'Tab' ) { return; }
+			e.stopImmediatePropagation();
+			var controls = Array.prototype.filter.call( pop.querySelectorAll( 'input, button, select, [tabindex]' ), function ( n ) {
+				return ! n.disabled && n.tabIndex >= 0 && n.getClientRects().length;
+			} );
+			if ( ! controls.length ) { return; }
+			var first = controls[ 0 ], last = controls[ controls.length - 1 ];
+			if ( e.shiftKey && document.activeElement === first ) { e.preventDefault(); last.focus(); }
+			else if ( ! e.shiftKey && document.activeElement === last ) { e.preventDefault(); first.focus(); }
+		}, true );
+		pop.addEventListener( 'keyup', function ( e ) {
+			if ( e.key === 'Tab' ) { e.stopImmediatePropagation(); }
+			if ( e.key === 'Escape' ) { e.preventDefault(); e.stopImmediatePropagation(); close(); }
+		}, true );
+		pop.addEventListener( 'focusin', position );
+		document.addEventListener( 'click', outside, true );
+		window.addEventListener( 'resize', position );
+		if ( viewport ) {
+			viewport.addEventListener( 'resize', position );
+			viewport.addEventListener( 'scroll', position );
+		}
+		pop.maestroCleanup = function () {
+			cancelAnimationFrame( frame );
+			document.removeEventListener( 'click', outside, true );
+			window.removeEventListener( 'resize', position );
+			if ( viewport ) {
+				viewport.removeEventListener( 'resize', position );
+				viewport.removeEventListener( 'scroll', position );
+			}
+			document.body.style.overflow = oldBodyOverflow;
+			document.documentElement.style.overflow = oldRootOverflow;
+			pop.maestroCleanup = null;
+		};
+		position();
+		if ( content.contains( previousFocus ) ) { previousFocus.focus( { preventScroll: true } ); }
 	}
 
 	/* ---------- sortable --------------------------------------------------- */
@@ -3307,7 +3422,9 @@
 		box.appendChild( arrow );
 		box.appendChild( content );
 		box.appendChild( controls );
-		document.body.appendChild( box );
+		var tourParent = window.innerWidth <= 782 ? document.getElementById( 'adminmenuwrap' ) : null;
+		( tourParent || document.body ).appendChild( box );
+		box.addEventListener( 'click', function ( e ) { e.stopPropagation(); } );
 		tour.root = box;
 
 		positionTour( box, anchor, step.placement );

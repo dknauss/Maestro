@@ -1190,3 +1190,95 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 .maestro-editing #collapse-menu {
 	display: none;
 }
+
+/* Width-only settings have no effect below the desktop menu-width breakpoint. */
+@media screen and ( max-width: 960px ) {
+	.maestro-toolbar .maestro-settings-btn { display: none; }
+}
+
+/* Phone sheets use visualViewport dimensions supplied by placeMobilePopover.
+ * The footer stays outside the scroll region and above the software keyboard. */
+.maestro-popover.maestro-mobile-sheet {
+	position: fixed;
+	z-index: 100100;
+	display: flex;
+	flex-direction: column;
+	box-sizing: border-box;
+	max-width: none;
+	padding: 12px;
+	overflow: hidden;
+}
+.maestro-mobile-body {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	padding: 2px;
+}
+.maestro-mobile-sheet > .maestro-settings-actions {
+	flex: none;
+	margin-top: 8px;
+	padding-top: 8px;
+	border-top: 1px solid #dcdcde;
+}
+.maestro-mobile-sheet .button,
+.maestro-mobile-sheet button,
+.maestro-mobile-sheet input[type='text'],
+.maestro-mobile-sheet input[type='search'],
+.maestro-mobile-sheet input[type='number'] {
+	min-height: 44px;
+	min-width: 44px;
+	font-size: 16px; /* avoid iOS focus zoom */
+}
+.maestro-mobile-sheet .maestro-vis-row {
+	display: flex;
+	align-items: center;
+	min-height: 44px;
+	box-sizing: border-box;
+}
+.maestro-mobile-sheet .maestro-icon-grid { max-height: none; }
+.maestro-mobile-sheet .maestro-user-results { overscroll-behavior: contain; }
+@media screen and ( max-width: 782px ) {
+	.maestro-editing .maestro-toolbar .button {
+		min-width: 44px;
+		min-height: 44px;
+		box-sizing: border-box;
+	}
+	.maestro-tour button { min-width: 44px; min-height: 44px; }
+}
+@media screen and ( max-width: 600px ) {
+	.maestro-toolbar { gap: 6px; padding: 6px 8px; }
+	.maestro-panel {
+		display: grid;
+		grid-template-columns: repeat( 6, minmax( 44px, 1fr ) );
+		gap: 4px;
+		padding-inline-start: 0;
+		border-inline-start: 0;
+	}
+	.maestro-panel[hidden] { display: none; }
+	.maestro-panel-label { display: none; }
+	.maestro-toolbar .maestro-rename-input { grid-column: 1 / -1; width: 100%; font-size: 16px; }
+	.maestro-toolbar .maestro-panel .button { margin: 0; }
+	.maestro-toolbar-right { gap: 6px; }
+}
+
+.maestro-mobile-sheet .description,
+.maestro-mobile-sheet .maestro-vis-row,
+.maestro-mobile-sheet .maestro-vis-head {
+	font-size: 16px;
+	line-height: 1.4;
+}
+.maestro-mobile-sheet .maestro-vis-row input[type='checkbox'] { flex: none; }
+.maestro-mobile-sheet .maestro-vis-all { flex-wrap: wrap; }
+
+@media screen and ( max-width: 600px ) {
+	.maestro-toolbar .maestro-status {
+		position: absolute;
+		inset-inline-start: 8px;
+		bottom: 6px;
+		height: 44px;
+	}
+	.maestro-toolbar .maestro-add-separator .maestro-btn-label,
+	.maestro-toolbar .maestro-remove-separator .maestro-btn-label { display: none; }
+}
+.maestro-mobile-sheet .maestro-vis-row { column-gap: 6px; }

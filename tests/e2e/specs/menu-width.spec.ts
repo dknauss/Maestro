@@ -214,16 +214,18 @@ test.describe( 'Phase 28-03 — menu width controls', () => {
 	}
 
 	for ( const width of [ 375, 782 ] ) {
-		test( `mobile settings preserve the open overlay at ${ width }px`, async ( { page } ) => {
+		test( `mobile groups preserve the open overlay while width settings stay hidden at ${ width }px`, async ( { page } ) => {
 			await page.setViewportSize( { width, height: 900 } );
 			wp( [ 'option', 'update', 'maestro_config', '{"menu_width":240}', '--format=json' ] );
 			await page.goto( '/wp-admin/index.php?maestro_edit=1' );
 			const menu = page.locator( '#adminmenu' );
 			await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
 			await expect( menu ).toBeVisible();
-			const dialog = await openSettings( page );
-			await dialog.getByLabel( 'Menu width in pixels' ).click();
-			await dialog.getByLabel( 'Menu width in pixels' ).fill( '260' );
+			await expect( page.locator( '.maestro-settings-btn' ) ).toBeHidden();
+			await page.locator( '.maestro-profiles-btn' ).click();
+			const dialog = page.getByRole( 'dialog', { name: 'Visibility groups' } );
+			await dialog.getByLabel( 'New group name' ).click();
+			await dialog.getByLabel( 'New group name' ).fill( 'Overlay test' );
 			await expect( menu ).toBeVisible();
 			await page.keyboard.press( 'Tab' );
 			await expect( menu ).toBeVisible();
@@ -231,7 +233,7 @@ test.describe( 'Phase 28-03 — menu width controls', () => {
 			await page.keyboard.press( 'Escape' );
 			await expect( dialog ).toHaveCount( 0 );
 			await expect( menu ).toBeVisible();
-			await expect( page.locator( '.maestro-settings-btn' ) ).toBeFocused();
+			await expect( page.locator( '.maestro-profiles-btn' ) ).toBeFocused();
 			await page.locator( '#wp-admin-bar-menu-toggle a' ).click();
 			await expect( menu ).toBeHidden();
 			await page.locator( '#wp-admin-bar-menu-toggle a' ).click();
