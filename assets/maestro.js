@@ -53,6 +53,16 @@
 	var widthPreviewEl = null;  // <style> holding the live preview rule
 	var widthControls = null;   // the open Settings dialog's inputs, if any
 	var widthHandle = null;     // the drag handle at the menu edge
+	// Phase 27: hiding profiles, as { id, name, users: [{ id, name }] }. Empty
+	// for a viewer without `list_users`, who never sees or saves them. WHICH
+	// items a profile hides lives on the model (hiddenProfiles and
+	// childHiddenProfiles), exactly as hiddenRoles does; buildConfig() folds
+	// it back into the map.
+	var profiles = ( D.profiles || [] ).map( function ( p ) {
+		return { id: p.id, name: p.name, users: ( p.users || [] ).slice() };
+	} );
+	var profileIdFloor = 0;     // highest p_<n> handed out this session
+	var profilesBtn = null;     // the toolbar button that opens the dialog
 
 	/* ---------- helpers ---------------------------------------------------- */
 
@@ -82,6 +92,11 @@
 	}
 	function closePopovers() {
 		document.querySelectorAll( '.maestro-popover' ).forEach( function ( p ) { p.remove(); } );
+	}
+	// The row marker means "this row has a hide rule of its own", on any axis.
+	function refreshHiddenMarker( key ) {
+		var li = liForKey( key );
+		if ( li ) { li.classList.toggle( 'maestro-has-hidden', window.maestroLogic.hasOwnHide( model[ key ] ) ); }
 	}
 	function speak( message, politeness ) {
 		if ( window.wp && window.wp.a11y && typeof window.wp.a11y.speak === 'function' ) {
@@ -389,6 +404,10 @@
 				// ids) so a chip can render its label without a lookup.
 				hiddenUsers: ( node.hiddenUsers || [] ).slice(),
 				childHiddenUsers: ( node.childHiddenUsers || [] ).slice(),
+				// Phase 27: profile IDs, already filtered to live profiles and
+				// withheld from a viewer without `list_users` by the model.
+				hiddenProfiles: ( node.hiddenProfiles || [] ).slice(),
+				childHiddenProfiles: ( node.childHiddenProfiles || [] ).slice(),
 				hasChildren: node.submenu.length > 0
 			};
 
@@ -396,12 +415,13 @@
 			if ( ! li ) { return; }
 			li.dataset.maestroSlug = node.slug;
 			li.classList.add( 'maestro-item' );
-			// Seeded from BOTH own-hide axes, matching what the popover's setSet
+			// Seeded from EVERY own-hide axis, matching what the popover's setSet
 			// toggles it to. Seeding from roles alone meant a saved person-hide
 			// looked like an ordinary row after every reload, until someone
 			// happened to open its popover — the marker disagreeing with the
-			// rule it exists to advertise.
-			if ( node.hiddenRoles.length || node.hiddenUsers.length ) { li.classList.add( 'maestro-has-hidden' ); }
+			// rule it exists to advertise. One tested predicate, so a new axis
+			// cannot be missed here again.
+			if ( window.maestroLogic.hasOwnHide( model[ node.slug ] ) ) { li.classList.add( 'maestro-has-hidden' ); }
 
 			// Submenu children: each gets its OWN model entry keyed by its
 			// qualified `parent>child` identity (from get_menu_model(),
@@ -424,6 +444,7 @@
 					icon: '',
 					hiddenRoles: child.hiddenRoles.slice(),
 					hiddenUsers: ( child.hiddenUsers || [] ).slice(),
+					hiddenProfiles: ( child.hiddenProfiles || [] ).slice(),
 					isSub: true,
 					parent: node.slug
 				};
@@ -434,7 +455,7 @@
 				sli.dataset.maestroSlug = child.slug; // bare: sub_order + legacy consumers
 				sli.dataset.maestroKey  = key;         // qualified: model identity / selection
 				sli.classList.add( 'maestro-subitem' );
-				if ( child.hiddenRoles.length || ( child.hiddenUsers || [] ).length ) { sli.classList.add( 'maestro-has-hidden' ); }
+				if ( window.maestroLogic.hasOwnHide( model[ key ] ) ) { sli.classList.add( 'maestro-has-hidden' ); }
 			} );
 		} );
 
@@ -487,6 +508,8 @@
 			childHiddenRoles: [],
 			hiddenUsers: [],
 			childHiddenUsers: [],
+			hiddenProfiles: [],
+			childHiddenProfiles: [],
 			isSub: false,
 			hasChildren: false,
 			isSeparator: true
@@ -953,6 +976,17 @@
 		iconButton( settings, 'dashicons-admin-settings', I.settings );
 		settings.addEventListener( 'click', function () { openSettings( settings ); } );
 
+		// Hiding profiles (Phase 27) are menu-wide too, so they sit beside
+		// Settings. Gated like the people groups: without `list_users` there
+		// is nothing to show and the save keeps the stored profiles.
+		if ( D.canPickUsers ) {
+			profilesBtn = el( 'button', 'button maestro-profiles-btn' );
+			profilesBtn.type = 'button';
+			profilesBtn.setAttribute( 'aria-haspopup', 'dialog' );
+			iconButton( profilesBtn, 'dashicons-groups', I.profiles );
+			profilesBtn.addEventListener( 'click', function () { openProfiles( profilesBtn ); } );
+			right.appendChild( profilesBtn );
+		}
 		right.appendChild( settings );
 		right.appendChild( help );
 		right.appendChild( resetAll );
@@ -1520,6 +1554,282 @@
 	}
 
 	/*
+	 * The Hiding profiles dialog (Phase 27): create, rename and delete
+	 * profiles and choose who is in each. Which items a profile hides is set
+	 * per item in the Visibility popover, so this dialog never lists items.
+	 *
+	 * It reuses the Settings dialog's shell (maestro-settings-popover), so it
+	 * gets the same placement inside the responsive menu, the same focus trap
+	 * and the same Escape handling. Every change autosaves.
+	 */
+	function openProfiles( anchorBtn ) {
+		closePopovers();
+		var limits = D.profileLimits || { profiles: 20, members: 50, name: 40 };
+
+		var pop = el( 'div', 'maestro-popover maestro-settings-popover maestro-profiles-popover' );
+		pop.setAttribute( 'role', 'dialog' );
+		pop.setAttribute( 'aria-modal', 'true' );
+		pop.setAttribute( 'aria-labelledby', 'maestro-profiles-title' );
+
+		var title = el( 'h2', 'maestro-settings-title', I.profiles );
+		title.id = 'maestro-profiles-title';
+		pop.appendChild( title );
+		var intro = el( 'p', 'maestro-profiles-intro description', I.profilesIntro );
+		intro.id = 'maestro-profiles-intro';
+		pop.setAttribute( 'aria-describedby', intro.id );
+		pop.appendChild( intro );
+
+		var list = el( 'div', 'maestro-profiles-list' );
+		pop.appendChild( list );
+
+		// The add row: a name field and its button, with one live message line
+		// shared by the whole dialog for refusals (empty, taken, limit).
+		var add = el( 'div', 'maestro-profile-add' );
+		var addLabel = el( 'label', 'screen-reader-text', I.profileNewName );
+		addLabel.htmlFor = 'maestro-profile-new';
+		var addInput = el( 'input', 'maestro-profile-new' );
+		addInput.type = 'text';
+		addInput.id = 'maestro-profile-new';
+		addInput.dir = 'auto';
+		addInput.maxLength = limits.name;
+		addInput.placeholder = I.profileNewName;
+		addInput.setAttribute( 'autocomplete', 'off' );
+		addInput.setAttribute( 'aria-describedby', 'maestro-profiles-msg' );
+		var addBtn = el( 'button', 'button maestro-profile-add-btn', I.profileAdd );
+		addBtn.type = 'button';
+		add.appendChild( addLabel );
+		add.appendChild( addInput );
+		add.appendChild( addBtn );
+		pop.appendChild( add );
+
+		var msg = el( 'p', 'maestro-profiles-msg' );
+		msg.id = 'maestro-profiles-msg';
+		msg.setAttribute( 'aria-live', 'polite' );
+		msg.hidden = true;
+		pop.appendChild( msg );
+
+		var actions = el( 'div', 'maestro-settings-actions' );
+		var done = el( 'button', 'button button-primary maestro-settings-done', I.tourDone );
+		done.type = 'button';
+		actions.appendChild( done );
+		pop.appendChild( actions );
+
+		function say( text ) {
+			setText( msg, text || '' );
+			msg.hidden = ! text;
+		}
+
+		function problemText( problem ) {
+			return 'empty' === problem ? I.profileNameEmpty : ( 'taken' === problem ? I.profileNameTaken : '' );
+		}
+
+		// Every item's profile axes, plus the stored hides of items not on
+		// screen, so a delete confirmation counts what the save will drop.
+		function assignments() {
+			var out = Object.keys( model ).map( function ( key ) {
+				return { key: key, own: model[ key ].hiddenProfiles, child: model[ key ].childHiddenProfiles };
+			} );
+			return window.maestroLogic.carryProfileHides( out, D.profileCarry );
+		}
+
+		function renderList() {
+			list.textContent = '';
+			profiles.forEach( function ( p ) {
+				list.appendChild( buildProfileRow( p ) );
+			} );
+			addInput.disabled = false;
+			addBtn.disabled = false;
+		}
+
+		function buildProfileRow( p ) {
+			var row = el( 'section', 'maestro-profile' );
+			row.dataset.profileId = p.id;
+
+			var head = el( 'div', 'maestro-profile-head' );
+			var name = el( 'input', 'maestro-profile-name' );
+			name.type = 'text';
+			name.value = p.name;
+			name.dir = 'auto';
+			name.maxLength = limits.name;
+			name.setAttribute( 'aria-label', I.profileName );
+			name.setAttribute( 'autocomplete', 'off' );
+			head.appendChild( name );
+
+			var del = el( 'button', 'button-link button-link-delete maestro-profile-delete' );
+			del.type = 'button';
+			iconButton( del, 'dashicons-trash', I.profileDelete.replace( '%s', function () { return p.name; } ) );
+			head.appendChild( del );
+			row.appendChild( head );
+
+			var picker = buildPersonPicker(
+				I.profileMembers.replace( '%s', function () { return p.name; } ),
+				'maestro-profile-members',
+				function () { return p.users; },
+				function ( arr ) { p.users = arr; },
+				{
+					max: limits.members,
+					selfWarning: I.profileSelfWarning,
+					onChange: scheduleAutosave
+				}
+			);
+			row.appendChild( picker.el );
+
+			// Commit each valid keystroke, so an autosave never carries a name
+			// the server would refuse; an invalid one is flagged and, on
+			// leaving the field, put back.
+			name.addEventListener( 'input', function () {
+				var problem = window.maestroLogic.profileNameProblem( name.value, profiles, p.id );
+				if ( problem ) {
+					name.setAttribute( 'aria-invalid', 'true' );
+					name.setAttribute( 'aria-describedby', msg.id );
+					say( problemText( problem ) );
+					return;
+				}
+				name.removeAttribute( 'aria-invalid' );
+				say( '' );
+				p.name = name.value.trim();
+				var membersHead = picker.el.querySelector( '.maestro-vis-head' );
+				if ( membersHead ) { setText( membersHead, I.profileMembers.replace( '%s', function () { return p.name; } ) ); }
+				var delLabel = I.profileDelete.replace( '%s', function () { return p.name; } );
+				del.setAttribute( 'aria-label', delLabel );
+				del.title = delLabel;
+				setText( del.querySelector( '.maestro-btn-label' ), delLabel );
+				scheduleAutosave();
+			} );
+			name.addEventListener( 'change', function () {
+				if ( 'true' === name.getAttribute( 'aria-invalid' ) ) {
+					name.value = p.name;
+					name.removeAttribute( 'aria-invalid' );
+					say( '' );
+				}
+			} );
+
+			del.addEventListener( 'click', function ( e ) {
+				// renderList() detaches this button before placePopover()'s
+				// outside-click handler runs, which would close the dialog.
+				e.stopPropagation();
+				var count = window.maestroLogic.profileItemCount( p.id, assignments() );
+				// Function replacers: a name is user text, and a "$&" in it would
+				// otherwise be read as a replacement pattern.
+				var question = I.profileDeleteConfirm
+					.replace( '%1$s', function () { return p.name; } )
+					.replace( '%2$d', function () { return String( count ); } )
+					.replace( '%3$d', function () { return String( p.users.length ); } );
+				if ( ! window.confirm( question ) ) { return; }
+				deleteProfile( p.id );
+				renderList();
+				say( '' );
+				speak( I.profileDeleted );
+				addInput.focus();
+			} );
+
+			return row;
+		}
+
+		function addProfile() {
+			if ( profiles.length >= limits.profiles ) {
+				say( I.profileLimit.replace( '%d', String( limits.profiles ) ) );
+				return;
+			}
+			var problem = window.maestroLogic.profileNameProblem( addInput.value, profiles );
+			if ( problem ) {
+				addInput.setAttribute( 'aria-invalid', 'true' );
+				say( problemText( problem ) );
+				addInput.focus();
+				return;
+			}
+			var id = window.maestroLogic.nextProfileId( profiles, profileIdFloor );
+			profileIdFloor = Number( id.slice( 2 ) );
+			var p = { id: id, name: addInput.value.trim(), users: [] };
+			profiles.push( p );
+			addInput.value = '';
+			addInput.removeAttribute( 'aria-invalid' );
+			list.appendChild( buildProfileRow( p ) );
+			say( profiles.length >= limits.profiles ? I.profileLimit.replace( '%d', String( limits.profiles ) ) : '' );
+			speak( I.profileAdded );
+			scheduleAutosave();
+			// Straight on to choosing who is in it.
+			var search = list.lastChild.querySelector( '.maestro-user-search' );
+			( search || addInput ).focus();
+		}
+
+		addBtn.addEventListener( 'click', function ( e ) {
+			e.stopPropagation();
+			addProfile();
+		} );
+		addInput.addEventListener( 'keydown', function ( e ) {
+			if ( e.key === 'Enter' ) {
+				e.preventDefault();
+				addProfile();
+			}
+		} );
+		addInput.addEventListener( 'input', function () {
+			addInput.removeAttribute( 'aria-invalid' );
+			say( '' );
+		} );
+
+		function close() {
+			closePopovers();
+			anchorBtn.focus();
+		}
+		done.addEventListener( 'click', close );
+
+		// Escape closes and restores focus; Tab is trapped within the dialog.
+		// Same handling as openSettings(), including the keyup ordering core's
+		// responsive menu needs.
+		pop.addEventListener( 'keydown', function ( e ) {
+			if ( e.key === 'Escape' ) {
+				e.preventDefault();
+				e.stopPropagation();
+				return;
+			}
+			if ( e.key !== 'Tab' ) { return; }
+			var focusable = Array.prototype.filter.call(
+				pop.querySelectorAll( 'input, button' ),
+				function ( n ) { return ! n.hidden && ! n.disabled && n.offsetParent !== null; }
+			);
+			if ( ! focusable.length ) { return; }
+			var first = focusable[ 0 ];
+			var last  = focusable[ focusable.length - 1 ];
+			if ( e.shiftKey && document.activeElement === first ) {
+				e.preventDefault();
+				last.focus();
+			} else if ( ! e.shiftKey && document.activeElement === last ) {
+				e.preventDefault();
+				first.focus();
+			}
+		} );
+		pop.addEventListener( 'keyup', function ( e ) {
+			if ( e.key === 'Tab' ) { e.stopPropagation(); }
+			if ( e.key === 'Escape' ) {
+				e.stopPropagation();
+				close();
+			}
+		} );
+
+		renderList();
+		placePopover( pop, anchorBtn );
+		( profiles.length ? list.querySelector( '.maestro-profile-name' ) : addInput ).focus();
+	}
+
+	// Remove a profile and every item's reference to it. The save rebuilds
+	// the map from the model, so this one pass is the whole cleanup.
+	function deleteProfile( id ) {
+		profiles = profiles.filter( function ( p ) { return p.id !== id; } );
+		Object.keys( model ).forEach( function ( key ) {
+			var m = model[ key ];
+			var own   = window.maestroLogic.isProfileAssigned( m.hiddenProfiles, id );
+			var child = window.maestroLogic.isProfileAssigned( m.childHiddenProfiles, id );
+			if ( ! own && ! child ) { return; }
+			m.hiddenProfiles      = window.maestroLogic.toggleProfile( m.hiddenProfiles, id, false );
+			m.childHiddenProfiles = window.maestroLogic.toggleProfile( m.childHiddenProfiles, id, false );
+			refreshHiddenMarker( key );
+			refreshModifiedIndicator( key );
+		} );
+		scheduleAutosave();
+	}
+
+	/*
 	 * The edge handle follows the WAI-ARIA window-splitter pattern: a focusable
 	 * role="separator" with a value, so the drag has a keyboard twin (arrows,
 	 * Shift for bigger steps, Home for the default, End for the maximum) and is
@@ -1845,18 +2155,11 @@
 			function () { return model[ slug ].hiddenRoles; },
 			function ( arr ) {
 				model[ slug ].hiddenRoles = arr;
-				var li = liForKey( slug );
-				if ( li ) {
-					// The marker means "this row has a hide rule of its own", which
-					// is EITHER axis. Testing hiddenRoles alone would clear it when
-					// the last role is unchecked while a person rule is still in
-					// force — the row would look untouched until a reload rebuilt
-					// it. Matches initModel() and the user group's own setSet.
-					li.classList.toggle(
-						'maestro-has-hidden',
-						model[ slug ].hiddenRoles.length > 0 || ( model[ slug ].hiddenUsers || [] ).length > 0
-					);
-				}
+				// The marker covers EVERY own axis. Testing hiddenRoles alone would
+				// clear it when the last role is unchecked while a person or
+				// profile rule is still in force — the row would look untouched
+				// until a reload rebuilt it.
+				refreshHiddenMarker( slug );
 			},
 			{
 				onToggle: function () {
@@ -1904,228 +2207,17 @@
 			);
 		}
 
-		// ROLE-02: one shared builder for BOTH per-user sections, for the same
-		// reason buildRoleGroup() is shared — four hand-rolled groups in one
-		// popover is where "toggling one group edits another's model field"
-		// bugs come from. getSet/setSet bind the section to its model field.
-		function buildUserGroup( heading, groupClass, getSet, setSet, opts ) {
-			opts = opts || {};
-			var group = el( 'div', 'maestro-vis-group maestro-user-group ' + groupClass );
-
-			// Same programmatic-group treatment the role groups get (WCAG 1.3.1):
-			// all four groups list similar-looking controls, so without a name an
-			// AT user cannot tell which axis they are operating.
-			var headEl = el( 'p', 'maestro-vis-head', heading );
-			headEl.id = 'maestro-vis-head-' + ( ++groupIdSeq );
-			group.setAttribute( 'role', 'group' );
-			group.setAttribute( 'aria-labelledby', headEl.id );
-			group.appendChild( headEl );
-
-			var chips = el( 'ul', 'maestro-user-chips' );
-			group.appendChild( chips );
-
-			var searchId = 'maestro-user-search-' + groupIdSeq;
-			var srLabel  = el( 'label', 'screen-reader-text', I.userSearch );
-			srLabel.setAttribute( 'for', searchId );
-			var search = el( 'input', 'maestro-user-search' );
-			search.type = 'search';
-			search.id = searchId;
-			search.placeholder = I.userSearch;
-			search.dir = 'auto';
-			search.setAttribute( 'autocomplete', 'off' );
-			group.appendChild( srLabel );
-			group.appendChild( search );
-
-			// Results are a list of real buttons rather than a datalist so they
-			// stay keyboard-operable and styleable across browsers.
-			var results = el( 'ul', 'maestro-user-results' );
-			results.hidden = true;
-			group.appendChild( results );
-
-			var status = el( 'p', 'maestro-user-status' );
-			status.setAttribute( 'aria-live', 'polite' );
-			status.hidden = true;
-			group.appendChild( status );
-
-			var warn = el( 'p', 'maestro-user-selfwarn' );
-			warn.hidden = true;
-			group.appendChild( warn );
-
-			function say( text ) {
-				setText( status, text );
-				status.hidden = ! text;
-			}
-
-			function refreshSelfWarning() {
-				var isSelf = false;
-				getSet().forEach( function ( t ) {
-					if ( window.maestroLogic.isSelfTarget( t.id, D.userId ) ) { isSelf = true; }
-				} );
-				setText( warn, isSelf ? I.userSelfWarning : '' );
-				warn.hidden = ! isSelf;
-			}
-
-			function afterChange() {
-				renderChips();
-				refreshSelfWarning();
-				if ( opts.onChange ) { opts.onChange(); }
-				refreshModifiedIndicator( slug );
-				scheduleAutosave();
-			}
-
-			function renderChips() {
-				chips.textContent = '';
-				getSet().forEach( function ( target ) {
-					var li = el( 'li', 'maestro-user-chip' );
-					li.appendChild( document.createTextNode( target.name ) );
-
-					var rm = el( 'button', 'maestro-user-chip-remove' );
-					rm.type = 'button';
-					rm.textContent = '×';
-					// The visible label is a bare glyph, so the accessible name has
-					// to carry WHO is being removed — otherwise a screen-reader user
-					// hears a list of identical "remove" buttons.
-					rm.setAttribute( 'aria-label', I.userRemove.replace( '%s', target.name ) );
-					rm.addEventListener( 'click', function ( e ) {
-						// MUST stop propagation. placePopover()'s outside-click
-						// handler closes the popover when the clicked node is not
-						// inside it — and re-rendering the chips below detaches
-						// THIS button before that handler runs, so the click would
-						// read as "outside" and close the whole popover.
-						e.stopPropagation();
-						setSet( window.maestroLogic.removeUserTarget( getSet(), target.id ) );
-						afterChange();
-						search.focus();
-					} );
-					li.appendChild( rm );
-					chips.appendChild( li );
-				} );
-			}
-
-			function atLimit() {
-				return getSet().length >= Number( D.maxHiddenUsers );
-			}
-
-			function pick( user ) {
-				// Stop AT the server's cap rather than letting Config::sanitize()
-				// truncate silently: without this the editor reports a successful
-				// autosave and the extra targets vanish on the next reload, which
-				// contradicts the round-trip guarantee the popover implies.
-				if ( atLimit() ) {
-					results.hidden = true;
-					results.textContent = '';
-					say( I.userLimitReached.replace( '%d', String( D.maxHiddenUsers ) ) );
-					return;
+		// The popover's per-user sections: the shared person picker, bound to
+		// this row's model field and saving like every other popover control.
+		function buildUserGroup( heading, groupClass, getSet, setSet ) {
+			var picker = buildPersonPicker( heading, groupClass, getSet, setSet, {
+				onChange: function () {
+					refreshModifiedIndicator( slug );
+					scheduleAutosave();
 				}
-				setSet( window.maestroLogic.addUserTarget( getSet(), user ) );
-				results.hidden = true;
-				results.textContent = '';
-				search.value = '';
-				say( atLimit() ? I.userLimitReached.replace( '%d', String( D.maxHiddenUsers ) ) : '' );
-				afterChange();
-				search.focus();
-			}
-
-			function renderResults( users ) {
-				results.textContent = '';
-				var shown = users.filter( function ( u ) {
-					return ! window.maestroLogic.isUserTargeted( getSet(), u.id );
-				} );
-				if ( ! shown.length ) {
-					results.hidden = true;
-					say( I.userSearchNone );
-					return;
-				}
-				shown.forEach( function ( u ) {
-					var li  = el( 'li' );
-					var btn = el( 'button', 'maestro-user-result' );
-					btn.type = 'button';
-					setText( btn, u.name );
-					// Same detach-before-outside-click hazard as the chip remove
-					// button above: pick() empties this list synchronously.
-					btn.addEventListener( 'click', function ( e ) {
-						e.stopPropagation();
-						pick( u );
-					} );
-					li.appendChild( btn );
-					results.appendChild( li );
-				} );
-				results.hidden = false;
-				say( '' );
-			}
-
-			var timer    = null;
-			var inflight = null;
-
-			search.addEventListener( 'input', function () {
-				var q = search.value.trim();
-				if ( timer ) { window.clearTimeout( timer ); }
-
-				// Say so before the round trip rather than after a pointless one.
-				if ( atLimit() ) {
-					results.hidden = true;
-					results.textContent = '';
-					say( I.userLimitReached.replace( '%d', String( D.maxHiddenUsers ) ) );
-					return;
-				}
-
-				// Abort any in-flight request. Without this a fast typist can get
-				// results for a stale prefix whenever an earlier response lands
-				// after a later one.
-				if ( inflight ) { inflight.abort(); inflight = null; }
-
-				if ( q.length < 2 ) {
-					results.hidden = true;
-					results.textContent = '';
-					say( '' );
-					return;
-				}
-
-				timer = window.setTimeout( function () {
-					var ctrl = ( typeof AbortController !== 'undefined' ) ? new AbortController() : null;
-					inflight = ctrl;
-					// On a site with plain permalinks rest_url() already carries a
-					// query string (index.php?rest_route=/wp/v2/users), so the
-					// separator has to be chosen, not assumed — appending a second
-					// "?" silently 404s the search on exactly those sites.
-					var sep = ( D.usersUrl.indexOf( '?' ) === -1 ) ? '?' : '&';
-					// Exclude already-chosen people SERVER-side. Filtering them
-					// out of a 10-row page after the fact means that when the
-					// first ten matches for a common name are all already chips,
-					// the picker reports "no matching people" while valid targets
-					// sit on page two, unreachable without guessing a narrower query.
-					var chosen = window.maestroLogic.userTargetIds( getSet() );
-					var exclude = chosen.length ? '&exclude=' + chosen.join( ',' ) : '';
-					window.fetch(
-						D.usersUrl + sep + 'per_page=10' + exclude + '&search=' + encodeURIComponent( q ),
-						{
-							credentials: 'same-origin',
-							headers: { 'X-WP-Nonce': D.nonce },
-							signal: ctrl ? ctrl.signal : undefined
-						}
-					).then( function ( r ) {
-						if ( ! r.ok ) { throw new Error( 'search failed' ); }
-						return r.json();
-					} ).then( function ( json ) {
-						inflight = null;
-						renderResults( json.map( function ( u ) {
-							return { id: u.id, name: u.name };
-						} ) );
-					} ).catch( function ( err ) {
-						if ( err && err.name === 'AbortError' ) { return; }
-						inflight = null;
-						results.hidden = true;
-						// An explicit failure message: a picker that silently shows
-						// nothing is indistinguishable from a broken one.
-						say( I.userSearchError );
-					} );
-				}, 250 );
 			} );
-
-			renderChips();
-			refreshSelfWarning();
-			pop.appendChild( group );
-			return { refresh: renderChips };
+			pop.appendChild( picker.el );
+			return picker;
 		}
 
 		// Groups 3 and 4 (ROLE-02) require `list_users`. A site that points
@@ -2144,15 +2236,7 @@
 			function () { return model[ slug ].hiddenUsers; },
 			function ( arr ) {
 				model[ slug ].hiddenUsers = arr;
-				var li = liForKey( slug );
-				if ( li ) {
-					// The row badge means "this row has a hide rule of its own",
-					// which is now satisfied by either axis.
-					li.classList.toggle(
-						'maestro-has-hidden',
-						model[ slug ].hiddenRoles.length > 0 || model[ slug ].hiddenUsers.length > 0
-					);
-				}
+				refreshHiddenMarker( slug );
 			}
 		);
 
@@ -2171,7 +2255,83 @@
 			);
 		}
 
+		// Groups 5 and 6 (Phase 27): one checkbox per hiding profile. Behind the
+		// same `list_users` gate as the people groups, because a profile IS a
+		// list of people; the server withholds the registry otherwise.
+		buildProfileGroup(
+			I.hideForProfiles,
+			'maestro-vis-own-profiles',
+			function () { return model[ slug ].hiddenProfiles; },
+			function ( arr ) {
+				model[ slug ].hiddenProfiles = arr;
+				refreshHiddenMarker( slug );
+			}
+		);
+		if ( ! model[ slug ].isSub && model[ slug ].hasChildren ) {
+			buildProfileGroup(
+				I.hideChildrenProfiles,
+				'maestro-vis-children-profiles',
+				function () { return model[ slug ].childHiddenProfiles; },
+				function ( arr ) { model[ slug ].childHiddenProfiles = arr; }
+			);
+		}
+
+		// Profiles are made and filled in their own dialog; the popover only
+		// assigns them. The link is offered under the groups, and in place of
+		// them while there are none yet.
+		var manage = el( 'div', 'maestro-vis-profiles-manage' );
+		if ( ! profiles.length ) {
+			manage.appendChild( el( 'p', 'maestro-vis-profiles-none description', I.profilesNone ) );
+		}
+		var manageBtn = el( 'button', 'button-link maestro-manage-profiles', I.manageProfiles );
+		manageBtn.type = 'button';
+		manageBtn.setAttribute( 'aria-haspopup', 'dialog' );
+		manageBtn.addEventListener( 'click', function ( e ) {
+			// The popover is replaced by the dialog, which detaches this button
+			// before placePopover()'s outside-click handler sees the click.
+			e.stopPropagation();
+			if ( profilesBtn ) { openProfiles( profilesBtn ); }
+		} );
+		manage.appendChild( manageBtn );
+		pop.appendChild( manage );
+
 		} // end if ( D.canPickUsers )
+
+		// One checkbox per profile, bound to a model axis by getSet/setSet like
+		// the role groups. No derived lock: a profile hide is cosmetic and
+		// per-person, so a parent hidden for a profile does not take its
+		// children away for anyone else (the same reason the people groups
+		// have none).
+		function buildProfileGroup( heading, groupClass, getSet, setSet ) {
+			if ( ! profiles.length ) { return null; }
+			var group  = el( 'div', 'maestro-vis-group maestro-profile-group ' + groupClass );
+			var headEl = el( 'p', 'maestro-vis-head', heading );
+			headEl.id = 'maestro-vis-head-' + ( ++groupIdSeq );
+			group.setAttribute( 'role', 'group' );
+			group.setAttribute( 'aria-labelledby', headEl.id );
+			group.appendChild( headEl );
+
+			profiles.forEach( function ( p ) {
+				var row = el( 'label', 'maestro-vis-row' );
+				var cb  = el( 'input' );
+				cb.type = 'checkbox';
+				cb.value = p.id;
+				cb.checked = window.maestroLogic.isProfileAssigned( getSet(), p.id );
+				cb.addEventListener( 'change', function () {
+					setSet( window.maestroLogic.toggleProfile( getSet(), p.id, cb.checked ) );
+					refreshModifiedIndicator( slug );
+					scheduleAutosave();
+				} );
+				row.appendChild( cb );
+				var name = el( 'span', 'maestro-vis-profile-name', p.name );
+				row.appendChild( document.createTextNode( ' ' ) );
+				row.appendChild( name );
+				group.appendChild( row );
+			} );
+
+			pop.appendChild( group );
+			return group;
+		}
 
 		pop.addEventListener( 'keydown', function ( e ) {
 			if ( e.key === 'Escape' ) {
@@ -2213,6 +2373,240 @@
 		initialFocus.focus();
 	}
 
+	/*
+	 * The person picker: chips for the chosen people, and a type-ahead over
+	 * core's users endpoint. One shared builder for the Visibility popover's
+	 * per-user sections (ROLE-02) and a profile's members (Phase 27), for the
+	 * same reason buildRoleGroup() is shared: hand-rolled copies are where
+	 * "toggling one group edits another's field" bugs come from.
+	 *
+	 * getSet/setSet bind the picker to its list of { id, name } pairs.
+	 * opts.onChange runs after every add or remove (save, indicators);
+	 * opts.max and opts.limitText set the cap the server enforces, and
+	 * opts.selfWarning the caution shown while the editor's own account is in
+	 * the list. Returns { el, refresh }; the caller places el.
+	 */
+	function buildPersonPicker( heading, groupClass, getSet, setSet, opts ) {
+		opts = opts || {};
+		var max = Number( opts.max || D.maxHiddenUsers );
+		function limitMsg() {
+			return ( opts.limitText || I.userLimitReached ).replace( '%d', String( max ) );
+		}
+		var group = el( 'div', 'maestro-vis-group maestro-user-group ' + groupClass );
+
+		// Same programmatic-group treatment the role groups get (WCAG 1.3.1):
+		// all four groups list similar-looking controls, so without a name an
+		// AT user cannot tell which axis they are operating.
+		var headEl = el( 'p', 'maestro-vis-head', heading );
+		headEl.id = 'maestro-vis-head-' + ( ++groupIdSeq );
+		group.setAttribute( 'role', 'group' );
+		group.setAttribute( 'aria-labelledby', headEl.id );
+		group.appendChild( headEl );
+
+		var chips = el( 'ul', 'maestro-user-chips' );
+		group.appendChild( chips );
+
+		var searchId = 'maestro-user-search-' + groupIdSeq;
+		var srLabel  = el( 'label', 'screen-reader-text', I.userSearch );
+		srLabel.setAttribute( 'for', searchId );
+		var search = el( 'input', 'maestro-user-search' );
+		search.type = 'search';
+		search.id = searchId;
+		search.placeholder = I.userSearch;
+		search.dir = 'auto';
+		search.setAttribute( 'autocomplete', 'off' );
+		group.appendChild( srLabel );
+		group.appendChild( search );
+
+		// Results are a list of real buttons rather than a datalist so they
+		// stay keyboard-operable and styleable across browsers.
+		var results = el( 'ul', 'maestro-user-results' );
+		results.hidden = true;
+		group.appendChild( results );
+
+		var status = el( 'p', 'maestro-user-status' );
+		status.setAttribute( 'aria-live', 'polite' );
+		status.hidden = true;
+		group.appendChild( status );
+
+		var warn = el( 'p', 'maestro-user-selfwarn' );
+		warn.hidden = true;
+		group.appendChild( warn );
+
+		function say( text ) {
+			setText( status, text );
+			status.hidden = ! text;
+		}
+
+		function refreshSelfWarning() {
+			var isSelf = false;
+			getSet().forEach( function ( t ) {
+				if ( window.maestroLogic.isSelfTarget( t.id, D.userId ) ) { isSelf = true; }
+			} );
+			setText( warn, isSelf ? ( opts.selfWarning || I.userSelfWarning ) : '' );
+			warn.hidden = ! isSelf;
+		}
+
+		function afterChange() {
+			renderChips();
+			refreshSelfWarning();
+			if ( opts.onChange ) { opts.onChange(); }
+		}
+
+		function renderChips() {
+			chips.textContent = '';
+			getSet().forEach( function ( target ) {
+				var li = el( 'li', 'maestro-user-chip' );
+				li.appendChild( document.createTextNode( target.name ) );
+
+				var rm = el( 'button', 'maestro-user-chip-remove' );
+				rm.type = 'button';
+				rm.textContent = '×';
+				// The visible label is a bare glyph, so the accessible name has
+				// to carry WHO is being removed — otherwise a screen-reader user
+				// hears a list of identical "remove" buttons.
+				rm.setAttribute( 'aria-label', I.userRemove.replace( '%s', target.name ) );
+				rm.addEventListener( 'click', function ( e ) {
+					// MUST stop propagation. placePopover()'s outside-click
+					// handler closes the popover when the clicked node is not
+					// inside it — and re-rendering the chips below detaches
+					// THIS button before that handler runs, so the click would
+					// read as "outside" and close the whole popover.
+					e.stopPropagation();
+					setSet( window.maestroLogic.removeUserTarget( getSet(), target.id ) );
+					afterChange();
+					search.focus();
+				} );
+				li.appendChild( rm );
+				chips.appendChild( li );
+			} );
+		}
+
+		function atLimit() {
+			return getSet().length >= max;
+		}
+
+		function pick( user ) {
+			// Stop AT the server's cap rather than letting Config::sanitize()
+			// truncate silently: without this the editor reports a successful
+			// autosave and the extra targets vanish on the next reload, which
+			// contradicts the round-trip guarantee the popover implies.
+			if ( atLimit() ) {
+				results.hidden = true;
+				results.textContent = '';
+				say( limitMsg() );
+				return;
+			}
+			setSet( window.maestroLogic.addUserTarget( getSet(), user ) );
+			results.hidden = true;
+			results.textContent = '';
+			search.value = '';
+			say( atLimit() ? limitMsg() : '' );
+			afterChange();
+			search.focus();
+		}
+
+		function renderResults( users ) {
+			results.textContent = '';
+			var shown = users.filter( function ( u ) {
+				return ! window.maestroLogic.isUserTargeted( getSet(), u.id );
+			} );
+			if ( ! shown.length ) {
+				results.hidden = true;
+				say( I.userSearchNone );
+				return;
+			}
+			shown.forEach( function ( u ) {
+				var li  = el( 'li' );
+				var btn = el( 'button', 'maestro-user-result' );
+				btn.type = 'button';
+				setText( btn, u.name );
+				// Same detach-before-outside-click hazard as the chip remove
+				// button above: pick() empties this list synchronously.
+				btn.addEventListener( 'click', function ( e ) {
+					e.stopPropagation();
+					pick( u );
+				} );
+				li.appendChild( btn );
+				results.appendChild( li );
+			} );
+			results.hidden = false;
+			say( '' );
+		}
+
+		var timer    = null;
+		var inflight = null;
+
+		search.addEventListener( 'input', function () {
+			var q = search.value.trim();
+			if ( timer ) { window.clearTimeout( timer ); }
+
+			// Say so before the round trip rather than after a pointless one.
+			if ( atLimit() ) {
+				results.hidden = true;
+				results.textContent = '';
+				say( limitMsg() );
+				return;
+			}
+
+			// Abort any in-flight request. Without this a fast typist can get
+			// results for a stale prefix whenever an earlier response lands
+			// after a later one.
+			if ( inflight ) { inflight.abort(); inflight = null; }
+
+			if ( q.length < 2 ) {
+				results.hidden = true;
+				results.textContent = '';
+				say( '' );
+				return;
+			}
+
+			timer = window.setTimeout( function () {
+				var ctrl = ( typeof AbortController !== 'undefined' ) ? new AbortController() : null;
+				inflight = ctrl;
+				// On a site with plain permalinks rest_url() already carries a
+				// query string (index.php?rest_route=/wp/v2/users), so the
+				// separator has to be chosen, not assumed — appending a second
+				// "?" silently 404s the search on exactly those sites.
+				var sep = ( D.usersUrl.indexOf( '?' ) === -1 ) ? '?' : '&';
+				// Exclude already-chosen people SERVER-side. Filtering them
+				// out of a 10-row page after the fact means that when the
+				// first ten matches for a common name are all already chips,
+				// the picker reports "no matching people" while valid targets
+				// sit on page two, unreachable without guessing a narrower query.
+				var chosen = window.maestroLogic.userTargetIds( getSet() );
+				var exclude = chosen.length ? '&exclude=' + chosen.join( ',' ) : '';
+				window.fetch(
+					D.usersUrl + sep + 'per_page=10' + exclude + '&search=' + encodeURIComponent( q ),
+					{
+						credentials: 'same-origin',
+						headers: { 'X-WP-Nonce': D.nonce },
+						signal: ctrl ? ctrl.signal : undefined
+					}
+				).then( function ( r ) {
+					if ( ! r.ok ) { throw new Error( 'search failed' ); }
+					return r.json();
+				} ).then( function ( json ) {
+					inflight = null;
+					renderResults( json.map( function ( u ) {
+						return { id: u.id, name: u.name };
+					} ) );
+				} ).catch( function ( err ) {
+					if ( err && err.name === 'AbortError' ) { return; }
+					inflight = null;
+					results.hidden = true;
+					// An explicit failure message: a picker that silently shows
+					// nothing is indistinguishable from a broken one.
+					say( I.userSearchError );
+				} );
+			}, 250 );
+		} );
+
+		renderChips();
+		refreshSelfWarning();
+		return { el: group, refresh: renderChips };
+	}
+
 	/* ---------- per-item reset -------------------------------------------- */
 
 	function resetSelected() {
@@ -2232,6 +2626,10 @@
 		// state, so Reset Item clears both user axes to the sparse empty list.
 		m.hiddenUsers      = [];
 		m.childHiddenUsers = [];
+		// Phase 27: unassigns the item from every profile; the profiles
+		// themselves, and their members, are untouched.
+		m.hiddenProfiles      = [];
+		m.childHiddenProfiles = [];
 
 		var li = liForKey( selectedKey );
 		if ( li ) { li.classList.remove( 'maestro-has-hidden' ); }
@@ -2257,21 +2655,41 @@
 			? anchorBtn.closest( '#adminmenuwrap' ) : null;
 		( responsiveParent || document.body ).appendChild( pop );
 		if ( responsiveParent ) { pop.style.position = 'fixed'; }
-		var scrollY = responsiveParent ? 0 : window.scrollY;
-		var scrollX = responsiveParent ? 0 : window.scrollX;
-		var r = anchorBtn.getBoundingClientRect();
-		// Toolbar lives at the bottom — prefer placing the popover above the
-		// anchor so it doesn't overflow off-screen.
-		var top = scrollY + r.top - pop.offsetHeight - 6;
-		if ( top < scrollY + 8 ) {
-			top = scrollY + r.bottom + 4;
+
+		function position() {
+			var scrollY = responsiveParent ? 0 : window.scrollY;
+			var scrollX = responsiveParent ? 0 : window.scrollX;
+			var r = anchorBtn.getBoundingClientRect();
+			// Toolbar lives at the bottom — prefer placing the popover above the
+			// anchor so it doesn't overflow off-screen.
+			var top = scrollY + r.top - pop.offsetHeight - 6;
+			if ( top < scrollY + 8 ) {
+				top = scrollY + r.bottom + 4;
+			}
+			pop.style.top  = top + 'px';
+			// Anchored at its left edge, but never past the viewport's right edge:
+			// a control in the toolbar's right zone would otherwise push the dialog
+			// off-screen and scroll the whole page sideways.
+			var left = Math.min( r.left, document.documentElement.clientWidth - pop.offsetWidth - 8 );
+			pop.style.left = ( scrollX + Math.max( 8, left ) ) + 'px';
 		}
-		pop.style.top  = top + 'px';
-		// Anchored at its left edge, but never past the viewport's right edge:
-		// a control in the toolbar's right zone would otherwise push the dialog
-		// off-screen and scroll the whole page sideways.
-		var left = Math.min( r.left, document.documentElement.clientWidth - pop.offsetWidth - 8 );
-		pop.style.left = ( scrollX + Math.max( 8, left ) ) + 'px';
+		position();
+
+		// The Visibility popover and the profiles dialog change height while
+		// open (search results, chips, a profile added or deleted). Anchored by
+		// its top, a dialog above the toolbar grew DOWN past the viewport, and
+		// focusing a control in the overflow then scrolled the page (Phase 27,
+		// measured at 1280x720). Re-anchor on resize so it grows upward instead.
+		// Other popovers keep a fixed place, so filtering icons does not move
+		// the grid under the pointer.
+		var grows = pop.classList.contains( 'maestro-vis-popover' ) || pop.classList.contains( 'maestro-profiles-popover' );
+		if ( grows && window.ResizeObserver ) {
+			var ro = new window.ResizeObserver( function () {
+				if ( ! document.contains( pop ) ) { ro.disconnect(); return; }
+				position();
+			} );
+			ro.observe( pop );
+		}
 
 		setTimeout( function () {
 			document.addEventListener( 'click', function handler( e ) {
@@ -2340,6 +2758,9 @@
 		var topLis = topRows();
 
 		var added = [];
+		// Phase 27: each rendered item's profile axes, in menu order, folded
+		// into the profiles map below.
+		var assignments = [];
 
 		topLis.forEach( function ( li ) {
 			var slug = li.dataset.maestroSlug;
@@ -2371,6 +2792,9 @@
 			if ( diff.fields.indexOf( 'hiddenUsers' ) !== -1 )      { entry.hidden_users = window.maestroLogic.userTargetIds( m.hiddenUsers ); }
 			if ( diff.fields.indexOf( 'childHiddenUsers' ) !== -1 ) { entry.child_hidden_users = window.maestroLogic.userTargetIds( m.childHiddenUsers ); }
 			if ( diff.modified )                                     { cfg.items[ slug ] = entry; }
+			// The profile axes never ride on the item: the map is their only
+			// source, and Config::sanitize() compiles it back onto the items.
+			assignments.push( { key: slug, own: m.hiddenProfiles, child: m.childHiddenProfiles } );
 
 			var subLis = li.querySelectorAll( '.wp-submenu > li.maestro-subitem[data-maestro-slug]' );
 			if ( subLis.length ) {
@@ -2397,6 +2821,7 @@
 					if ( sdiff.fields.indexOf( 'hiddenRoles' ) !== -1 ) { se.hidden_roles = sm.hiddenRoles; }
 					if ( sdiff.fields.indexOf( 'hiddenUsers' ) !== -1 ) { se.hidden_users = window.maestroLogic.userTargetIds( sm.hiddenUsers ); }
 					if ( sdiff.modified )                                { cfg.items[ skey ] = se; }
+					assignments.push( { key: skey, own: sm.hiddenProfiles } );
 				} );
 			}
 		} );
@@ -2421,6 +2846,29 @@
 		// The save is full-replace and nothing in the menu DOM holds the width,
 		// so it rides along on every save or any edit would erase it (28-02).
 		if ( menuWidth ) { cfg.menu_width = menuWidth; }
+
+		// Only an editor who can see the profiles sends them. Without the key
+		// the server keeps the stored map, which is also what it does for a
+		// saver without `list_users` whatever they send. An empty map, by
+		// contrast, deletes every profile, so it is sent only when that is
+		// what the editor did.
+		if ( D.canPickUsers ) {
+			// A model row with no <li> (another plugin rewrote the sidebar after
+			// it was printed) was not walked above, but its axes are still
+			// current. Then the stored hides of items that are not rendered at
+			// all (D.profileCarry, matched by normalized key server-side).
+			var walked = Object.create( null );
+			assignments.forEach( function ( a ) { walked[ a.key ] = true; } );
+			Object.keys( model ).forEach( function ( key ) {
+				var m = model[ key ];
+				if ( walked[ key ] || m.isSeparator ) { return; }
+				assignments.push( { key: key, own: m.hiddenProfiles, child: m.isSub ? [] : m.childHiddenProfiles } );
+			} );
+			cfg.profiles = window.maestroLogic.buildProfilesPayload(
+				profiles,
+				window.maestroLogic.carryProfileHides( assignments, D.profileCarry )
+			);
+		}
 
 		return cfg;
 	}

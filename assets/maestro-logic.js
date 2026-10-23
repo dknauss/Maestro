@@ -100,6 +100,17 @@ function diffItem( current, pristine ) {
 		fields.push( 'childHiddenUsers' );
 	}
 
+	// Phase 27: the profile axes, on the same terms again. buildConfig() does
+	// not write these onto the item (the profiles map carries them), but the
+	// item still reads as modified, so Reset Item is offered for it.
+	if ( current.hiddenProfiles && current.hiddenProfiles.length > 0 ) {
+		fields.push( 'hiddenProfiles' );
+	}
+
+	if ( current.childHiddenProfiles && current.childHiddenProfiles.length > 0 ) {
+		fields.push( 'childHiddenProfiles' );
+	}
+
 	return { modified: fields.length > 0, fields: fields };
 }
 
@@ -135,8 +146,10 @@ function modeStatusLabel( state, strings ) {
  *   m.childHiddenRoles = [];
  *   m.hiddenUsers      = [];
  *   m.childHiddenUsers = [];
+ *   m.hiddenProfiles      = [];
+ *   m.childHiddenProfiles = [];
  *
- * None of the four visibility axes has a WP-native pristine state — reset
+ * None of the six visibility axes has a WP-native pristine state — reset
  * always clears them to [], top-level or submenu (the child_* fields are simply
  * unused for submenu items).
  *
@@ -159,6 +172,8 @@ function resetItem( item, pristine, isSub ) {
 		childHiddenRoles: [],
 		hiddenUsers:      [],
 		childHiddenUsers: [],
+		hiddenProfiles:      [],
+		childHiddenProfiles: [],
 	};
 	return result;
 }
@@ -283,6 +298,183 @@ function userTargetIds( targets ) {
 	for ( i = 0; i < targets.length; i++ ) {
 		out.push( Number( targets[ i ].id ) );
 	}
+	return out;
+}
+
+/**
+ * Does this row carry a hide rule of its own, on ANY of the three own-item
+ * axes? This is what the `.maestro-has-hidden` marker means. Every seed and
+ * toggle site calls this one predicate, because the inline copies drifted
+ * twice (roles-only, then roles-and-users) as axes were added.
+ *
+ * @param {{ hiddenRoles?: string[], hiddenUsers?: object[], hiddenProfiles?: string[] }} m Model item.
+ * @return {boolean}
+ */
+function hasOwnHide( m ) {
+	return !! m && (
+		( m.hiddenRoles || [] ).length > 0 ||
+		( m.hiddenUsers || [] ).length > 0 ||
+		( m.hiddenProfiles || [] ).length > 0
+	);
+}
+
+/**
+ * Is profile `id` on this axis list? Sparse-safe: an absent list is empty.
+ *
+ * @param {string[]|undefined} list Profile IDs.
+ * @param {string} id Profile ID.
+ * @return {boolean}
+ */
+function isProfileAssigned( list, id ) {
+	return ( list || [] ).indexOf( String( id ) ) !== -1;
+}
+
+/**
+ * Turn profile `id` on or off for an axis, returning a NEW list. Turning on
+ * an assigned profile, or off an unassigned one, is a no-op.
+ *
+ * @param {string[]|undefined} list Profile IDs.
+ * @param {string} id Profile ID.
+ * @param {boolean} on Assign (true) or unassign (false).
+ * @return {string[]}
+ */
+function toggleProfile( list, id, on ) {
+	var cur = ( list || [] ).slice();
+	id = String( id );
+	if ( on ) {
+		return cur.indexOf( id ) === -1 ? cur.concat( [ id ] ) : cur;
+	}
+	return cur.filter( function ( p ) { return p !== id; } );
+}
+
+/**
+ * The next free stable profile ID, `p_<n>` with n one above the highest in use.
+ * Never reuses a deleted profile's number within a session, so a stale
+ * reference can never point at a different, newer profile.
+ *
+ * @param {Array<{id:string}>} profiles Current profiles.
+ * @param {number} [floor] Highest number already handed out this session.
+ * @return {string}
+ */
+function nextProfileId( profiles, floor ) {
+	var max = Number( floor ) || 0;
+	( profiles || [] ).forEach( function ( p ) {
+		var m = /^p_([1-9][0-9]*)$/.exec( String( p.id ) );
+		if ( m && Number( m[ 1 ] ) > max ) { max = Number( m[ 1 ] ); }
+	} );
+	return 'p_' + ( max + 1 );
+}
+
+/**
+ * Why a profile name cannot be used, or '' when it can. Mirrors
+ * Config::clean_profiles(): trimmed, non-empty, unique ignoring case.
+ *
+ * @param {string} name Proposed name.
+ * @param {Array<{id:string,name:string}>} profiles Current profiles.
+ * @param {string} [exceptId] The profile being renamed, which may keep its own name.
+ * @return {''|'empty'|'taken'}
+ */
+function profileNameProblem( name, profiles, exceptId ) {
+	var n = String( name || '' ).trim();
+	if ( ! n ) { return 'empty'; }
+	var fold = n.toLowerCase();
+	var taken = ( profiles || [] ).some( function ( p ) {
+		return String( p.id ) !== String( exceptId ) && String( p.name ).trim().toLowerCase() === fold;
+	} );
+	return taken ? 'taken' : '';
+}
+
+/**
+ * How many items a profile hides, counted from the editor's assignments: an
+ * item hidden through both its own and its sub-items axis counts once.
+ *
+ * @param {string} id Profile ID.
+ * @param {Array<{key:string, own?:string[], child?:string[]}>} assignments Per-item profile axes.
+ * @return {number}
+ */
+function profileItemCount( id, assignments ) {
+	var n = 0;
+	( assignments || [] ).forEach( function ( a ) {
+		if ( isProfileAssigned( a.own, id ) || isProfileAssigned( a.child, id ) ) { n++; }
+	} );
+	return n;
+}
+
+/**
+ * Build the `profiles` map the server stores, from the editor's profile list
+ * and the per-item assignments in menu order.
+ *
+ * The item axes are the editor's source of truth for WHAT a profile hides,
+ * exactly as hiddenRoles is: the hide-lists are rebuilt from them on every
+ * save. Config::sanitize() then compiles the map back onto the items. Lists
+ * are sparse (omitted when empty), and an empty profile list yields an empty
+ * map, which is how the last profile is deleted (a missing key keeps the
+ * stored map).
+ *
+ * @param {Array<{id:string, name:string, users?:Array<{id:number}>}>} profiles Editor profiles.
+ * @param {Array<{key:string, own?:string[], child?:string[]}>} assignments Per-item profile axes.
+ * @return {Object<string, {name:string, users?:number[], hides?:string[], child_hides?:string[]}>}
+ */
+function buildProfilesPayload( profiles, assignments ) {
+	var out = Object.create( null );
+	( profiles || [] ).forEach( function ( p ) {
+		var entry = { name: String( p.name ) };
+		var users = userTargetIds( p.users || [] );
+		var hides = [];
+		var childHides = [];
+		( assignments || [] ).forEach( function ( a ) {
+			if ( isProfileAssigned( a.own, p.id ) ) { hides.push( a.key ); }
+			if ( isProfileAssigned( a.child, p.id ) ) { childHides.push( a.key ); }
+		} );
+		if ( users.length ) { entry.users = users; }
+		if ( hides.length ) { entry.hides = hides; }
+		if ( childHides.length ) { entry.child_hides = childHides; }
+		out[ String( p.id ) ] = entry;
+	} );
+	return out;
+}
+
+/**
+ * Add the stored hides of items the editor did not render, so a save keeps
+ * them.
+ *
+ * buildConfig() gathers assignments from the menu on screen, and the save is a
+ * full replace. A profile hiding a page whose plugin is switched off for now
+ * would otherwise lose that hide on the next unrelated edit, and get it back
+ * never. The server lists those hides (Assets::profile_carry(), which matches
+ * by normalized key); this appends them. A key the assignments already hold
+ * is skipped, since the model is current for it, the same way
+ * carrySeparators() keeps only a stored separator core trimmed.
+ *
+ * @param {Array<{key:string, own?:string[], child?:string[]}>} assignments Assignments from the rendered menu.
+ * @param {Object<string, {hides?:string[], child_hides?:string[]}>|undefined} stored Unrendered hides per profile.
+ * @return {Array<{key:string, own:string[], child:string[]}>} A new list: the input, then the carried keys.
+ */
+function carryProfileHides( assignments, stored ) {
+	var seen = Object.create( null );
+	var out = ( assignments || [] ).map( function ( a ) {
+		seen[ a.key ] = true;
+		return { key: a.key, own: ( a.own || [] ).slice(), child: ( a.child || [] ).slice() };
+	} );
+	var extra = Object.create( null );
+	var order = [];
+	function slot( key ) {
+		if ( ! extra[ key ] ) {
+			extra[ key ] = { key: key, own: [], child: [] };
+			order.push( key );
+		}
+		return extra[ key ];
+	}
+	Object.keys( stored || {} ).forEach( function ( id ) {
+		var p = stored[ id ] || {};
+		( p.hides || [] ).forEach( function ( key ) {
+			if ( ! seen[ key ] ) { slot( key ).own.push( id ); }
+		} );
+		( p.child_hides || [] ).forEach( function ( key ) {
+			if ( ! seen[ key ] ) { slot( key ).child.push( id ); }
+		} );
+	} );
+	order.forEach( function ( key ) { out.push( extra[ key ] ); } );
 	return out;
 }
 
@@ -438,6 +630,14 @@ var api = {
 	removeUserTarget:          removeUserTarget,
 	userTargetIds:             userTargetIds,
 	isSelfTarget:              isSelfTarget,
+	hasOwnHide:                hasOwnHide,
+	isProfileAssigned:         isProfileAssigned,
+	toggleProfile:             toggleProfile,
+	nextProfileId:             nextProfileId,
+	profileNameProblem:        profileNameProblem,
+	profileItemCount:          profileItemCount,
+	buildProfilesPayload:      buildProfilesPayload,
+	carryProfileHides:         carryProfileHides,
 	carrySeparators:           carrySeparators,
 	clampMenuWidth:            clampMenuWidth,
 	menuWidthCss:              menuWidthCss,

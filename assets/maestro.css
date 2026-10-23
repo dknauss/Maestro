@@ -282,6 +282,7 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 .maestro-toolbar .maestro-vis-btn .maestro-btn-label,
 .maestro-toolbar .maestro-reset-item .maestro-btn-label,
 .maestro-toolbar .maestro-settings-btn .maestro-btn-label,
+.maestro-toolbar .maestro-profiles-btn .maestro-btn-label,
 .maestro-toolbar .maestro-tour-help .maestro-btn-label {
 	display: none;
 }
@@ -577,6 +578,87 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 	border-left: 3px solid #dba617;
 	background: #fcf9e8;
 	color: #50575e;
+	font-size: 12px;
+}
+
+/* Phase 27 — hiding-profile groups. Same divider as the people groups, so
+ * all six groups read as one stack of peers. Every group, and the profiles
+ * dialog below, can grow with the site's data, so the two dialogs that hold
+ * them scroll inside themselves rather than run past the viewport. The
+ * allowance clears the bottom toolbar they open from (62px tall). */
+.maestro-vis-popover,
+.maestro-profiles-popover {
+	max-height: calc( 100vh - 100px );
+	overflow-y: auto;
+	box-sizing: border-box;
+}
+.maestro-profile-group,
+.maestro-vis-profiles-manage {
+	padding-top: 9px;
+	border-top: 1px solid #dcdcde;
+}
+.maestro-vis-group + .maestro-vis-profiles-manage { margin-top: 6px; }
+.maestro-vis-profiles-none { margin: 0 0 4px; }
+.maestro-vis-profile-name { word-break: break-word; }
+.maestro-manage-profiles:focus-visible {
+	outline: 2px solid #2271b1;
+	outline-offset: 1px;
+}
+
+/* ---------- hiding profiles dialog (Phase 27) --------------------------- */
+
+.maestro-profiles-intro { margin: 0 0 10px; }
+.maestro-profile {
+	padding: 9px 0;
+	border-top: 1px solid #dcdcde;
+}
+.maestro-profile-head {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 6px;
+}
+.maestro-profile-name {
+	flex: 1;
+	min-width: 0;
+	font-weight: 600;
+}
+.maestro-profile-name[aria-invalid="true"],
+.maestro-profile-new[aria-invalid="true"] {
+	border-color: #d63638; /* core's error border; the message says why */
+}
+/* The members picker sits under its own profile, so it drops the divider
+ * the popover's people groups use between peers. */
+.maestro-profile .maestro-user-group {
+	padding-top: 0;
+	border-top: 0;
+}
+.maestro-profile-delete {
+	flex: none;
+	padding: 2px;
+	text-decoration: none;
+}
+.maestro-profile-delete .maestro-btn-label { display: none; }
+.maestro-profile-add {
+	display: flex;
+	gap: 8px;
+	padding-top: 9px;
+	border-top: 1px solid #dcdcde;
+}
+.maestro-profile-new {
+	flex: 1;
+	min-width: 0;
+}
+.maestro-profile-name:focus-visible,
+.maestro-profile-new:focus-visible,
+.maestro-profile-delete:focus-visible,
+.maestro-profile-add-btn:focus-visible {
+	outline: 2px solid #2271b1;
+	outline-offset: 1px;
+}
+.maestro-profiles-msg {
+	margin: 6px 0 0;
+	color: #8a2424; /* core's error-notice text tone; 7.9:1 on white */
 	font-size: 12px;
 }
 
