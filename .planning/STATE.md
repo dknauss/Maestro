@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: Client-Site Workflow
 status: in_progress
-stopped_at: "Phase 29 merged as #243 (c940902), including the role-limit fix; post-merge CI passed. Phase 27 verification landed through #242, superseding #241. Desktop human checks for Phases 27/28/29 passed on 2026-10-23; real touch-device testing remains outstanding. Phase 30 is blocked on D2."
+stopped_at: "Phase 29 merged as #243 (c940902), including the role-limit fix; post-merge CI passed. Phase 27 verification landed through #242, superseding #241. Desktop human checks for Phases 27/28/29 passed on 2026-10-23; real touch-device testing remains outstanding. Phase 30 decisions approved; ready for implementation planning."
 last_updated: "2026-10-23T00:00:00.000Z"
-last_activity: "2026-10-23 — Recorded Dan's desktop sign-off on main 312c8b7 for Phases 27–29; touch-device acceptance remains open and D2 still blocks Phase 30."
+last_activity: "2026-10-23 — Recorded Dan's desktop sign-off on main 312c8b7 for Phases 27–29; touch-device acceptance remains open. Dan approved D2, super-admin handling and picker placement; Phase 30 is ready for planning."
 progress:
   total_phases: 3
   completed_phases: 0
@@ -20,13 +20,15 @@ progress:
 
 See: .planning/PROJECT.md (updated 2026-07-03)
 
-**Current focus:** outstanding touch-device acceptance and the Phase 30 design decision.
+**Current focus:** Phase 30 implementation planning; all three design decisions
+approved by Dan on 2026-10-23. Real touch-device acceptance remains open.
+Main includes #245 (`e1f2ffe`); its [post-merge CI](https://github.com/dknauss/Maestro/actions/runs/40016927229) passed.
 Dan passed all desktop human checks for Phases 27–29 on 2026-10-23, using
 main `312c8b7` (#244); its [post-merge CI](https://github.com/dknauss/Maestro/actions/runs/39914443207) passed. Phase 29
 ("All other roles", #214) merged in #243 as `c940902`, including atomic refusal
 of over-limit bulk selections. [Post-merge CI](https://github.com/dknauss/Maestro/actions/runs/39909963498) passed. Phase 27's five plans are
 on main: #242 included the commits from #241, which is superseded. Phase 30
-(view-as-role) remains blocked on D2; Phase 31 (export/import) is unplanned.
+(view-as-role) is ready for implementation planning; Phase 31 (export/import) is unplanned.
 Release sequence: width v1.7.0, profiles v1.8.0 (release code merged in #242),
 Client-Site Workflow v1.9. Real touch-device testing remains outstanding.
 
@@ -70,14 +72,25 @@ found. WordPress.org deployment is not verified by this documentation update.
 | Phase 29 select-all | Real-site role comparison and desktop screen-reader group-name/mixed-state checks passed 2026-10-23. D3 already decided. Touch outstanding. | [29-VERIFICATION.md](phases/29-select-all-role-control/29-VERIFICATION.md) |
 | Actual touch hardware | Toolbar, dialogs and popovers on a real touch device. **Outstanding**; desktop sign-off and emulation do not complete it. | The three verification records above |
 
-### Before Phase 30
+### Phase 30 decisions approved — 2026-10-23
 
-**D2 remains the explicit blocker:** decide whether a request-scoped,
-viewer-only, subtract-only capability filter is permitted by the "never changes
-a capability" invariant, or requires a documented exception. Phase 30's planning
-checkpoint also settles super-admin handling and picker placement. These choices
-are not approved by green CI, merging Phase 29, or the desktop sign-off.
-Desktop acceptance above is recorded; real touch-device testing remains open; this update does not start Phase 30 or mark a phase complete.
+Dan approved all three recommendations, recorded in the
+[Phase 30 decisions](phases/30-view-as-role-preview/30-CONTEXT.md):
+
+- **D2:** a narrow viewer-only, subtract-only capability-filter exception during
+  menu construction, with no stored permission changes or page-authorization
+  effects. Authorization/nonce, cleanup, no-write and request isolation need
+  regression evidence and deep review before implementation merges.
+- **Super admins:** disable preview with an explanation, reject crafted requests
+  server-side, and preserve existing ordinary editing support.
+- **Picker:** labelled native role selector plus explicit Preview button in the
+  existing toolbar panel; await pending saves, show a persistent read-only role
+  banner and Exit preview, and restore the menu without configuration changes.
+
+Phase 30 is ready for implementation planning; no preview code or runtime
+verification is claimed. D4 and D5 retain their later decision gates. Desktop
+sign-off for Phases 27–29 is retained; **real touch-device testing remains
+outstanding** and no phase is marked fully accepted across devices.
 
 ### Historical position (the v1.5 cycle, written 2026-08-09)
 
@@ -502,7 +515,7 @@ Recent decisions affecting current work:
 - Ordering decision 2026-07-04: plan Phase 19 next (small research deliverable, unblocks the ROLE-01→Phase 21 gate), then execute the already-planned Phase 23 (5 plans). Phase 19 has no dependents on its *plan*, only on its verdict before Phase 21.
 - Phase 20 complete 2026-08-02 (COMPAT-04/07/10; 6/6 plans; verified 5/5). COMPAT-10 was **redesigned mid-execution**: the boolean `cascade_hide` "rides-the-parent-hide" model (20-05) was found inert (WP core drops a hidden parent's whole subtree; cosmetic-only forbids URL blocking), so it was replaced with an **independent per-parent `child_hidden_roles`** role set (second "Hide its sub-items from:" popover group; parent stays visible; union with child's own hidden_roles; pure visibility) plus a derived locked-checkbox affordance. Decision recorded in the 20-CONTEXT.md REVISION NOTE.
 - Phase 25 added 2026-08-02: Edit-Mode Toolbar Dark-Surface Polish (dark-toolbar icon/focus WCAG contrast, save-indicator layout shift, rename commit feedback) — pre-existing v1.3.1 toolbar surfaces surfaced during Phase 20 browser verification; **non-blocking for v1.4.0**. Appended after Phase 24; placement (before release vs later) is the user's call. Seed: `todos/pending/2026-08-01-editor-toolbar-icon-contrast.md`.
-- Client-Site Workflow roadmap created 2026-10-09: 3 phases (29–31), 4 requirements (UX-14, ROLE-03, PORT-01/02), GitHub milestone 1 and issues #214–#216. Renumbered to **v1.9** by the 2026-10-22 release decision: width v1.7.0 → profiles v1.8 → Client-Site Workflow v1.9. Phase 30 remains blocked on D2.
+- Client-Site Workflow roadmap created 2026-10-09: 3 phases (29–31), 4 requirements (UX-14, ROLE-03, PORT-01/02), GitHub milestone 1 and issues #214–#216. Renumbered to **v1.9** by the 2026-10-22 release decision: width v1.7.0 → profiles v1.8 → Client-Site Workflow v1.9. D2 was open at roadmap creation; Dan approved the Phase 30 decisions on 2026-10-23.
 
 ### Pending Todos
 
@@ -633,7 +646,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-10-23
-Stopped at: #244 merged as 312c8b7 with post-merge CI green. Dan passed desktop human checks for Phases 27/28/29 on 2026-10-23; real touch-device testing remains outstanding. Phase 30 waits on D2.
+Stopped at: #245 merged as e1f2ffe with post-merge CI green. Dan passed desktop human checks for Phases 27/28/29 on 2026-10-23; real touch-device testing remains outstanding. Phase 30 decisions approved; implementation planning is next.
 
 **Earlier updates below are historical snapshots; the Current Position above is authoritative.**
 

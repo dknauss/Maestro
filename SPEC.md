@@ -22,6 +22,11 @@ A WordPress plugin that makes the admin menu editable **in place**: rename items
 
 3. **Visibility is presentation, not authorization.** Hiding an item declutters the menu; it does not lock the page. A page's own registered capability is the true gate, and it lives on a different plane. The plugin never pretends otherwise, and points users to a capability manager for real access control.
 
+   **Approved Phase 30 exception (not yet implemented):** Maestro never changes
+   stored user or role permissions. Read-only role preview may temporarily
+   restrict the viewer's capability checks during menu construction, without
+   changing page authorization. See the [Phase 30 decisions](.planning/phases/30-view-as-role-preview/30-CONTEXT.md).
+
 4. **Borrow patterns, not code.** Prior art (Admin Menu Editor) solves the same hard problems — highlighting, slug normalization — but with a heavier full-rebuild architecture and a dedicated editor screen. We study its solutions to the dragons; we do not import its approach.
 
 5. **Degrade gracefully over matching cleverly.** When a stored slug no longer corresponds to a live menu item, skip it. Never error, never guess.
@@ -153,7 +158,27 @@ This model supersedes the original always-visible per-item control clusters, whi
   - `hidden_roles` ⇒ intersected against live `wp_roles()` (unknown roles dropped);
   - slugs ⇒ tags stripped, but `? = . /` preserved (legitimate in core slugs), so **never** `sanitize_key` on a slug.
 - **No privilege escalation surface.** The plugin cannot grant capabilities or change what any role *can do*; it only reshapes the menu. Hiding is cosmetic by design (see Principle 3).
-- **No data in URLs.** Edit mode is a single boolean query flag; all state travels in the REST body.
+- **Preview exception — approved, implementation pending.** Enable only after
+  checking `Maestro\capability()` and a valid nonce; affect only the viewer,
+  subtract only, and remove filtering before `user_can_access_admin_page()` and
+  page callbacks. No permission persistence or identity change. REST, AJAX,
+  cron and ordinary browsing are excluded. Preview cannot select, edit,
+  autosave, reset or write configuration. Reject super-admin preview requests
+  server-side; explain the limitation in the UI. Regression tests and deep
+  review must establish these boundaries before implementation merges.
+- **Preview UI — approved, implementation pending.** Use a labelled native
+  **Preview as** role selector and explicit **Preview** button in the existing
+  toolbar panel. Await successful pending saves before entry. Preview replaces
+  editing controls with a persistent role/read-only banner, role picker and
+  **Exit preview**, available even if the simulated role lacks Maestro access.
+  Exit restores the ordinary menu without changing rules. Explain that generic
+  role preview is approximate; person/profile rules, user-specific grants,
+  multiple roles and identity-dependent plugins can differ. Role-scope editing
+  and person preview are outside Phase 30.
+- **No configuration data in URLs.** Edit mode uses a boolean query flag;
+  configuration writes travel in the REST body. The approved preview may carry
+  a validated role selector and nonce as request controls, never people,
+  profile membership or configuration payloads.
 
 ---
 
