@@ -322,7 +322,9 @@ class Assets {
 					/* translators: Title of the dialog for creating and editing hiding profiles (named groups of people that items can be hidden from). */
 					'profiles'             => __( 'Hiding profiles', 'maestro-menu-editor' ),
 					/* translators: Explanation at the top of the hiding-profiles dialog. */
-					'profilesIntro'        => __( 'A profile is a named group of people. Tick it in an item\'s Visibility to hide that item from everyone in it.', 'maestro-menu-editor' ),
+					'profilesIntro'        => __( 'Create a profile for people who need the same menu. Add people, then choose the profile in a menu item\'s Visibility controls. This hides menu links only; it does not change page access.', 'maestro-menu-editor' ),
+					/* translators: Persistent next-step guidance beside each saved hiding profile. */
+					'profileGuidance'      => __( 'Add people below, then select this profile in a menu item\'s Visibility controls. Changes save automatically.', 'maestro-menu-editor' ),
 					/* translators: Accessible label for the text field that renames a hiding profile. */
 					'profileName'          => __( 'Profile name', 'maestro-menu-editor' ),
 					/* translators: Placeholder and accessible label for the field where a new hiding profile's name is typed. */
@@ -388,6 +390,8 @@ class Assets {
 					'tourStepSeparator'    => __( 'Add a separator line below this item. To remove one, select the separator and use the trash button.', 'maestro-menu-editor' ),
 					/* translators: Guided-tour step pointing at the draggable edge of the admin menu. */
 					'tourStepWidth'        => __( 'Drag the menu\'s edge to make it wider or narrower. When the edge has focus, the arrow keys work too.', 'maestro-menu-editor' ),
+					/* translators: Guided-tour step pointing at the Hiding profiles toolbar button. */
+					'tourStepProfiles'     => __( 'Hiding profiles let you reuse a group of people. Create a profile, add people, then select it in a menu item\'s Visibility controls to hide that item from them.', 'maestro-menu-editor' ),
 					'tourStepSettings'     => __( 'Menu settings let you type an exact menu width or go back to the default.', 'maestro-menu-editor' ),
 					'tourStepHelp'         => __( 'Want this tour again? Use the help button anytime.', 'maestro-menu-editor' ),
 					'tourStep4'            => __( 'Your changes save automatically. Reset All returns the whole menu to the WordPress defaults.', 'maestro-menu-editor' ),

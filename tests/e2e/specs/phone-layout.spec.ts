@@ -39,6 +39,7 @@ const PHONE_STEPS = [
 	'Hide the item',
 	'Undo every change',
 	'separator',
+	'Hiding profiles',
 	'tour again',
 	'Reset All',
 	'Exit',
