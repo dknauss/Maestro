@@ -1127,10 +1127,17 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 	 * panel the whole first row, where its controls wrap side by side. */
 	.maestro-toolbar-right {
 		flex: 1 0 100%;
+		flex-wrap: wrap;
 		justify-content: flex-end;
 		margin-inline-start: 0;
 		padding-inline-start: 0;
 		border-inline-start: 0;
+	}
+	/* The role preview picker (Phase 30) takes its own line in the right zone
+	 * so Settings, Help and Reset All still fit beside each other. */
+	.maestro-preview-picker {
+		flex: 1 0 100%;
+		justify-content: flex-end;
 	}
 	.maestro-toolbar .button {
 		padding: 4px 8px;
