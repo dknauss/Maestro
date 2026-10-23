@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: Client-Site Workflow
 status: in_progress
-stopped_at: "v1.9 started: Phase 29 (select-all roles, UX-14) built as a tri-state \"All other roles\" checkbox, PR open; D3 decided (tri-state); a hands-on check owed by Dan (29-VERIFICATION.md). v1.8.0 merged as #242 (e1b4696); its tag, the WordPress.org deploy approval and the Phase 27 hands-on checks are Dan's. Phase 30 waits on D2."
+stopped_at: "Phase 29 merged as #243 (c940902), including the role-limit fix; post-merge CI passed. Phase 27 verification landed through #242, superseding #241. Human acceptance for Phases 27/28/29 and real touch-device testing remain open. Phase 30 is blocked on D2."
 last_updated: "2026-10-23T00:00:00.000Z"
-last_activity: "2026-10-23 — v1.8.0 release merged (#242, carrying #241). Phase 29 built: selectAllRoleTargets/selectAllState/applySelectAll (15 JS tests), userRoles localized, the All other roles row in both role groups, select-all-roles.spec.ts."
+last_activity: "2026-10-23 — Reconciled main through c940902, confirmed #241 is superseded by #242, and recorded the remaining human checks and Phase 30 prerequisite."
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 2
   completed_plans: 2
-  percent: 33
+  percent: 0 # Human-accepted phases: 0/3; Phase 30/31 plan totals remain TBD.
 ---
 
 # Project State
@@ -20,13 +20,13 @@ progress:
 
 See: .planning/PROJECT.md (updated 2026-07-03)
 
-**Current focus:** v1.9 Client-Site Workflow. Phase 29 (select-all roles,
-#214) is built and in review; Phase 30 (view-as-role) waits on D2; Phase 31
-(export/import) is unplanned and must now also leave hiding profiles out of
-an export, since they name people. v1.8.0 (hiding profiles) is merged (#242)
-and awaits its tag, the WordPress.org deploy approval and Dan's Phase 27
-hands-on run (`27-VERIFICATION.md`). Phase 28 affected human rechecks and
-**real touch-device testing remain outstanding**.
+**Current focus:** human acceptance and the Phase 30 design decision. Phase 29
+("All other roles", #214) merged in #243 as `c940902`, including atomic refusal
+of over-limit bulk selections. [Post-merge CI](https://github.com/dknauss/Maestro/actions/runs/39909963498) passed. Phase 27's five plans are
+on main: #242 included the commits from #241, which is superseded. Phase 30
+(view-as-role) remains blocked on D2; Phase 31 (export/import) is unplanned.
+Release sequence: width v1.7.0, profiles v1.8.0 (release code merged in #242),
+Client-Site Workflow v1.9. Real touch-device testing remains outstanding.
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
 **Historical focus at the time this section was written:** v1.3.1 shipped and
@@ -35,22 +35,45 @@ recorded above; this note is kept only to date the paragraph that follows it.
 
 ## Current Position
 
-Milestone: **v1.9 Client-Site Workflow**, started 2026-10-23. Phase 29
-(select-all roles) built, awaiting review; D3 decided (tri-state). The v1.8 notes
-below stay until its tag and the Phase 27 hands-on run are done.
+Milestone: **v1.9 Client-Site Workflow**. Phase 29's two plans are built and
+merged; human acceptance is open. Phase 30/31 plans remain TBD, so the progress
+percentage tracks human-accepted phases (0/3), not the two known built plans.
 
-Milestone: **v1.8 Hiding profiles**, code complete, awaiting verification.
-Phase 27: **5/5 plans built** — 27-01 decisions (#230), 27-02 storage/compile
-(#237), 27-03 hide seam and live membership (#238), #240 privacy follow-up,
-27-04 editor (#239), 27-05 e2e + gate + docs. ROLE-02 is complete in code.
-Outstanding: Dan's hands-on browser run (27-VERIFICATION.md).
-Phase 28: **implementation built, acceptance open** — 28-01/02 complete;
-28-03 still awaits affected human rechecks and real touch-device testing.
-The earlier core-scheme/width human pass is retained. #234's tour navigation
-fix and #236's real Keel alignment fix are merged; do not redo them.
-Next: Dan's Phase 27 hands-on check, then the v1.8 release; collect the
-outstanding Phase 28 human checks. Select-all
-roles remains unimplemented in Phase 29 (v1.9).
+Phase 27: **5/5 plans built on main** — #230 decisions, #237 storage/compile,
+#238 runtime hiding, #240 privacy/member validation, #239 editor, and 27-05
+verification included by #242. ROLE-02 is complete in code; a human profile-flow
+pass is still owed. #241 is superseded by #242, not additional unmerged work.
+
+Phase 28: **implementation built, acceptance open**. Retain Dan's earlier
+available-core-scheme/width pass; the screenshot exceptions still need human
+rechecks. #234's tour navigation and #236's real Keel alignment fixes are merged.
+
+Phase 29: **2/2 plans built and merged in #243**. The control skips the editor's
+own roles and locked child rows, explains and refuses selections beyond the
+server's 50-role cap, and allows clearing. Unit, both integration lanes, E2E,
+Plugin Check and post-merge CI passed; automation does not close human acceptance.
+
+Release status checked 2026-10-23: #242 merged as `e1b4696`. v1.7.0 is the
+latest published GitHub Release; no v1.8.0 tag or published GitHub Release was
+found. WordPress.org deployment is not verified by this documentation update.
+
+### Remaining human acceptance
+
+| Area | Still open | Authoritative checklist |
+|---|---|---|
+| Phase 27 profiles | Create/assign a profile; verify a member loses the item and a same-role non-member keeps it; remove/re-add membership; check deletion counts and restoration; confirm direct URL access; check dialog/popover scrolling at a short laptop viewport. | [27-VERIFICATION.md](phases/27-cloned-role-hiding-profiles/27-VERIFICATION.md) |
+| Phase 28 layout | Populated narrow toolbar/responsive-menu interaction; English fallback direction in Arabic admin; real Keel width changes during edit mode, shrinking to Leave unchanged, then save/reload. Earlier core-scheme/width passes remain accepted; Modern is not a current core scheme. | [28-VERIFICATION.md](phases/28-configurable-admin-menu-width/28-VERIFICATION.md) |
+| Phase 29 select-all | On a real site, confirm another role's user loses an item while the editor keeps it; with a screen reader, check the group-specific accessible name and mixed-state announcement. D3 is already decided. | [29-VERIFICATION.md](phases/29-select-all-role-control/29-VERIFICATION.md) |
+| Actual touch hardware | Toolbar, dialogs and popovers on a real touch device. **Outstanding** across the affected checks; desktop emulation is not sign-off. | The three verification records above |
+
+### Before Phase 30
+
+**D2 remains the explicit blocker:** decide whether a request-scoped,
+viewer-only, subtract-only capability filter is permitted by the "never changes
+a capability" invariant, or requires a documented exception. Phase 30's planning
+checkpoint also settles super-admin handling and picker placement. These choices
+are not approved by green CI or by merging Phase 29. The human acceptance work
+above remains open; this update does not start Phase 30 or mark a phase complete.
 
 ### Historical position (the v1.5 cycle, written 2026-08-09)
 
@@ -605,8 +628,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-10-22
-Stopped at: Phase 27 plans 01–03 merged; profile privacy/member-validation hardening in progress. Plans 04–05 pending on main. Phase 28 acceptance and real touch-device checks remain open.
+Last session: 2026-10-23
+Stopped at: #243 merged with post-merge CI green; #241 superseded by #242. Human checks for Phases 27/28/29 and real touch-device testing remain open. Phase 30 waits on D2.
 
 **Earlier updates below are historical snapshots; the Current Position above is authoritative.**
 
