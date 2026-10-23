@@ -81,7 +81,7 @@ function saved( page ) {
 
 async function openProfiles( page ) {
 	await page.locator( '.maestro-toolbar .maestro-profiles-btn' ).click();
-	const dialog = page.getByRole( 'dialog', { name: 'Hiding profiles' } );
+	const dialog = page.getByRole( 'dialog', { name: 'Visibility groups' } );
 	await expect( dialog ).toBeVisible();
 	return dialog;
 }
@@ -132,9 +132,9 @@ test.describe( 'ROLE-02 — hiding profiles', () => {
 
 		// --- Create the profile and put the member in it. ---
 		let dialog = await openProfiles( page );
-		await dialog.getByLabel( 'New profile name' ).fill( PROFILE );
+		await dialog.getByLabel( 'New group name' ).fill( PROFILE );
 		let resp = saved( page );
-		await dialog.getByRole( 'button', { name: 'Add profile' } ).click();
+		await dialog.getByRole( 'button', { name: 'Add group' } ).click();
 		await expect( dialog.locator( '.maestro-profile-name' ) ).toHaveValue( PROFILE );
 		const created = ( await resp ).request().postDataJSON();
 		const profileId = Object.keys( created?.config?.profiles ?? {} )[ 0 ];
@@ -149,7 +149,7 @@ test.describe( 'ROLE-02 — hiding profiles', () => {
 		await page.locator( '#menu-posts > a.menu-top' ).click();
 		await page.locator( '.maestro-toolbar .maestro-panel .maestro-vis-btn' ).click();
 		const picker = page.locator( '.maestro-vis-popover' );
-		const group = picker.getByRole( 'group', { name: 'Hide this item for profiles:' } );
+		const group = picker.getByRole( 'group', { name: 'Hide this item for visibility groups:' } );
 		await expect( group ).toBeVisible();
 		resp = saved( page );
 		await group.getByLabel( PROFILE ).check();
@@ -220,15 +220,15 @@ test.describe( 'ROLE-02 — hiding profiles', () => {
 		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
 
 		const dialog = await openProfiles( page );
-		await dialog.getByLabel( 'New profile name' ).fill( PROFILE );
-		await dialog.getByRole( 'button', { name: 'Add profile' } ).click();
+		await dialog.getByLabel( 'New group name' ).fill( PROFILE );
+		await dialog.getByRole( 'button', { name: 'Add group' } ).click();
 		await addMember( page, dialog );
 		await page.keyboard.press( 'Escape' );
 
 		await page.locator( '#menu-posts > a.menu-top' ).click();
 		await page.locator( '.maestro-toolbar .maestro-panel .maestro-vis-btn' ).click();
 		const group = page.locator( '.maestro-vis-popover' )
-			.getByRole( 'group', { name: 'Hide its sub-items for profiles:' } );
+			.getByRole( 'group', { name: 'Hide its sub-items for visibility groups:' } );
 		const resp = saved( page );
 		await group.getByLabel( PROFILE ).check();
 		const payload = ( await resp ).request().postDataJSON();

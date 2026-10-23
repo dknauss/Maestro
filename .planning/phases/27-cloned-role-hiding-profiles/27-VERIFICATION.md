@@ -93,3 +93,31 @@ checks passed. New strings are included in the translation template.
 Dan's earlier desktop functional sign-off is retained. This automated follow-up
 does not claim human acceptance of the new wording or coachmark. **Real
 touch-device testing remains outstanding.**
+
+## Approved terminology follow-up — 2026-10-23
+
+After #249, Dan approved **Visibility groups** as the user-facing name and:
+“A visibility group lets you hide a menu item from everyone in the group.”
+The introduction continues with adding people, selecting the group in a menu
+item's Visibility controls, and hiding links without changing page access.
+Toolbar/dialog labels, actions, validation/announcements, tour and current user
+documentation use group terminology. Internal `profiles` storage/API keys stay
+unchanged; no migration is required. This supersedes the earlier note that no
+rename had been approved, without changing its historical context.
+
+Four desktop Playwright cases passed with the new labels and copy, including
+saved-group reload and validation recovery; the new dialog-name expectation
+failed before the rename. Earlier desktop functional acceptance is retained;
+new copy is not claimed human-tested. **Real touch-device testing remains
+outstanding.**
+
+## Partial real touch-device report — 2026-10-23
+
+Dan supplied functional successes and mobile usability findings. See the
+[consolidated touch results and remaining checks](../../TOUCH-DEVICE-CHECKLIST.md#dans-reported-touch-results--2026-10-23).
+Small targets/accidental dismissal, cramped dialogs, keyboard obstruction and
+three-tip tour coverage remain unresolved. Role-control behavior subsequently passed all five directed checks; an
+off-center mixed-state dash remains a visual defect. The exact commit remains unrecorded. Dan identifies current main in Playground on
+iPhone 17, Safari on iOS 26.6.2, and confirms Arabic/English parity; no RTL-specific
+regression was reported. Real Keel mobile interaction was not tested. This report does not close touch acceptance
+or replace the earlier desktop sign-off.
