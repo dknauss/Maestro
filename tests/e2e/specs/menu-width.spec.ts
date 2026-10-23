@@ -239,7 +239,9 @@ test.describe( 'Phase 28-03 — menu width controls', () => {
 		} );
 	}
 
-	for ( const width of [ 320, 375, 600 ] ) {
+	// Rows the toolbar may take: two on a phone held upright, three only on
+	// the smallest (320px) screens, where nine 36px controls cannot share one.
+	for ( const [ width, maxRows ] of [ [ 320, 3 ], [ 375, 2 ], [ 600, 2 ] ] ) {
 		test( `narrow toolbar lays the panel controls out in rows at ${ width }px`, async ( { page } ) => {
 			await page.setViewportSize( { width, height: 900 } );
 			await page.goto( '/wp-admin/index.php?maestro_edit=1' );
@@ -247,19 +249,27 @@ test.describe( 'Phase 28-03 — menu width controls', () => {
 			await expect( page.locator( '.maestro-panel' ) ).toBeVisible();
 
 			const layout = await page.evaluate( () => {
-				const box = ( n: Element ) => n.getBoundingClientRect();
 				const visible = ( sel: string ) => Array.from( document.querySelectorAll( sel ) )
 					.filter( ( n ) => ( n as HTMLElement ).offsetParent !== null )
-					.map( box );
+					.map( ( n ) => n.getBoundingClientRect() );
+				// Rows by centre line: Reset All is shorter than the icon
+				// buttons, so their tops differ while their middles align.
+				const rowsOf = ( rects: DOMRect[] ) => {
+					const mids: number[] = [];
+					rects.forEach( ( r ) => {
+						const mid = ( r.top + r.bottom ) / 2;
+						if ( ! mids.some( ( m ) => Math.abs( m - mid ) < 6 ) ) { mids.push( mid ); }
+					} );
+					return mids.length;
+				};
 				const panel = visible( '.maestro-panel button, .maestro-panel input' );
-				const right = visible( '.maestro-toolbar-right button' );
-				const rows = new Set( panel.map( ( r ) => Math.round( r.top ) ) );
+				const all = visible( '.maestro-toolbar button, .maestro-toolbar input' );
 				return {
 					panelControls: panel.length,
-					panelRows: rows.size,
-					panelBottom: Math.max( ...panel.map( ( r ) => r.bottom ) ),
-					rightTop: Math.min( ...right.map( ( r ) => r.top ) ),
-					rightEdge: Math.max( ...right.map( ( r ) => r.right ) ),
+					panelRows: rowsOf( panel ),
+					rows: rowsOf( all ),
+					left: Math.min( ...all.map( ( r ) => r.left ) ),
+					right: Math.max( ...all.map( ( r ) => r.right ) ),
 					viewport: document.documentElement.clientWidth,
 				};
 			} );
@@ -267,10 +277,12 @@ test.describe( 'Phase 28-03 — menu width controls', () => {
 			// Before the fix the panel was squeezed to one control's width and
 			// every control took a row of its own.
 			expect( layout.panelRows ).toBeLessThanOrEqual( Math.ceil( layout.panelControls / 2 ) );
-			expect( layout.panelRows ).toBeLessThanOrEqual( 3 );
-			// Settings, Help and Reset All get their own row, below the panel.
-			expect( layout.rightTop ).toBeGreaterThanOrEqual( layout.panelBottom );
-			expect( layout.rightEdge ).toBeLessThanOrEqual( layout.viewport );
+			// The right zone no longer takes a row of its own: on a phone it
+			// shares the panel's second row, which is what keeps the toolbar
+			// from eating a third of the screen.
+			expect( layout.rows ).toBeLessThanOrEqual( maxRows );
+			expect( layout.left ).toBeGreaterThanOrEqual( 0 );
+			expect( layout.right ).toBeLessThanOrEqual( layout.viewport );
 		} );
 	}
 

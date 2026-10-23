@@ -1323,8 +1323,13 @@
 			}
 		} );
 
-		placePopover( pop, anchorBtn );
+		var reposition = placePopover( pop, anchorBtn );
 		applyFilter();
+		// The grid only fills in applyFilter(), so the first placement measured
+		// a near-empty popover: placed above the anchor by that height, the full
+		// one ran off the bottom of a short screen. Once, so later filtering
+		// still does not move the grid under the pointer.
+		reposition();
 		search.focus();
 	}
 
@@ -2734,16 +2739,35 @@
 
 	function placePopover( pop, anchorBtn ) {
 		// Core treats clicks and Tab outside #adminmenuwrap as dismissal of
-		// the responsive menu. Settings belongs to that menu, like its toolbar.
-		var responsiveParent = pop.classList.contains( 'maestro-settings-popover' )
-			? anchorBtn.closest( '#adminmenuwrap' ) : null;
+		// the responsive menu. Every popover belongs to that menu, like the
+		// toolbar that opens it: only Settings used to be mounted there, so on
+		// a phone the first tap inside the icon picker or Visibility closed the
+		// menu and took the toolbar, and the popover's own controls, with it.
+		// The anchor is only inside #adminmenuwrap at those widths.
+		var responsiveParent = anchorBtn.closest( '#adminmenuwrap' );
 		( responsiveParent || document.body ).appendChild( pop );
-		if ( responsiveParent ) { pop.style.position = 'fixed'; }
+		if ( responsiveParent ) {
+			pop.style.position = 'fixed';
+			// A control that re-renders on click (an icon tab, a grid cell, a
+			// chip's remove button) is detached by the time its click reaches
+			// core, and a detached target is outside #adminmenuwrap too.
+			pop.addEventListener( 'click', function ( e ) { e.stopPropagation(); } );
+		}
 
 		function position() {
 			var scrollY = responsiveParent ? 0 : window.scrollY;
 			var scrollX = responsiveParent ? 0 : window.scrollX;
 			var r = anchorBtn.getBoundingClientRect();
+			// On a short screen (a phone on its side) a popover can be taller
+			// than the room above the toolbar, and the fallback below the anchor
+			// is off-screen. Cap it to the room above and let it scroll, rather
+			// than open where it cannot be seen or reached.
+			var roomAbove = Math.floor( r.top - 14 );
+			if ( pop.offsetHeight > roomAbove && roomAbove > window.innerHeight - r.bottom ) {
+				pop.style.boxSizing = 'border-box'; // the cap includes its padding
+				pop.style.maxHeight = roomAbove + 'px';
+				pop.style.overflowY = 'auto';
+			}
 			// Toolbar lives at the bottom — prefer placing the popover above the
 			// anchor so it doesn't overflow off-screen.
 			var top = scrollY + r.top - pop.offsetHeight - 6;
@@ -2799,6 +2823,9 @@
 				}
 			} );
 		}, 0 );
+
+		// For a caller that fills the popover after placing it.
+		return position;
 	}
 
 	/* ---------- sortable --------------------------------------------------- */
@@ -3115,6 +3142,21 @@
 		return node && node.getClientRects().length ? node : null;
 	}
 
+	/*
+	 * Where the coachmark is mounted. At narrow widths it joins the toolbar
+	 * inside #adminmenuwrap, for the toolbar's own reason (buildToolbar()):
+	 * core closes the responsive menu on any click outside the hamburger and
+	 * #adminmenuwrap. On <body>, the first tap on Next closed the menu, which
+	 * took the toolbar with it, so every control step after that found its
+	 * anchor unrendered and was skipped (1, 2, then straight to Exit). The box
+	 * is position:fixed, so the parent does not move it.
+	 */
+	function tourHost() {
+		var menuWrap = document.getElementById( 'adminmenuwrap' );
+		var hamburger = document.getElementById( 'wp-admin-bar-menu-toggle' );
+		return menuWrap && hamburger && hamburger.offsetParent !== null ? menuWrap : document.body;
+	}
+
 	function tourSteps() {
 		// One step per editing control, in toolbar order, so every glyph the
 		// editor shows has been named once. The panel steps reference controls
@@ -3129,8 +3171,8 @@
 			{ text: I.tourStepResetItem, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.resetBtn ); } },
 			{ text: I.tourStepSeparator, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.addSepBtn ); } },
 			// The edge handle only renders at 961px and wider (maestro.css).
-			{ text: I.tourStepWidth, placement: 'right', anchor: function () { return tourShown( widthHandle ); } },
-			{ text: I.tourStepSettings, placement: 'top', anchor: function () { return tourShown( document.querySelector( '.maestro-settings-btn' ) ); } },
+			{ text: I.tourStepWidth, placement: 'right', byViewport: true, anchor: function () { return tourShown( widthHandle ); } },
+			{ text: I.tourStepSettings, placement: 'top', byViewport: true, anchor: function () { return tourShown( document.querySelector( '.maestro-settings-btn' ) ); } },
 			{ text: I.tourStepHelp, placement: 'top', anchor: function () { return tourShown( document.querySelector( '.maestro-tour-help' ) ); } },
 			{ text: I.tourStep4, placement: 'top', anchor: function () { return tourShown( document.querySelector( '.maestro-reset-all' ) ); } },
 			// The last step anchors to the WP Toolbar (admin-bar) "Exit Menu
@@ -3144,7 +3186,13 @@
 
 	function startTour() {
 		if ( tour.active ) { return; }
-		tour.steps = tourSteps();
+		// A step the viewport hides (byViewport) is dropped before the tour
+		// starts, so "3 of 11" counts only what will be shown rather than
+		// jumping from 7 to 9 on a phone. A panel control hidden only for the
+		// selected item cannot be known yet, so renderTourStep still skips it.
+		tour.steps = tourSteps().filter( function ( step ) {
+			return ! step.byViewport || step.anchor();
+		} );
 		tour.active = true;
 		tour.idx = 0;
 		tour.lastFocus = document.activeElement;
@@ -3299,7 +3347,15 @@
 		box.appendChild( arrow );
 		box.appendChild( content );
 		box.appendChild( controls );
-		document.body.appendChild( box );
+		/*
+		 * Mounting inside #adminmenuwrap is not enough on its own: Next, Back,
+		 * Skip and Done all remove this box before their click reaches core's
+		 * document handler, and a detached target is outside every container,
+		 * so core still closed the menu. The tour is modal, so nothing behind
+		 * it needs to hear its clicks.
+		 */
+		box.addEventListener( 'click', function ( e ) { e.stopPropagation(); } );
+		tourHost().appendChild( box );
 		tour.root = box;
 
 		positionTour( box, anchor, step.placement );

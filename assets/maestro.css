@@ -1091,8 +1091,18 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 /* Inherit the WP admin column collapse breakpoint. */
 @media screen and ( max-width: 782px ) {
 	.maestro-toolbar { inset-inline-start: 0; }
+
+	/* Core pushes the page right by the menu's width while the responsive
+	 * menu is open, and only stops that from scrolling sideways up to 600px
+	 * (common.css, "Smartphone"). Edit mode keeps the menu open, so from 601
+	 * to 782px (most phones on their side) the page was permanently wider
+	 * than the screen: a phone browser zoomed out to fit it, or let the page
+	 * pan sideways under the toolbar. Same rule as core, over core's whole
+	 * responsive range, only while editing. */
+	.maestro-editing #wpwrap.wp-responsive-open {
+		overflow-x: hidden;
+	}
 	.maestro-panel-label { max-width: 120px; }
-	.maestro-rename-input { width: 120px; }
 
 	/* UX-07: denser controls at narrow widths so the toolbar fits without overflow.
 	 * The toolbar already flex-wraps (BUG-03); density shrinks each row so fewer rows
@@ -1101,17 +1111,6 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 	.maestro-toolbar {
 		gap: 6px 10px;
 		padding: 8px 10px;
-	}
-	/* The right zone (Settings, Help, Reset All) never shrinks, so on one row
-	 * with it the panel was squeezed to a single control's width and stacked
-	 * every button on its own line. Give the right zone a row of its own and the
-	 * panel the whole first row, where its controls wrap side by side. */
-	.maestro-toolbar-right {
-		flex: 1 0 100%;
-		justify-content: flex-end;
-		margin-inline-start: 0;
-		padding-inline-start: 0;
-		border-inline-start: 0;
 	}
 	.maestro-toolbar .button {
 		padding: 4px 8px;
@@ -1146,6 +1145,105 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 
 	/* UX-08a admin-bar override moved to assets/maestro-admin-bar.css (11-06) — always-loaded
 	 * so the ENTER toggle is reachable in the non-edit state too (single source of truth). */
+}
+
+/*
+ * Compact toolbar: phones in either orientation.
+ *
+ * Width alone misses landscape. An iPhone on its side is 667-932px wide, so
+ * most of the ≤782px rules above never apply, yet it is under 430px tall and
+ * a browser's own chrome takes a good part of that. Two toolbar rows there
+ * left a strip of page between the admin bar and the toolbar. Short screens
+ * get the same compaction as narrow ones.
+ *
+ * What made the toolbar tall was layout, not the controls:
+ *  - The right zone (profiles, Settings, Help, Reset All) used to take a row
+ *    of its own at ≤782px, so the panel and the right zone could never
+ *    share one. The panel now takes only the width its controls need, up to
+ *    the row (less the status slot beside it), and never shrinks, so the
+ *    right zone joins its row when both fit and wraps below when not. That
+ *    also keeps the original fix: the panel is never squeezed down to one
+ *    control's width with every button stacked on its own line.
+ *  - "Add separator below" was the one panel button still showing its text,
+ *    the widest thing on the row. It goes icon-only here, as the other panel
+ *    buttons are everywhere; aria-label and title still name it.
+ *  - The panel's divider and inset, and the toolbar's padding, were sized
+ *    for desktop.
+ *
+ * The 44px min-height above still holds at ≤782px: only widths shrink.
+ */
+@media screen and ( max-width: 782px ), screen and ( max-height: 500px ) {
+	.maestro-toolbar {
+		gap: 4px 8px;
+		padding: 6px 8px;
+	}
+	.maestro-panel {
+		flex: 0 0 auto;
+		max-width: calc( 100% - 32px ); /* status slot (24px) + column gap */
+		gap: 4px;
+		padding-inline-start: 0;
+		border-inline-start: 0;
+	}
+	.maestro-toolbar-right {
+		gap: 4px;
+		padding-inline-start: 0;
+		border-inline-start: 0;
+	}
+	.maestro-toolbar .button {
+		min-width: 36px;
+		padding: 4px 6px;
+	}
+	.maestro-toolbar .maestro-rename-input {
+		width: 128px;
+	}
+	.maestro-toolbar .maestro-add-separator .maestro-btn-label,
+	.maestro-toolbar .maestro-remove-separator .maestro-btn-label {
+		display: none;
+	}
+}
+
+/*
+ * Phone portrait: two rows, sized to the job.
+ *
+ * At 375px the auto-flowing layout above still took three rows: the panel
+ * wrapped onto a second row of its own and the right zone sat on a third.
+ * Here the rename field gets the first row, with up and down beside it, and
+ * every other control shares the second, the right zone's group pushed to
+ * the end. The panel and right-zone wrappers step out of the layout
+ * (display: contents) so their buttons can share a row; neither has a role
+ * or a name, so nothing is lost to assistive technology, and DOM and Tab
+ * order are unchanged. The panel's [hidden] state still removes it.
+ *
+ * The field's basis is the row less what shares it: the status slot (28px
+ * with its padding), up and down (36px each) and three 4px gaps, plus 8px of
+ * slack so subpixel rounding cannot push Down onto the next row. It then
+ * grows into that slack.
+ *
+ * Reset All drops its visible text here, the only place it does, because
+ * the text alone would push it onto a third row. Its aria-label and title
+ * still say "Reset All", and its confirm dialog still guards it.
+ */
+@media screen and ( max-width: 560px ) {
+	.maestro-toolbar {
+		gap: 4px;
+	}
+	.maestro-panel,
+	.maestro-toolbar-right {
+		display: contents;
+	}
+	.maestro-panel[hidden] {
+		display: none;
+	}
+	.maestro-toolbar .maestro-rename-input {
+		flex: 1 0 auto;
+		width: calc( 100% - 120px );
+	}
+	.maestro-toolbar-right > :first-child {
+		margin-inline-start: auto;
+	}
+	.maestro-toolbar .maestro-reset-all .maestro-btn-label {
+		display: none;
+	}
 }
 
 /* Note: panel buttons are icon-only at ALL widths (see .maestro-panel button +

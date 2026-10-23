@@ -73,18 +73,21 @@ test( 'guided tour: auto-launch, step through, seen-flag, replay, Esc', async ( 
 } );
 
 
-test( 'narrow tour: Back crosses the hidden width step', async ( { page } ) => {
+test( 'narrow tour: the hidden width step is dropped, and Back walks to the start', async ( { page } ) => {
 	await page.setViewportSize( { width: 900, height: 900 } );
 	await page.goto( '/wp-admin/index.php?maestro_edit=1' );
 	await page.evaluate( () => window.localStorage.removeItem( 'maestroFirstRunDone' ) );
 	await page.reload();
 	const text = page.locator( '.maestro-tour-text' );
 	await expect( page.locator( '.maestro-tour' ) ).toBeVisible();
-	// Seven visible steps precede Settings; the desktop-only width step is skipped.
+	// Seven visible steps precede Settings. The desktop-only width step is not
+	// in the tour at all below 961px, so the count has no gap where it was.
+	await expect( page.locator( '.maestro-tour-progress' ) ).toHaveText( '1 of 11' );
 	for ( let i = 0; i < 7; i++ ) {
 		await page.locator( '.maestro-tour-next' ).click();
 	}
 	await expect( text ).toContainText( 'Menu settings' );
+	await expect( page.locator( '.maestro-tour-progress' ) ).toHaveText( '8 of 11' );
 	await page.locator( '.maestro-tour-back' ).click();
 	await expect( text ).toContainText( 'Add a separator' );
 	await page.locator( '.maestro-tour-next' ).click();
