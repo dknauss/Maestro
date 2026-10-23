@@ -22,7 +22,7 @@ unavailable desktop-only control as not applicable, rather than a pass.
   rename and assign the group to an item, then reload. Check that the on-screen
   keyboard does not obscure inputs or required actions. Check deletion and its
   confirmation.
-- [ ] **Role controls:** select and clear All other roles in both role groups;
+- [x] **Role controls (behavior passed; visual exception below):** select and clear All other roles in both role groups;
   partial selections show mixed state and locked rows retain their behavior.
 - [ ] **Tour:** Next, Back, Skip and Done work at narrow widths; coachmarks stay
   on screen and skip unavailable controls in both directions.
@@ -48,14 +48,15 @@ from the image.
 | Toolbar | Responsive menu opens; enter/exit/re-enter works; every control can be tapped. | Wrapping, hard-to-hit targets and accidental dismissal in some cases remain defects/usability findings. |
 | Dialogs/popovers | All four open; long content scrolls, controls remain reachable, and the background does not scroll. | Small-screen viewing/manipulation remains difficult. The width-only Settings entry is reported as pointless at phone widths. |
 | Visibility groups | Create, search, add/remove people, rename, assign and reload passed. | On-screen keyboard often obscures inputs/actions; keyboard usability remains open. |
-| Role controls | Select and clear All other roles passed. | Both role sections, partial/mixed state and derived locked child rows need the directed checks below. |
+| Role controls | Dan passed all five directed role-control checks: both sections, mixed-state behavior, locked-row refusal, unlocking and reload persistence. | Visual defect: the mixed-state dash is not centered in its checkbox on iPhone Safari. Behavior passed; visual acceptance remains open. |
 | Tour | Next, Back, Skip and Done work; only three tips appeared. | Investigate step coverage on the tested build, then recheck current build. Three tips is not accepted as complete current-tour coverage. |
 | Arabic/RTL | Dan clarified: “It works in Arabic as well as it does in english.” | RTL parity passed on the tested device/build; the shared mobile usability issues still apply. |
 | Width | Handle and slider/number field unavailable at the small screen size. | Mark those desktop-only interactions not applicable at this viewport, rather than failed. Real Keel mobile interaction was not tested. |
 
 The screenshot also shows a native delete confirmation with item/person counts;
 no completed deletion result is inferred from that image alone. Earlier desktop
-acceptance is retained. The RTL parity checkbox is passed on Dan's report. Other compound touch
+acceptance is retained. RTL parity and role-control behavior are passed on Dan's reports. The
+mixed-state dash alignment remains a visual defect. Other compound touch
 checkboxes remain open until their defects and missing checks are resolved.
 
 ## Directed role-control checks
@@ -88,3 +89,11 @@ confirmed results here and reconcile the relevant phase checklist:
 - [Phase 27](phases/27-cloned-role-hiding-profiles/27-VERIFICATION.md)
 - [Phase 28](phases/28-configurable-admin-menu-width/28-VERIFICATION.md)
 - [Phase 29](phases/29-select-all-role-control/29-VERIFICATION.md)
+
+## Role-control follow-up — 2026-10-23
+
+Dan reported “otherwise 1-5 pass” in response to the five directed role-control
+steps, with a screenshot showing an off-center dash near the upper-left of the
+mixed checkbox. This is a pass for those role-control behaviors, not for items
+1–5 of the overall touch checklist. Track the dash alignment as an unresolved
+visual defect; do not attribute its cause to Safari or core without reproduction.
