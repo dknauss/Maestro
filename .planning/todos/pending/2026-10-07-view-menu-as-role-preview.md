@@ -11,7 +11,13 @@ files:
   - SPEC.md (Principle 3 and the "never changes a capability" wording)
 ---
 
-**Scheduled:** the read-only preview is v1.7 Client-Site Workflow, Phase 30 (#215). The scope selector's editing scopes and "View as: [person]" are not scheduled.
+**Approved decisions — 2026-10-23:** Dan approved D2’s narrow capability-filter
+exception, disabling super-admin preview in the first release, and a labelled
+toolbar picker with an explicit Preview button. The [Phase 30 decision record](../../phases/30-view-as-role-preview/30-CONTEXT.md)
+supersedes the open questions and proposed interaction below. Implementation
+remains pending; real touch-device testing remains outstanding.
+
+**Scheduled:** the read-only preview is v1.9 Client-Site Workflow, Phase 30 (#215). The scope selector's editing scopes and "View as: [person]" are not scheduled.
 
 ## The idea
 
