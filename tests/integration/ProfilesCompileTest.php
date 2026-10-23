@@ -184,24 +184,26 @@ class ProfilesCompileTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The map is authoring only. Replay reads it in exactly ONE place, the
-	 * live-membership lookup (27-03); which items a profile hides comes from the
-	 * compiled item axis. A cheap tripwire on the property the design rests on:
-	 * a second read of the map is a second resolve path.
+	 * The map is authoring only. Replay may read it for MEMBERSHIP (27-03) and
+	 * the editor's display (27-04), but which items a profile hides must come
+	 * from the compiled item axis alone, so replay never reads a profile's
+	 * hide-lists. All reads of the map go through one accessor. A cheap
+	 * tripwire on the property the design rests on.
 	 */
-	public function test_replay_reads_the_profiles_map_only_for_membership() {
+	public function test_replay_never_resolves_hides_from_the_profiles_map() {
 		$replay = file_get_contents( dirname( __DIR__, 2 ) . '/includes/class-replay.php' );
 
-		$start = strpos( $replay, 'function current_profile_ids(' );
-		$this->assertNotFalse( $start, 'The membership lookup exists.' );
-		$end    = strpos( $replay, 'function ', $start + 10 );
-		$helper = substr( $replay, $start, $end - $start );
+		$this->assertStringNotContainsString( "'hides'", $replay, 'Replay must not read a profile hide-list.' );
+		$this->assertStringNotContainsString( "'child_hides'", $replay, 'Replay must not read a profile child hide-list.' );
 
-		$this->assertStringContainsString( "['profiles']", $helper, 'The membership lookup reads the map.' );
+		$start = strpos( $replay, 'function stored_profiles(' );
+		$this->assertNotFalse( $start, 'One accessor reads the map.' );
+		$end      = strpos( $replay, 'function ', $start + 10 );
+		$accessor = substr( $replay, $start, $end - $start );
 		$this->assertStringNotContainsString(
 			"['profiles']",
-			str_replace( $helper, '', $replay ),
-			'Nothing else in replay may read the profiles map.'
+			str_replace( $accessor, '', $replay ),
+			'Nothing but that accessor may read the profiles map.'
 		);
 	}
 }

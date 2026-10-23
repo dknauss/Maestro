@@ -689,10 +689,8 @@ class Replay {
 			return $this->profile_ids_by_user[ $uid ];
 		}
 
-		$cfg      = $this->config->get();
-		$profiles = ( ! empty( $cfg['profiles'] ) && is_array( $cfg['profiles'] ) ) ? $cfg['profiles'] : array();
-		$ids      = array();
-		foreach ( $profiles as $id => $profile ) {
+		$ids = array();
+		foreach ( $this->stored_profiles() as $id => $profile ) {
 			if ( ! empty( $profile['users'] ) && in_array( $uid, array_map( 'intval', (array) $profile['users'] ), true ) ) {
 				$ids[] = (string) $id;
 			}
@@ -960,23 +958,27 @@ class Replay {
 			$slug = $row[2];
 
 			$node = array(
-				'slug'             => $slug,
-				'liId'             => $this->li_id( $row ),
-				'title'            => isset( $row[0] ) ? wp_strip_all_tags( $row[0] ) : '',
-				'icon'             => isset( $row[6] ) ? $row[6] : '',
-				'hiddenRoles'      => $this->resolved_override_list( 'hidden_roles', $slug, $norm_items, $norm_skip, $base ),
+				'slug'                => $slug,
+				'liId'                => $this->li_id( $row ),
+				'title'               => isset( $row[0] ) ? wp_strip_all_tags( $row[0] ) : '',
+				'icon'                => isset( $row[6] ) ? $row[6] : '',
+				'hiddenRoles'         => $this->resolved_override_list( 'hidden_roles', $slug, $norm_items, $norm_skip, $base ),
 				// COMPAT-10 (REVISED): parent-only child_hidden_roles, resolved via
 				// the SAME normalized bare-key lookup as hiddenRoles above, so the
 				// editor popover reflects exactly what replay() will apply.
 				// Independent of hiddenRoles above (whether the PARENT is hidden).
-				'childHiddenRoles' => $this->resolved_child_override_list( 'child_hidden_roles', $slug, $norm_items, $norm_skip, $base ),
+				'childHiddenRoles'    => $this->resolved_child_override_list( 'child_hidden_roles', $slug, $norm_items, $norm_skip, $base ),
 				// ROLE-02: the per-user axes, resolved through the SAME shared
 				// resolvers — so the popover can never show a target replay would
 				// not honour. Emitted as raw ID lists here and decorated with
 				// display names in ONE batched pass below.
-				'hiddenUsers'      => $this->resolved_override_list( 'hidden_users', $slug, $norm_items, $norm_skip, $base ),
-				'childHiddenUsers' => $this->resolved_child_override_list( 'child_hidden_users', $slug, $norm_items, $norm_skip, $base ),
-				'submenu'          => array(),
+				'hiddenUsers'         => $this->resolved_override_list( 'hidden_users', $slug, $norm_items, $norm_skip, $base ),
+				'childHiddenUsers'    => $this->resolved_child_override_list( 'child_hidden_users', $slug, $norm_items, $norm_skip, $base ),
+				// Phase 27: the profile axes, through the same resolvers again.
+				// Filtered to live profiles in decorate_user_axes() below.
+				'hiddenProfiles'      => $this->resolved_override_list( 'hidden_profiles', $slug, $norm_items, $norm_skip, $base ),
+				'childHiddenProfiles' => $this->resolved_child_override_list( 'child_hidden_profiles', $slug, $norm_items, $norm_skip, $base ),
+				'submenu'             => array(),
 			);
 
 			if ( ! empty( $submenu[ $slug ] ) ) {
@@ -996,11 +998,12 @@ class Replay {
 						: '';
 
 					$node['submenu'][] = array(
-						'slug'         => $sub[2],
-						'qualifiedKey' => $qualified_key,
-						'title'        => isset( $sub[0] ) ? wp_strip_all_tags( $sub[0] ) : '',
-						'hiddenRoles'  => $this->resolved_override_list( 'hidden_roles', $sub[2], $norm_items, $norm_skip, $base, $slug, $top_rendered_keys ),
-						'hiddenUsers'  => $this->resolved_override_list( 'hidden_users', $sub[2], $norm_items, $norm_skip, $base, $slug, $top_rendered_keys ),
+						'slug'           => $sub[2],
+						'qualifiedKey'   => $qualified_key,
+						'title'          => isset( $sub[0] ) ? wp_strip_all_tags( $sub[0] ) : '',
+						'hiddenRoles'    => $this->resolved_override_list( 'hidden_roles', $sub[2], $norm_items, $norm_skip, $base, $slug, $top_rendered_keys ),
+						'hiddenUsers'    => $this->resolved_override_list( 'hidden_users', $sub[2], $norm_items, $norm_skip, $base, $slug, $top_rendered_keys ),
+						'hiddenProfiles' => $this->resolved_override_list( 'hidden_profiles', $sub[2], $norm_items, $norm_skip, $base, $slug, $top_rendered_keys ),
 					);
 				}
 			}
@@ -1040,14 +1043,31 @@ class Replay {
 		// users that core would not enumerate for them. They also cannot see the
 		// person groups in the editor, so there is nothing to render anyway.
 		if ( ! current_user_can( 'list_users' ) ) {
+			// Phase 27: profiles name people too, so the profile axes are
+			// withheld on exactly the same terms.
 			foreach ( $model as $i => $node ) {
-				$model[ $i ]['hiddenUsers']      = array();
-				$model[ $i ]['childHiddenUsers'] = array();
+				$model[ $i ]['hiddenUsers']         = array();
+				$model[ $i ]['childHiddenUsers']    = array();
+				$model[ $i ]['hiddenProfiles']      = array();
+				$model[ $i ]['childHiddenProfiles'] = array();
 				foreach ( $node['submenu'] as $j => $child ) {
-					$model[ $i ]['submenu'][ $j ]['hiddenUsers'] = array();
+					$model[ $i ]['submenu'][ $j ]['hiddenUsers']    = array();
+					$model[ $i ]['submenu'][ $j ]['hiddenProfiles'] = array();
 				}
 			}
 			return $model;
+		}
+
+		// Phase 27: a reference to a profile that no longer exists is dropped
+		// from the display, as a deleted user's ID is below. Replay already
+		// ignores it; showing it would offer a checkbox for nothing.
+		$live = array_flip( array_keys( $this->stored_profiles() ) );
+		foreach ( $model as $i => $node ) {
+			$model[ $i ]['hiddenProfiles']      = self::live_profile_ids( $node['hiddenProfiles'], $live );
+			$model[ $i ]['childHiddenProfiles'] = self::live_profile_ids( $node['childHiddenProfiles'], $live );
+			foreach ( $node['submenu'] as $j => $child ) {
+				$model[ $i ]['submenu'][ $j ]['hiddenProfiles'] = self::live_profile_ids( $child['hiddenProfiles'], $live );
+			}
 		}
 
 		$ids = array();
@@ -1082,6 +1102,90 @@ class Replay {
 		}
 
 		return $model;
+	}
+
+	/**
+	 * Keep only the profile IDs that still exist. (Phase 27)
+	 *
+	 * @param array             $ids  Profile IDs from an item axis.
+	 * @param array<string,int> $live Existing profile IDs, as keys.
+	 * @return string[]
+	 */
+	private static function live_profile_ids( array $ids, array $live ) {
+		$out = array();
+		foreach ( $ids as $id ) {
+			if ( isset( $live[ (string) $id ] ) ) {
+				$out[] = (string) $id;
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * The stored profiles map, or an empty array. (Phase 27)
+	 *
+	 * @return array
+	 */
+	private function stored_profiles() {
+		$cfg = $this->config->get();
+		return ( ! empty( $cfg['profiles'] ) && is_array( $cfg['profiles'] ) ) ? $cfg['profiles'] : array();
+	}
+
+	/**
+	 * The profile registry for the editor: one entry per profile, in stored
+	 * order, with each member as an id/name pair. (Phase 27)
+	 *
+	 * Member names come from ONE query across every profile, for the same reason
+	 * decorate_user_axes() batches: the Profiles dialog needs every label the
+	 * moment it opens. A member whose account is gone is dropped from the
+	 * display, and drops out of storage on the next save (Config intersects
+	 * members against live users).
+	 *
+	 * Empty for a viewer without `list_users`, who cannot author profiles and
+	 * never sees the profile groups: withheld here rather than only hidden in
+	 * the UI.
+	 *
+	 * @return array<int, array{id: string, name: string, users: array}>
+	 */
+	public function get_editor_profiles() {
+		if ( ! current_user_can( 'list_users' ) ) {
+			return array();
+		}
+
+		$profiles = $this->stored_profiles();
+		if ( ! $profiles ) {
+			return array();
+		}
+
+		$ids = array();
+		foreach ( $profiles as $profile ) {
+			if ( ! empty( $profile['users'] ) ) {
+				$ids = array_merge( $ids, array_map( 'intval', (array) $profile['users'] ) );
+			}
+		}
+		$ids = array_values( array_unique( $ids ) );
+
+		$names = array();
+		if ( $ids ) {
+			foreach ( get_users(
+				array(
+					'include' => $ids,
+					'fields'  => array( 'ID', 'display_name' ),
+				)
+			) as $user ) {
+				$names[ (int) $user->ID ] = $user->display_name;
+			}
+		}
+
+		$out = array();
+		foreach ( $profiles as $id => $profile ) {
+			$out[] = array(
+				'id'    => (string) $id,
+				'name'  => isset( $profile['name'] ) ? (string) $profile['name'] : '',
+				'users' => $this->pair_users( ! empty( $profile['users'] ) ? (array) $profile['users'] : array(), $names ),
+			);
+		}
+		return $out;
 	}
 
 	/**

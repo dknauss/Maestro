@@ -227,9 +227,19 @@ class Assets {
 				// cap instead of letting the server silently truncate a save the
 				// editor reported as successful.
 				'maxHiddenUsers'  => Config::MAX_HIDDEN_USERS,
+				// Phase 27: hiding profiles. The registry is empty for a viewer
+				// without `list_users` (see Replay::get_editor_profiles()), and the
+				// caps mirror Config so the dialog stops AT them.
+				'profiles'        => $this->replay->get_editor_profiles(),
+				'profileCarry'    => $this->profile_carry(),
+				'profileLimits'   => array(
+					'profiles' => Config::MAX_PROFILES,
+					'members'  => Config::MAX_PROFILE_MEMBERS,
+					'name'     => Config::MAX_PROFILE_NAME_CHARS,
+				),
 				'roles'           => wp_roles()->get_names(),
 				'iconSets'        => $this->icon_sets(),
-				'config'          => $this->config->for_editor(),
+				'config'          => $this->editor_config(),
 				'menu'            => $this->replay->get_menu_model(),
 				// Separator slugs in rendered order; the editor pairs them with
 				// core's id-less separator <li>s by position.
@@ -246,111 +256,232 @@ class Assets {
 				),
 				'pristine'        => $this->replay->get_pristine(),
 				'i18n'            => array(
-					'saving'             => __( 'Saving…', 'maestro-menu-editor' ),
-					'saved'              => __( 'Saved', 'maestro-menu-editor' ),
-					'saveError'          => __( 'Save failed. Retrying on next change.', 'maestro-menu-editor' ),
-					'modeLabel'          => __( 'Edit Mode', 'maestro-menu-editor' ),
-					'renamePlaceholder'  => __( 'Menu label', 'maestro-menu-editor' ),
-					'icon'               => __( 'Icon', 'maestro-menu-editor' ),
-					'iconDialog'         => __( 'Choose an icon', 'maestro-menu-editor' ),
-					'iconSearch'         => __( 'Search icons', 'maestro-menu-editor' ),
-					'iconNone'           => __( 'No icon', 'maestro-menu-editor' ),
-					'iconNoneHint'       => __( 'Remove the icon (uses the menu default).', 'maestro-menu-editor' ),
-					'visibility'         => __( 'Visibility', 'maestro-menu-editor' ),
-					'resetItem'          => __( 'Reset Item', 'maestro-menu-editor' ),
-					'separator'          => __( 'Separator', 'maestro-menu-editor' ),
-					'addSeparator'       => __( 'Add separator below', 'maestro-menu-editor' ),
-					'removeSeparator'    => __( 'Remove separator', 'maestro-menu-editor' ),
-					'separatorAdded'     => __( 'Separator added', 'maestro-menu-editor' ),
-					'separatorRemoved'   => __( 'Separator removed', 'maestro-menu-editor' ),
-					'resetAll'           => __( 'Reset All', 'maestro-menu-editor' ),
+					'saving'               => __( 'Saving…', 'maestro-menu-editor' ),
+					'saved'                => __( 'Saved', 'maestro-menu-editor' ),
+					'saveError'            => __( 'Save failed. Retrying on next change.', 'maestro-menu-editor' ),
+					'modeLabel'            => __( 'Edit Mode', 'maestro-menu-editor' ),
+					'renamePlaceholder'    => __( 'Menu label', 'maestro-menu-editor' ),
+					'icon'                 => __( 'Icon', 'maestro-menu-editor' ),
+					'iconDialog'           => __( 'Choose an icon', 'maestro-menu-editor' ),
+					'iconSearch'           => __( 'Search icons', 'maestro-menu-editor' ),
+					'iconNone'             => __( 'No icon', 'maestro-menu-editor' ),
+					'iconNoneHint'         => __( 'Remove the icon (uses the menu default).', 'maestro-menu-editor' ),
+					'visibility'           => __( 'Visibility', 'maestro-menu-editor' ),
+					'resetItem'            => __( 'Reset Item', 'maestro-menu-editor' ),
+					'separator'            => __( 'Separator', 'maestro-menu-editor' ),
+					'addSeparator'         => __( 'Add separator below', 'maestro-menu-editor' ),
+					'removeSeparator'      => __( 'Remove separator', 'maestro-menu-editor' ),
+					'separatorAdded'       => __( 'Separator added', 'maestro-menu-editor' ),
+					'separatorRemoved'     => __( 'Separator removed', 'maestro-menu-editor' ),
+					'resetAll'             => __( 'Reset All', 'maestro-menu-editor' ),
 					/* translators: Heading for the role-checkbox group that hides THIS menu item (parent or submenu row). */
-					'hideFrom'           => __( 'Hide this item from:', 'maestro-menu-editor' ),
+					'hideFrom'             => __( 'Hide this item from:', 'maestro-menu-editor' ),
 					/* translators: Heading for the role-checkbox group that cosmetically hides ALL of a parent's sub-items, independent of the parent's own visibility (COMPAT-10). Shown only for parents that have children. */
-					'hideChildrenFrom'   => __( 'Hide its sub-items from:', 'maestro-menu-editor' ),
+					'hideChildrenFrom'     => __( 'Hide its sub-items from:', 'maestro-menu-editor' ),
 					/* translators: %s: role display name. Explains why a "Hide its sub-items from:" checkbox is shown checked and disabled — the parent is already hidden from this role in the "Hide this item from:" group above, so its sub-items are already gone too (WordPress core removes a hidden parent's whole rendered subtree). */
-					'hideChildrenLocked' => esc_html__( 'Already hidden because this item is hidden from %s.', 'maestro-menu-editor' ),
+					'hideChildrenLocked'   => esc_html__( 'Already hidden because this item is hidden from %s.', 'maestro-menu-editor' ),
 					/* translators: Heading for the group that cosmetically hides THIS menu item from named individual people (ROLE-02), as opposed to whole roles. */
-					'hideFromUsers'      => __( 'Hide this item from specific people:', 'maestro-menu-editor' ),
+					'hideFromUsers'        => __( 'Hide this item from specific people:', 'maestro-menu-editor' ),
 					/* translators: Heading for the group that cosmetically hides ALL of a parent's sub-items from named individual people (ROLE-02). Shown only for parents that have children. */
-					'hideChildrenUsers'  => __( 'Hide its sub-items from specific people:', 'maestro-menu-editor' ),
+					'hideChildrenUsers'    => __( 'Hide its sub-items from specific people:', 'maestro-menu-editor' ),
 					/* translators: Accessible label and placeholder for the type-ahead field used to find a person to hide a menu item from. */
-					'userSearch'         => __( 'Search for a person', 'maestro-menu-editor' ),
+					'userSearch'           => __( 'Search for a person', 'maestro-menu-editor' ),
 					/* translators: Shown in the person picker when a search returns nobody. */
-					'userSearchNone'     => __( 'No matching people found.', 'maestro-menu-editor' ),
+					'userSearchNone'       => __( 'No matching people found.', 'maestro-menu-editor' ),
 					/* translators: Shown in the person picker when the search request fails. */
-					'userSearchError'    => __( 'Could not search people. Please try again.', 'maestro-menu-editor' ),
+					'userSearchError'      => __( 'Could not search people. Please try again.', 'maestro-menu-editor' ),
 					/* translators: %s: person's display name. Accessible label for the button that removes that person from a hide rule. */
-					'userRemove'         => esc_html__( 'Remove %s', 'maestro-menu-editor' ),
+					'userRemove'           => esc_html__( 'Remove %s', 'maestro-menu-editor' ),
 					/* translators: Inline caution shown when an admin adds a hide rule against their OWN account. The rule is still permitted — this only warns. */
-					'userSelfWarning'    => __( 'This hides the item from your own account. You can still reach the page by URL, and the editor stays available.', 'maestro-menu-editor' ),
+					'userSelfWarning'      => __( 'This hides the item from your own account. You can still reach the page by URL, and the editor stays available.', 'maestro-menu-editor' ),
 					/* translators: %d: maximum number of people allowed per hide list. Shown when the editor tries to add one more than the limit. */
-					'userLimitReached'   => esc_html__( 'Limit reached — up to %d people per list. Remove someone to add another.', 'maestro-menu-editor' ),
-					'confirmAll'         => __( 'Reset ALL menu customizations to WordPress defaults? This cannot be undone.', 'maestro-menu-editor' ),
-					'drag'               => __( 'Drag to reorder', 'maestro-menu-editor' ),
+					'userLimitReached'     => esc_html__( 'Limit reached — up to %d people per list. Remove someone to add another.', 'maestro-menu-editor' ),
+					/* translators: Heading for the group of checkboxes, one per hiding profile, that hide THIS menu item from everyone in the ticked profiles (Phase 27). */
+					'hideForProfiles'      => __( 'Hide this item for profiles:', 'maestro-menu-editor' ),
+					/* translators: Heading for the group of checkboxes, one per hiding profile, that hide ALL of a parent's sub-items from everyone in the ticked profiles. Shown only for parents that have children. */
+					'hideChildrenProfiles' => __( 'Hide its sub-items for profiles:', 'maestro-menu-editor' ),
+					/* translators: Shown in the Visibility popover when no hiding profiles exist yet. */
+					'profilesNone'         => __( 'No profiles yet.', 'maestro-menu-editor' ),
+					/* translators: Button in the Visibility popover and toolbar label that opens the dialog for creating and editing hiding profiles. */
+					'manageProfiles'       => __( 'Manage profiles…', 'maestro-menu-editor' ),
+					/* translators: Title of the dialog for creating and editing hiding profiles (named groups of people that items can be hidden from). */
+					'profiles'             => __( 'Hiding profiles', 'maestro-menu-editor' ),
+					/* translators: Explanation at the top of the hiding-profiles dialog. */
+					'profilesIntro'        => __( 'A profile is a named group of people. Tick it in an item\'s Visibility to hide that item from everyone in it.', 'maestro-menu-editor' ),
+					/* translators: Accessible label for the text field that renames a hiding profile. */
+					'profileName'          => __( 'Profile name', 'maestro-menu-editor' ),
+					/* translators: Placeholder and accessible label for the field where a new hiding profile's name is typed. */
+					'profileNewName'       => __( 'New profile name', 'maestro-menu-editor' ),
+					/* translators: Button that creates a hiding profile with the name typed beside it. */
+					'profileAdd'           => __( 'Add profile', 'maestro-menu-editor' ),
+					/* translators: %s: profile name. Heading for the list of people in that hiding profile. */
+					'profileMembers'       => esc_html__( 'People in %s:', 'maestro-menu-editor' ),
+					/* translators: %s: profile name. Accessible label for the button that deletes that hiding profile. */
+					'profileDelete'        => esc_html__( 'Delete %s', 'maestro-menu-editor' ),
+					/* translators: 1: profile name, 2: number of menu items the profile hides, 3: number of people in the profile. Confirmation before a hiding profile is deleted. */
+					'profileDeleteConfirm' => __( 'Delete “%1$s”? Items it hides: %2$d. People in it: %3$d. Those people will see the items again.', 'maestro-menu-editor' ),
+					/* translators: Caution shown in the hiding-profiles dialog while the editor's own account is among a profile's people. */
+					'profileSelfWarning'   => __( 'You are in this profile, so the items it hides are hidden from your own account too. You can still reach those pages by URL, and the editor stays available.', 'maestro-menu-editor' ),
+					/* translators: Shown when a hiding profile's name is left empty. */
+					'profileNameEmpty'     => __( 'Enter a name for the profile.', 'maestro-menu-editor' ),
+					/* translators: Shown when a hiding profile is given a name another profile already uses (names are compared ignoring case). */
+					'profileNameTaken'     => __( 'Another profile already has that name.', 'maestro-menu-editor' ),
+					/* translators: %d: maximum number of hiding profiles. Shown when the limit is reached. */
+					'profileLimit'         => esc_html__( 'Limit reached — up to %d profiles.', 'maestro-menu-editor' ),
+					/* translators: Screen-reader announcement after a hiding profile is created. */
+					'profileAdded'         => __( 'Profile added', 'maestro-menu-editor' ),
+					/* translators: Screen-reader announcement after a hiding profile is deleted. */
+					'profileDeleted'       => __( 'Profile deleted', 'maestro-menu-editor' ),
+					'confirmAll'           => __( 'Reset ALL menu customizations to WordPress defaults? This cannot be undone.', 'maestro-menu-editor' ),
+					'drag'                 => __( 'Drag to reorder', 'maestro-menu-editor' ),
 					/* translators: 1: item title, 2: direction ("up"/"down"), 3: new position number, 4: total items. */
-					'moved'              => esc_html__( '%1$s moved %2$s, position %3$d of %4$d', 'maestro-menu-editor' ),
+					'moved'                => esc_html__( '%1$s moved %2$s, position %3$d of %4$d', 'maestro-menu-editor' ),
 					/* translators: %s: item title. */
-					'moveAtTop'          => esc_html__( '%s is already first', 'maestro-menu-editor' ),
+					'moveAtTop'            => esc_html__( '%s is already first', 'maestro-menu-editor' ),
 					/* translators: %s: item title. */
-					'moveAtBottom'       => esc_html__( '%s is already last', 'maestro-menu-editor' ),
-					'dirUp'              => esc_html__( 'up', 'maestro-menu-editor' ),
-					'dirDown'            => esc_html__( 'down', 'maestro-menu-editor' ),
+					'moveAtBottom'         => esc_html__( '%s is already last', 'maestro-menu-editor' ),
+					'dirUp'                => esc_html__( 'up', 'maestro-menu-editor' ),
+					'dirDown'              => esc_html__( 'down', 'maestro-menu-editor' ),
 					/* translators: Accessible label for the "move selected item up" button in the editor panel. */
-					'moveUp'             => __( 'Move up', 'maestro-menu-editor' ),
+					'moveUp'               => __( 'Move up', 'maestro-menu-editor' ),
 					/* translators: Accessible label for the "move selected item down" button in the editor panel. */
-					'moveDown'           => __( 'Move down', 'maestro-menu-editor' ),
+					'moveDown'             => __( 'Move down', 'maestro-menu-editor' ),
 					/* translators: Short label appended to modified menu items for screen readers. */
-					'modified'           => esc_html__( '(modified)', 'maestro-menu-editor' ),
+					'modified'             => esc_html__( '(modified)', 'maestro-menu-editor' ),
 					/* translators: One-time hint shown to first-time users of the menu editor. */
-					'firstRun'           => __( 'Click a menu item to start editing.', 'maestro-menu-editor' ),
+					'firstRun'             => __( 'Click a menu item to start editing.', 'maestro-menu-editor' ),
 					/* translators: Label for the button that dismisses the first-run hint. */
-					'firstRunDismiss'    => __( 'Got it', 'maestro-menu-editor' ),
+					'firstRunDismiss'      => __( 'Got it', 'maestro-menu-editor' ),
 					/* translators: Accessible label / tooltip for the toolbar button that replays the guided tour. */
-					'tourHelp'           => __( 'Show me around', 'maestro-menu-editor' ),
+					'tourHelp'             => __( 'Show me around', 'maestro-menu-editor' ),
 					/* translators: Title of the guided-tour tooltip dialog. */
-					'tourTitle'          => __( 'Editing the menu', 'maestro-menu-editor' ),
-					'tourNext'           => __( 'Next', 'maestro-menu-editor' ),
-					'tourBack'           => __( 'Back', 'maestro-menu-editor' ),
-					'tourDone'           => __( 'Done', 'maestro-menu-editor' ),
-					'tourSkip'           => __( 'Skip', 'maestro-menu-editor' ),
+					'tourTitle'            => __( 'Editing the menu', 'maestro-menu-editor' ),
+					'tourNext'             => __( 'Next', 'maestro-menu-editor' ),
+					'tourBack'             => __( 'Back', 'maestro-menu-editor' ),
+					'tourDone'             => __( 'Done', 'maestro-menu-editor' ),
+					'tourSkip'             => __( 'Skip', 'maestro-menu-editor' ),
 					/* translators: 1: current step number, 2: total steps. e.g. "2 of 5". */
-					'tourProgress'       => esc_html__( '%1$d of %2$d', 'maestro-menu-editor' ),
+					'tourProgress'         => esc_html__( '%1$d of %2$d', 'maestro-menu-editor' ),
 					// Guided-tour steps, in the order the tour shows them: one per
 					// editing control, so every toolbar glyph is named once.
-					'tourStep1'          => __( 'Click any menu item to edit it right here on the menu.', 'maestro-menu-editor' ),
-					'tourStep2'          => __( 'Type a new name for the selected item here.', 'maestro-menu-editor' ),
-					'tourStep3'          => __( 'Reorder items by dragging — or use the up and down arrows.', 'maestro-menu-editor' ),
-					'tourStepIcon'       => __( 'Change the item\'s icon. Pick one from Dashicons or Bootstrap, or choose no icon.', 'maestro-menu-editor' ),
-					'tourStepVisibility' => __( 'Hide the item from chosen roles or people. Everyone else still sees it.', 'maestro-menu-editor' ),
-					'tourStepResetItem'  => __( 'Undo every change to just this item.', 'maestro-menu-editor' ),
-					'tourStepSeparator'  => __( 'Add a separator line below this item. To remove one, select the separator and use the trash button.', 'maestro-menu-editor' ),
+					'tourStep1'            => __( 'Click any menu item to edit it right here on the menu.', 'maestro-menu-editor' ),
+					'tourStep2'            => __( 'Type a new name for the selected item here.', 'maestro-menu-editor' ),
+					'tourStep3'            => __( 'Reorder items by dragging — or use the up and down arrows.', 'maestro-menu-editor' ),
+					'tourStepIcon'         => __( 'Change the item\'s icon. Pick one from Dashicons or Bootstrap, or choose no icon.', 'maestro-menu-editor' ),
+					'tourStepVisibility'   => __( 'Hide the item from chosen roles or people. Everyone else still sees it.', 'maestro-menu-editor' ),
+					'tourStepResetItem'    => __( 'Undo every change to just this item.', 'maestro-menu-editor' ),
+					'tourStepSeparator'    => __( 'Add a separator line below this item. To remove one, select the separator and use the trash button.', 'maestro-menu-editor' ),
 					/* translators: Guided-tour step pointing at the draggable edge of the admin menu. */
-					'tourStepWidth'      => __( 'Drag the menu\'s edge to make it wider or narrower. When the edge has focus, the arrow keys work too.', 'maestro-menu-editor' ),
-					'tourStepSettings'   => __( 'Menu settings let you type an exact menu width or go back to the default.', 'maestro-menu-editor' ),
-					'tourStepHelp'       => __( 'Want this tour again? Use the help button anytime.', 'maestro-menu-editor' ),
-					'tourStep4'          => __( 'Your changes save automatically. Reset All returns the whole menu to the WordPress defaults.', 'maestro-menu-editor' ),
-					'tourStep5'          => __( 'Click Exit when you are done. Your changes stay live for everyone.', 'maestro-menu-editor' ),
+					'tourStepWidth'        => __( 'Drag the menu\'s edge to make it wider or narrower. When the edge has focus, the arrow keys work too.', 'maestro-menu-editor' ),
+					'tourStepSettings'     => __( 'Menu settings let you type an exact menu width or go back to the default.', 'maestro-menu-editor' ),
+					'tourStepHelp'         => __( 'Want this tour again? Use the help button anytime.', 'maestro-menu-editor' ),
+					'tourStep4'            => __( 'Your changes save automatically. Reset All returns the whole menu to the WordPress defaults.', 'maestro-menu-editor' ),
+					'tourStep5'            => __( 'Click Exit when you are done. Your changes stay live for everyone.', 'maestro-menu-editor' ),
 					/* translators: Accessible label / tooltip for the toolbar button, and title of the dialog, holding menu-wide settings. */
-					'settings'           => __( 'Menu settings', 'maestro-menu-editor' ),
-					'menuWidth'          => __( 'Menu width', 'maestro-menu-editor' ),
-					'menuWidthPx'        => __( 'Menu width in pixels', 'maestro-menu-editor' ),
-					'menuWidthHint'      => __( 'Widen the menu so longer labels fit on one line. Applies on every admin page, for everyone, on screens 961px and wider.', 'maestro-menu-editor' ),
+					'settings'             => __( 'Menu settings', 'maestro-menu-editor' ),
+					'menuWidth'            => __( 'Menu width', 'maestro-menu-editor' ),
+					'menuWidthPx'          => __( 'Menu width in pixels', 'maestro-menu-editor' ),
+					'menuWidthHint'        => __( 'Widen the menu so longer labels fit on one line. Applies on every admin page, for everyone, on screens 961px and wider.', 'maestro-menu-editor' ),
 					/* translators: %d: WordPress's default admin menu width in pixels. */
-					'menuWidthDefault'   => __( 'Using the WordPress default (%dpx).', 'maestro-menu-editor' ),
+					'menuWidthDefault'     => __( 'Using the WordPress default (%dpx).', 'maestro-menu-editor' ),
 					/* translators: %d: the stored admin menu width in pixels. */
-					'menuWidthCustom'    => __( 'Custom width: %dpx.', 'maestro-menu-editor' ),
+					'menuWidthCustom'      => __( 'Custom width: %dpx.', 'maestro-menu-editor' ),
 					/* translators: %d: the width in pixels another plugin is holding the admin menu at. */
-					'widthOverridden'    => __( 'Another plugin sets the menu width (%dpx), so this setting has no effect while that plugin is active.', 'maestro-menu-editor' ),
-					'widthUseDefault'    => __( 'Use default', 'maestro-menu-editor' ),
-					'widthDefaultSet'    => __( 'Menu width reset to the WordPress default.', 'maestro-menu-editor' ),
+					'widthOverridden'      => __( 'Another plugin sets the menu width (%dpx), so this setting has no effect while that plugin is active.', 'maestro-menu-editor' ),
+					'widthUseDefault'      => __( 'Use default', 'maestro-menu-editor' ),
+					'widthDefaultSet'      => __( 'Menu width reset to the WordPress default.', 'maestro-menu-editor' ),
 					/* translators: Accessible label / tooltip for the handle on the admin menu's edge that resizes it. */
-					'menuWidthHandle'    => __( 'Resize menu', 'maestro-menu-editor' ),
+					'menuWidthHandle'      => __( 'Resize menu', 'maestro-menu-editor' ),
 					/* translators: %d: a width in pixels, read out by screen readers. */
-					'menuWidthValue'     => __( '%d pixels', 'maestro-menu-editor' ),
+					'menuWidthValue'       => __( '%d pixels', 'maestro-menu-editor' ),
 				),
 			)
 		);
+	}
+
+	/**
+	 * The stored config as the editor receives it. (Phase 27)
+	 *
+	 * Config::for_editor()'s view, and without the profiles map even for a
+	 * viewer who holds `list_users`. The editor reads this for separators; the
+	 * profiles it shows come from Replay::get_editor_profiles(), and the hides
+	 * it must carry from profile_carry(). The map's names and member IDs are a
+	 * list of people, so it is not handed to every editor wholesale.
+	 *
+	 * @return array
+	 */
+	private function editor_config() {
+		// for_editor() first: for a viewer without `list_users` it also strips
+		// the per-user and profile axes off every item (#240).
+		$config = $this->config->for_editor();
+		unset( $config['profiles'] );
+		return $config;
+	}
+
+	/**
+	 * Profile hides the editor cannot show, so its save must carry them.
+	 * (Phase 27)
+	 *
+	 * The editor rebuilds every profile's hide-lists from the items on screen,
+	 * and the save is a full replace. A profile hiding the page of a plugin
+	 * that is switched off for now would lose that hide on the next unrelated
+	 * edit. So this lists, per profile, the stored keys that match no rendered
+	 * row, compared by NORMALIZED key as replay() compares them. A key that
+	 * does match a row is left to the editor, whose model already shows it
+	 * there; carrying it as well would make unticking it impossible.
+	 *
+	 * A child's bare slug counts as rendered too, since a legacy bare key can
+	 * resolve onto it. Empty for a viewer without `list_users`, whose save keeps
+	 * the stored map anyway.
+	 *
+	 * @return array<string, array{hides?: string[], child_hides?: string[]}>
+	 */
+	private function profile_carry() {
+		global $menu, $submenu;
+
+		if ( ! current_user_can( 'list_users' ) ) {
+			return array();
+		}
+		$cfg = $this->config->get();
+		if ( empty( $cfg['profiles'] ) || ! is_array( $cfg['profiles'] ) ) {
+			return array();
+		}
+
+		$base     = admin_url( '' );
+		$rendered = array();
+		foreach ( (array) $menu as $row ) {
+			if ( empty( $row[2] ) ) {
+				continue;
+			}
+			$parent = (string) $row[2];
+			$keys   = array( Slug::normalize( $parent, $base ) );
+			foreach ( ! empty( $submenu[ $parent ] ) ? (array) $submenu[ $parent ] : array() as $sub ) {
+				if ( ! empty( $sub[2] ) ) {
+					$keys[] = Slug::normalize( (string) $sub[2], $base );
+					$keys[] = Slug::normalize_qualified( $parent . Slug::QUALIFIED_SEPARATOR . $sub[2], $base );
+				}
+			}
+			foreach ( $keys as $key ) {
+				$rendered[ $key ] = true;
+			}
+		}
+		unset( $rendered[''] );
+
+		$out = array();
+		foreach ( $cfg['profiles'] as $id => $profile ) {
+			$entry = array();
+			foreach ( array( 'hides', 'child_hides' ) as $list ) {
+				foreach ( ! empty( $profile[ $list ] ) ? (array) $profile[ $list ] : array() as $key ) {
+					if ( ! isset( $rendered[ Slug::normalize_qualified( (string) $key, $base ) ] ) ) {
+						$entry[ $list ][] = (string) $key;
+					}
+				}
+			}
+			if ( $entry ) {
+				$out[ (string) $id ] = $entry;
+			}
+		}
+		return $out;
 	}
 
 	/**

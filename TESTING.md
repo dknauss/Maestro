@@ -2,7 +2,7 @@
 
 Three layers, smallest and fastest first.
 
-> **Current expected status:** unit 221/221 with 540 assertions, integration 195 total single-site (181 passed, 14 skipped) + 195 total under WP_MULTISITE=1 (194 passed, 1 skipped), JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, (COMPAT-04) independent shared-slug top-level/submenu editing, (COMPAT-10) the "Hide its sub-items from:" role group's independent child-hiding behavior, and (ROLE-02) per-user hiding asserted in a targeted user's own authenticated session — including a same-role bystander who must keep every row, which is the assertion that proves the rule did not widen to the whole role. (Phase 25) the toolbar's reserved status slot (no layout shift across a save), its widened focus-ring contrast, focused buttons keeping readable text on the dark surface, and the derived-locked checkbox's aria-disabled/aria-describedby semantics are covered in [`tests/e2e/specs/toolbar-dark-surface.spec.ts`](tests/e2e/specs/toolbar-dark-surface.spec.ts).
+> **Current expected status:** unit 221/221 with 540 assertions, integration 202 total single-site (188 passed, 14 skipped) + 202 total under WP_MULTISITE=1 (201 passed, 1 skipped), JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, (COMPAT-04) independent shared-slug top-level/submenu editing, (COMPAT-10) the "Hide its sub-items from:" role group's independent child-hiding behavior, and (ROLE-02) per-user hiding asserted in a targeted user's own authenticated session — including a same-role bystander who must keep every row, which is the assertion that proves the rule did not widen to the whole role. (Phase 25) the toolbar's reserved status slot (no layout shift across a save), its widened focus-ring contrast, focused buttons keeping readable text on the dark surface, and the derived-locked checkbox's aria-disabled/aria-describedby semantics are covered in [`tests/e2e/specs/toolbar-dark-surface.spec.ts`](tests/e2e/specs/toolbar-dark-surface.spec.ts).
 
 ## Gotchas (first run)
 
@@ -99,6 +99,19 @@ an item carries a profile axis), the edit-mode suspension and the multisite
 super-admin exemption. The cosmetic-only proof for both profile axes runs the
 same six steps in
 [`tests/integration/CosmeticInvariantUsersTest.php`](tests/integration/CosmeticInvariantUsersTest.php).
+
+(Phase 27-04) the editor's view of profiles is covered in
+[`tests/integration/ReplayMenuModelProfilesTest.php`](tests/integration/ReplayMenuModelProfilesTest.php):
+every node carries `hiddenProfiles` and `childHiddenProfiles` (a child its own
+`hiddenProfiles`) through the same normalized resolvers replay uses, the item
+the popover shows ticked is the one removed for a member, a reference to a
+missing profile is left out, the registry pairs members with names in one
+query, and a viewer without `list_users` gets no registry, empty profile axes
+and no carry list. The localized config never holds the profiles map, and the
+carry list holds exactly the stored hides that match no rendered row. The
+popover and dialog logic (assignment toggles, IDs that are never reused, name
+rules, the delete count, the save payload and the carry) is unit-tested in
+[`tests/js/profile-targets.test.mjs`](tests/js/profile-targets.test.mjs).
 
 (ROLE-02) the per-user axes are covered in
 [`tests/integration/ReplayHiddenUsersTest.php`](tests/integration/ReplayHiddenUsersTest.php)

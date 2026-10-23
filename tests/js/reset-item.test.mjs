@@ -64,7 +64,7 @@ test( 'resetItem does not mutate the input item', () => {
 
 // Round-trip invariant: diffItem(resetItem(item), pristine) === modified:false
 //
-// The seed carries ALL FOUR visibility axes deliberately. diffItem() checks
+// The seed carries ALL SIX visibility axes deliberately. diffItem() checks
 // `current.<axis> && current.<axis>.length > 0`, so an axis MISSING from the
 // reset result short-circuits to false and the round-trip passes vacuously —
 // which is exactly how resetItem() silently drifted behind resetSelected() when
@@ -78,6 +78,8 @@ test( 'round-trip: top-level item after reset is not modified per diffItem', () 
 		childHiddenRoles: [ 'author' ],
 		hiddenUsers:      [ { id: 4, name: 'Ada' } ],
 		childHiddenUsers: [ { id: 9, name: 'Grace' } ],
+		hiddenProfiles:      [ 'p_1' ],
+		childHiddenProfiles: [ 'p_2' ],
 	};
 	const pristine = { title: 'Posts', icon: 'dashicons-admin-post' };
 	const reset    = resetItem( item, pristine, false );
@@ -89,7 +91,8 @@ test( 'round-trip: top-level item after reset is not modified per diffItem', () 
 	// if an axis were dropped entirely, so shape is what actually pins the
 	// mirror-of-resetSelected claim in the docblock.
 	assert.deepEqual( Object.keys( reset ).sort(), [
-		'childHiddenRoles', 'childHiddenUsers', 'hiddenRoles', 'hiddenUsers', 'icon', 'title',
+		'childHiddenProfiles', 'childHiddenRoles', 'childHiddenUsers',
+		'hiddenProfiles', 'hiddenRoles', 'hiddenUsers', 'icon', 'title',
 	] );
 } );
 
