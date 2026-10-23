@@ -261,7 +261,7 @@ Full phase details, success criteria, and outcomes are archived in
 - [x] **Phase 23: Editor UX Polish** — native wp-admin restyle of all edit-mode surfaces (UX-13, added 2026-07-03), semantic-colour borders removed (UX-12 verdict), first-run banner centering (BUG-08) — complete 2026-07-05
 - [x] **Phase 24: Release v1.4.0** — cut and shipped to WordPress.org 2026-08-04 (tag `v1.4.0` on `482510c`, PR #113); editor + directory screenshots recaptured. Patch **v1.4.1** followed 2026-08-05 (tag on `c6cdcbe`, PR #116) for the shared-slug propagation defect. Shipped WITHOUT Phases 21 and 22 — see the outcome note below
 - [x] **Phase 25: Edit-Mode Toolbar Dark-Surface Polish** — ✅ COMPLETE 2026-08-09 (2/2 plans; human-verified). Audit struck 1 of 5 criteria as already satisfied, downgraded 1 from fix to choice, absorbed 1. Shipped: reserved status slot, focus ring 3.07:1 → 6.74:1, a11y M2/M3. Original text follows — dark-toolbar icon/focus contrast (WCAG 1.4.11), save-indicator layout shift, rename commit feedback (added 2026-08-02; pre-existing v1.3.1 surfaces, non-blocking for v1.4.0)
-- [ ] **Phase 27: Cloned-Role Hiding Profiles** — completes ROLE-02's deferred half: a named, Maestro-internal hiding profile that compiles onto an inline `hidden_profiles` axis and resolves through the seam slot Phase 21 reserved at `class-replay.php:510` (planned 2026-08-10)
+- [ ] **Phase 27: Cloned-Role Hiding Profiles** — code complete 2026-10-23, awaiting human verification; completes ROLE-02's deferred half: a named, Maestro-internal hiding profile that compiles onto an inline `hidden_profiles` axis and resolves through the seam slot Phase 21 reserved at `class-replay.php:510` (planned 2026-08-10)
 - [ ] **Phase 28: Configurable Admin Menu Width** — a global `menu_width` so a renamed item no longer wraps at 160px, plus the fold decision it depends on: edit mode keeps forcing unfold but the collapse control stops pretending to work (planned 2026-08-10)
 
 ### Phase 19: Cosmetic Hiding Feasibility
@@ -410,10 +410,10 @@ M2/M3 items from `todos/pending/2026-08-02-a11y-locked-checkbox-refinements.md`.
 ---
 
 ### Phase 27: Cloned-Role Hiding Profiles
-**Status:** 27-01/02/03 complete on main (#230/#237/#238). Profile read privacy and member-validation fixes are this follow-up. 27-04 authoring is on a separate branch; 27-05 final E2E/acceptance remains pending.
+**Status:** All five plans merged or in review: 27-01 decisions (#230), 27-02 storage + compile (#237), 27-03 seam + live membership (#238), #240 profile read privacy + member validation, 27-04 editor (#239), 27-05 e2e + gate + docs (this PR). ROLE-02 is complete in code; the phase closes on Dan's hands-on verification (`27-VERIFICATION.md`).
 **Goal**: An admin can name a reusable hiding profile ("Reduced view"), assign people to it, and apply it to menu items — cosmetically, with membership resolved live — completing ROLE-02
 **Depends on**: Phase 21 (built the seam slot, the field-parameterized resolver, and the bounded-axis sanitize shape this extends)
-**Requirements**: ROLE-02 (completion — currently PARTIAL since v1.5.0)
+**Requirements**: ROLE-02 (completion — PARTIAL since v1.5.0, complete in code with 27-05)
 **Success Criteria** (what must be TRUE):
   1. A `profiles` map is the AUTHORING structure and **compiles** onto `items[slug].hidden_profiles`; nothing ever resolves the hide decision from the map itself (feasibility note §7's "one lookup, one seam, one audit point")
   2. Profile membership is intersected LIVE each request, so adding or removing a person takes effect with no re-save and a deleted profile self-heals
@@ -427,7 +427,8 @@ M2/M3 items from `todos/pending/2026-08-02-a11y-locked-checkbox-refinements.md`.
 > creation, users-only membership, assignment checkboxes, deletion confirmation
 > with affected counts and cleanup, 20 profiles / 50 live members, unique
 > case-insensitive names of 1–40 characters, stable IDs, and child-axis parity.
-> Storage and runtime hiding are merged; the feature is not yet complete.
+> Storage, runtime hiding and the editor are merged; 27-05 proves the feature
+> end to end in a member's own session with a bystander control.
 
 ### Phase 28: Configurable Admin Menu Width
 **Status:** Built; 28-01/02 complete, 28-03 acceptance open. Retain Dan's core-scheme/width pass, but recheck the screenshot exceptions after #235 and the real Keel alignment follow-up. Real touch-device testing remains outstanding; todo stays pending.

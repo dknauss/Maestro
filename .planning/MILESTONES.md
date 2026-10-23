@@ -14,7 +14,7 @@
 - Four-group visibility popover with an async person picker on core's `wp/v2/users`, gated by `list_users` on both sides
 - A multisite CI lane, closing the super-admin exemption's coverage gap
 
-**NOT in this milestone:** the cloned-role **"profiles"** half of ROLE-02, still a backlog item (`todos/pending/2026-08-02-cloned-role-hiding-profiles.md`). ROLE-02 remains **partially delivered**. Phase 22 (demo) and Phase 25 (toolbar polish) were optional inclusions that did not land.
+**NOT in this milestone:** the cloned-role **"profiles"** half of ROLE-02, still a backlog item (`todos/completed/2026-08-02-cloned-role-hiding-profiles.md`). ROLE-02 remains **partially delivered**. Phase 22 (demo) and Phase 25 (toolbar polish) were optional inclusions that did not land.
 
 ### What this milestone should be remembered for
 

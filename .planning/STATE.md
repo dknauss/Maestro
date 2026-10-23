@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Hiding profiles
 status: in_progress
-stopped_at: "Phase 27 decisions, storage/compile (#237), and runtime hiding (#238) merged. Follow-up fixes profile read privacy and premature member truncation; editor UI and final gate remain pending on main. Phase 28 human rechecks and real touch-device testing remain outstanding."
-last_updated: "2026-10-22T00:00:00.000Z"
-last_activity: "2026-10-22 — Reviewed merged #237/#238. Added regressions and fixes for delegated-editor profile privacy and live member validation; reconciled planning. Real touch-device testing remains outstanding."
+stopped_at: "v1.8.0 release PR open, stacked on #241 (27-05). Merging it tags v1.8.0; the WordPress.org deploy then waits for approval. It stays a draft until #241 merges and Dan has done the Phase 27 hands-on checks in 27-VERIFICATION.md. v1.7.0 was tagged and its GitHub Release published 2026-10-23. Phase 28 human rechecks and real touch-device testing remain outstanding."
+last_updated: "2026-10-23T00:00:00.000Z"
+last_activity: "2026-10-23 — 27-04 editor merged (#239) after review fixes; 27-05 (#241) adds hidden-profiles.spec.ts, docs, and closes ROLE-02. v1.8.0 release PR opened: version bump, changelog covering #234/#237/#238/#239/#240/#241, Upgrade Notice, regenerated .pot, recaptured directory screenshots (screenshot 3 now shows the profile groups)."
 progress:
   total_phases: 2
   completed_phases: 0
   total_plans: 8
-  completed_plans: 5
-  percent: 63
+  completed_plans: 7
+  percent: 88
 ---
 
 # Project State
@@ -20,13 +20,13 @@ progress:
 
 See: .planning/PROJECT.md (updated 2026-07-03)
 
-**Current focus:** Phase 27 profile hardening after #237 (storage/compile) and
-#238 (runtime hiding). Decisions are locked in `27-CONTEXT.md`. Editor authoring
-(27-04) and final E2E/acceptance (27-05) remain pending on main; a separate
-`phase-27-04-profiles-editor` branch exists and is not part of this fix.
-Release sequence: width v1.7.0 (#232 merged), profiles v1.8, Client-Site Workflow
-v1.9. Deployment verification is not claimed here. Phase 28 affected human
-rechecks and **real touch-device testing remain outstanding**.
+**Current focus:** Phase 27 verification. All five profile plans are built:
+27-01 decisions (#230), 27-02 storage/compile (#237), 27-03 runtime hiding
+(#238), #240 privacy and member validation, 27-04 editor (#239), and 27-05
+(e2e, gate, docs, ROLE-02 closed). The phase closes on Dan's hands-on run in
+`27-VERIFICATION.md`. Release sequence: width v1.7.0 (tagged and released
+2026-10-23), profiles v1.8 (release PR open), Client-Site Workflow v1.9. Phase 28 affected human rechecks and
+**real touch-device testing remain outstanding**.
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
 **Historical focus at the time this section was written:** v1.3.1 shipped and
@@ -35,17 +35,17 @@ recorded above; this note is kept only to date the paragraph that follows it.
 
 ## Current Position
 
-Milestone: **v1.8 Hiding profiles**, implementation in progress.
-Phase 27: **3/5 plans complete on main** — 27-01 decisions (#230), 27-02
-storage/compile (#237), 27-03 hide seam and live membership (#238). The two P2
-follow-ups close profile read privacy and premature member truncation with
-regression tests. Editor UI and the final gate are still pending on main.
+Milestone: **v1.8 Hiding profiles**, code complete, awaiting verification.
+Phase 27: **5/5 plans built** — 27-01 decisions (#230), 27-02 storage/compile
+(#237), 27-03 hide seam and live membership (#238), #240 privacy follow-up,
+27-04 editor (#239), 27-05 e2e + gate + docs. ROLE-02 is complete in code.
+Outstanding: Dan's hands-on browser run (27-VERIFICATION.md).
 Phase 28: **implementation built, acceptance open** — 28-01/02 complete;
 28-03 still awaits affected human rechecks and real touch-device testing.
 The earlier core-scheme/width human pass is retained. #234's tour navigation
 fix and #236's real Keel alignment fix are merged; do not redo them.
-Next: finish profile authoring, exercise targeted-member and non-member browser
-sessions, run the final gate, and collect outstanding human checks. Select-all
+Next: Dan's Phase 27 hands-on check, then the v1.8 release; collect the
+outstanding Phase 28 human checks. Select-all
 roles remains unimplemented in Phase 29 (v1.9).
 
 ### Historical position (the v1.5 cycle, written 2026-08-09)
@@ -274,8 +274,8 @@ history worth remembering, is in [MILESTONES.md](MILESTONES.md).
 not automatic and required a manual `workflow_dispatch`. Plan the step in.
 
 **Open, carried deliberately:**
-- ROLE-02's cloned-role "profiles" half is still deferred
-  (`todos/pending/2026-08-02-cloned-role-hiding-profiles.md`)
+- ROLE-02's cloned-role "profiles" half: built in Phase 27 (2026-10-23), awaiting verification
+  (`todos/completed/2026-08-02-cloned-role-hiding-profiles.md`)
 - Phase 22 (Playground demo) remains open. ~~Phase 25 (toolbar polish)~~ —
   ✅ COMPLETE 2026-08-09, SHIPPED in v1.5.1
 - ~~The #128 fixes shipped unreviewed (the ultrareview ran against the prior

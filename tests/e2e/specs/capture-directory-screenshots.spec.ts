@@ -38,6 +38,9 @@ const WP_ORG_DIR = path.join( process.cwd(), '.wordpress-org' );
 // — a directory screenshot must never expose a real site's user list.
 const SHOT_USER_LOGIN = 'maestro_shot_user';
 const SHOT_USER_NAME = 'Robin Example';
+// Phase 27: a fixture hiding profile, so screenshot 3 shows the profile groups
+// with a checkbox rather than the "No profiles yet." placeholder.
+const SHOT_PROFILE_NAME = 'Client staff';
 
 function wp( args: string[] ): void {
 	try {
@@ -116,7 +119,7 @@ test.describe( 'Directory screenshots — v1.2 editor UI (MAESTRO_CAPTURE-gated)
 	} );
 
 	// 3 — Visibility selector, cropped to the bottom area (menu + popover + toolbar).
-	test( 'screenshot 3 — visibility: role AND person groups (cropped to menu + selector)', async ( { page } ) => {
+	test( 'screenshot 3 — visibility: role, person AND profile groups (cropped to menu + selector)', async ( { page } ) => {
 		// ROLE-02: the popover now carries FOUR groups — hide-by-role and
 		// hide-by-person, each in an "this item" and "its sub-items" variant.
 		// The person groups are captured POPULATED: an empty search box
@@ -125,6 +128,12 @@ test.describe( 'Directory screenshots — v1.2 editor UI (MAESTRO_CAPTURE-gated)
 		// real site's user list.
 		wp( [ 'user', 'create', SHOT_USER_LOGIN, `${ SHOT_USER_LOGIN }@example.com`,
 			'--role=editor', `--display_name=${ SHOT_USER_NAME }`, '--user_pass=password' ] );
+		// Seed the profile through Config::save() as the admin, so it passes the
+		// same sanitize and list_users gate as an editor save. Robin is its member.
+		wp( [ 'eval', '--user=admin',
+			`$u = get_user_by( 'login', '${ SHOT_USER_LOGIN }' ); $c = new Maestro\\Config(); $raw = $c->get(); ` +
+			`$raw['profiles'] = array( 'p_1' => array( 'name' => '${ SHOT_PROFILE_NAME }', 'users' => array( $u->ID ), 'hides' => array() ) ); ` +
+			'$c->save( $raw );' ] );
 
 		try {
 			await enterEditorAndSelect( page );
@@ -146,6 +155,16 @@ test.describe( 'Directory screenshots — v1.2 editor UI (MAESTRO_CAPTURE-gated)
 			// shows the resting state rather than a half-typed query.
 			await expect( ownUsers.locator( '.maestro-user-results' ) ).toBeHidden();
 
+			// Tick the fixture profile on this item so its group photographs checked.
+			const profileBox = pop.getByRole( 'checkbox', { name: SHOT_PROFILE_NAME } ).first();
+			await expect( profileBox ).toBeVisible();
+			// Wait for that autosave to land, or it would arrive after the
+			// cleanup below and leave the profile stored on the test site.
+			const profileSaved = page.waitForResponse( ( r ) =>
+				r.url().includes( '/maestro/v1/config' ) && r.request().method() === 'POST' && r.ok() );
+			await profileBox.check();
+			await profileSaved;
+
 			const tb = ( await page.locator( '.maestro-toolbar' ).boundingBox() )!;
 			const pb = ( await pop.boundingBox() )!;
 			const top = Math.max( 0, Math.min( pb.y, tb.y ) - 30 );
@@ -156,6 +175,8 @@ test.describe( 'Directory screenshots — v1.2 editor UI (MAESTRO_CAPTURE-gated)
 		} finally {
 			// Always clean up, even if the capture throws — a leftover fixture
 			// user would otherwise surface in an unrelated spec's picker.
+			wp( [ 'eval', '--user=admin',
+				'$c = new Maestro\\Config(); $raw = $c->get(); $raw[\'profiles\'] = array(); $c->save( $raw );' ] );
 			wp( [ 'user', 'delete', SHOT_USER_LOGIN, '--yes' ] );
 		}
 	} );
