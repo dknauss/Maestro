@@ -1880,4 +1880,33 @@ class ConfigSanitizeTest extends TestCase {
 			$out['items']['menu-slug']
 		);
 	}
+
+	/** Duplicates must not spend the live-member allowance before validation. */
+	public function test_profile_member_query_does_not_truncate_before_deduplication() {
+		$out = $this->config->sanitize(
+			array( 'profiles' => array( 'p_1' => array(
+				'name' => 'P', 'users' => array_merge( array_fill( 0, Config::MAX_PROFILE_MEMBERS, 4 ), array( 6 ) ),
+			) ) )
+		);
+		$this->assertSame( array( 4, 6 ), $out['profiles']['p_1']['users'] );
+	}
+
+	/** Deleted or malformed IDs must not crowd out a later live member. */
+	public function test_profile_member_query_does_not_truncate_before_live_intersection() {
+		$out = $this->config->sanitize(
+			array( 'profiles' => array( 'p_1' => array(
+				'name' => 'P', 'users' => array_merge( array_fill( 0, Config::MAX_PROFILE_MEMBERS, 999 ), array( 6 ) ),
+			) ) )
+		);
+		$this->assertSame( array( 6 ), $out['profiles']['p_1']['users'] ?? array() );
+	}
+
+	/** The profile cap counts accepted profiles, not invalid raw map entries. */
+	public function test_invalid_profiles_do_not_starve_later_profile_members() {
+		$profiles = array_fill_keys( range( 1, Config::MAX_PROFILES ), array( 'name' => 'Invalid ID' ) );
+		$profiles['p_1'] = array( 'name' => 'P', 'users' => array( 6 ) );
+		$out = $this->config->sanitize( array( 'profiles' => $profiles ) );
+		$this->assertSame( array( 6 ), $out['profiles']['p_1']['users'] ?? array() );
+	}
+
 }

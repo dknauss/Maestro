@@ -284,6 +284,33 @@ class Config {
 	}
 
 	/**
+	 * Config safe to send to the current editor through REST or localized JS.
+	 *
+	 * Replay and saves still use get(): a delegated editor must neither receive
+	 * person-targeting data nor erase it on a redacted full-replace autosave.
+	 * The write-side protected axes and absent-profiles handling preserve it.
+	 * Filter a copy on each call, never the cache (the acting user may change).
+	 *
+	 * @return array
+	 */
+	public function for_editor() {
+		$config = $this->get();
+		if ( current_user_can( 'list_users' ) ) {
+			return $config;
+		}
+		unset( $config['profiles'] );
+		foreach ( $config['items'] ?? array() as $slug => $item ) {
+			unset( $item['hidden_users'], $item['child_hidden_users'], $item['hidden_profiles'], $item['child_hidden_profiles'] );
+			if ( $item ) {
+				$config['items'][ $slug ] = $item;
+			} else {
+				unset( $config['items'][ $slug ] );
+			}
+		}
+		return $config;
+	}
+
+	/**
 	 * The stored admin menu width, or null when none is set.
 	 *
 	 * Re-bounded on read, so a value written by hand or by a version with other
@@ -1085,11 +1112,11 @@ class Config {
 	}
 
 	/**
-	 * Every user ID the incoming payload mentions on either per-user axis.
+	 * Every user ID the incoming payload mentions in person-targeting rules.
 	 *
 	 * Read straight off the raw payload so the validating query below can be
-	 * bounded by what was actually submitted (at most MAX_HIDDEN_USERS per axis
-	 * per item) instead of by the size of the site's user table.
+	 * bounded by the distinct submitted candidates instead of the size of the
+	 * site's user table. Storage caps apply after the live-user intersection.
 	 *
 	 * @param array $raw Raw payload.
 	 * @return int[]
@@ -1097,14 +1124,15 @@ class Config {
 	private static function candidate_user_ids( array $raw ) {
 		$ids = array();
 
-		// Phase 27: profile members are validated by the same one query. The
-		// profile and member caps keep this bounded exactly as the item axes are.
+		// Profile candidates follow the same payload-bounded query as item axes.
+		// Do not slice raw entries: duplicates, invalid profiles and deleted IDs
+		// must not spend the allowance before clean_profiles() counts live members.
 		if ( ! empty( $raw['profiles'] ) && is_array( $raw['profiles'] ) ) {
-			foreach ( array_slice( $raw['profiles'], 0, self::MAX_PROFILES, true ) as $profile ) {
+			foreach ( $raw['profiles'] as $profile ) {
 				if ( empty( $profile['users'] ) || ! is_array( $profile['users'] ) ) {
 					continue;
 				}
-				foreach ( array_slice( $profile['users'], 0, self::MAX_PROFILE_MEMBERS ) as $id ) {
+				foreach ( $profile['users'] as $id ) {
 					if ( is_scalar( $id ) && (int) $id > 0 ) {
 						$ids[] = (int) $id;
 					}

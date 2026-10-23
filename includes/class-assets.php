@@ -229,7 +229,7 @@ class Assets {
 				'maxHiddenUsers'  => Config::MAX_HIDDEN_USERS,
 				'roles'           => wp_roles()->get_names(),
 				'iconSets'        => $this->icon_sets(),
-				'config'          => $this->config->get(),
+				'config'          => $this->config->for_editor(),
 				'menu'            => $this->replay->get_menu_model(),
 				// Separator slugs in rendered order; the editor pairs them with
 				// core's id-less separator <li>s by position.
