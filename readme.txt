@@ -204,9 +204,10 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 * **Fixed: people who can edit the menu but not list users were sent the user IDs named in per-user hides.** This only matters when a site gives Maestro editing to a role without the `list_users` capability. Those editors now get the menu without that data, and saving keeps the hides they cannot see.
 * **Improved: the help tour gives every editing control its own tip,** and on a narrow screen it skips controls that are not shown.
 * **Improved: the Visibility popover and the Hiding profiles dialog scroll inside themselves** on a short screen instead of running off it.
-* **Fixed: on a phone, the help tour jumped from its second tip to its last.** Tapping Next closed WordPress's phone menu, which took the editing toolbar with it, so the tour had nothing left to point at. Every tip now shows, and the count leaves out only the width handle, which phones do not have.
+* **Fixed: on a phone, the help tour jumped from its second tip to its last.** Tapping Next closed WordPress's phone menu, which took the editing toolbar with it, so the tour had nothing left to point at. Every tip now shows, and the count leaves out only the width handle and Menu settings, which phones do not have.
 * **Fixed: on a phone, a tap inside the icon picker or the Visibility popover closed the editor.** The same cause as the tour. On a phone on its side, the icon picker also opened below the bottom of the screen; it now fits above the toolbar and scrolls.
 * **Improved: the editing toolbar is smaller on phones.** Upright, it takes two rows instead of three or four: the name field with the move buttons, then every other control. On its side it takes one. The add and remove separator buttons and, on a phone held upright, Reset All show only their icons there, and keep their names for screen readers and as tooltips.
+* **Changed: Menu settings (the gear) shows only on screens 961px and wider.** Its one setting, the menu width, applies only there, so on phones and small tablets it opened a control that changed nothing you could see. A width saved on a wider screen still applies there.
 * **Fixed: on a phone on its side, edit mode let the page scroll sideways** under the open menu, so phone browsers zoomed the whole screen out.
 
 = 1.7.0 =

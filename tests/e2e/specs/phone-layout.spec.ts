@@ -29,7 +29,8 @@ const LANDSCAPE_WIDE = { width: 844, height: 390 };
 const menuOpen = ( page: Page ) =>
 	page.evaluate( () => document.getElementById( 'wpwrap' )!.classList.contains( 'wp-responsive-open' ) );
 
-// Every step but the width handle's, which only renders at 961px and up.
+// Every step but the width handle's and Settings', which only render at
+// 961px and up: the menu width they set does not apply below that.
 const PHONE_STEPS = [
 	'Click any menu item',
 	'Type a new name',
@@ -38,7 +39,6 @@ const PHONE_STEPS = [
 	'Hide the item',
 	'Undo every change',
 	'separator',
-	'Menu settings',
 	'tour again',
 	'Reset All',
 	'Exit',

@@ -64,7 +64,8 @@ Hiding a menu item only declutters the menu — the underlying page still loads 
    If a role already matches the people you mean, use the role.
 9. Widen the menu so longer labels fit: drag the handle on the menu's edge, or
    set an exact width under **Menu settings** (the gear in the toolbar). It
-   applies on every admin page for everyone, from 961px wide, and stands aside
+   applies on every admin page for everyone, from 961px wide (the handle and
+   the gear only appear there), and stands aside
    when another plugin already sets the width.
 10. Use **Reset this item** to discard one item's customizations, or **Reset
    all** to delete the saved configuration and return to WordPress defaults.

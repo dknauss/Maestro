@@ -112,7 +112,8 @@ The width is a global setting, like everything else in Maestro: it applies on
 every admin page, for everyone, not only while you are editing. It goes from
 160px (the WordPress default) to 320px and applies on screens 961px and wider.
 Below that, WordPress folds the menu to icons or turns it into an overlay, and
-the width does not apply. Folding still works at any width.
+the width does not apply, so the edge handle and **Menu settings** are not
+shown there. Folding still works at any width.
 
 If another plugin already sets the menu width, that plugin wins. **Menu
 settings** tells you when this happens, so a value that has no effect never

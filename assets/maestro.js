@@ -3170,7 +3170,8 @@
 			{ text: I.tourStepVisibility, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.visBtn ); } },
 			{ text: I.tourStepResetItem, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.resetBtn ); } },
 			{ text: I.tourStepSeparator, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.addSepBtn ); } },
-			// The edge handle only renders at 961px and wider (maestro.css).
+			// The edge handle and the Settings gear only render at 961px and
+			// wider (maestro.css): the width they set does not apply below it.
 			{ text: I.tourStepWidth, placement: 'right', byViewport: true, anchor: function () { return tourShown( widthHandle ); } },
 			{ text: I.tourStepSettings, placement: 'top', byViewport: true, anchor: function () { return tourShown( document.querySelector( '.maestro-settings-btn' ) ); } },
 			{ text: I.tourStepHelp, placement: 'top', anchor: function () { return tourShown( document.querySelector( '.maestro-tour-help' ) ); } },

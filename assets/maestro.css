@@ -970,6 +970,17 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 	}
 }
 
+/* Settings holds only the menu width, which applies from 961px (above). Below
+ * that the dialog opened a control that could change nothing on screen, and
+ * on a phone it cost the cramped toolbar a slot, so the gear goes with the
+ * edge handle. A width saved on a wider screen still applies there. The
+ * tour's Settings step is dropped with it (tourSteps(), byViewport). */
+@media screen and ( max-width: 960px ) {
+	.maestro-toolbar .maestro-settings-btn {
+		display: none;
+	}
+}
+
 /* ---------- guided tour (coachmarks) ----------------------------------- */
 
 /* UX-11 / UX-13: an anchored, stepped tooltip dialog (role=dialog) that teaches
