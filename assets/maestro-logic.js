@@ -689,9 +689,11 @@ function selectAllState( set, targets ) {
  * @param {string[]} set     The stored role set.
  * @param {string[]} targets From selectAllRoleTargets().
  * @param {boolean}  on      True to tick every target, false to clear them.
- * @return {string[]} A new set.
+ * @param {number}   [max]   Server role limit, including retained entries.
+ * @return {string[]|null} A new set, or null if selecting would exceed max.
+ *                        Clearing is always allowed; never select a prefix.
  */
-function applySelectAll( set, targets, on ) {
+function applySelectAll( set, targets, on, max ) {
 	var s = ( set || [] ).slice();
 	if ( ! on ) {
 		return s.filter( function ( r ) { return targets.indexOf( r ) === -1; } );
@@ -701,7 +703,7 @@ function applySelectAll( set, targets, on ) {
 			s.push( r );
 		}
 	} );
-	return s;
+	return typeof max === 'number' && s.length > max ? null : s;
 }
 
 /* ---------- dual-export guard ----------------------------------------- */

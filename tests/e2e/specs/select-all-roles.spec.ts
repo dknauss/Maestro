@@ -55,6 +55,14 @@ function resetConfig(): void {
 	}
 }
 
+// Temporary roles live only on wp-env's disposable tests site. Always clean up,
+// including when an assertion fails, so later specs keep their normal roles.
+function roleFixture( total: number ): void {
+	const code = 'for ($i = 0; $i < 60; $i++) { remove_role("maestro_limit_" . $i); } '
+		+ ( total ? '$needed = ' + total + ' - count(wp_roles()->roles); for ($i = 0; $i < $needed; $i++) { add_role("maestro_limit_" . $i, "Limit role " . $i, array("read" => true)); }' : '' );
+	execFileSync( 'npx', [ 'wp-env', 'run', 'tests-cli', 'wp', 'eval', code ], { stdio: 'ignore' } );
+}
+
 test.describe( 'Phase 29 — "All other roles" select-all', () => {
 
 	test.beforeEach( resetConfig );
@@ -183,4 +191,77 @@ test.describe( 'Phase 29 — "All other roles" select-all', () => {
 		await expect( picker.locator( '.maestro-vis-all' ) ).toHaveCount( 2 );
 		await expect( picker.locator( '.maestro-vis-own-users .maestro-vis-all, .maestro-vis-children-users .maestro-vis-all' ) ).toHaveCount( 0 );
 	} );
+
+	test( 'over-limit bulk selection preserves both role lists through save and reload', async ( { page } ) => {
+		test.slow();
+		roleFixture( 60 );
+		try {
+			await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+			await page.evaluate( async () => {
+				const d = ( window as any ).maestroData;
+				const response = await fetch( d.restUrl, {
+					method: 'POST', credentials: 'same-origin',
+					headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': d.nonce },
+					body: JSON.stringify( { config: { items: { 'edit.php': {
+						hidden_roles: [ 'editor' ], child_hidden_roles: [ 'author' ],
+					} } } } ),
+				} );
+				if ( ! response.ok ) { throw new Error( 'Could not seed partial role lists' ); }
+			} );
+			const picker = await openPostsVisibility( page );
+			let posts = 0;
+			page.on( 'request', ( r ) => {
+				if ( POST_SAVE( r.url() ) && r.method() === 'POST' ) { posts++; }
+			} );
+			for ( const selector of [ '.maestro-vis-own', '.maestro-vis-children' ] ) {
+				const group = picker.locator( selector );
+				await group.locator( '.maestro-vis-all-cb' ).click();
+				await expect( group.locator( '.maestro-role-limit' ) ).toContainText( '50' );
+				expect( await group.locator( '.maestro-vis-all-cb' ).evaluate( ( n: HTMLInputElement ) => n.indeterminate ) ).toBe( true );
+			}
+			// An ordinary valid edit still saves once, with neither bulk action
+			// adding a prefix of roles or removing the previous selections.
+			const save = saved( page );
+			await picker.locator( '.maestro-vis-own' ).getByLabel( 'Contributor', { exact: true } ).check();
+			const stored = ( await ( await save ).json() ).config.items[ 'edit.php' ];
+			expect( [ ...stored.hidden_roles ].sort() ).toEqual( [ 'contributor', 'editor' ] );
+			expect( stored.child_hidden_roles ).toEqual( [ 'author' ] );
+			expect( posts ).toBe( 1 );
+			await openPostsVisibility( page );
+			const reloaded = await page.evaluate( () => ( window as any ).maestroData.config.items[ 'edit.php' ] );
+			expect( [ ...reloaded.hidden_roles ].sort() ).toEqual( [ 'contributor', 'editor' ] );
+			expect( reloaded.child_hidden_roles ).toEqual( [ 'author' ] );
+		} finally {
+			roleFixture( 0 );
+		}
+	} );
+
+	test( 'exactly 50 other roles survive bulk save and reload and can still be cleared', async ( { page } ) => {
+		test.slow();
+		roleFixture( 51 );
+		try {
+			let picker = await openPostsVisibility( page );
+			const others = await page.evaluate( () => {
+				const d = ( window as any ).maestroData;
+				return Object.keys( d.roles ).filter( ( r ) => ! d.userRoles.includes( r ) );
+			} );
+			expect( others ).toHaveLength( 50 );
+			const save = saved( page );
+			await picker.locator( '.maestro-vis-own .maestro-vis-all-cb' ).check();
+			const stored = ( await ( await save ).json() ).config.items[ 'edit.php' ].hidden_roles;
+			expect( [ ...stored ].sort() ).toEqual( [ ...others ].sort() );
+			picker = await openPostsVisibility( page );
+			await expect( picker.locator( '.maestro-vis-own .maestro-vis-all-cb' ) ).toBeChecked();
+			const clear = saved( page );
+			await picker.locator( '.maestro-vis-own .maestro-vis-all-cb' ).uncheck();
+			await clear;
+			picker = await openPostsVisibility( page );
+			await expect( picker.locator( '.maestro-vis-own .maestro-vis-all-cb' ) ).not.toBeChecked();
+			const roles = await page.evaluate( () => ( window as any ).maestroData.config.items[ 'edit.php' ]?.hidden_roles || [] );
+			expect( roles ).toEqual( [] );
+		} finally {
+			roleFixture( 0 );
+		}
+	} );
+
 } );

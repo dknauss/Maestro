@@ -125,3 +125,22 @@ test( 'a missing set is treated as empty', () => {
 	assert.deepEqual( applySelectAll( null, [ 'editor' ], false ), [] );
 	assert.equal( selectAllState( undefined, [ 'editor' ] ), 'none' );
 } );
+
+test( 'bulk selection refuses the whole change when it would exceed the role limit', () => {
+	const set = [ 'editor' ];
+	assert.equal( applySelectAll( set, [ 'editor', 'author', 'subscriber' ], true, 2 ), null );
+	assert.deepEqual( set, [ 'editor' ] );
+} );
+
+test( 'bulk selection accepts exactly the server role limit', () => {
+	const targets = Array.from( { length: 50 }, ( _, i ) => `role-${ i }` );
+	assert.deepEqual( applySelectAll( [], targets, true, 50 ), targets );
+} );
+
+test( 'the role limit counts retained own and locked roles as well as new targets', () => {
+	assert.equal( applySelectAll( [ 'administrator' ], [ 'editor', 'author' ], true, 2 ), null );
+} );
+
+test( 'clearing remains available even when the starting set is over the limit', () => {
+	assert.deepEqual( applySelectAll( [ 'administrator', 'editor', 'author' ], [ 'editor', 'author' ], false, 2 ), [ 'administrator' ] );
+} );

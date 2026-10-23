@@ -76,3 +76,22 @@ profile groups do not (they use other builders).
 At 1280×900 with Editor ticked in the first group and Author in the second,
 both "All other roles" rows show the mixed bar, and the locked Editor row in
 the second group stays greyed and checked.
+
+
+## Review follow-up — server role limit
+
+Before this fix the bulk control could select 59 roles while the server stored
+only 50. Bulk selection now refuses the whole change with an inline,
+programmatically described and spoken limit message when the proposed set
+exceeds the server-provided cap. Existing selections remain intact; clearing
+is still allowed. No role limit or privacy gate on the server was widened.
+
+Four JS tests and two save/reload browser cases cover overflow in both role
+groups and the exact 50-role boundary. The overflow unit cases and browser
+refusal assertion failed before the fix. Real touch-device testing remains
+outstanding, as do the recorded human acceptance checks.
+
+Follow-up verification: JavaScript 142/142 (19 select-all helper cases), PHP unit
+221/221 (540 assertions), integration 202 total on single-site (14 expected
+skips) and multisite (1 expected skip), targeted Playwright 6/6 including auth
+setup. WPCS, PHPStan, JS syntax, doc links, whitespace and runtime ZIP pass.

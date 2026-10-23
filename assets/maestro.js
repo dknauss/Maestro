@@ -2085,6 +2085,12 @@
 				allCb.setAttribute( 'aria-describedby', skips.id );
 			}
 			group.appendChild( allRow );
+			var limitStatus = el( 'p', 'maestro-role-limit description' );
+			limitStatus.id = 'maestro-role-limit-' + groupIdSeq;
+			limitStatus.hidden = true;
+			group.appendChild( limitStatus );
+			var descriptions = allCb.getAttribute( 'aria-describedby' );
+			allCb.setAttribute( 'aria-describedby', ( descriptions ? descriptions + ' ' : '' ) + limitStatus.id );
 
 			function allTargets() {
 				return window.maestroLogic.selectAllRoleTargets( roleKeys, D.userRoles, opts.isLocked );
@@ -2099,12 +2105,25 @@
 				allRow.hidden      = targets.length < 2;
 				allCb.checked      = 'all' === state;
 				allCb.indeterminate = 'some' === state;
+				setText( limitStatus, '' );
+				limitStatus.hidden = true;
 			}
 
 			allCb.addEventListener( 'change', function () {
 				var targets = allTargets();
 				var on      = 'all' !== window.maestroLogic.selectAllState( getSet(), targets );
-				setSet( window.maestroLogic.applySelectAll( getSet(), targets, on ) );
+				var next = window.maestroLogic.applySelectAll( getSet(), targets, on, Number( D.maxHiddenRoles ) );
+				if ( next === null ) {
+					// Refuse atomically: saving a prefix would say "all" while the
+					// server silently truncates it. Keep the previous choices.
+					refresh();
+					var message = I.roleLimitReached.replace( '%d', String( D.maxHiddenRoles ) );
+					setText( limitStatus, message );
+					limitStatus.hidden = false;
+					speak( message, 'polite' );
+					return;
+				}
+				setSet( next );
 				if ( opts.onToggle ) { opts.onToggle(); }
 				refresh();
 				refreshModifiedIndicator( slug );

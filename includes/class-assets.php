@@ -217,6 +217,7 @@ class Assets {
 				// roles" never ticks one of them. Display only, never a permission
 				// check. Empty for a multisite super admin with no role here.
 				'userRoles'       => array_values( (array) wp_get_current_user()->roles ),
+				'maxHiddenRoles'  => Config::MAX_HIDDEN_ROLES,
 				// ROLE-02: `maestro_capability` lets a site hand Maestro to a
 				// custom role that may NOT hold `list_users`. Core's users
 				// collection would then return only published authors — so the
@@ -292,6 +293,8 @@ class Assets {
 					'allOtherRolesOn'      => esc_html__( '%s every other role is now ticked.', 'maestro-menu-editor' ),
 					/* translators: %s: the role group's heading, such as "Hide this item from:". Announced after "All other roles" clears them. */
 					'allOtherRolesOff'     => esc_html__( '%s every other role is now cleared.', 'maestro-menu-editor' ),
+					/* translators: %d: maximum number of roles in one visibility list. Shown when selecting every other role would exceed that limit. */
+					'roleLimitReached'     => esc_html__( 'This would exceed the limit of %d roles per list. Choose roles individually.', 'maestro-menu-editor' ),
 					/* translators: Heading for the group that cosmetically hides THIS menu item from named individual people (ROLE-02), as opposed to whole roles. */
 					'hideFromUsers'        => __( 'Hide this item from specific people:', 'maestro-menu-editor' ),
 					/* translators: Heading for the group that cosmetically hides ALL of a parent's sub-items from named individual people (ROLE-02). Shown only for parents that have children. */
