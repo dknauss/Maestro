@@ -39,8 +39,10 @@ labelled as such.
 
 ## The gate at the judged commit
 
-Counts are filled from the CI run on the 27-05 PR head; see 27-05-SUMMARY.md
-for the SHA they belong to.
+CI on `a9daf3d` (27-05, #241), all green: integration 202/202 single-site
+(14 skipped) and 202/202 multisite (1 skipped); e2e 113 passed, including both
+`hidden-profiles.spec.ts` tests; unit, JS, WPCS, PHPStan and Plugin Check on
+the runtime ZIP.
 
 ## Human verification — open
 

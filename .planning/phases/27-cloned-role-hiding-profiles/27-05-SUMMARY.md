@@ -33,12 +33,18 @@ Local, at this branch's head:
 
 - unit 221/221 (540 assertions), JS 123/123, phpcs clean, PHPStan clean, doc
   links clean;
-- full e2e run locally: see the PR for the result. The one spec that cannot
-  pass in the sandbox (`shared-slug` console-error check, which fails on an
-  unresolvable external host) fails identically on main.
+CI on `a9daf3d` (this PR's code head; later commits only record these
+numbers), every check green:
 
-CI on the PR head is the record for integration (both lanes), e2e and Plugin
-Check; the counts and SHA go in the PR and TESTING.md.
+- integration single-site: 202 tests, 829 assertions, 14 skipped;
+- integration multisite: 202 tests, 854 assertions, 1 skipped (same counts
+  as main after #239, so nothing was silently dropped);
+- e2e: 113 passed, 28 skipped (111 on main plus the 2 new profile tests);
+- unit (PHP 7.4 and 8.3), JS, WPCS, PHPStan, Plugin Check on the runtime ZIP,
+  dependency audit, Markdown links.
+
+Full local e2e: 112 passed, 1 failed, the known sandbox-only console-error
+check in `shared-slug.spec.ts`, which fails identically on main.
 
 ## Task 3 — documentation
 
