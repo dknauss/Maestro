@@ -78,3 +78,15 @@ parent rule is cleared, and persistence after reload. The screenshot shows the
 mixed-state dash displaced toward the upper-left. Keep that visual defect open;
 this functional pass does not close overall real touch-device acceptance or the
 other mobile usability findings.
+
+### Mixed-state dash — CSS correction, real-device recheck open
+
+The fixed desktop-size offsets did not track core's larger mobile checkbox.
+Percentage centering now follows its actual dimensions in LTR and RTL. The
+rendered-pixel regression reproduced a 4.5px error in Chromium and WebKit before
+the fix; 16 cases now pass across both engines at 375/782/783/1280px. No role
+selection, checked/indeterminate semantics or persistence behavior was changed.
+
+This is automated evidence, not iPhone sign-off. Dan's role-control behavior
+pass stands; dash visual acceptance requires an actual iPhone recheck. All other
+mobile usability findings and overall real touch-device acceptance stay open.

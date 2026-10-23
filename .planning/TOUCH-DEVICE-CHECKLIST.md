@@ -48,7 +48,7 @@ from the image.
 | Toolbar | Responsive menu opens; enter/exit/re-enter works; every control can be tapped. | Wrapping, hard-to-hit targets and accidental dismissal in some cases remain defects/usability findings. |
 | Dialogs/popovers | All four open; long content scrolls, controls remain reachable, and the background does not scroll. | Small-screen viewing/manipulation remains difficult. The width-only Settings entry is reported as pointless at phone widths. |
 | Visibility groups | Create, search, add/remove people, rename, assign and reload passed. | On-screen keyboard often obscures inputs/actions; keyboard usability remains open. |
-| Role controls | Dan passed all five directed role-control checks: both sections, mixed-state behavior, locked-row refusal, unlocking and reload persistence. | Visual defect: the mixed-state dash is not centered in its checkbox on iPhone Safari. Behavior passed; visual acceptance remains open. |
+| Role controls | Dan passed all five directed role-control checks: both sections, mixed-state behavior, locked-row refusal, unlocking and reload persistence. | The reported off-center dash has a CSS correction with Chromium/WebKit regression coverage. Behavior passed; actual iPhone visual recheck remains open. |
 | Tour | Next, Back, Skip and Done work; only three tips appeared. | Investigate step coverage on the tested build, then recheck current build. Three tips is not accepted as complete current-tour coverage. |
 | Arabic/RTL | Dan clarified: “It works in Arabic as well as it does in english.” | RTL parity passed on the tested device/build; the shared mobile usability issues still apply. |
 | Width | Handle and slider/number field unavailable at the small screen size. | Mark those desktop-only interactions not applicable at this viewport, rather than failed. Real Keel mobile interaction was not tested. |
@@ -56,7 +56,7 @@ from the image.
 The screenshot also shows a native delete confirmation with item/person counts;
 no completed deletion result is inferred from that image alone. Earlier desktop
 acceptance is retained. RTL parity and role-control behavior are passed on Dan's reports. The
-mixed-state dash alignment remains a visual defect. Other compound touch
+mixed-state dash correction still needs a real iPhone visual recheck. Other compound touch
 checkboxes remain open until their defects and missing checks are resolved.
 
 ## Directed role-control checks
@@ -97,3 +97,21 @@ steps, with a screenshot showing an off-center dash near the upper-left of the
 mixed checkbox. This is a pass for those role-control behaviors, not for items
 1–5 of the overall touch checklist. Track the dash alignment as an unresolved
 visual defect; do not attribute its cause to Safari or core without reproduction.
+
+## Mixed-state dash correction — 2026-10-23
+
+Reproduced in Chromium and WebKit: fixed offsets designed for a 16px checkbox
+left the dash 4.5 CSS pixels off-center when core enlarged mobile checkboxes to
+25px. The dash is now centered relative to the actual checkbox with percentage
+positioning and a translation, independent of viewport size and direction.
+
+`tests/e2e/mixed-checkbox.spec.ts` measures the painted dash against the painted
+checkbox background, without writing config. Sixteen cases passed across
+Chromium and WebKit at 375/782/783/1280px in LTR/RTL. The final WebKit regression
+fails with the original CSS and passes with the fix. Desktop WebKit automation
+is not a real iPhone recheck.
+
+**Actual iPhone visual recheck remains outstanding.** Retain the functional role
+pass, RTL parity and earlier desktop sign-off. Toolbar targets/dismissal,
+cramped dialogs, keyboard obstruction, tour coverage and the remaining touch
+acceptance remain open; this narrowly scoped CSS fix does not resolve them.
