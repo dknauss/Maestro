@@ -96,7 +96,7 @@ class Rest {
 	public function get_config() {
 		return rest_ensure_response(
 			array(
-				'config' => $this->config->get(),
+				'config' => $this->config->for_editor(),
 			)
 		);
 	}
@@ -113,12 +113,12 @@ class Rest {
 			return new \WP_Error( 'maestro_bad_payload', __( 'Invalid config payload.', 'maestro-menu-editor' ), array( 'status' => 400 ) );
 		}
 
-		$saved = $this->config->save( $incoming );
+		$this->config->save( $incoming );
 
 		return rest_ensure_response(
 			array(
 				'saved'  => true,
-				'config' => $saved,
+				'config' => $this->config->for_editor(),
 			)
 		);
 	}

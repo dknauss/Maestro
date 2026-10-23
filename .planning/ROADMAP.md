@@ -14,7 +14,7 @@
 - ✅ **v1.5.4 Compatibility and E2E hardening** — patch on the v1.5 line, shipped 2026-09-21 (PR #192, tag `v1.5.4`, live on WordPress.org). Ships the Google Site Kit menu-order fix (#189) and removes Edit Menu from the block post editor (#176, #179). The rest of the range (#173–#190) is tests, CI, dev dependencies and planning docs.
 - [~] **v1.6.0 Separator editing** — minor release cut 2026-09-23, tagged `v1.6.0` on merge of the release PR; the WordPress.org deploy awaits approval. Ships separator add/move/remove (#197), the Admin Menu Editor warning (#196), the image-icon preview fix and full Dashicons set (#195), the toolbar following a widened menu (#199), multisite network/user admin gating (#198), and the release-review fixes (#200).
 - [ ] **v1.7.0 Menu width** — Phase 28 alone (release decision, 2026-10-22: ship width now rather than wait for profiles). Release #232 merged; Phase 28 human acceptance remains open, including real touch-device testing.
-- [ ] **v1.8 Hiding profiles** — Phase 27 (all profile UX recommendations approved 2026-10-22; see `27-CONTEXT.md`; implementation not started).
+- [ ] **v1.8 Hiding profiles** — Phase 27 (all profile UX recommendations approved 2026-10-22; see `27-CONTEXT.md`; storage and runtime hiding merged in #237/#238).
 - [ ] **v1.9 Client-Site Workflow** — Phases 29–31 (planned 2026-10-09; renumbered from the provisional v1.7 on 2026-10-22). Three requests from one WordPress.org support thread that together cover setting up a client site: see what a role sees, hide from every other role in one step, carry the result to the next site. GitHub milestone [v1.9 Client-site workflow](https://github.com/dknauss/Maestro/milestone/1).
 
 ## Next up
@@ -22,7 +22,8 @@
 **Phase 28 is built; human acceptance remains open.** #235 and release #232
 merged. The Keel live-preview submenu alignment needed the follow-up recorded
 in `28-VERIFICATION.md`. Real touch-device testing and affected human rechecks
-remain outstanding. Phase 27 was not started in this work.
+remain outstanding. Phase 27 decisions, storage/compile (#237) and runtime
+hiding (#238) are now on main; authoring UI and final verification remain pending.
 
 **The Client-Site Workflow (Phases 29–31, now v1.9) runs after both** (D1,
 decided 2026-10-21): **Phase 28 → Phase 27 → Phases 29–31**. Release decision (2026-10-22):
@@ -409,6 +410,7 @@ M2/M3 items from `todos/pending/2026-08-02-a11y-locked-checkbox-refinements.md`.
 ---
 
 ### Phase 27: Cloned-Role Hiding Profiles
+**Status:** 27-01/02/03 complete on main (#230/#237/#238). Profile read privacy and member-validation fixes are this follow-up. 27-04 authoring is on a separate branch; 27-05 final E2E/acceptance remains pending.
 **Goal**: An admin can name a reusable hiding profile ("Reduced view"), assign people to it, and apply it to menu items — cosmetically, with membership resolved live — completing ROLE-02
 **Depends on**: Phase 21 (built the seam slot, the field-parameterized resolver, and the bounded-axis sanitize shape this extends)
 **Requirements**: ROLE-02 (completion — currently PARTIAL since v1.5.0)
@@ -421,14 +423,11 @@ M2/M3 items from `todos/pending/2026-08-02-a11y-locked-checkbox-refinements.md`.
   6. Zero regression: both integration lanes, unit, JS, e2e, WPCS, PHPStan, Plugin Check
 **Plans**: 27-01 decisions · 27-02 storage + compile · 27-03 seam + live membership · 27-04 editor · 27-05 e2e, gate, close ROLE-02
 
-> **27-01 is a decisions checkpoint, deliberately.** The feasibility note locked
-> storage and resolution in detail but left **authoring UX as "the main open
-> design question for a future discuss-phase"** — where profiles get created and
-> managed has no home today, since Maestro has never had a settings screen. It
-> also re-verifies the note's architecture against the code Phase 21 actually
-> shipped: the note cites line numbers from before v1.4.1 and Phase 21 both moved
-> things, and its assumption that term 3 is a list-intersect may not survive
-> contact, since membership is a property of the USER rather than the item.
+> **27-01 decisions are locked** (Dan, 2026-10-22; `27-CONTEXT.md`): modal-only
+> creation, users-only membership, assignment checkboxes, deletion confirmation
+> with affected counts and cleanup, 20 profiles / 50 live members, unique
+> case-insensitive names of 1–40 characters, stable IDs, and child-axis parity.
+> Storage and runtime hiding are merged; the feature is not yet complete.
 
 ### Phase 28: Configurable Admin Menu Width
 **Status:** Built; 28-01/02 complete, 28-03 acceptance open. Retain Dan's core-scheme/width pass, but recheck the screenshot exceptions after #235 and the real Keel alignment follow-up. Real touch-device testing remains outstanding; todo stays pending.
@@ -500,7 +499,7 @@ documented in `readme.txt`; the release should not quietly drop it.
 
 ---
 
-## Phase Details (v1.7 — Client-Site Workflow)
+## Phase Details (v1.9 — Client-Site Workflow)
 
 **Milestone goal:** an admin setting up a client site can see what a lower role
 sees, hide what that role should not see in one step, and carry the result to
@@ -521,12 +520,12 @@ should be made once.
 
 | # | Decision | Needed by | Status |
 |---|----------|-----------|--------|
-| D1 | Where v1.7 sits relative to Phase 28 → Phase 27 | Before Phase 29 starts | **Decided 2026-10-21:** after both, Phase 28 → Phase 27 → v1.7 |
+| D1 | Where Client-Site Workflow sits relative to Phase 28 → Phase 27 | Before Phase 29 starts | **Decided:** after both; width v1.7.0 → profiles v1.8 → Client-Site Workflow v1.9 |
 | D2 | Whether a request-scoped, viewer-only, subtract-only capability filter fits SPEC's "never changes a capability", or the wording gets a carve-out | Phase 30 | Open — blocks Phase 30 |
 | D3 | Label and form of the select-all control ("All other roles"; tri-state checkbox or a pair of links) | Phase 29 | Open |
 | D4 | Import behaviour for rules whose menu item is missing on the target site: keep dormant, or drop and report | Phase 31 | Open |
-| D5 | Release shape: one v1.7.0 after all three, or cut after Phases 29–30 and let Phase 31 follow | Before the cut | Open — proposed: cut after 29–30, 31 rides if ready |
-| D6 | Whether "v1.7" is this milestone's number or Phase 28's release takes it | Before the cut | Open |
+| D5 | Release shape: one v1.9.0 after all three, or cut after Phases 29–30 and let Phase 31 follow | Before the cut | Open — proposed: cut after 29–30, 31 rides if ready |
+| D6 | Milestone version | Before the cut | **Decided 2026-10-22:** width v1.7.0, profiles v1.8, Client-Site Workflow v1.9 |
 
 ### Shared seams (build once, reuse)
 
@@ -595,8 +594,9 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 **v1.4 complete** (Phases 19–24) — shipped 2026-08-04 as `v1.4.0`, patched 2026-08-05 as `v1.4.1`. It shipped **without** Phase 21 (deferred under the Release Binding fallback) and Phase 22 (not reached).
 
 **v1.5 is shipped** as the v1.5.x release line; v1.5.4 (PR #192, shipped 2026-09-21) is
-the latest release, adding post-release compatibility fixes (#176, #179, #189) and E2E
-hardening. Next, resume planned feature work in the order Phase 28 → Phase 27 → v1.7 (D1). Phase numbers remain non-contiguous by design because 21, 22, and 25
+the final patch documented here for that line, adding compatibility fixes (#176, #179, #189) and E2E
+hardening. Release #232 (v1.7.0 menu width) has since merged; no deployment verification is claimed here.
+Current order: Phase 28 (acceptance open) → Phase 27 (v1.8, 3/5 plans on main) → Phases 29–31 (v1.9). Phase numbers remain non-contiguous by design because 21, 22, and 25
 originated under the v1.4 roadmap and were not renumbered when they slipped.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -629,6 +629,8 @@ originated under the v1.4 roadmap and were not renumbered when they slipped.
 | 24. Release v1.4.0 | v1.4 | n/a (shipped as PR #113, not numbered plans) | Complete — v1.4.0 shipped; patch v1.4.1 2026-08-05 | 2026-08-04 |
 | 25. Edit-Mode Toolbar Dark-Surface Polish | v1.5 | 2/2 | Complete; included in the v1.5.3 line | 2026-08-09 |
 | 26. Release v1.5.0 | v1.5 | n/a | Complete; superseded by the v1.5.3 release line | 2026-08-19 |
-| 29. Select-All Role Control | v1.7 | 0/TBD | Not started | - |
-| 30. View-as-Role Preview (read-only) | v1.7 | 0/TBD | Not started — blocked on D2 | - |
-| 31. Config Export/Import | v1.7 | 0/TBD | Not started | - |
+| 27. Cloned-Role Hiding Profiles | v1.8 | 3/5 | Storage and runtime hiding merged; editor and final gate pending | - |
+| 28. Configurable Admin Menu Width | v1.7.0 | 2/3 | Built; affected human rechecks and real touch-device testing outstanding | - |
+| 29. Select-All Role Control | v1.9 | 0/TBD | Not started | - |
+| 30. View-as-Role Preview (read-only) | v1.9 | 0/TBD | Not started — blocked on D2 | - |
+| 31. Config Export/Import | v1.9 | 0/TBD | Not started | - |
