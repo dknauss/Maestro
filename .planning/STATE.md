@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.8
-milestone_name: Hiding profiles
+milestone: v1.9
+milestone_name: Client-Site Workflow
 status: in_progress
-stopped_at: "v1.8.0 release PR open, stacked on #241 (27-05). Merging it tags v1.8.0; the WordPress.org deploy then waits for approval. It stays a draft until #241 merges and Dan has done the Phase 27 hands-on checks in 27-VERIFICATION.md. v1.7.0 was tagged and its GitHub Release published 2026-10-23. Phase 28 human rechecks and real touch-device testing remain outstanding."
+stopped_at: "v1.9 started: Phase 29 (select-all roles, UX-14) built as a tri-state \"All other roles\" checkbox, PR open; D3 confirmation and a hands-on check owed by Dan (29-VERIFICATION.md). v1.8.0 merged as #242 (e1b4696); its tag, the WordPress.org deploy approval and the Phase 27 hands-on checks are Dan's. Phase 30 waits on D2."
 last_updated: "2026-10-23T00:00:00.000Z"
-last_activity: "2026-10-23 — 27-04 editor merged (#239) after review fixes; 27-05 (#241) adds hidden-profiles.spec.ts, docs, and closes ROLE-02. v1.8.0 release PR opened: version bump, changelog covering #234/#237/#238/#239/#240/#241, Upgrade Notice, regenerated .pot, recaptured directory screenshots (screenshot 3 now shows the profile groups)."
+last_activity: "2026-10-23 — v1.8.0 release merged (#242, carrying #241). Phase 29 built: selectAllRoleTargets/selectAllState/applySelectAll (15 JS tests), userRoles localized, the All other roles row in both role groups, select-all-roles.spec.ts."
 progress:
-  total_phases: 2
+  total_phases: 3
   completed_phases: 0
-  total_plans: 8
-  completed_plans: 7
-  percent: 88
+  total_plans: 2
+  completed_plans: 2
+  percent: 33
 ---
 
 # Project State
@@ -20,12 +20,12 @@ progress:
 
 See: .planning/PROJECT.md (updated 2026-07-03)
 
-**Current focus:** Phase 27 verification. All five profile plans are built:
-27-01 decisions (#230), 27-02 storage/compile (#237), 27-03 runtime hiding
-(#238), #240 privacy and member validation, 27-04 editor (#239), and 27-05
-(e2e, gate, docs, ROLE-02 closed). The phase closes on Dan's hands-on run in
-`27-VERIFICATION.md`. Release sequence: width v1.7.0 (tagged and released
-2026-10-23), profiles v1.8 (release PR open), Client-Site Workflow v1.9. Phase 28 affected human rechecks and
+**Current focus:** v1.9 Client-Site Workflow. Phase 29 (select-all roles,
+#214) is built and in review; Phase 30 (view-as-role) waits on D2; Phase 31
+(export/import) is unplanned and must now also leave hiding profiles out of
+an export, since they name people. v1.8.0 (hiding profiles) is merged (#242)
+and awaits its tag, the WordPress.org deploy approval and Dan's Phase 27
+hands-on run (`27-VERIFICATION.md`). Phase 28 affected human rechecks and
 **real touch-device testing remain outstanding**.
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
@@ -34,6 +34,10 @@ the v1.4 compatibility/roles work was being planned. The current focus is
 recorded above; this note is kept only to date the paragraph that follows it.
 
 ## Current Position
+
+Milestone: **v1.9 Client-Site Workflow**, started 2026-10-23. Phase 29
+(select-all roles) built, awaiting review and D3 confirmation. The v1.8 notes
+below stay until its tag and the Phase 27 hands-on run are done.
 
 Milestone: **v1.8 Hiding profiles**, code complete, awaiting verification.
 Phase 27: **5/5 plans built** — 27-01 decisions (#230), 27-02 storage/compile

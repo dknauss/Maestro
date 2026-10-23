@@ -513,7 +513,7 @@ suggestions.." (ChrisL, 2026-10-07). Dan confirmed all three in the thread.
 they touch the same role-visibility surface, and they share decisions that
 should be made once.
 
-- [ ] **Phase 29: Select-All Role Control** — one control per role group that ticks every role the editing user does not hold ([#214](https://github.com/dknauss/Maestro/issues/214))
+- [~] **Phase 29: Select-All Role Control** (built 2026-10-23, awaiting verification) — one control per role group that ticks every role the editing user does not hold ([#214](https://github.com/dknauss/Maestro/issues/214))
 - [ ] **Phase 30: View-as-Role Preview (read-only)** — filter the admin menu to what a chosen role sees, without switching user ([#215](https://github.com/dknauss/Maestro/issues/215))
 - [ ] **Phase 31: Config Export/Import** — a versioned JSON export and a validated import, for carrying a setup between sites ([#216](https://github.com/dknauss/Maestro/issues/216))
 
@@ -523,7 +523,7 @@ should be made once.
 |---|----------|-----------|--------|
 | D1 | Where Client-Site Workflow sits relative to Phase 28 → Phase 27 | Before Phase 29 starts | **Decided:** after both; width v1.7.0 → profiles v1.8 → Client-Site Workflow v1.9 |
 | D2 | Whether a request-scoped, viewer-only, subtract-only capability filter fits SPEC's "never changes a capability", or the wording gets a carve-out | Phase 30 | Open — blocks Phase 30 |
-| D3 | Label and form of the select-all control ("All other roles"; tri-state checkbox or a pair of links) | Phase 29 | Open |
+| D3 | Label and form of the select-all control ("All other roles"; tri-state checkbox or a pair of links) | Phase 29 | Proposed 2026-10-23: a tri-state checkbox labelled "All other roles", built that way in Phase 29; awaiting Dan's confirmation |
 | D4 | Import behaviour for rules whose menu item is missing on the target site: keep dormant, or drop and report | Phase 31 | Open |
 | D5 | Release shape: one v1.9.0 after all three, or cut after Phases 29–30 and let Phase 31 follow | Before the cut | Open — proposed: cut after 29–30, 31 rides if ready |
 | D6 | Milestone version | Before the cut | **Decided 2026-10-22:** width v1.7.0, profiles v1.8, Client-Site Workflow v1.9 |
@@ -550,8 +550,8 @@ should be made once.
   4. Locked rows stay derived: never written to the model, still checked and `aria-disabled`
   5. The control has an accessible name that includes its group heading, and the result is announced
   6. Zero regression: unit, JS, both integration lanes, e2e, WPCS, PHPStan, Plugin Check
-**Plans**: TBD — expected 29-01 pure helper (TDD) + roles payload · 29-02 control, a11y, e2e
-**Notes**: [select-all todo](todos/pending/2026-10-08-select-all-roles-control.md)
+**Plans**: 29-01 pure helpers (TDD) + roles payload · 29-02 control, a11y, e2e — both built 2026-10-23 in one PR; see `phases/29-select-all-role-control/29-SUMMARY.md`
+**Notes**: [select-all todo](todos/completed/2026-10-08-select-all-roles-control.md)
 
 ### Phase 30: View-as-Role Preview (read-only)
 **Goal**: An admin can see the admin menu as a chosen role would, to decide what still needs hiding, while staying logged in as themselves

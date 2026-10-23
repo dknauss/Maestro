@@ -47,6 +47,9 @@ Hiding a menu item only declutters the menu — the underlying page still loads 
    Bootstrap Icons, "No icon", or a valid WordPress icon value.
 6. Hide an item from selected roles with the visibility control. This only
    changes what those roles see in the menu; it does not block the page URL.
+   **All other roles**, at the top of each role list, ticks every role you do
+   not hold yourself in one go, so you can't hide the item from your own view
+   by accident; use it again to clear them.
 7. Hide an item from **named individuals** in the same popover — search for a
    person and add them. Useful when a role is the wrong unit (one person on a
    shared role who doesn't need a tool). A parent's sub-items can be hidden per
