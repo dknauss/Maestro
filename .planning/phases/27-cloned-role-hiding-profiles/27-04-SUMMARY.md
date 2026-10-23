@@ -181,6 +181,21 @@ cost is an internal scroll on items with children, at short viewports.
 
   It runs in CI on both lanes.
 
+## Review fixes (Dan, 2026-10-23)
+
+- **Privacy.** `editor_config()` removed only the map, so a viewer without
+  `list_users` still received `hidden_users` and `hidden_profiles` on items.
+  It now starts from #240's `Config::for_editor()` and then drops the map.
+  `ReplayMenuModelProfilesTest` asserts no item carries a profile axis for
+  such a viewer.
+- **Reused IDs.** The ID floor started at 0, so deleting a loaded `p_1` and
+  creating a profile handed out `p_1` again, and the new profile inherited
+  `p_1`'s carried hides. The floor now starts at the highest loaded ID
+  (`profileIdFloor()`), and a delete drops that profile's carry entry
+  (`dropProfileCarry()`). Regression test in `profile-targets.test.mjs`;
+  checked in the browser (delete `p_1` carrying `gone.php`, add a profile:
+  stored as `p_2` with no hides).
+
 ## For 27-05
 
 - E2E: the hand check above maps step for step onto a spec under
