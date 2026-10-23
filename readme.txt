@@ -33,6 +33,7 @@ Maestro's enhancements are only activated for logged-in users with an Administra
 * **Swap icons** on top-level items. The icon picker offers Dashicons and bundled Bootstrap Icons with search. It accepts any of WordPress's four native icon forms (dashicon, "none", base64 image data-URI, or an image URL).
 * **Hide** items from chosen roles — including administrators. Custom roles registered by other plugins ([User Role Editor](https://wordpress.org/plugins/user-role-editor/), [Members](https://wordpress.org/plugins/members/), etc.) appear automatically.
 * **Hide items from specific people**, by name, when a role is the wrong unit — one person on a shared role who doesn't need a particular tool. Search for someone in the visibility popover and add them; a parent's sub-items can be hidden per person too, with the parent left visible. Like every other hide in Maestro, this is cosmetic only: the page still loads by URL for anyone authorized to see it.
+* **Hide items from a named group of people** with a hiding profile — say "Reduced view" for the client's staff. Make the profile once under **Hiding profiles** in the editing toolbar, add people to it, then tick it in any item's visibility popover. Change who is in it later and every item it hides follows. A profile is not a role: WordPress never sees it, and it grants or removes nothing. It is cosmetic only, like every hide in Maestro: the page still loads by URL for anyone authorized to see it.
 * **Widen the menu** so longer labels fit on one line. Drag the menu's edge while editing, or set an exact width under **Menu settings**. The width applies on every admin page, for everyone, on screens 961px and wider. If another plugin already sets the menu width, that plugin wins and Maestro tells you so.
 * **Reset** a single item to its WordPress default, or reset everything at once.
 
@@ -91,6 +92,31 @@ no hide rule can remove it. And on a multisite network, network super admins are
 exempt from person-targeted hides (role-targeted hides still apply to them, as
 they always have).
 
+= What is a hiding profile, and when should I use one instead of a role? =
+
+A hiding profile is a named list of people that you can tick in any item's
+visibility popover, the way you tick a role. Create it under **Hiding profiles**
+in the editing toolbar, add people with the same search box, and tick it on the
+items it should hide. Who is in it is read on every page load, so adding or
+removing someone takes effect right away on every item the profile hides,
+without touching those items.
+
+**A hiding profile is not access control.** It sounds more like a permission
+than a role checkbox does, so to be plain: it only removes links from those
+people's admin menu. They can still open every one of those pages by URL, and
+no capability is granted or removed. If people must not reach a page, use a
+capability manager.
+
+Use a profile when a role is the wrong unit and you would otherwise add the
+same few people to many items, for example a client's staff who share the
+Editor role with your own team. If a role already matches the people you mean,
+use the role: it is simpler, and it is how WordPress itself groups people.
+
+Profiles are made and edited by people who can list users (administrators, by
+default); anyone else using the editor does not see them, and their saves leave
+profiles alone. On a multisite network, network super admins are exempt from
+profile hides, as they are from person-targeted hides.
+
 = Can I hide items from administrators, too? =
 
 Yes. The hide by role feature includes the administrator role. However, you have to be an administrator to use Maestro's features, so if you hide a menu item from administrators, you are hiding it from yourself as well.
@@ -123,7 +149,7 @@ their current parent.
 
 1. The inline editor — select any admin-menu item to edit it in place using the quiet, wp-admin-native toolbar and shared controls panel (rename, icon, visibility, reset). A single admin-bar toggle enters and exits edit mode — labelled "Edit Menu" when idle and "Exit Menu Editor" while editing.
 2. The icon picker: searchable Dashicons and bundled Bootstrap Icons tabs for swapping a top-level admin menu icon.
-3. Visibility — open the selector to hide an item from selected roles or from named individuals, and (on an item with children) to hide its sub-items independently while the parent stays visible. Cosmetic declutter, not access control.
+3. Visibility — open the selector to hide an item from selected roles, named individuals or hiding profiles, and (on an item with children) to hide its sub-items independently while the parent stays visible. Cosmetic declutter, not access control.
 4. A renamed item showing the transient "Saved" state — the indicator auto-clears to idle once the autosave settles.
 5. Reordering a top-level menu group by dragging — a live sortable-helper shows the item in motion.
 6. Reordering a submenu item using the ▲/▼ move controls — the OS-independent, keyboard-accessible reorder path.
