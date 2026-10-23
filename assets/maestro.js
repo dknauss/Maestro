@@ -1649,6 +1649,9 @@
 			var row = el( 'section', 'maestro-profile' );
 			row.dataset.profileId = p.id;
 
+			var guidance = el( 'p', 'maestro-profile-guidance description', I.profileGuidance );
+			guidance.id = 'maestro-profile-guidance-' + p.id;
+
 			var head = el( 'div', 'maestro-profile-head' );
 			var name = el( 'input', 'maestro-profile-name' );
 			name.type = 'text';
@@ -1656,6 +1659,7 @@
 			name.dir = 'auto';
 			name.maxLength = limits.name;
 			name.setAttribute( 'aria-label', I.profileName );
+			name.setAttribute( 'aria-describedby', guidance.id );
 			name.setAttribute( 'autocomplete', 'off' );
 			head.appendChild( name );
 
@@ -1664,6 +1668,7 @@
 			iconButton( del, 'dashicons-trash', I.profileDelete.replace( '%s', function () { return p.name; } ) );
 			head.appendChild( del );
 			row.appendChild( head );
+			row.appendChild( guidance );
 
 			var picker = buildPersonPicker(
 				I.profileMembers.replace( '%s', function () { return p.name; } ),
@@ -1685,11 +1690,12 @@
 				var problem = window.maestroLogic.profileNameProblem( name.value, profiles, p.id );
 				if ( problem ) {
 					name.setAttribute( 'aria-invalid', 'true' );
-					name.setAttribute( 'aria-describedby', msg.id );
+					name.setAttribute( 'aria-describedby', guidance.id + ' ' + msg.id );
 					say( problemText( problem ) );
 					return;
 				}
 				name.removeAttribute( 'aria-invalid' );
+				name.setAttribute( 'aria-describedby', guidance.id );
 				say( '' );
 				p.name = name.value.trim();
 				var membersHead = picker.el.querySelector( '.maestro-vis-head' );
@@ -1704,6 +1710,7 @@
 				if ( 'true' === name.getAttribute( 'aria-invalid' ) ) {
 					name.value = p.name;
 					name.removeAttribute( 'aria-invalid' );
+					name.setAttribute( 'aria-describedby', guidance.id );
 					say( '' );
 				}
 			} );
@@ -3130,6 +3137,7 @@
 			{ text: I.tourStepSeparator, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.addSepBtn ); } },
 			// The edge handle only renders at 961px and wider (maestro.css).
 			{ text: I.tourStepWidth, placement: 'right', anchor: function () { return tourShown( widthHandle ); } },
+			{ text: I.tourStepProfiles, placement: 'top', anchor: function () { return tourShown( profilesBtn ); } },
 			{ text: I.tourStepSettings, placement: 'top', anchor: function () { return tourShown( document.querySelector( '.maestro-settings-btn' ) ); } },
 			{ text: I.tourStepHelp, placement: 'top', anchor: function () { return tourShown( document.querySelector( '.maestro-tour-help' ) ); } },
 			{ text: I.tourStep4, placement: 'top', anchor: function () { return tourShown( document.querySelector( '.maestro-reset-all' ) ); } },
