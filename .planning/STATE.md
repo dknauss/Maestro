@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: Client-Site Workflow
 status: in_progress
-stopped_at: "Phase 29 merged as #243 (c940902), including the role-limit fix; post-merge CI passed. Phase 27 verification landed through #242, superseding #241. Human acceptance for Phases 27/28/29 and real touch-device testing remain open. Phase 30 is blocked on D2."
+stopped_at: "Phase 29 merged as #243 (c940902), including the role-limit fix; post-merge CI passed. Phase 27 verification landed through #242, superseding #241. Desktop human checks for Phases 27/28/29 passed on 2026-10-23; real touch-device testing remains outstanding. Phase 30 is blocked on D2."
 last_updated: "2026-10-23T00:00:00.000Z"
-last_activity: "2026-10-23 — Reconciled main through c940902, confirmed #241 is superseded by #242, and recorded the remaining human checks and Phase 30 prerequisite."
+last_activity: "2026-10-23 — Recorded Dan's desktop sign-off on main 312c8b7 for Phases 27–29; touch-device acceptance remains open and D2 still blocks Phase 30."
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 2
   completed_plans: 2
-  percent: 0 # Human-accepted phases: 0/3; Phase 30/31 plan totals remain TBD.
+  percent: 0 # Fully accepted across devices: 0/3; Phase 30/31 plan totals remain TBD.
 ---
 
 # Project State
@@ -20,7 +20,9 @@ progress:
 
 See: .planning/PROJECT.md (updated 2026-07-03)
 
-**Current focus:** human acceptance and the Phase 30 design decision. Phase 29
+**Current focus:** outstanding touch-device acceptance and the Phase 30 design decision.
+Dan passed all desktop human checks for Phases 27–29 on 2026-10-23, using
+main `312c8b7` (#244); its [post-merge CI](https://github.com/dknauss/Maestro/actions/runs/39914443207) passed. Phase 29
 ("All other roles", #214) merged in #243 as `c940902`, including atomic refusal
 of over-limit bulk selections. [Post-merge CI](https://github.com/dknauss/Maestro/actions/runs/39909963498) passed. Phase 27's five plans are
 on main: #242 included the commits from #241, which is superseded. Phase 30
@@ -36,35 +38,37 @@ recorded above; this note is kept only to date the paragraph that follows it.
 ## Current Position
 
 Milestone: **v1.9 Client-Site Workflow**. Phase 29's two plans are built and
-merged; human acceptance is open. Phase 30/31 plans remain TBD, so the progress
-percentage tracks human-accepted phases (0/3), not the two known built plans.
+merged; desktop human checks passed, with touch-device acceptance open. Phase 30/31 plans remain TBD, so the progress
+percentage tracks phases fully accepted across devices (0/3), not the two known built plans.
 
 Phase 27: **5/5 plans built on main** — #230 decisions, #237 storage/compile,
 #238 runtime hiding, #240 privacy/member validation, #239 editor, and 27-05
-verification included by #242. ROLE-02 is complete in code; a human profile-flow
-pass is still owed. #241 is superseded by #242, not additional unmerged work.
+verification included by #242. ROLE-02 is complete in code; Dan passed the
+desktop profile-flow and short-viewport checks on 2026-10-23. Touch remains open. #241 is superseded by #242, not additional unmerged work.
 
-Phase 28: **implementation built, acceptance open**. Retain Dan's earlier
-available-core-scheme/width pass; the screenshot exceptions still need human
-rechecks. #234's tour navigation and #236's real Keel alignment fixes are merged.
+Phase 28: **implementation built, desktop checks passed; touch outstanding**.
+Retain Dan's earlier available-core-scheme/width pass; the narrow-toolbar,
+Arabic fallback and real Keel screenshot exceptions passed human rechecks on
+2026-10-23. #234's tour navigation and #236's real Keel alignment fixes are merged.
 
 Phase 29: **2/2 plans built and merged in #243**. The control skips the editor's
 own roles and locked child rows, explains and refuses selections beyond the
 server's 50-role cap, and allows clearing. Unit, both integration lanes, E2E,
-Plugin Check and post-merge CI passed; automation does not close human acceptance.
+Plugin Check and post-merge CI passed. Dan passed the real-site role comparison
+and screen-reader group-name/mixed-state checks on 2026-10-23; touch remains open.
 
 Release status checked 2026-10-23: #242 merged as `e1b4696`. v1.7.0 is the
 latest published GitHub Release; no v1.8.0 tag or published GitHub Release was
 found. WordPress.org deployment is not verified by this documentation update.
 
-### Remaining human acceptance
+### Desktop sign-off and remaining human acceptance
 
-| Area | Still open | Authoritative checklist |
+| Area | Acceptance status | Authoritative checklist |
 |---|---|---|
-| Phase 27 profiles | Create/assign a profile; verify a member loses the item and a same-role non-member keeps it; remove/re-add membership; check deletion counts and restoration; confirm direct URL access; check dialog/popover scrolling at a short laptop viewport. | [27-VERIFICATION.md](phases/27-cloned-role-hiding-profiles/27-VERIFICATION.md) |
-| Phase 28 layout | Populated narrow toolbar/responsive-menu interaction; English fallback direction in Arabic admin; real Keel width changes during edit mode, shrinking to Leave unchanged, then save/reload. Earlier core-scheme/width passes remain accepted; Modern is not a current core scheme. | [28-VERIFICATION.md](phases/28-configurable-admin-menu-width/28-VERIFICATION.md) |
-| Phase 29 select-all | On a real site, confirm another role's user loses an item while the editor keeps it; with a screen reader, check the group-specific accessible name and mixed-state announcement. D3 is already decided. | [29-VERIFICATION.md](phases/29-select-all-role-control/29-VERIFICATION.md) |
-| Actual touch hardware | Toolbar, dialogs and popovers on a real touch device. **Outstanding** across the affected checks; desktop emulation is not sign-off. | The three verification records above |
+| Phase 27 profiles | Desktop profile membership, same-role comparison, removal/re-addition, delete counts/restoration, direct URL and short-viewport scrolling passed 2026-10-23. Touch outstanding. | [27-VERIFICATION.md](phases/27-cloned-role-hiding-profiles/27-VERIFICATION.md) |
+| Phase 28 layout | Desktop narrow toolbar/responsive menu, Arabic fallback and real Keel live-width/save/reload rechecks passed 2026-10-23. Earlier core-scheme/width passes retained; Modern is not a current core scheme. Touch outstanding. | [28-VERIFICATION.md](phases/28-configurable-admin-menu-width/28-VERIFICATION.md) |
+| Phase 29 select-all | Real-site role comparison and desktop screen-reader group-name/mixed-state checks passed 2026-10-23. D3 already decided. Touch outstanding. | [29-VERIFICATION.md](phases/29-select-all-role-control/29-VERIFICATION.md) |
+| Actual touch hardware | Toolbar, dialogs and popovers on a real touch device. **Outstanding**; desktop sign-off and emulation do not complete it. | The three verification records above |
 
 ### Before Phase 30
 
@@ -72,8 +76,8 @@ found. WordPress.org deployment is not verified by this documentation update.
 viewer-only, subtract-only capability filter is permitted by the "never changes
 a capability" invariant, or requires a documented exception. Phase 30's planning
 checkpoint also settles super-admin handling and picker placement. These choices
-are not approved by green CI or by merging Phase 29. The human acceptance work
-above remains open; this update does not start Phase 30 or mark a phase complete.
+are not approved by green CI, merging Phase 29, or the desktop sign-off.
+Desktop acceptance above is recorded; real touch-device testing remains open; this update does not start Phase 30 or mark a phase complete.
 
 ### Historical position (the v1.5 cycle, written 2026-08-09)
 
@@ -629,7 +633,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-10-23
-Stopped at: #243 merged with post-merge CI green; #241 superseded by #242. Human checks for Phases 27/28/29 and real touch-device testing remain open. Phase 30 waits on D2.
+Stopped at: #244 merged as 312c8b7 with post-merge CI green. Dan passed desktop human checks for Phases 27/28/29 on 2026-10-23; real touch-device testing remains outstanding. Phase 30 waits on D2.
 
 **Earlier updates below are historical snapshots; the Current Position above is authoritative.**
 

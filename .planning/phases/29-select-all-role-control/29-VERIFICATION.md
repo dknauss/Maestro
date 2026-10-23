@@ -1,8 +1,21 @@
 # Phase 29 — Verification
 
-**Status: built; human check open.** Automated coverage is in
-[29-SUMMARY.md](29-SUMMARY.md). The phase closes when Dan has tried it in a
-browser. D3 (the tri-state checkbox) is confirmed.
+**Status: built; desktop human checks passed 2026-10-23.** Automated coverage
+is in [29-SUMMARY.md](29-SUMMARY.md). D3 (the tri-state checkbox) is confirmed.
+Real touch-device testing remains outstanding.
+
+## Desktop human sign-off — 2026-10-23
+
+Dan reported that all desktop human checks passed on the disposable Studio
+site prepared from main `312c8b7`: WordPress 7.1.3, PHP 8.4, SQLite,
+Keel 0.8.0 (main `7013953`, saved 240px baseline), and Arabic active.
+The site included an administrator, two Editors (profile member and same-role
+non-member), and an Author for the role comparison. This is Dan's human
+sign-off, separate from the automated evidence below. No browser or
+assistive-technology version was supplied.
+
+**Real touch-device testing remains outstanding.** Desktop sign-off does not
+complete that check or establish full acceptance across devices.
 
 ## Success criteria (ROADMAP)
 
@@ -15,14 +28,15 @@ browser. D3 (the tri-state checkbox) is confirmed.
 | 5 | Accessible name includes the group heading; the result is announced | e2e test 1 (`getByRole` by full name, recorded `wp.a11y.speak()`) |
 | 6 | Zero regression | local: unit, JS, e2e, WPCS, PHPStan, doc links; CI: both integration lanes, e2e, Plugin Check |
 
-## Human check — open
+## Human check — desktop passed
 
 - [x] D3 confirmed by Dan 2026-10-23: the tri-state checkbox reading "All
       other roles (not Administrator)".
-- [ ] On a real site, tick it on an item and confirm another role's user
+- [x] On a real site, tick it on an item and confirm another role's user
       loses the item while you keep it.
-- [ ] With a screen reader, the control reads with its group heading and the
+- [x] With a screen reader, the control reads with its group heading and the
       mixed state is announced as mixed.
+- [ ] Real touch-device testing of the role controls and Visibility popover.
 
 
 ## Role-limit review follow-up
@@ -41,4 +55,5 @@ retained entries, the exact boundary and clearing. The overflow unit cases and
 the browser refusal case failed before the fix.
 
 **Real touch-device testing remains outstanding.** Browser emulation and these
-automated checks do not close the human checks above or Phase 28 acceptance.
+automated checks are separate from Dan's desktop sign-off and do not complete
+touch-device acceptance.

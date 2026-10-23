@@ -1,13 +1,21 @@
 # Phase 27 — Verification
 
-**Status: code complete; human verification open.** All five plans are
-built: 27-01 decisions (#230), 27-02 storage and compile (#237), 27-03 hide
-seam and live membership (#238), the #240 privacy and member-validation
-follow-up, 27-04 editor (#239), and 27-05 (this plan: e2e, gate, docs). The
-phase closes when Dan has driven the profile flow in a browser himself and
-ticked the boxes below. **No human has signed off on Phase 27 yet.** The
-browser runs recorded here were driven by automation (Playwright), and are
-labelled as such.
+**Status: code complete; desktop human checks passed 2026-10-23.** All five
+plans are on main, including 27-05 through #242 (superseding #241).
+Real touch-device testing remains outstanding.
+
+## Desktop human sign-off — 2026-10-23
+
+Dan reported that all desktop human checks passed on the disposable Studio
+site prepared from main `312c8b7`: WordPress 7.1.3, PHP 8.4, SQLite,
+Keel 0.8.0 (main `7013953`, saved 240px baseline), and Arabic active.
+The site included an administrator, two Editors (profile member and same-role
+non-member), and an Author for the role comparison. This is Dan's human
+sign-off, separate from the automated evidence below. No browser or
+assistive-technology version was supplied.
+
+**Real touch-device testing remains outstanding.** Desktop sign-off does not
+complete that check or establish full acceptance across devices.
 
 ## What shipped
 
@@ -44,16 +52,16 @@ CI on `a9daf3d` (27-05, #241), all green: integration 202/202 single-site
 `hidden-profiles.spec.ts` tests; unit, JS, WPCS, PHPStan and Plugin Check on
 the runtime ZIP.
 
-## Human verification — open
+## Human verification — desktop passed; touch outstanding
 
-- [ ] Dan creates a profile, adds a person, ticks it on an item, and confirms
+- [x] Dan creates a profile, adds a person, ticks it on an item, and confirms
       in that person's own browser session that the item is gone.
-- [ ] A second person with the same role, not in the profile, still sees it.
-- [ ] Removing the person from the profile (no other change) brings the item
+- [x] A second person with the same role, not in the profile, still sees it.
+- [x] Removing the person from the profile (no other change) brings the item
       back on their next page load; adding them back hides it again.
-- [ ] Deleting the profile shows the affected counts, and the item returns.
-- [ ] The hidden page still opens by URL for the member.
-- [ ] The Visibility popover and the dialog are usable at a short laptop
+- [x] Deleting the profile shows the affected counts, and the item returns.
+- [x] The hidden page still opens by URL for the member.
+- [x] The Visibility popover and the dialog are usable at a short laptop
       viewport (they scroll inside themselves rather than leave the screen).
 - [ ] **Real touch-device testing** of the dialog and popover. Desktop
       emulation does not complete this check.
@@ -63,4 +71,4 @@ the runtime ZIP.
 Playwright, against a local WordPress 7.1.3 + SQLite site and against CI's
 wp-env, drove every step in the first five boxes above with separate
 authenticated sessions for the member and the bystander. That is evidence the
-code does what it says; it is not the human sign-off this phase needs.
+code does what it says; it is separate from Dan's desktop sign-off above.
