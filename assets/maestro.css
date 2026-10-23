@@ -464,6 +464,30 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 	outline: 2px solid #2271b1;
 	outline-offset: 1px;
 }
+/* Phase 29: "All other roles" sits above the role rows, set off by a rule so
+ * it reads as a control over the list rather than another role. */
+.maestro-vis-all {
+	margin-bottom: 3px;
+	padding-bottom: 6px;
+	border-bottom: 1px solid #f0f0f1;
+}
+.maestro-vis-all[hidden] { display: none; }
+/* Core styles checked checkboxes but not the mixed state, so a partly ticked
+ * group would look empty. Draw it the way the block editor does: the theme
+ * colour with a white bar. */
+.maestro-vis-row input.maestro-vis-all-cb:indeterminate {
+	background: var(--wp-admin-theme-color, #2271b1);
+	border-color: var(--wp-admin-theme-color, #2271b1);
+}
+.maestro-vis-row input.maestro-vis-all-cb:indeterminate::before {
+	content: "";
+	float: left;
+	width: 0.5rem;
+	height: 2px;
+	margin: calc(0.5rem - 2px) 0 0 calc(0.25rem - 1px);
+	background: #fff;
+}
+.maestro-vis-all-skips { color: #646970; }
 /* Each role-checkbox group ("Hide this item from:" / "Hide its sub-items
  * from:") is its own block; the heading (.maestro-vis-head) styling above
  * already applies inside each group. */
