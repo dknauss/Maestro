@@ -53,6 +53,17 @@ class Replay {
 	private $known_separators = array();
 
 	/**
+	 * The current user's hiding-profile IDs, memoized per user ID (Phase 27).
+	 *
+	 * Built on first use only, i.e. only once some item actually carries a
+	 * profile axis, so a site without profiles never pays for it. Keyed by user
+	 * ID so a mid-request wp_set_current_user() cannot read someone else's set.
+	 *
+	 * @var array<int, string[]>
+	 */
+	private $profile_ids_by_user = array();
+
+	/**
 	 * Store config and register admin_menu / menu_order hooks.
 	 *
 	 * @param Config $config Shared config instance.
@@ -236,6 +247,8 @@ class Replay {
 				// so it inherits the Axis-1 and Axis-2 guards above for free, and
 				// an ambiguous parent cascades nothing on either axis.
 				$parent_child_hidden_users = ( null !== $parent_ovr && ! empty( $parent_ovr['child_hidden_users'] ) ) ? $parent_ovr['child_hidden_users'] : array();
+				// Phase 27: and so does the profile child axis.
+				$parent_child_hidden_profiles = ( null !== $parent_ovr && ! empty( $parent_ovr['child_hidden_profiles'] ) ) ? $parent_ovr['child_hidden_profiles'] : array();
 
 				// Axis-2 collision guard for this parent's children: pre-scan before mutating.
 				$sub_rendered_matches  = array(); // bare normalized_key => first rendered slug matched.
@@ -367,11 +380,15 @@ class Replay {
 					// point, regardless of which axis matched.
 					$child_own_users = ( null !== $ovr && ! empty( $ovr['hidden_users'] ) ) ? $ovr['hidden_users'] : array();
 					$effective_users = Cascade::effective_hidden_users( $child_own_users, $parent_child_hidden_users );
-					if ( ( $effective_roles || $effective_users )
+					// Phase 27: the profile axis, the same way again.
+					$child_own_profiles = ( null !== $ovr && ! empty( $ovr['hidden_profiles'] ) ) ? $ovr['hidden_profiles'] : array();
+					$effective_profiles = Cascade::effective_hidden_profiles( $child_own_profiles, $parent_child_hidden_profiles );
+					if ( ( $effective_roles || $effective_users || $effective_profiles )
 						&& $this->is_hidden_for_current_user(
 							array(
-								'hidden_roles' => $effective_roles,
-								'hidden_users' => $effective_users,
+								'hidden_roles'    => $effective_roles,
+								'hidden_users'    => $effective_users,
+								'hidden_profiles' => $effective_profiles,
 							)
 						) ) {
 						unset( $submenu[ $parent ][ $pos ] ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: unsetting $submenu entries via admin_menu hook is the documented WP API for hiding menu items.
@@ -577,12 +594,13 @@ class Replay {
 	}
 
 	/**
-	 * Does the current user fall into a role OR a user this item is hidden from?
+	 * Does the current user fall into a role, a user OR a hiding profile this
+	 * item is hidden from?
 	 *
 	 * The single hide-resolution seam (feasibility note §2): one drop path, one
 	 * audit point. Deliberately structured as independent OR'd terms rather than
-	 * one fused condition, so ROLE-02's deferred `hidden_profiles` axis lands as a
-	 * third term rather than a rewrite.
+	 * one fused condition, which is why Phase 27's `hidden_profiles` axis landed
+	 * as a third term rather than a rewrite.
 	 *
 	 * PURELY COSMETIC: this decides only what a user SEES. It never calls
 	 * current_user_can() and never consults a capability — it matches stored
@@ -594,12 +612,13 @@ class Replay {
 	 * @return bool
 	 */
 	private function is_hidden_for_current_user( array $ovr ) {
-		$hidden_roles = empty( $ovr['hidden_roles'] ) ? array() : (array) $ovr['hidden_roles'];
-		$hidden_users = empty( $ovr['hidden_users'] ) ? array() : (array) $ovr['hidden_users'];
+		$hidden_roles    = empty( $ovr['hidden_roles'] ) ? array() : (array) $ovr['hidden_roles'];
+		$hidden_users    = empty( $ovr['hidden_users'] ) ? array() : (array) $ovr['hidden_users'];
+		$hidden_profiles = empty( $ovr['hidden_profiles'] ) ? array() : (array) $ovr['hidden_profiles'];
 
 		// No rule of any kind — the path every pre-ROLE-02 config takes. Costs
 		// nothing, and in particular never resolves the current user.
-		if ( ! $hidden_roles && ! $hidden_users ) {
+		if ( ! $hidden_roles && ! $hidden_users && ! $hidden_profiles ) {
 			return false;
 		}
 
@@ -631,11 +650,56 @@ class Replay {
 			return true;
 		}
 
-		// Term 3 — hidden_profiles (cloned-role half of ROLE-02) slots in here,
-		// resolving profile membership live. Deferred; see
-		// `.planning/todos/pending/2026-08-02-cloned-role-hiding-profiles.md`.
+		// Term 3 — hiding profiles (Phase 27, the cloned-role half of ROLE-02).
+		//
+		// Unlike Terms 1 and 2, the item's list does not name a property of the
+		// user: it names profiles, so membership has to be looked up. That is the
+		// ONLY thing read from the profiles map here (see current_profile_ids());
+		// which items a profile hides comes from the compiled item axis, through
+		// the same resolver as the other two axes. Membership is read live each
+		// request, so removing someone from a profile, or deleting the profile,
+		// takes effect without a re-save.
+		//
+		// Suspended in edit mode, with the same multisite super-admin exemption,
+		// for the same reason as Term 2: a profile can contain the admin who is
+		// editing, and hiding the row from them strands the rule.
+		if ( $hidden_profiles && ! is_edit_mode() && ! $this->is_exempt_from_user_axis( $user )
+			&& array_intersect( $hidden_profiles, $this->current_profile_ids( $user ) ) ) {
+			return true;
+		}
 
 		return false;
+	}
+
+	/**
+	 * The IDs of every hiding profile the given user currently belongs to.
+	 * (Phase 27)
+	 *
+	 * Read from the stored profiles map's member lists, once per user per
+	 * request. A member ID whose account has been deleted simply never matches,
+	 * and a deleted profile is simply absent, which is what makes stale
+	 * references on an item self-heal without a save.
+	 *
+	 * @param \WP_User $user Current user.
+	 * @return string[]
+	 */
+	private function current_profile_ids( $user ) {
+		$uid = (int) $user->ID;
+		if ( isset( $this->profile_ids_by_user[ $uid ] ) ) {
+			return $this->profile_ids_by_user[ $uid ];
+		}
+
+		$cfg      = $this->config->get();
+		$profiles = ( ! empty( $cfg['profiles'] ) && is_array( $cfg['profiles'] ) ) ? $cfg['profiles'] : array();
+		$ids      = array();
+		foreach ( $profiles as $id => $profile ) {
+			if ( ! empty( $profile['users'] ) && in_array( $uid, array_map( 'intval', (array) $profile['users'] ), true ) ) {
+				$ids[] = (string) $id;
+			}
+		}
+
+		$this->profile_ids_by_user[ $uid ] = $ids;
+		return $ids;
 	}
 
 	/**

@@ -71,6 +71,22 @@ class Cascade {
 	}
 
 	/**
+	 * Compute the effective hidden-PROFILES list for a child menu item
+	 * (Phase 27), given its own compiled hidden_profiles and its parent's
+	 * child_hidden_profiles. Same semantics as the other two axes.
+	 *
+	 * PURE VISIBILITY ONLY: merges two profile-ID lists, never touches a
+	 * capability.
+	 *
+	 * @param array $child_hidden_profiles        The child's own hidden_profiles (may be empty).
+	 * @param array $parent_child_hidden_profiles The parent's child_hidden_profiles (may be empty).
+	 * @return array Effective hidden-profiles list for the child (deduplicated, reindexed).
+	 */
+	public static function effective_hidden_profiles( array $child_hidden_profiles, array $parent_child_hidden_profiles ) {
+		return self::merge_lists( $child_hidden_profiles, $parent_child_hidden_profiles );
+	}
+
+	/**
 	 * The union itself — type-agnostic by construction.
 	 *
 	 * It never inspects what its members mean, which is exactly why the same
