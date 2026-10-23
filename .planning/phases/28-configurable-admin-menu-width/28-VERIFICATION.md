@@ -163,7 +163,7 @@ Dan supplied functional successes and mobile usability findings. See the
 [consolidated touch results and remaining checks](../../TOUCH-DEVICE-CHECKLIST.md#dans-reported-touch-results--2026-10-23).
 Small targets/accidental dismissal, cramped dialogs, keyboard obstruction and
 three-tip tour coverage remain unresolved. Role mixed-state/locked-row checks,
-exact commit and OS/browser versions remain unrecorded. Dan identifies current
-main in Playground on iPhone 17 and confirms Arabic/English parity; no RTL-specific
+exact commit remains unrecorded. Dan identifies current main in Playground on
+iPhone 17, Safari on iOS 26.6.2, and confirms Arabic/English parity; no RTL-specific
 regression was reported. Real Keel mobile interaction was not tested. This report does not close touch acceptance
 or replace the earlier desktop sign-off.

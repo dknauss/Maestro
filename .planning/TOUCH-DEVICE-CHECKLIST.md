@@ -3,7 +3,8 @@
 **Status: partial human results recorded; acceptance remains open.** Use actual
 hardware; desktop emulation and automated browser results do not complete these
 checks. Dan supplied item-level findings on 2026-10-23. Dan identifies the device as iPhone 17 and the tested source as current main
-in WordPress Playground. Exact commit and OS/browser versions were not captured.
+in WordPress Playground, using Safari on iOS 26.6.2 (reported by Dan). Exact
+commit and separate Safari version were not captured.
 Retain the accepted desktop checks in the three phase verification records.
 
 Record tester, date, Maestro commit/version, device, OS/browser versions, admin
@@ -35,10 +36,12 @@ unavailable desktop-only control as not applicable, rather than a pass.
 
 ## Dan's reported touch results — 2026-10-23
 
-Dan reports testing current main in WordPress Playground on an iPhone 17.
+Dan reports testing current main in WordPress Playground on an iPhone 17,
+using Safari on iOS 26.6.2.
 The supplied screenshot shows the older Hiding profiles title and introduction;
 no exact commit was captured to resolve that wording discrepancy. #250's renamed
-UI is not yet merged. Do not infer an OS/browser version from the image.
+UI is not yet merged. Device/software details are Dan's report, not inferred
+from the image.
 
 | Area | Reported result | Remaining acceptance |
 |---|---|---|
