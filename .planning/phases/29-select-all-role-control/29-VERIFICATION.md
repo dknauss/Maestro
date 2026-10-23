@@ -57,3 +57,13 @@ the browser refusal case failed before the fix.
 **Real touch-device testing remains outstanding.** Browser emulation and these
 automated checks are separate from Dan's desktop sign-off and do not complete
 touch-device acceptance.
+
+## Partial real touch-device report — 2026-10-23
+
+Dan supplied functional successes and mobile usability findings. See the
+[consolidated touch results and remaining checks](../../TOUCH-DEVICE-CHECKLIST.md#dans-reported-touch-results--2026-10-23).
+Small targets/accidental dismissal, cramped dialogs, keyboard obstruction and
+three-tip tour coverage remain unresolved. Role mixed-state/locked-row checks,
+RTL wording clarification and exact device/build details remain open; real Keel
+mobile interaction was not tested. This report does not close touch acceptance
+or replace the earlier desktop sign-off.

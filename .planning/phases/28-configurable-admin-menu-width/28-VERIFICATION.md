@@ -156,3 +156,13 @@ JavaScript tests: 99/99; doc links and JavaScript syntax pass.
 
 **Desktop human rechecks passed 2026-10-23; real touch-device testing remains outstanding.**
 The automated tour evidence above is separate from that human sign-off.
+
+## Partial real touch-device report — 2026-10-23
+
+Dan supplied functional successes and mobile usability findings. See the
+[consolidated touch results and remaining checks](../../TOUCH-DEVICE-CHECKLIST.md#dans-reported-touch-results--2026-10-23).
+Small targets/accidental dismissal, cramped dialogs, keyboard obstruction and
+three-tip tour coverage remain unresolved. Role mixed-state/locked-row checks,
+RTL wording clarification and exact device/build details remain open; real Keel
+mobile interaction was not tested. This report does not close touch acceptance
+or replace the earlier desktop sign-off.
