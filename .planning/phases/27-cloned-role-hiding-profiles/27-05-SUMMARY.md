@@ -32,7 +32,8 @@ them in wp-env.
 Local, at this branch's head:
 
 - unit 221/221 (540 assertions), JS 123/123, phpcs clean, PHPStan clean, doc
-  links clean;
+  links clean.
+
 CI on `a9daf3d` (this PR's code head; later commits only record these
 numbers), every check green:
 
