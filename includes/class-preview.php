@@ -143,7 +143,9 @@ class Preview {
 	 * The order matters only for which reason is reported; any failure refuses.
 	 *
 	 * @param array $request The request args (normally $_GET).
-	 * @param array $env     The checks, each already resolved by the caller. {
+	 * @param array $env {
+	 *     The checks, each already resolved by the caller.
+	 *
 	 *     @type bool     $admin_page Ordinary wp-admin page load (not AJAX, REST or cron).
 	 *     @type bool     $site_admin A site's own admin, not network or user admin.
 	 *     @type bool     $dashboard  The page is the Dashboard (index.php).
