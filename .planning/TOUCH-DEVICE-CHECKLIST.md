@@ -2,8 +2,8 @@
 
 **Status: partial human results recorded; acceptance remains open.** Use actual
 hardware; desktop emulation and automated browser results do not complete these
-checks. Dan supplied item-level findings on 2026-10-23. Device, OS/browser and
-exact tested build are not yet confirmed.
+checks. Dan supplied item-level findings on 2026-10-23. Dan identifies the device as iPhone 17 and the tested source as current main
+in WordPress Playground. Exact commit and OS/browser versions were not captured.
 Retain the accepted desktop checks in the three phase verification records.
 
 Record tester, date, Maestro commit/version, device, OS/browser versions, admin
@@ -25,7 +25,7 @@ unavailable desktop-only control as not applicable, rather than a pass.
   partial selections show mixed state and locked rows retain their behavior.
 - [ ] **Tour:** Next, Back, Skip and Done work at narrow widths; coachmarks stay
   on screen and skip unavailable controls in both directions.
-- [ ] **Arabic/RTL:** repeat key toolbar, dialog and group interactions in an
+- [x] **Arabic/RTL:** repeat key toolbar, dialog and group interactions in an
   actual Arabic admin. Check alignment, English fallback punctuation and tour
   counters.
 - [ ] **Width controls where available:** drag the edge handle and use the
@@ -35,9 +35,10 @@ unavailable desktop-only control as not applicable, rather than a pass.
 
 ## Dan's reported touch results — 2026-10-23
 
-The screenshot shows WordPress Playground on a phone, with the older Hiding
-profiles title and introduction. It does not establish testing of #249's new
-guidance or #250's renamed UI. Do not infer an exact build or OS/browser version.
+Dan reports testing current main in WordPress Playground on an iPhone 17.
+The supplied screenshot shows the older Hiding profiles title and introduction;
+no exact commit was captured to resolve that wording discrepancy. #250's renamed
+UI is not yet merged. Do not infer an OS/browser version from the image.
 
 | Area | Reported result | Remaining acceptance |
 |---|---|---|
@@ -46,13 +47,13 @@ guidance or #250's renamed UI. Do not infer an exact build or OS/browser version
 | Visibility groups | Create, search, add/remove people, rename, assign and reload passed. | On-screen keyboard often obscures inputs/actions; keyboard usability remains open. |
 | Role controls | Select and clear All other roles passed. | Both role sections, partial/mixed state and derived locked child rows need the directed checks below. |
 | Tour | Next, Back, Skip and Done work; only three tips appeared. | Investigate step coverage on the tested build, then recheck current build. Three tips is not accepted as complete current-tour coverage. |
-| Arabic/RTL | Dan wrote “seems fine -- now worse than english.” | Clarify whether “no worse” was intended; no final RTL pass inferred. |
+| Arabic/RTL | Dan clarified: “It works in Arabic as well as it does in english.” | RTL parity passed on the tested device/build; the shared mobile usability issues still apply. |
 | Width | Handle and slider/number field unavailable at the small screen size. | Mark those desktop-only interactions not applicable at this viewport, rather than failed. Real Keel mobile interaction was not tested. |
 
 The screenshot also shows a native delete confirmation with item/person counts;
 no completed deletion result is inferred from that image alone. Earlier desktop
-acceptance is retained. All compound touch checkboxes above remain open until
-their defects and missing checks are resolved.
+acceptance is retained. The RTL parity checkbox is passed on Dan's report. Other compound touch
+checkboxes remain open until their defects and missing checks are resolved.
 
 ## Directed role-control checks
 
