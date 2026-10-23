@@ -129,7 +129,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | REL-10 | Phase 24 | ✅ Complete 2026-08-04 (v1.4.0; patch v1.4.1 2026-08-05) |
 | REL-11 | Phase 26 (v1.5) | ✅ Complete 2026-08-09 (tag v1.5.0 on 694b1bf; SVN verified) |
 | UX-14 | Phase 29 (v1.9) | Built, awaiting verification |
-| ROLE-03 | Phase 30 (v1.7) | Pending — blocked on the capability-principle decision |
+| ROLE-03 | Phase 30 (v1.7) | Built 2026-10-23 (30-01 #248, 30-02); awaiting deep review |
 | PORT-01 | Phase 31 (v1.7) | Pending |
 | PORT-02 | Phase 31 (v1.7) | Pending |
 

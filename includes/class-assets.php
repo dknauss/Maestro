@@ -243,6 +243,15 @@ class Assets {
 					'name'     => Config::MAX_PROFILE_NAME_CHARS,
 				),
 				'roles'           => wp_roles()->get_names(),
+				// Phase 30: role preview. The editor navigates to url with
+				// maestro_preview=<role> and this nonce once any pending save has
+				// landed. Super admins get the explanation instead of the picker.
+				'preview'         => array(
+					'url'       => admin_url( 'index.php' ),
+					'nonce'     => wp_create_nonce( Preview::ACTION ),
+					'available' => Preview::available(),
+					'roles'     => Preview::previewable_roles(),
+				),
 				'iconSets'        => $this->icon_sets(),
 				'config'          => $this->editor_config(),
 				'menu'            => $this->replay->get_menu_model(),
@@ -347,6 +356,11 @@ class Assets {
 					'profileAdded'         => __( 'Profile added', 'maestro-menu-editor' ),
 					/* translators: Screen-reader announcement after a hiding profile is deleted. */
 					'profileDeleted'       => __( 'Profile deleted', 'maestro-menu-editor' ),
+					/* translators: Label for the role picker that previews the menu as another role. */
+					'previewAs'            => __( 'Preview as', 'maestro-menu-editor' ),
+					'previewBtn'           => __( 'Preview', 'maestro-menu-editor' ),
+					'previewUnavailable'   => __( 'Role preview is not available to network super admins: WordPress grants them every capability, so their menu cannot be narrowed to a role.', 'maestro-menu-editor' ),
+					'previewSaveFailed'    => __( 'Your latest changes could not be saved, so the preview did not open. Try again once they are saved.', 'maestro-menu-editor' ),
 					'confirmAll'           => __( 'Reset ALL menu customizations to WordPress defaults? This cannot be undone.', 'maestro-menu-editor' ),
 					'drag'                 => __( 'Drag to reorder', 'maestro-menu-editor' ),
 					/* translators: 1: item title, 2: direction ("up"/"down"), 3: new position number, 4: total items. */

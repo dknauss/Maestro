@@ -875,6 +875,25 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 	padding-inline-start: 12px;
 	border-inline-start: 1px solid #3c434a; /* subtle zone divider (mirrors panel separator) */
 }
+/* Role preview picker (Phase 30). Native select + explicit button. */
+.maestro-preview-picker {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+.maestro-preview-label,
+.maestro-preview-unavailable {
+	color: #f0f0f1;
+	white-space: nowrap;
+}
+.maestro-preview-unavailable {
+	font-size: 12px;
+	max-width: 22em;
+	white-space: normal;
+}
+.maestro-preview-select {
+	max-width: 12em;
+}
 /* (Reset All shares the unified control box near the top of this file. Exit
  * lives on the WP Toolbar admin-bar toggle, not this right-side group — UX-09.) */
 

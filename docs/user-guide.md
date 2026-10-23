@@ -81,6 +81,32 @@ Visibility settings are global. If an item is hidden from the Author role, it is
 hidden from all Author users. Custom roles registered by other plugins appear in
 the same control.
 
+## Preview The Menu As A Role
+
+To check what a role still sees, pick it under **Preview as** in the editor
+toolbar and press **Preview**. Maestro saves anything still pending first; if
+the save fails, the preview does not open.
+
+The Dashboard then shows the menu that role gets, with your rules for that role
+applied, under a "Previewing menu as Editor — read-only" banner. Use the
+banner's picker to try another role, and **Exit preview** (in the banner or the
+WordPress toolbar) to go back to editing. Nothing can be changed or saved while
+previewing, and you stay signed in as yourself.
+
+The preview is an approximation. It narrows your own capabilities to the
+role's while the menu is built, then hands them back, so the page itself still
+opens as you. It does not show:
+
+- rules for specific people or hiding profiles;
+- capabilities given to an individual user rather than to their role;
+- people who hold more than one role;
+- plugins that build their menu from the user's ID rather than capabilities.
+
+The preview runs on the Dashboard only, and only for roles that can reach the
+admin (`read`). Network super admins on multisite cannot preview: WordPress
+grants them every capability before any filter can narrow it. Use a site
+administrator account to preview that site's roles.
+
 ## Visibility Is Not Access Control
 
 Role visibility only declutters the menu. It does not prevent access to the

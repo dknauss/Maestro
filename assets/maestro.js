@@ -38,6 +38,7 @@
 	var saveInFlight = false;  // a full-replace POST is currently running
 	var savePending = false;   // another change arrived mid-flight; save again on land
 	var inFlight = null;       // promise that settles when the whole save chain is done
+	var lastSaveOk = true;     // outcome of the last settled save (role preview waits on it)
 	var savedClearTimer = null; // reverts the transient "Saved" tile back to idle
 	var groupIdSeq = 0;    // monotonic counter for unique role-group heading ids
 	// Core/plugin separators the user removed. A removed row is not rendered,
@@ -991,6 +992,8 @@
 			profilesBtn.addEventListener( 'click', function () { openProfiles( profilesBtn ); } );
 			right.appendChild( profilesBtn );
 		}
+		var preview = buildPreviewPicker();
+		if ( preview ) { right.appendChild( preview ); }
 		right.appendChild( settings );
 		right.appendChild( help );
 		right.appendChild( resetAll );
@@ -3029,6 +3032,7 @@
 			savePending = false;
 			return doAutosave(); // captures edits made while the last POST was in flight
 		}
+		lastSaveOk = ok;
 		setStatus( ok ? 'saved' : 'error' );
 		inFlight = null;
 		// The "Saved" tile is transient — fade it back to idle so the toolbar
@@ -3044,6 +3048,61 @@
 			}, 2000 );
 		}
 		return null;
+	}
+
+	/*
+	 * Read-only role preview (Phase 30, ROLE-03; 30-CONTEXT.md). A labelled
+	 * native select and an explicit Preview button: choosing a role does
+	 * nothing until the button is pressed. The preview opens on the Dashboard
+	 * (see class-preview.php for why), and only once every pending save has
+	 * landed, so what is previewed is what is stored. A failed save keeps the
+	 * user here with the error rather than previewing stale rules.
+	 */
+	function buildPreviewPicker() {
+		var P = D.preview;
+		if ( ! P ) { return null; }
+		var wrap = el( 'div', 'maestro-preview-picker' );
+
+		if ( ! P.available ) {
+			var note = el( 'span', 'maestro-preview-unavailable', I.previewUnavailable );
+			wrap.appendChild( note );
+			return wrap;
+		}
+
+		var label = el( 'label', 'maestro-preview-label', I.previewAs );
+		label.setAttribute( 'for', 'maestro-preview-select' );
+		var select = el( 'select', 'maestro-preview-select' );
+		select.id = 'maestro-preview-select';
+		Object.keys( P.roles || {} ).forEach( function ( key ) {
+			var opt = el( 'option', '', P.roles[ key ] );
+			opt.value = key;
+			select.appendChild( opt );
+		} );
+		var go = el( 'button', 'button maestro-preview-btn', I.previewBtn );
+		go.type = 'button';
+		go.addEventListener( 'click', function () {
+			if ( ! select.value ) { return; }
+			go.disabled = true;
+			waitForSaveIdle().then( function () {
+				if ( ! lastSaveOk ) {
+					go.disabled = false;
+					setStatus( 'error' );
+					go.title = I.previewSaveFailed;
+					speak( I.previewSaveFailed, 'assertive' );
+					return;
+				}
+				var url = P.url +
+					( P.url.indexOf( '?' ) === -1 ? '?' : '&' ) +
+					'maestro_preview=' + encodeURIComponent( select.value ) +
+					'&maestro_preview_nonce=' + encodeURIComponent( P.nonce );
+				window.location.assign( url );
+			} );
+		} );
+
+		wrap.appendChild( label );
+		wrap.appendChild( select );
+		wrap.appendChild( go );
+		return wrap;
 	}
 
 	function waitForSaveIdle() {

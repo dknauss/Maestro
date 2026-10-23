@@ -74,6 +74,16 @@ bookmarking its URL. Real access is governed by each page's registered capabilit
 Everyone. Maestro stores one global configuration that applies to all users. *Visibility* is the exception: you can hide items from chosen roles, or from
 named individuals, so what each person sees can differ. The rename/reorder/icon changes themselves are global.
 
+= Can I see the menu the way an Editor would? =
+
+Yes. In the editor toolbar, pick a role under **Preview as** and press
+**Preview**. The Dashboard shows that role's menu, with your rules for the role
+applied, under a read-only banner with **Exit preview**. You stay signed in as
+yourself and nothing is saved. It is an approximation: rules for specific
+people or profiles, capabilities given to individual users, people with several
+roles, and plugins that check the user directly can differ. Network super
+admins on multisite cannot preview.
+
 = Can I hide something from just one person? =
 
 Yes. Alongside the role lists, the visibility popover has a search box for

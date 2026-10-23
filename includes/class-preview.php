@@ -105,6 +105,117 @@ class Preview {
 		add_action( 'auth_redirect', array( $this, 'begin' ), PHP_INT_MAX );
 		add_filter( 'custom_menu_order', array( $this, 'end_at_menu_order' ), PHP_INT_MAX );
 		add_action( 'admin_init', array( $this, 'end' ), PHP_INT_MIN );
+		add_action( 'in_admin_header', array( $this, 'render_banner' ) );
+		add_action( 'admin_notices', array( $this, 'render_refusal' ) );
+	}
+
+	/**
+	 * Roles that can be previewed: those that hold `read` (see validate()).
+	 *
+	 * @return array<string, string> role key => translated name, in site order.
+	 */
+	public static function previewable_roles() {
+		$out = array();
+		foreach ( wp_roles()->roles as $key => $data ) {
+			if ( ! empty( $data['capabilities']['read'] ) ) {
+				$out[ $key ] = translate_user_role( $data['name'] );
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * Whether the current user may start a preview at all. Multisite super
+	 * admins may not (30-CONTEXT.md); the editor explains why instead.
+	 *
+	 * @return bool
+	 */
+	public static function available() {
+		return ! ( is_multisite() && is_super_admin() );
+	}
+
+	/**
+	 * The Dashboard URL that previews a role, with a fresh nonce.
+	 *
+	 * @param string $role Role key.
+	 * @return string
+	 */
+	public static function url( $role ) {
+		return add_query_arg(
+			array(
+				self::QUERY => rawurlencode( $role ),
+				self::NONCE => wp_create_nonce( self::ACTION ),
+			),
+			admin_url( 'index.php' )
+		);
+	}
+
+	/**
+	 * Where Exit preview goes: the Dashboard, back in edit mode.
+	 *
+	 * @return string
+	 */
+	public static function exit_url() {
+		return add_query_arg( 'maestro_edit', '1', admin_url( 'index.php' ) );
+	}
+
+	/**
+	 * The banner shown for the whole preview. Rendered by PHP after the window
+	 * has closed, so it uses the viewer's real capabilities and is there even
+	 * when the previewed role cannot reach Maestro. The role picker is a plain
+	 * GET form carrying the nonce; no script is needed.
+	 *
+	 * @return void
+	 */
+	public function render_banner() {
+		if ( null === self::$role || ! current_user_can( capability() ) ) {
+			return;
+		}
+
+		$roles = self::previewable_roles();
+		$name  = isset( $roles[ self::$role ] ) ? $roles[ self::$role ] : self::$role;
+		?>
+		<div class="notice notice-info inline maestro-preview-banner" role="region" aria-labelledby="maestro-preview-title" style="margin:10px 20px 0 2px;">
+			<p id="maestro-preview-title"><strong>
+				<?php
+				/* translators: %s: role name, such as "Editor". */
+				echo esc_html( sprintf( __( 'Previewing menu as %s — read-only', 'maestro-menu-editor' ), $name ) );
+				?>
+			</strong></p>
+			<p><?php esc_html_e( 'This is the menu WordPress and your plugins build for this role, with Maestro’s rules for the role applied. It is an approximation: rules for specific people or hiding profiles, capabilities given to individual users, people with more than one role, and plugins that check the user directly can differ. Pages still open as you.', 'maestro-menu-editor' ); ?></p>
+			<form method="get" action="<?php echo esc_url( admin_url( 'index.php' ) ); ?>" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px;">
+				<label for="maestro-preview-role"><?php esc_html_e( 'Preview as', 'maestro-menu-editor' ); ?></label>
+				<select id="maestro-preview-role" name="<?php echo esc_attr( self::QUERY ); ?>">
+					<?php foreach ( $roles as $key => $label ) : ?>
+						<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $key, self::$role ); ?>><?php echo esc_html( $label ); ?></option>
+					<?php endforeach; ?>
+				</select>
+				<input type="hidden" name="<?php echo esc_attr( self::NONCE ); ?>" value="<?php echo esc_attr( wp_create_nonce( self::ACTION ) ); ?>" />
+				<button type="submit" class="button"><?php esc_html_e( 'Preview', 'maestro-menu-editor' ); ?></button>
+				<a class="button button-primary maestro-preview-exit" href="<?php echo esc_url( self::exit_url() ); ?>"><?php esc_html_e( 'Exit preview', 'maestro-menu-editor' ); ?></a>
+			</form>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Say why a preview request was refused, when the viewer could have
+	 * previewed. Someone without Maestro's capability is told nothing.
+	 *
+	 * @return void
+	 */
+	public function render_refusal() {
+		$messages = array(
+			'bad_nonce'        => __( 'That role preview link has expired. Choose the role again from the menu editor.', 'maestro-menu-editor' ),
+			'unknown_role'     => __( 'That role cannot be previewed on this site.', 'maestro-menu-editor' ),
+			'role_cannot_read' => __( 'That role has no access to the WordPress admin, so there is no menu to preview.', 'maestro-menu-editor' ),
+			'super_admin'      => __( 'Role preview is not available to network super admins. Use a site administrator account to preview this site’s roles.', 'maestro-menu-editor' ),
+			'not_dashboard'    => __( 'Role preview runs on the Dashboard. Choose the role again from the menu editor.', 'maestro-menu-editor' ),
+		);
+		if ( null === self::$refused || ! isset( $messages[ self::$refused ] ) ) {
+			return;
+		}
+		printf( '<div class="notice notice-warning maestro-preview-refused"><p>%s</p></div>', esc_html( $messages[ self::$refused ] ) );
 	}
 
 	/**
