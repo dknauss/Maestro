@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Hiding profiles
 status: in_progress
-stopped_at: "Phase 27 code complete: 27-01..05 (#230/#237/#238/#239/#240, 27-05 in review). ROLE-02 complete in code. Awaiting Dan's hands-on Phase 27 verification; Phase 28 human rechecks and real touch-device testing remain outstanding."
+stopped_at: "v1.8.0 release PR open, stacked on #241 (27-05). Merging it tags v1.8.0; the WordPress.org deploy then waits for approval. It stays a draft until #241 merges and Dan has done the Phase 27 hands-on checks in 27-VERIFICATION.md. v1.7.0 was tagged and its GitHub Release published 2026-10-23. Phase 28 human rechecks and real touch-device testing remain outstanding."
 last_updated: "2026-10-23T00:00:00.000Z"
-last_activity: "2026-10-23 — 27-04 editor merged (#239) after review fixes (for_editor() in the localized config; profile IDs never reused). 27-05 adds hidden-profiles.spec.ts, docs, and closes ROLE-02."
+last_activity: "2026-10-23 — 27-04 editor merged (#239) after review fixes; 27-05 (#241) adds hidden-profiles.spec.ts, docs, and closes ROLE-02. v1.8.0 release PR opened: version bump, changelog covering #234/#237/#238/#239/#240/#241, Upgrade Notice, regenerated .pot, recaptured directory screenshots (screenshot 3 now shows the profile groups)."
 progress:
   total_phases: 2
   completed_phases: 0
@@ -24,8 +24,8 @@ See: .planning/PROJECT.md (updated 2026-07-03)
 27-01 decisions (#230), 27-02 storage/compile (#237), 27-03 runtime hiding
 (#238), #240 privacy and member validation, 27-04 editor (#239), and 27-05
 (e2e, gate, docs, ROLE-02 closed). The phase closes on Dan's hands-on run in
-`27-VERIFICATION.md`. Release sequence: width v1.7.0 (tag still to push),
-profiles v1.8, Client-Site Workflow v1.9. Phase 28 affected human rechecks and
+`27-VERIFICATION.md`. Release sequence: width v1.7.0 (tagged and released
+2026-10-23), profiles v1.8 (release PR open), Client-Site Workflow v1.9. Phase 28 affected human rechecks and
 **real touch-device testing remain outstanding**.
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
