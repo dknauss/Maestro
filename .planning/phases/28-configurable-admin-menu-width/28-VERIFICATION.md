@@ -1,10 +1,21 @@
 # Phase 28 — Verification
 
-**Status: implementation built; human acceptance remains open.** The initial
-2026-10-22 sign-off was qualified by Dan's screenshots. #235 addressed narrow
-layout, English fallback direction and width-control feedback; the follow-up
-below fixes the remaining real Keel submenu alignment. **Real touch-device
-testing is still outstanding.** Phase 27 has not started in this work.
+**Status: implementation built; desktop human checks passed 2026-10-23.**
+Dan's desktop recheck closes the narrow-toolbar, Arabic fallback and real Keel
+live-width exceptions. Real touch-device testing remains outstanding.
+
+## Desktop human sign-off — 2026-10-23
+
+Dan reported that all desktop human checks passed on the disposable Studio
+site prepared from main `312c8b7`: WordPress 7.1.3, PHP 8.4, SQLite,
+Keel 0.8.0 (main `7013953`, saved 240px baseline), and Arabic active.
+The site included an administrator, two Editors (profile member and same-role
+non-member), and an Author for the role comparison. This is Dan's human
+sign-off, separate from the automated evidence below. No browser or
+assistive-technology version was supplied.
+
+**Real touch-device testing remains outstanding.** Desktop sign-off does not
+complete that check or establish full acceptance across devices.
 
 ## Measured always-loaded cost (28-02)
 
@@ -38,7 +49,7 @@ all** clears it along with everything else.
 | Integration | `MenuWidthAssetTest` (single-site and multisite lanes) |
 | e2e | `menu-width-measured.spec.ts`, `menu-width-stored.spec.ts`, `menu-width.spec.ts` |
 
-## Human acceptance — retained passes and outstanding follow-ups
+## Human acceptance — desktop passed; touch outstanding
 
 Dan initially passed the available core colour schemes and widths, then
 qualified the overall sign-off with screenshots of three exceptions. Modern
@@ -47,10 +58,10 @@ Historical `modern` measurements do not establish current core-scheme coverage.
 
 - [x] Available core colour schemes and several widths, browsing and editing —
       accepted by Dan on 2026-10-22.
-- [ ] A person rechecks the narrow toolbar after #235, including populated
+- [x] Dan rechecked the narrow toolbar after #235, including populated
       controls at wrapping boundaries and responsive menu interaction.
-- [ ] A person rechecks English fallback direction in an Arabic admin after #235.
-- [ ] A person rechecks real Keel's width slider while Maestro edit mode is on,
+- [x] Dan rechecked English fallback direction in an Arabic admin after #235.
+- [x] Dan rechecked real Keel's width slider while Maestro edit mode is on,
       including shrinking to Leave unchanged and saving/reloading.
 - [ ] **Real touch-device testing remains outstanding.** Desktop emulation and
       automated screenshots do not complete this check.
@@ -74,8 +85,8 @@ The prior mobile visibility
 failures were investigated; assertions now check the visible menu, not its
 wrapper, and real settings-input clicks exposed and verified the containment fix.
 
-**Human acceptance remains open** as detailed above; the width todo stays
-pending. Automated evidence does not replace the outstanding person-only checks.
+**Historical lab status:** human rechecks were open at this point. Dan's
+2026-10-23 sign-off above now closes the desktop checks; touch remains open.
 
 ## Acceptance exceptions and fixes — 2026-10-22 (afternoon)
 
@@ -96,12 +107,12 @@ RTL was exercised by switching the page to RTL, not with installed Arabic
 translations, and Keel's live preview was reproduced with an injected
 `!important` width, not real Keel.
 
-**Still outstanding:**
+**Acceptance update — 2026-10-23:**
 
 - [ ] Real touch-device testing (Dan's call to keep it open).
-- [ ] A person re-checks the three exceptions above on a real site: narrow
+- [x] Dan rechecked the three exceptions above on a real site: narrow
       toolbar, Arabic admin, and real Keel's slider moved during edit mode.
-- [ ] The affected person-only checks above stay open; the earlier core colour-scheme/width pass is retained.
+- [x] Desktop checks above passed; the earlier core colour-scheme/width pass is retained.
 
 ## Remaining Keel alignment — follow-up to merged #235
 
@@ -130,7 +141,7 @@ those states aligned rather than changing Keel's preview semantics.
 
 Evidence retained locally in `/Users/dan-knauss/.cache/maestro-keel-review/`:
 `before.log`, `after.log`, `real-results.json` and `real-unchanged.png`.
-**Real touch-device testing and the affected human rechecks remain open.**
+**Desktop human rechecks passed 2026-10-23; real touch-device testing remains open.**
 
 
 ## Tour navigation follow-up — PR #234
@@ -143,5 +154,5 @@ across the hidden width step, forward traversal, return to the first step,
 Back disabled there, and Escape. The existing 12-step desktop tour also passes;
 JavaScript tests: 99/99; doc links and JavaScript syntax pass.
 
-**Real touch-device testing and the affected human rechecks remain outstanding.**
-These desktop browser checks do not close Phase 28 acceptance.
+**Desktop human rechecks passed 2026-10-23; real touch-device testing remains outstanding.**
+The automated tour evidence above is separate from that human sign-off.
