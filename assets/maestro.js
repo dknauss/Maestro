@@ -61,7 +61,11 @@
 	var profiles = ( D.profiles || [] ).map( function ( p ) {
 		return { id: p.id, name: p.name, users: ( p.users || [] ).slice() };
 	} );
-	var profileIdFloor = 0;     // highest p_<n> handed out this session
+	// Highest p_<n> handed out or loaded, so a deleted ID is never reused.
+	var profileIdFloor = window.maestroLogic.profileIdFloor( profiles );
+	// Stored hides of items not on screen, per profile (Assets::profile_carry()),
+	// as this session's own copy: a delete drops its entry.
+	var profileCarry = window.maestroLogic.dropProfileCarry( D.profileCarry, '' );
 	var profilesBtn = null;     // the toolbar button that opens the dialog
 
 	/* ---------- helpers ---------------------------------------------------- */
@@ -1629,7 +1633,7 @@
 			var out = Object.keys( model ).map( function ( key ) {
 				return { key: key, own: model[ key ].hiddenProfiles, child: model[ key ].childHiddenProfiles };
 			} );
-			return window.maestroLogic.carryProfileHides( out, D.profileCarry );
+			return window.maestroLogic.carryProfileHides( out, profileCarry );
 		}
 
 		function renderList() {
@@ -1816,6 +1820,9 @@
 	// the map from the model, so this one pass is the whole cleanup.
 	function deleteProfile( id ) {
 		profiles = profiles.filter( function ( p ) { return p.id !== id; } );
+		// Its unrendered hides go with it; buildProfilesPayload() would skip
+		// them anyway, but only while no profile reuses the ID.
+		profileCarry = window.maestroLogic.dropProfileCarry( profileCarry, id );
 		Object.keys( model ).forEach( function ( key ) {
 			var m = model[ key ];
 			var own   = window.maestroLogic.isProfileAssigned( m.hiddenProfiles, id );
@@ -2856,7 +2863,7 @@
 			// A model row with no <li> (another plugin rewrote the sidebar after
 			// it was printed) was not walked above, but its axes are still
 			// current. Then the stored hides of items that are not rendered at
-			// all (D.profileCarry, matched by normalized key server-side).
+			// all (profileCarry, matched by normalized key server-side).
 			var walked = Object.create( null );
 			assignments.forEach( function ( a ) { walked[ a.key ] = true; } );
 			Object.keys( model ).forEach( function ( key ) {
@@ -2866,7 +2873,7 @@
 			} );
 			cfg.profiles = window.maestroLogic.buildProfilesPayload(
 				profiles,
-				window.maestroLogic.carryProfileHides( assignments, D.profileCarry )
+				window.maestroLogic.carryProfileHides( assignments, profileCarry )
 			);
 		}
 

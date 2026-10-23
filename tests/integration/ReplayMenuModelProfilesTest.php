@@ -244,6 +244,16 @@ class ReplayMenuModelProfilesTest extends WP_UnitTestCase {
 
 		$this->assertSame( array(), $this->assets_call( 'profile_carry' ) );
 
+		// The localized config goes through Config::for_editor() (#240), so the
+		// compiled profile axes, which say who an item is hidden from, are
+		// gone from every item too, not just the map.
+		$localized = $this->assets_call( 'editor_config' );
+		$this->assertArrayNotHasKey( 'profiles', $localized );
+		foreach ( $localized['items'] ?? array() as $slug => $item ) {
+			$this->assertArrayNotHasKey( 'hidden_profiles', $item, "{$slug} leaks hidden_profiles" );
+			$this->assertArrayNotHasKey( 'child_hidden_profiles', $item, "{$slug} leaks child_hidden_profiles" );
+		}
+
 		$this->assertArrayHasKey( 'p_1', ( new Config() )->get()['profiles'], 'Withheld from the viewer, not deleted.' );
 
 		remove_role( 'maestro_delegate' );

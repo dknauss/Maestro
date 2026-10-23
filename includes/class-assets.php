@@ -402,7 +402,8 @@ class Assets {
 	/**
 	 * The stored config as the editor receives it. (Phase 27)
 	 *
-	 * Without the profiles map. The editor reads this for separators; the
+	 * Config::for_editor()'s view, and without the profiles map even for a
+	 * viewer who holds `list_users`. The editor reads this for separators; the
 	 * profiles it shows come from Replay::get_editor_profiles(), and the hides
 	 * it must carry from profile_carry(). The map's names and member IDs are a
 	 * list of people, so it is not handed to every editor wholesale.
@@ -410,7 +411,9 @@ class Assets {
 	 * @return array
 	 */
 	private function editor_config() {
-		$config = $this->config->get();
+		// for_editor() first: for a viewer without `list_users` it also strips
+		// the per-user and profile axes off every item (#240).
+		$config = $this->config->for_editor();
 		unset( $config['profiles'] );
 		return $config;
 	}

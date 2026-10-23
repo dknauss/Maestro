@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.6.0
-milestone_name: Separator editing and post-v1.5.4 compatibility fixes
+milestone: v1.8
+milestone_name: Hiding profiles
 status: in_progress
-stopped_at: "Phase 28 implementation built; acceptance remains open after narrow-toolbar, English fallback RTL and Keel live-width findings. #235 and release #232 merged; this follow-up fixes the remaining submenu alignment. Real touch-device testing remains outstanding. Phase 27 not started here."
+stopped_at: "Phase 27 decisions, storage/compile (#237), and runtime hiding (#238) merged. Follow-up fixes profile read privacy and premature member truncation; editor UI and final gate remain pending on main. Phase 28 human rechecks and real touch-device testing remain outstanding."
 last_updated: "2026-10-22T00:00:00.000Z"
-last_activity: "2026-10-22 — Follow-up to #235: actual Keel preview retained a saved submenu minimum and overlapped content when shrinking. Added two failing-then-passing alignment regressions and verified real Keel on a separate local site. Reconciled Phase 28 acceptance; retained available-core-scheme/width pass and left touch-device and affected human rechecks open."
+last_activity: "2026-10-22 — Reviewed merged #237/#238. Added regressions and fixes for delegated-editor profile privacy and live member validation; reconciled planning. Real touch-device testing remains outstanding."
 progress:
   total_phases: 2
   completed_phases: 0
   total_plans: 8
-  completed_plans: 2
-  percent: 25
+  completed_plans: 5
+  percent: 63
 ---
 
 # Project State
@@ -20,10 +20,13 @@ progress:
 
 See: .planning/PROJECT.md (updated 2026-07-03)
 
-**Current focus:** Phase 28 live-width compatibility follow-up and outstanding
-human acceptance. #232 (v1.7.0 release) and #235 merged; deployment was not
-verified in this follow-up. Preserve the release decision: profiles are v1.8,
-Client-Site Workflow v1.9. No Phase 27 implementation was started here.
+**Current focus:** Phase 27 profile hardening after #237 (storage/compile) and
+#238 (runtime hiding). Decisions are locked in `27-CONTEXT.md`. Editor authoring
+(27-04) and final E2E/acceptance (27-05) remain pending on main; a separate
+`phase-27-04-profiles-editor` branch exists and is not part of this fix.
+Release sequence: width v1.7.0 (#232 merged), profiles v1.8, Client-Site Workflow
+v1.9. Deployment verification is not claimed here. Phase 28 affected human
+rechecks and **real touch-device testing remain outstanding**.
 
 **Core value:** Editing the admin menu happens directly on the menu, with zero ceremony and zero risk to access.
 **Historical focus at the time this section was written:** v1.3.1 shipped and
@@ -32,14 +35,18 @@ recorded above; this note is kept only to date the paragraph that follows it.
 
 ## Current Position
 
-Milestone: **v1.6.0 Separator editing and post-v1.5.4 compatibility fixes** (active) — the release itself ✅ **SHIPPED 2026-09-23**: tag `v1.6.0`, live on WordPress.org the same day. The milestone stays open on its two phases, **0/2 complete**.
-Phase: **Phase 28 implementation built, acceptance open.** Plans 28-01/02 complete;
-28-03 awaits affected human rechecks and real touch-device testing. Phase 27 has
-not started in this work.
-Plan: preserve #235's toolbar/bidi/control-feedback fixes and correct only the
-remaining real Keel submenu alignment. Regression assertions cover menu rows,
-all expanded submenus, background, content and toolbar, not just root widths.
-Release: #232 merged as `46ef918`; no new release/deploy is claimed by this fix.
+Milestone: **v1.8 Hiding profiles**, implementation in progress.
+Phase 27: **3/5 plans complete on main** — 27-01 decisions (#230), 27-02
+storage/compile (#237), 27-03 hide seam and live membership (#238). The two P2
+follow-ups close profile read privacy and premature member truncation with
+regression tests. Editor UI and the final gate are still pending on main.
+Phase 28: **implementation built, acceptance open** — 28-01/02 complete;
+28-03 still awaits affected human rechecks and real touch-device testing.
+The earlier core-scheme/width human pass is retained. #234's tour navigation
+fix and #236's real Keel alignment fix are merged; do not redo them.
+Next: finish profile authoring, exercise targeted-member and non-member browser
+sessions, run the final gate, and collect outstanding human checks. Select-all
+roles remains unimplemented in Phase 29 (v1.9).
 
 ### Historical position (the v1.5 cycle, written 2026-08-09)
 
@@ -464,7 +471,7 @@ Recent decisions affecting current work:
 - Ordering decision 2026-07-04: plan Phase 19 next (small research deliverable, unblocks the ROLE-01→Phase 21 gate), then execute the already-planned Phase 23 (5 plans). Phase 19 has no dependents on its *plan*, only on its verdict before Phase 21.
 - Phase 20 complete 2026-08-02 (COMPAT-04/07/10; 6/6 plans; verified 5/5). COMPAT-10 was **redesigned mid-execution**: the boolean `cascade_hide` "rides-the-parent-hide" model (20-05) was found inert (WP core drops a hidden parent's whole subtree; cosmetic-only forbids URL blocking), so it was replaced with an **independent per-parent `child_hidden_roles`** role set (second "Hide its sub-items from:" popover group; parent stays visible; union with child's own hidden_roles; pure visibility) plus a derived locked-checkbox affordance. Decision recorded in the 20-CONTEXT.md REVISION NOTE.
 - Phase 25 added 2026-08-02: Edit-Mode Toolbar Dark-Surface Polish (dark-toolbar icon/focus WCAG contrast, save-indicator layout shift, rename commit feedback) — pre-existing v1.3.1 toolbar surfaces surfaced during Phase 20 browser verification; **non-blocking for v1.4.0**. Appended after Phase 24; placement (before release vs later) is the user's call. Seed: `todos/pending/2026-08-01-editor-toolbar-icon-contrast.md`.
-- v1.7 Client-Site Workflow roadmap created 2026-10-09: 3 phases (29–31), 4 requirements mapped (UX-14, ROLE-03, PORT-01/02), from the WordPress.org support thread of 2026-10-07. Mirrored as GitHub milestone 1 with issues #214–#216. **Not the active milestone:** v1.6.0 stays active until its deploy is verified, and v1.7's place relative to Phase 28 → 27 is undecided (ROADMAP, v1.7 open decisions D1–D6). Phase 30 is blocked on D2.
+- Client-Site Workflow roadmap created 2026-10-09: 3 phases (29–31), 4 requirements (UX-14, ROLE-03, PORT-01/02), GitHub milestone 1 and issues #214–#216. Renumbered to **v1.9** by the 2026-10-22 release decision: width v1.7.0 → profiles v1.8 → Client-Site Workflow v1.9. Phase 30 remains blocked on D2.
 
 ### Pending Todos
 
@@ -595,7 +602,9 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-10-22
-Stopped at: Phase 28 follow-up to #235; acceptance and real touch-device checks remain open. No Phase 27 work.
+Stopped at: Phase 27 plans 01–03 merged; profile privacy/member-validation hardening in progress. Plans 04–05 pending on main. Phase 28 acceptance and real touch-device checks remain open.
+
+**Earlier updates below are historical snapshots; the Current Position above is authoritative.**
 
 **Update 2026-10-22 — real Keel transition follow-up.** The live preview retained
 Keel's saved submenu minimum when shrinking to 160px. A more specific edit-mode

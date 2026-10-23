@@ -2,7 +2,7 @@
 
 Three layers, smallest and fastest first.
 
-> **Current expected status:** unit 218/218 with 537 assertions, integration 198/198 single-site (14 skipped) + 198/198 under WP_MULTISITE=1, JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, (COMPAT-04) independent shared-slug top-level/submenu editing, (COMPAT-10) the "Hide its sub-items from:" role group's independent child-hiding behavior, and (ROLE-02) per-user hiding asserted in a targeted user's own authenticated session — including a same-role bystander who must keep every row, which is the assertion that proves the rule did not widen to the whole role. (Phase 25) the toolbar's reserved status slot (no layout shift across a save), its widened focus-ring contrast, focused buttons keeping readable text on the dark surface, and the derived-locked checkbox's aria-disabled/aria-describedby semantics are covered in [`tests/e2e/specs/toolbar-dark-surface.spec.ts`](tests/e2e/specs/toolbar-dark-surface.spec.ts).
+> **Current expected status:** unit 221/221 with 540 assertions, integration 202 total single-site (188 passed, 14 skipped) + 202 total under WP_MULTISITE=1 (201 passed, 1 skipped), JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, (COMPAT-04) independent shared-slug top-level/submenu editing, (COMPAT-10) the "Hide its sub-items from:" role group's independent child-hiding behavior, and (ROLE-02) per-user hiding asserted in a targeted user's own authenticated session — including a same-role bystander who must keep every row, which is the assertion that proves the rule did not widen to the whole role. (Phase 25) the toolbar's reserved status slot (no layout shift across a save), its widened focus-ring contrast, focused buttons keeping readable text on the dark surface, and the derived-locked checkbox's aria-disabled/aria-describedby semantics are covered in [`tests/e2e/specs/toolbar-dark-surface.spec.ts`](tests/e2e/specs/toolbar-dark-surface.spec.ts).
 
 ## Gotchas (first run)
 
@@ -76,6 +76,17 @@ change nor destroy profiles on save or Reset All. The caps, name rules, the
 MAX_ITEMS bound on compiled entries and the zero-regression guard for the role
 and user axes are unit tests in
 [`tests/unit/ConfigSanitizeTest.php`](tests/unit/ConfigSanitizeTest.php).
+
+(Phase 27 hardening) [`tests/integration/ProfilesPrivacyTest.php`](tests/integration/ProfilesPrivacyTest.php)
+checks delegated-editor REST GET/POST responses and localized JS, authorized
+reads, and a redacted read/save round trip that preserves stored profile and
+per-user rules. `Config::for_editor()` is the shared outbound projection; replay
+and storage retain the full configuration. The three member-validation
+regressions in [`tests/unit/ConfigSanitizeTest.php`](tests/unit/ConfigSanitizeTest.php)
+cover duplicate IDs, deleted IDs, and invalid profiles preceding a valid one.
+All three failed before the candidate-collection fix; all three delegated
+response tests failed before outbound filtering. Profile/member caps apply to
+accepted profiles and live unique members, after validation, not raw positions.
 
 (Phase 27-03) Term 3 of the hide seam is covered in
 [`tests/integration/ReplayHiddenProfilesTest.php`](tests/integration/ReplayHiddenProfilesTest.php):

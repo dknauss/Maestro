@@ -366,6 +366,35 @@ function nextProfileId( profiles, floor ) {
 }
 
 /**
+ * The highest p_<n> number among the profiles the editor loaded, as the
+ * starting floor for nextProfileId(). Starting from 0 would let deleting a
+ * loaded profile and creating another reuse its ID, and the new profile would
+ * inherit whatever the old one still had pointing at it (a carried hide).
+ *
+ * @param {Array<{id:string}>} profiles Profiles loaded with the page.
+ * @return {number}
+ */
+function profileIdFloor( profiles ) {
+	return Number( nextProfileId( profiles ).slice( 2 ) ) - 1;
+}
+
+/**
+ * The carry list without a deleted profile's entry, as a new map, so that
+ * profile's unrendered hides are not written back on the next save.
+ *
+ * @param {Object<string, object>|undefined} carry Unrendered hides per profile.
+ * @param {string} id Deleted profile ID.
+ * @return {Object<string, object>}
+ */
+function dropProfileCarry( carry, id ) {
+	var out = Object.create( null );
+	Object.keys( carry || {} ).forEach( function ( key ) {
+		if ( key !== String( id ) ) { out[ key ] = carry[ key ]; }
+	} );
+	return out;
+}
+
+/**
  * Why a profile name cannot be used, or '' when it can. Mirrors
  * Config::clean_profiles(): trimmed, non-empty, unique ignoring case.
  *
@@ -634,6 +663,8 @@ var api = {
 	isProfileAssigned:         isProfileAssigned,
 	toggleProfile:             toggleProfile,
 	nextProfileId:             nextProfileId,
+	profileIdFloor:            profileIdFloor,
+	dropProfileCarry:          dropProfileCarry,
 	profileNameProblem:        profileNameProblem,
 	profileItemCount:          profileItemCount,
 	buildProfilesPayload:      buildProfilesPayload,

@@ -17,6 +17,8 @@ const {
 	isProfileAssigned,
 	toggleProfile,
 	nextProfileId,
+	profileIdFloor,
+	dropProfileCarry,
 	profileNameProblem,
 	profileItemCount,
 	buildProfilesPayload,
@@ -69,6 +71,41 @@ test( 'nextProfileId never reuses a number handed out earlier this session', () 
 
 test( 'nextProfileId ignores IDs outside the p_<n> shape', () => {
 	assert.equal( nextProfileId( [ { id: 'p_01' }, { id: 'x_9' }, { id: 'p_2' } ] ), 'p_3' );
+} );
+
+/* ---------- profileIdFloor / dropProfileCarry --------------------------- */
+
+test( 'profileIdFloor starts at the highest loaded ID, and 0 with none', () => {
+	assert.equal( profileIdFloor( [ { id: 'p_2' }, { id: 'p_5' } ] ), 5 );
+	assert.equal( profileIdFloor( [] ), 0 );
+} );
+
+test( 'regression: deleting a loaded profile then creating one never reuses its ID or its carried hides', () => {
+	// Loaded with p_1, which hides a page that is not on screen.
+	const loaded = [ { id: 'p_1', name: 'Old', users: [] } ];
+	let carry = { p_1: { hides: [ 'gone.php' ] } };
+	const floor = profileIdFloor( loaded );
+
+	// Delete p_1 in the dialog, then add a profile.
+	let profiles = [];
+	carry = dropProfileCarry( carry, 'p_1' );
+	const id = nextProfileId( profiles, floor );
+	assert.equal( id, 'p_2', 'The deleted ID must not be handed out again.' );
+	profiles = [ { id, name: 'New', users: [] } ];
+
+	const payload = buildProfilesPayload( profiles, carryProfileHides( [], carry ) );
+	assert.deepEqual( JSON.parse( JSON.stringify( payload ) ), { p_2: { name: 'New' } } );
+
+	// And even had the ID been reused, the dropped carry gives it nothing.
+	const reused = buildProfilesPayload( [ { id: 'p_1', name: 'New' } ], carryProfileHides( [], carry ) );
+	assert.deepEqual( JSON.parse( JSON.stringify( reused ) ), { p_1: { name: 'New' } } );
+} );
+
+test( 'dropProfileCarry returns a new map and leaves the input alone', () => {
+	const carry = { p_1: { hides: [ 'a' ] }, p_2: { hides: [ 'b' ] } };
+	assert.deepEqual( Object.keys( dropProfileCarry( carry, 'p_1' ) ), [ 'p_2' ] );
+	assert.deepEqual( Object.keys( carry ), [ 'p_1', 'p_2' ] );
+	assert.deepEqual( Object.keys( dropProfileCarry( undefined, 'p_1' ) ), [] );
 } );
 
 /* ---------- profileNameProblem ------------------------------------------- */
