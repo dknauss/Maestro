@@ -523,7 +523,7 @@ should be made once.
 |---|----------|-----------|--------|
 | D1 | Where Client-Site Workflow sits relative to Phase 28 → Phase 27 | Before Phase 29 starts | **Decided:** after both; width v1.7.0 → profiles v1.8 → Client-Site Workflow v1.9 |
 | D2 | Whether a request-scoped, viewer-only, subtract-only capability filter fits SPEC's "never changes a capability", or the wording gets a carve-out | Phase 30 | Open — blocks Phase 30 |
-| D3 | Label and form of the select-all control ("All other roles"; tri-state checkbox or a pair of links) | Phase 29 | Proposed 2026-10-23: a tri-state checkbox labelled "All other roles", built that way in Phase 29; awaiting Dan's confirmation |
+| D3 | Label and form of the select-all control ("All other roles"; tri-state checkbox or a pair of links) | Phase 29 | **Decided 2026-10-23 (Dan):** a tri-state checkbox labelled "All other roles", as built in Phase 29 |
 | D4 | Import behaviour for rules whose menu item is missing on the target site: keep dormant, or drop and report | Phase 31 | Open |
 | D5 | Release shape: one v1.9.0 after all three, or cut after Phases 29–30 and let Phase 31 follow | Before the cut | Open — proposed: cut after 29–30, 31 rides if ready |
 | D6 | Milestone version | Before the cut | **Decided 2026-10-22:** width v1.7.0, profiles v1.8, Client-Site Workflow v1.9 |

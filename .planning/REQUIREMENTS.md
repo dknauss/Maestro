@@ -73,7 +73,7 @@ sees, hide it in one step, carry the setup to the next site. Planned
 
 ### Editor UX
 
-- [~] **UX-14**: Each role-visibility group offers one control that hides the item from every role the editing user does not hold, in a single save, and a matching way to clear them. Locked rows are untouched; the per-person group has no such control. *(Built 2026-10-23 in Phase 29 as a tri-state "All other roles" checkbox; awaiting Dan's hands-on check and D3 confirmation. See `phases/29-select-all-role-control/29-VERIFICATION.md`.)*
+- [~] **UX-14**: Each role-visibility group offers one control that hides the item from every role the editing user does not hold, in a single save, and a matching way to clear them. Locked rows are untouched; the per-person group has no such control. *(Built 2026-10-23 in Phase 29 as a tri-state "All other roles" checkbox; D3 confirmed by Dan; awaiting his hands-on check. See `phases/29-select-all-role-control/29-VERIFICATION.md`.)*
 
 ### Roles (cosmetic only)
 

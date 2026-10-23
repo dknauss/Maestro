@@ -3,9 +3,8 @@
 **Date:** 2026-10-23
 **Requirement:** UX-14 ([#214](https://github.com/dknauss/Maestro/issues/214))
 **Status:** built (29-01 and 29-02 in one PR). Human check open in
-[29-VERIFICATION.md](29-VERIFICATION.md). D3 was built as the recommended
-option, a tri-state checkbox labelled "All other roles", while Dan's answer is
-pending.
+[29-VERIFICATION.md](29-VERIFICATION.md). D3, a tri-state checkbox labelled
+"All other roles", was confirmed by Dan on 2026-10-23.
 
 ## 29-01 — helpers and payload
 

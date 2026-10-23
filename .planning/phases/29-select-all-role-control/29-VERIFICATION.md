@@ -2,7 +2,7 @@
 
 **Status: built; human check open.** Automated coverage is in
 [29-SUMMARY.md](29-SUMMARY.md). The phase closes when Dan has tried it in a
-browser and confirmed D3 (the tri-state checkbox).
+browser. D3 (the tri-state checkbox) is confirmed.
 
 ## Success criteria (ROADMAP)
 
@@ -17,8 +17,8 @@ browser and confirmed D3 (the tri-state checkbox).
 
 ## Human check — open
 
-- [ ] D3 confirmed: a tri-state checkbox reading "All other roles (not
-      Administrator)", or switch to the pair of links.
+- [x] D3 confirmed by Dan 2026-10-23: the tri-state checkbox reading "All
+      other roles (not Administrator)".
 - [ ] On a real site, tick it on an item and confirm another role's user
       loses the item while you keep it.
 - [ ] With a screen reader, the control reads with its group heading and the

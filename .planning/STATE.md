@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: Client-Site Workflow
 status: in_progress
-stopped_at: "v1.9 started: Phase 29 (select-all roles, UX-14) built as a tri-state \"All other roles\" checkbox, PR open; D3 confirmation and a hands-on check owed by Dan (29-VERIFICATION.md). v1.8.0 merged as #242 (e1b4696); its tag, the WordPress.org deploy approval and the Phase 27 hands-on checks are Dan's. Phase 30 waits on D2."
+stopped_at: "v1.9 started: Phase 29 (select-all roles, UX-14) built as a tri-state \"All other roles\" checkbox, PR open; D3 decided (tri-state); a hands-on check owed by Dan (29-VERIFICATION.md). v1.8.0 merged as #242 (e1b4696); its tag, the WordPress.org deploy approval and the Phase 27 hands-on checks are Dan's. Phase 30 waits on D2."
 last_updated: "2026-10-23T00:00:00.000Z"
 last_activity: "2026-10-23 — v1.8.0 release merged (#242, carrying #241). Phase 29 built: selectAllRoleTargets/selectAllState/applySelectAll (15 JS tests), userRoles localized, the All other roles row in both role groups, select-all-roles.spec.ts."
 progress:
@@ -36,7 +36,7 @@ recorded above; this note is kept only to date the paragraph that follows it.
 ## Current Position
 
 Milestone: **v1.9 Client-Site Workflow**, started 2026-10-23. Phase 29
-(select-all roles) built, awaiting review and D3 confirmation. The v1.8 notes
+(select-all roles) built, awaiting review; D3 decided (tri-state). The v1.8 notes
 below stay until its tag and the Phase 27 hands-on run are done.
 
 Milestone: **v1.8 Hiding profiles**, code complete, awaiting verification.
