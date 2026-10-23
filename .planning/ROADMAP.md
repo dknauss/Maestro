@@ -537,8 +537,8 @@ should be made once.
 | D1 | Where Client-Site Workflow sits relative to Phase 28 → Phase 27 | Before Phase 29 starts | **Decided:** after both; width v1.7.0 → profiles v1.8 → Client-Site Workflow v1.9 |
 | D2 | Whether a request-scoped, viewer-only, subtract-only capability filter fits SPEC's "never changes a capability", or the wording gets a carve-out | Phase 30 | **Decided 2026-10-23 (Dan):** approve the narrow viewer-only, subtract-only menu-construction exception; see [decisions](phases/30-view-as-role-preview/30-CONTEXT.md) |
 | D3 | Label and form of the select-all control ("All other roles"; tri-state checkbox or a pair of links) | Phase 29 | **Decided 2026-10-23 (Dan):** a tri-state checkbox labelled "All other roles", as built in Phase 29 |
-| D4 | Import behaviour for rules whose menu item is missing on the target site: keep dormant, or drop and report | Phase 31 | Open |
-| D5 | Release shape: one v1.9.0 after all three, or cut after Phases 29–30 and let Phase 31 follow | Before the cut | Open — proposed: cut after 29–30, 31 rides if ready |
+| D4 | Import behaviour for rules whose menu item is missing on the target site: keep dormant, or drop and report | Phase 31 | **Decided 2026-10-23 (Dan): drop and report.** Rules naming a menu item the target site does not have are not stored; the import result lists them so the user knows what was not applied |
+| D5 | Release shape: one v1.9.0 after all three, or cut after Phases 29–30 and let Phase 31 follow | Before the cut | Open — recommended 2026-10-23: cut v1.9.0 after Phases 29–30 once #248/#251 pass Dan's deep review; Phase 31 ships as a follow-up release. Awaiting Dan's confirmation |
 | D6 | Milestone version | Before the cut | **Decided 2026-10-22:** width v1.7.0, profiles v1.8, Client-Site Workflow v1.9 |
 
 ### Shared seams (build once, reuse)
@@ -594,7 +594,7 @@ should be made once.
   1. Export produces a JSON envelope with a `schema_version`, and omits per-person rules
   2. Import is gated by `capability()` and the REST nonce, parses and structurally validates the envelope, then passes every field through `Config::sanitize()`; nothing reaches storage any other way
   3. Roles missing on the target are dropped; an unknown or newer `schema_version` is refused with a clear message
-  4. Rules for menu items absent on the target follow D4, and the user is told what was not applied
+  4. Rules for menu items absent on the target are dropped, not stored (D4, decided 2026-10-23), and the user is told what was not applied
   5. An importing user without `list_users` cannot use import to destroy or write per-person rules (the boundary `sanitize()` and `reset()` already hold)
   6. Zero regression across the same gates as Phase 29
 **Plans**: TBD
