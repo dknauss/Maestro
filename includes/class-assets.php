@@ -213,6 +213,11 @@ class Assets {
 				'usersUrl'        => esc_url_raw( rest_url( 'wp/v2/users' ) ),
 				// Drives the self-target caution only. Never a permission check.
 				'userId'          => get_current_user_id(),
+				// Phase 29: the editing user's roles on this site, so "All other
+				// roles" never ticks one of them. Display only, never a permission
+				// check. Empty for a multisite super admin with no role here.
+				'userRoles'       => array_values( (array) wp_get_current_user()->roles ),
+				'maxHiddenRoles'  => Config::MAX_HIDDEN_ROLES,
 				// ROLE-02: `maestro_capability` lets a site hand Maestro to a
 				// custom role that may NOT hold `list_users`. Core's users
 				// collection would then return only published authors — so the
@@ -280,6 +285,16 @@ class Assets {
 					'hideChildrenFrom'     => __( 'Hide its sub-items from:', 'maestro-menu-editor' ),
 					/* translators: %s: role display name. Explains why a "Hide its sub-items from:" checkbox is shown checked and disabled — the parent is already hidden from this role in the "Hide this item from:" group above, so its sub-items are already gone too (WordPress core removes a hidden parent's whole rendered subtree). */
 					'hideChildrenLocked'   => esc_html__( 'Already hidden because this item is hidden from %s.', 'maestro-menu-editor' ),
+					/* translators: Label of the tri-state checkbox at the top of each role group that ticks every role the editing user does not hold (Phase 29). */
+					'allOtherRoles'        => __( 'All other roles', 'maestro-menu-editor' ),
+					/* translators: %s: comma-separated names of the editing user's own roles. Shown next to "All other roles" to say which roles it leaves alone. */
+					'allOtherRolesSkips'   => esc_html__( 'not %s', 'maestro-menu-editor' ),
+					/* translators: %s: the role group's heading, such as "Hide this item from:". Announced after "All other roles" ticks every other role. */
+					'allOtherRolesOn'      => esc_html__( '%s every other role is now ticked.', 'maestro-menu-editor' ),
+					/* translators: %s: the role group's heading, such as "Hide this item from:". Announced after "All other roles" clears them. */
+					'allOtherRolesOff'     => esc_html__( '%s every other role is now cleared.', 'maestro-menu-editor' ),
+					/* translators: %d: maximum number of roles in one visibility list. Shown when selecting every other role would exceed that limit. */
+					'roleLimitReached'     => esc_html__( 'This would exceed the limit of %d roles per list. Choose roles individually.', 'maestro-menu-editor' ),
 					/* translators: Heading for the group that cosmetically hides THIS menu item from named individual people (ROLE-02), as opposed to whole roles. */
 					'hideFromUsers'        => __( 'Hide this item from specific people:', 'maestro-menu-editor' ),
 					/* translators: Heading for the group that cosmetically hides ALL of a parent's sub-items from named individual people (ROLE-02). Shown only for parents that have children. */

@@ -645,6 +645,67 @@ function menuWidthFromPointer( clientX, rect, rtl, bounds ) {
 	return clampMenuWidth( rtl ? rect.right - clientX : clientX - rect.left, bounds );
 }
 
+/* ---------- select-all roles (Phase 29, UX-14) ------------------------ */
+
+/**
+ * The roles an "All other roles" control ticks: every role in the list that
+ * the editing user does not hold, and none that is locked. Locked rows are
+ * derived from the parent's own hide and must never be written into the
+ * model (see isChildRoleLockedByParent()).
+ *
+ * @param {string[]}  roleKeys Every role, in display order.
+ * @param {string[]}  ownRoles The editing user's roles on this site.
+ * @param {Function}  isLocked roleKey -> boolean.
+ * @return {string[]} The targets, in display order.
+ */
+function selectAllRoleTargets( roleKeys, ownRoles, isLocked ) {
+	var own = ownRoles || [];
+	return ( roleKeys || [] ).filter( function ( r ) {
+		return own.indexOf( r ) === -1 && ! ( isLocked && isLocked( r ) );
+	} );
+}
+
+/**
+ * How much of the targets a stored set already covers. Roles outside the
+ * targets (the user's own, or locked ones) do not count.
+ *
+ * @param {string[]} set     The stored role set.
+ * @param {string[]} targets From selectAllRoleTargets().
+ * @return {string} 'none', 'some' or 'all'. With no targets, 'none'.
+ */
+function selectAllState( set, targets ) {
+	var s = set || [];
+	var hit = targets.filter( function ( r ) { return s.indexOf( r ) !== -1; } ).length;
+	if ( ! targets.length || ! hit ) {
+		return 'none';
+	}
+	return hit === targets.length ? 'all' : 'some';
+}
+
+/**
+ * The stored set after ticking (on) or clearing (off) every target. Entries
+ * that are not targets are kept either way. Never mutates `set`.
+ *
+ * @param {string[]} set     The stored role set.
+ * @param {string[]} targets From selectAllRoleTargets().
+ * @param {boolean}  on      True to tick every target, false to clear them.
+ * @param {number}   [max]   Server role limit, including retained entries.
+ * @return {string[]|null} A new set, or null if selecting would exceed max.
+ *                        Clearing is always allowed; never select a prefix.
+ */
+function applySelectAll( set, targets, on, max ) {
+	var s = ( set || [] ).slice();
+	if ( ! on ) {
+		return s.filter( function ( r ) { return targets.indexOf( r ) === -1; } );
+	}
+	targets.forEach( function ( r ) {
+		if ( s.indexOf( r ) === -1 ) {
+			s.push( r );
+		}
+	} );
+	return typeof max === 'number' && s.length > max ? null : s;
+}
+
 /* ---------- dual-export guard ----------------------------------------- */
 
 var api = {
@@ -673,6 +734,9 @@ var api = {
 	clampMenuWidth:            clampMenuWidth,
 	menuWidthCss:              menuWidthCss,
 	menuWidthFromPointer:      menuWidthFromPointer,
+	selectAllRoleTargets:      selectAllRoleTargets,
+	selectAllState:            selectAllState,
+	applySelectAll:            applySelectAll,
 };
 
 if ( typeof module !== 'undefined' && module.exports ) {

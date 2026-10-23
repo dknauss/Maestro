@@ -73,7 +73,7 @@ sees, hide it in one step, carry the setup to the next site. Planned
 
 ### Editor UX
 
-- [ ] **UX-14**: Each role-visibility group offers one control that hides the item from every role the editing user does not hold, in a single save, and a matching way to clear them. Locked rows are untouched; the per-person group has no such control.
+- [~] **UX-14**: Each role-visibility group offers one control that hides the item from every role the editing user does not hold, in a single save, and a matching way to clear them. Locked rows are untouched; the per-person group has no such control. *(Built 2026-10-23 in Phase 29 as a tri-state "All other roles" checkbox; D3 confirmed by Dan; awaiting his hands-on check. See `phases/29-select-all-role-control/29-VERIFICATION.md`.)*
 
 ### Roles (cosmetic only)
 
@@ -128,7 +128,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | BUG-08 | Phase 23 | ✅ Complete 2026-07-05 |
 | REL-10 | Phase 24 | ✅ Complete 2026-08-04 (v1.4.0; patch v1.4.1 2026-08-05) |
 | REL-11 | Phase 26 (v1.5) | ✅ Complete 2026-08-09 (tag v1.5.0 on 694b1bf; SVN verified) |
-| UX-14 | Phase 29 (v1.7) | Pending |
+| UX-14 | Phase 29 (v1.9) | Built, awaiting verification |
 | ROLE-03 | Phase 30 (v1.7) | Pending — blocked on the capability-principle decision |
 | PORT-01 | Phase 31 (v1.7) | Pending |
 | PORT-02 | Phase 31 (v1.7) | Pending |

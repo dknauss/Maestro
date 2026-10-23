@@ -2055,8 +2055,83 @@
 			group.setAttribute( 'aria-labelledby', headEl.id );
 			group.appendChild( headEl );
 			var rows = {}; // roleKey -> { cb, row, hint }
+			var roleKeys = Object.keys( D.roles );
 
-			Object.keys( D.roles ).forEach( function ( roleKey ) {
+			// Phase 29 (UX-14): "All other roles", a tri-state checkbox above the
+			// rows that ticks every role the editing user does not hold, in one
+			// save. Its targets come from the tested helpers in maestro-logic.js:
+			// never the user's own roles, never a locked row. Its state follows
+			// the rows (none, some, all), shown with the native indeterminate
+			// flag, which assistive tech reads as "mixed".
+			var allRow = el( 'label', 'maestro-vis-row maestro-vis-all' );
+			var allCb  = el( 'input', 'maestro-vis-all-cb' );
+			allCb.type = 'checkbox';
+			var allText = el( 'span', '', I.allOtherRoles );
+			allText.id = 'maestro-vis-all-' + ( ++groupIdSeq );
+			// Name it "<heading> All other roles": the same words appear in both
+			// role groups, so the heading is what tells them apart.
+			allCb.setAttribute( 'aria-labelledby', headEl.id + ' ' + allText.id );
+			allRow.appendChild( allCb );
+			allRow.appendChild( document.createTextNode( ' ' ) );
+			allRow.appendChild( allText );
+			var ownNames = ( D.userRoles || [] )
+				.filter( function ( r ) { return D.roles[ r ]; } )
+				.map( function ( r ) { return D.roles[ r ]; } );
+			if ( ownNames.length ) {
+				allRow.appendChild( document.createTextNode( ' ' ) );
+				var skips = el( 'span', 'maestro-vis-all-skips', '(' + I.allOtherRolesSkips.replace( '%s', ownNames.join( ', ' ) ) + ')' );
+				skips.id = 'maestro-vis-all-skips-' + groupIdSeq;
+				allRow.appendChild( skips );
+				allCb.setAttribute( 'aria-describedby', skips.id );
+			}
+			group.appendChild( allRow );
+			var limitStatus = el( 'p', 'maestro-role-limit description' );
+			limitStatus.id = 'maestro-role-limit-' + groupIdSeq;
+			limitStatus.hidden = true;
+			group.appendChild( limitStatus );
+			var descriptions = allCb.getAttribute( 'aria-describedby' );
+			allCb.setAttribute( 'aria-describedby', ( descriptions ? descriptions + ' ' : '' ) + limitStatus.id );
+
+			function allTargets() {
+				return window.maestroLogic.selectAllRoleTargets( roleKeys, D.userRoles, opts.isLocked );
+			}
+
+			// A select-all of fewer than two roles is noise, so the row shows only
+			// when it would tick at least two. Locks can change that while the
+			// popover is open, so this re-runs from refresh().
+			function refreshAll() {
+				var targets = allTargets();
+				var state   = window.maestroLogic.selectAllState( getSet(), targets );
+				allRow.hidden      = targets.length < 2;
+				allCb.checked      = 'all' === state;
+				allCb.indeterminate = 'some' === state;
+				setText( limitStatus, '' );
+				limitStatus.hidden = true;
+			}
+
+			allCb.addEventListener( 'change', function () {
+				var targets = allTargets();
+				var on      = 'all' !== window.maestroLogic.selectAllState( getSet(), targets );
+				var next = window.maestroLogic.applySelectAll( getSet(), targets, on, Number( D.maxHiddenRoles ) );
+				if ( next === null ) {
+					// Refuse atomically: saving a prefix would say "all" while the
+					// server silently truncates it. Keep the previous choices.
+					refresh();
+					var message = I.roleLimitReached.replace( '%d', String( D.maxHiddenRoles ) );
+					setText( limitStatus, message );
+					limitStatus.hidden = false;
+					speak( message, 'polite' );
+					return;
+				}
+				setSet( next );
+				if ( opts.onToggle ) { opts.onToggle(); }
+				refresh();
+				refreshModifiedIndicator( slug );
+				scheduleAutosave();
+				speak( ( on ? I.allOtherRolesOn : I.allOtherRolesOff ).replace( '%s', heading ), 'polite' );
+			} );
+
+			roleKeys.forEach( function ( roleKey ) {
 				var row = el( 'label', 'maestro-vis-row' );
 				var cb  = el( 'input' );
 				cb.type = 'checkbox';
@@ -2081,6 +2156,7 @@
 						setSet( set.filter( function ( r ) { return r !== roleKey; } ) );
 					}
 					if ( opts.onToggle ) { opts.onToggle(); }
+					refreshAll();
 					refreshModifiedIndicator( slug );
 					scheduleAutosave();
 				} );
@@ -2118,7 +2194,7 @@
 			// depends on (COMPAT-10: toggling "Hide this item from:" re-derives
 			// "Hide its sub-items from:"'s locked rows without closing the popover).
 			function refresh() {
-				Object.keys( D.roles ).forEach( function ( roleKey ) {
+				roleKeys.forEach( function ( roleKey ) {
 					var r      = rows[ roleKey ];
 					var locked = !! ( opts.isLocked && opts.isLocked( roleKey ) );
 
@@ -2148,6 +2224,7 @@
 						r.row.removeAttribute( 'title' );
 					}
 				} );
+				refreshAll();
 			}
 
 			refresh();
