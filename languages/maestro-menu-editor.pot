@@ -467,7 +467,7 @@ msgstr ""
 
 #. translators: Explanation at the top of the hiding-profiles dialog.
 #: includes/class-assets.php:310
-msgid "A profile is a named group of people. Tick it in an item's Visibility to hide that item from everyone in it."
+msgid "Create a profile for people who need the same menu. Add people, then choose the profile in a menu item's Visibility controls. This hides menu links only; it does not change page access."
 msgstr ""
 
 #. translators: Accessible label for the text field that renames a hiding profile.
@@ -569,4 +569,14 @@ msgstr ""
 
 #: includes/class-assets.php:378
 msgid "Your changes save automatically. Reset All returns the whole menu to the WordPress defaults."
+msgstr ""
+
+#. translators: Persistent next-step guidance beside each saved hiding profile.
+#: includes/class-assets.php:327
+msgid "Add people below, then select this profile in a menu item's Visibility controls. Changes save automatically."
+msgstr ""
+
+#. translators: Guided-tour step pointing at the Hiding profiles toolbar button.
+#: includes/class-assets.php:394
+msgid "Hiding profiles let you reuse a group of people. Create a profile, add people, then select it in a menu item's Visibility controls to hide that item from them."
 msgstr ""

@@ -32,6 +32,7 @@ test( 'guided tour: auto-launch, step through, seen-flag, replay, Esc', async ( 
 		'Undo every change',
 		'separator',
 		'edge',
+		'Hiding profiles',
 		'Menu settings',
 		'tour again',
 		'Reset All',
@@ -80,17 +81,21 @@ test( 'narrow tour: Back crosses the hidden width step', async ( { page } ) => {
 	await page.reload();
 	const text = page.locator( '.maestro-tour-text' );
 	await expect( page.locator( '.maestro-tour' ) ).toBeVisible();
-	// Seven visible steps precede Settings; the desktop-only width step is skipped.
-	for ( let i = 0; i < 7; i++ ) {
+	// Eight visible steps precede Settings, including Profiles; width is skipped.
+	for ( let i = 0; i < 8; i++ ) {
 		await page.locator( '.maestro-tour-next' ).click();
 	}
 	await expect( text ).toContainText( 'Menu settings' );
 	await page.locator( '.maestro-tour-back' ).click();
+	await expect( text ).toContainText( 'Hiding profiles' );
+	await page.locator( '.maestro-tour-back' ).click();
 	await expect( text ).toContainText( 'Add a separator' );
+	await page.locator( '.maestro-tour-next' ).click();
+	await expect( text ).toContainText( 'Hiding profiles' );
 	await page.locator( '.maestro-tour-next' ).click();
 	await expect( text ).toContainText( 'Menu settings' );
 	// Back must keep moving across every remaining step and stop at the first.
-	for ( let i = 0; i < 7; i++ ) {
+	for ( let i = 0; i < 8; i++ ) {
 		await page.locator( '.maestro-tour-back' ).click();
 	}
 	await expect( text ).toContainText( 'Click any menu item' );

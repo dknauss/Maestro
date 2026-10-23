@@ -72,3 +72,24 @@ Playwright, against a local WordPress 7.1.3 + SQLite site and against CI's
 wp-env, drove every step in the first five boxes above with separate
 authenticated sessions for the member and the bystander. That is evidence the
 code does what it says; it is separate from Dan's desktop sign-off above.
+
+## Profile guidance follow-up — #247, 2026-10-23
+
+The tour now includes the Hiding profiles toolbar button and explains creating
+and assigning a profile. Each saved profile has persistent next-step guidance,
+associated with its name input through `aria-describedby`; validation preserves
+that association. The introduction explains adding people, assigning the profile
+in an item's Visibility controls, and the cosmetic-only page-access boundary.
+The name remains Hiding profiles; no feature rename was approved.
+
+Automated regression evidence on a separate disposable Studio WordPress 7.1.3 /
+SQLite site: four Playwright cases passed (saved guidance after reload at a
+900×600 viewport, invalid-name recovery, desktop tour, narrow Back traversal,
+and missing-anchor navigation, grouped into four tests). The missing guidance
+and tour expectations failed against the previous implementation. JavaScript
+unit tests: 142 passed; PHP syntax, WPCS, documentation links and whitespace
+checks passed. New strings are included in the translation template.
+
+Dan's earlier desktop functional sign-off is retained. This automated follow-up
+does not claim human acceptance of the new wording or coachmark. **Real
+touch-device testing remains outstanding.**
