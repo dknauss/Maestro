@@ -2,7 +2,7 @@
 
 Three layers, smallest and fastest first.
 
-> **Current expected status:** unit 221/221 with 540 assertions, integration 202 total single-site (188 passed, 14 skipped) + 202 total under WP_MULTISITE=1 (201 passed, 1 skipped), JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, (COMPAT-04) independent shared-slug top-level/submenu editing, (COMPAT-10) the "Hide its sub-items from:" role group's independent child-hiding behavior, and (ROLE-02) per-user hiding asserted in a targeted user's own authenticated session — including a same-role bystander who must keep every row, which is the assertion that proves the rule did not widen to the whole role. (Phase 27) hiding profiles get the same proof in [`tests/e2e/specs/hidden-profiles.spec.ts`](tests/e2e/specs/hidden-profiles.spec.ts): a member loses the row in their own session while a same-role bystander keeps it, taking the member out of the profile brings the row back while the item still names the profile (membership is live, not compiled), putting them back hides it again, deleting the profile restores it, and the hidden page still loads by URL. (Phase 29) the "All other roles" select-all is covered in [`tests/e2e/specs/select-all-roles.spec.ts`](tests/e2e/specs/select-all-roles.spec.ts): one activation hides the item from every role the admin does not hold in a single save, the admin keeps the item while an editor loses it, a mixed state shows after one role is unticked, a second activation clears them, and in the sub-items list a row locked by the parent's own hide stays checked, `aria-disabled` and out of the payload. (Phase 25) the toolbar's reserved status slot (no layout shift across a save), its widened focus-ring contrast, focused buttons keeping readable text on the dark surface, and the derived-locked checkbox's aria-disabled/aria-describedby semantics are covered in [`tests/e2e/specs/toolbar-dark-surface.spec.ts`](tests/e2e/specs/toolbar-dark-surface.spec.ts).
+> **Current expected status:** unit 234/234 with 555 assertions, integration 227 total single-site (212 passed, 15 skipped) + 227 total under WP_MULTISITE=1 (226 passed, 1 skipped), JavaScript unit tests, phpcs, PHPStan, Plugin Check, and the Playwright E2E suite should pass before release. E2E coverage includes reset-this-item, per-role visibility, icon persistence, keyboard reordering, first-run cues, toolbar accessibility checks, (COMPAT-04) independent shared-slug top-level/submenu editing, (COMPAT-10) the "Hide its sub-items from:" role group's independent child-hiding behavior, and (ROLE-02) per-user hiding asserted in a targeted user's own authenticated session — including a same-role bystander who must keep every row, which is the assertion that proves the rule did not widen to the whole role. (Phase 27) hiding profiles get the same proof in [`tests/e2e/specs/hidden-profiles.spec.ts`](tests/e2e/specs/hidden-profiles.spec.ts): a member loses the row in their own session while a same-role bystander keeps it, taking the member out of the profile brings the row back while the item still names the profile (membership is live, not compiled), putting them back hides it again, deleting the profile restores it, and the hidden page still loads by URL. (Phase 29) the "All other roles" select-all is covered in [`tests/e2e/specs/select-all-roles.spec.ts`](tests/e2e/specs/select-all-roles.spec.ts): one activation hides the item from every role the admin does not hold in a single save, the admin keeps the item while an editor loses it, a mixed state shows after one role is unticked, a second activation clears them, and in the sub-items list a row locked by the parent's own hide stays checked, `aria-disabled` and out of the payload. (Phase 25) the toolbar's reserved status slot (no layout shift across a save), its widened focus-ring contrast, focused buttons keeping readable text on the dark surface, and the derived-locked checkbox's aria-disabled/aria-describedby semantics are covered in [`tests/e2e/specs/toolbar-dark-surface.spec.ts`](tests/e2e/specs/toolbar-dark-surface.spec.ts).
 
 
 The select-all role spec also covers a 60-role site: over-limit bulk attempts
@@ -120,6 +120,21 @@ popover and dialog logic (assignment toggles, IDs that are never reused, name
 rules, the delete count, the save payload and the carry) is unit-tested in
 [`tests/js/profile-targets.test.mjs`](tests/js/profile-targets.test.mjs).
 
+(Phase 30) the role-preview capability window is covered in
+[`tests/integration/PreviewWindowTest.php`](tests/integration/PreviewWindowTest.php),
+one test per boundary of the D2 exception: the filter only subtracts (an
+administrator previewing Editor loses `manage_options`; a custom-role viewer
+previewing Administrator gains nothing; a capability granted to the user
+directly is removed too), only the viewer is affected, the window closes at
+`custom_menu_order` and at `admin_init`, every refusal leaves capabilities
+untouched (no Maestro capability, bad, missing or another user's nonce,
+unknown role, a role without `read`, a page other than the Dashboard, AJAX,
+outside wp-admin, a multisite super admin), preview is never edit mode, and a
+preview request writes no option or user meta. One test runs core's own
+`wp-admin/menu.php` in preview and checks the Dashboard stays reachable and the
+menu is Editor-shaped. The request gate itself is unit-tested in
+[`tests/unit/PreviewRequestTest.php`](tests/unit/PreviewRequestTest.php).
+
 (ROLE-02) the per-user axes are covered in
 [`tests/integration/ReplayHiddenUsersTest.php`](tests/integration/ReplayHiddenUsersTest.php)
 — `hidden_users`, the `child_hidden_users` cascade, OR-independence between the
@@ -147,6 +162,22 @@ npm run test:php           # runs PHPUnit inside the tests container
 
 Standalone (no wp-env): install the WP test library with a configured test DB,
 export `WP_TESTS_DIR`, then `composer test:integration`.
+
+Without Docker or MySQL, the suite also runs on SQLite. The `wp-phpunit/wp-phpunit`
+dev dependency ships the test library. Point it at a throwaway WordPress copy that has the
+[SQLite Database Integration](https://wordpress.org/plugins/sqlite-database-integration/)
+drop-in (`wp-content/db.php`), and at a `wp-tests-config.php` that sets
+`ABSPATH`, `DB_DIR` and `DB_FILE`:
+
+```bash
+WP_TESTS_DIR=$PWD/vendor/wp-phpunit/wp-phpunit \
+WP_PHPUNIT__TESTS_CONFIG=/path/to/wp-tests-config.php \
+WP_TESTS_PHPUNIT_POLYFILLS_PATH=$PWD/vendor/yoast/phpunit-polyfills \
+vendor/bin/phpunit -c phpunit-integration.xml.dist   # add WP_MULTISITE=1 for the multisite lane
+```
+
+The test install drops its tables, so never point it at a site you keep. On
+2026-10-23 this gave the same counts as CI on both lanes.
 
 ### Multisite lane
 

@@ -32,6 +32,7 @@ require_once MAESTRO_DIR . 'includes/class-ordering.php';
 require_once MAESTRO_DIR . 'includes/class-title.php';
 require_once MAESTRO_DIR . 'includes/class-cascade.php';
 require_once MAESTRO_DIR . 'includes/class-replay.php';
+require_once MAESTRO_DIR . 'includes/class-preview.php';
 require_once MAESTRO_DIR . 'includes/class-rest.php';
 require_once MAESTRO_DIR . 'includes/class-admin-bar.php';
 require_once MAESTRO_DIR . 'includes/class-assets.php';
@@ -55,6 +56,11 @@ function capability() {
  * @return bool
  */
 function is_edit_mode() {
+	// A role preview is read-only (Phase 30), so it is never edit mode, even
+	// when the URL still carries the edit flag.
+	if ( null !== Preview::role() ) {
+		return false;
+	}
 	return isset( $_GET['maestro_edit'] ) && ! is_outside_site_admin() && current_user_can( capability() ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 }
 
@@ -163,6 +169,9 @@ add_action( 'init', __NAMESPACE__ . '\\register_translation_path' );
 function boot() {
 	$config = new Config();
 	$replay = new Replay( $config );
+	// After Replay: its custom_menu_order callback must run before Preview's,
+	// which closes the capability window at the same priority.
+	new Preview();
 
 	new Rest( $config );
 	new Admin_Bar();
