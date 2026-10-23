@@ -13,22 +13,34 @@
 - ✅ **v1.5 Per-User Visibility** — Phase 21 + Phase 26 (shipped as the v1.5.x line; latest release `v1.5.3` on 2026-08-19). Delivered ROLE-02's **per-user half**; the cloned-role "profiles" half remains a backlog item. Phase 25 was completed post-release and is included in the v1.5.3 line; Phase 22 remains open.
 - ✅ **v1.5.4 Compatibility and E2E hardening** — patch on the v1.5 line, shipped 2026-09-21 (PR #192, tag `v1.5.4`, live on WordPress.org). Ships the Google Site Kit menu-order fix (#189) and removes Edit Menu from the block post editor (#176, #179). The rest of the range (#173–#190) is tests, CI, dev dependencies and planning docs.
 - [~] **v1.6.0 Separator editing** — minor release cut 2026-09-23, tagged `v1.6.0` on merge of the release PR; the WordPress.org deploy awaits approval. Ships separator add/move/remove (#197), the Admin Menu Editor warning (#196), the image-icon preview fix and full Dashicons set (#195), the toolbar following a widened menu (#199), multisite network/user admin gating (#198), and the release-review fixes (#200).
-- [ ] **v1.7.0 Menu width** — Phase 28 alone (release decision, 2026-10-22: ship width now rather than wait for profiles). Release #232 merged; Phase 28 human acceptance remains open, including real touch-device testing.
-- [ ] **v1.8 Hiding profiles** — Phase 27 (all profile UX recommendations approved 2026-10-22; see `27-CONTEXT.md`; storage and runtime hiding merged in #237/#238).
+- [ ] **v1.7.0 Menu width** — Phase 28 alone (release decision, 2026-10-22: ship width now rather than wait for profiles). Release #232 merged; v1.7.0 is tagged and published on GitHub. Phase 28 human acceptance remains open, including real touch-device testing.
+- [ ] **v1.8 Hiding profiles** — Phase 27 (all five plans built on main; #242 includes the 27-05 commits from superseded #241; human acceptance remains open).
 - [ ] **v1.9 Client-Site Workflow** — Phases 29–31 (planned 2026-10-09; renumbered from the provisional v1.7 on 2026-10-22). Three requests from one WordPress.org support thread that together cover setting up a client site: see what a role sees, hide from every other role in one step, carry the result to the next site. GitHub milestone [v1.9 Client-site workflow](https://github.com/dknauss/Maestro/milestone/1).
 
 ## Next up
 
-**Phase 28 is built; human acceptance remains open.** #235 and release #232
-merged. The Keel live-preview submenu alignment needed the follow-up recorded
-in `28-VERIFICATION.md`. Real touch-device testing and affected human rechecks
-remain outstanding. Phase 27 decisions, storage/compile (#237) and runtime
-hiding (#238) are now on main; authoring UI and final verification remain pending.
+**Current main: #243 merged as `c940902`, with post-merge CI green.** Phase 29
+select-all is implemented, including the role-limit refusal and save/reload
+regressions. Phase 27's editor and final automated verification are on main;
+#242 included all commits from #241, so #241 is superseded.
 
-**The Client-Site Workflow (Phases 29–31, now v1.9) runs after both** (D1,
-decided 2026-10-21): **Phase 28 → Phase 27 → Phases 29–31**. Release decision (2026-10-22):
-Phase 28 ships alone as **v1.7.0**; Phase 27 ships as **v1.8**. The remaining open decisions are
-under its Phase Details.
+**Human acceptance remains open:** the profile workflow and short-viewport UI
+([Phase 27](phases/27-cloned-role-hiding-profiles/27-VERIFICATION.md)); narrow
+toolbar, Arabic fallback direction and real Keel live-width rechecks
+([Phase 28](phases/28-configurable-admin-menu-width/28-VERIFICATION.md)); real-site
+select-all behavior and screen-reader mixed-state/group-name checks
+([Phase 29](phases/29-select-all-role-control/29-VERIFICATION.md)). Retain the
+earlier available-core-scheme/width pass. **Real touch-device testing remains
+outstanding**; automated browser tests do not complete it. See [STATE](STATE.md)
+for the consolidated human-check list.
+
+**Phase 30 waits on D2**, the capability-filter/invariant decision. Its planning
+checkpoint also settles super-admin handling and picker placement. Do not treat
+merged code or green CI as approval of that design choice.
+
+Release sequence remains **width v1.7.0 → profiles v1.8.0 → Client-Site Workflow
+v1.9**. #242's v1.8.0 release code is merged; no v1.8.0 tag or published GitHub
+Release was found on 2026-10-23. This update does not verify WordPress.org deployment.
 
 **Phase 28 input (2026-09-15):** on sites where Keel or PX already widen the
 menu, Maestro's edit-mode toolbar overlapped it, because the toolbar assumed
@@ -410,7 +422,7 @@ M2/M3 items from `todos/pending/2026-08-02-a11y-locked-checkbox-refinements.md`.
 ---
 
 ### Phase 27: Cloned-Role Hiding Profiles
-**Status:** All five plans merged or in review: 27-01 decisions (#230), 27-02 storage + compile (#237), 27-03 seam + live membership (#238), #240 profile read privacy + member validation, 27-04 editor (#239), 27-05 e2e + gate + docs (this PR). ROLE-02 is complete in code; the phase closes on Dan's hands-on verification (`27-VERIFICATION.md`).
+**Status:** All five plans built on main: #230 decisions, #237 storage/compile, #238 runtime hiding, #240 privacy/member validation, #239 editor, and 27-05 e2e/gate/docs included by #242. #241 is superseded. ROLE-02 is complete in code; human acceptance remains open in [27-VERIFICATION.md](phases/27-cloned-role-hiding-profiles/27-VERIFICATION.md).
 **Goal**: An admin can name a reusable hiding profile ("Reduced view"), assign people to it, and apply it to menu items — cosmetically, with membership resolved live — completing ROLE-02
 **Depends on**: Phase 21 (built the seam slot, the field-parameterized resolver, and the bounded-axis sanitize shape this extends)
 **Requirements**: ROLE-02 (completion — PARTIAL since v1.5.0, complete in code with 27-05)
@@ -513,7 +525,7 @@ suggestions.." (ChrisL, 2026-10-07). Dan confirmed all three in the thread.
 they touch the same role-visibility surface, and they share decisions that
 should be made once.
 
-- [~] **Phase 29: Select-All Role Control** (built 2026-10-23, awaiting verification) — one control per role group that ticks every role the editing user does not hold ([#214](https://github.com/dknauss/Maestro/issues/214))
+- [~] **Phase 29: Select-All Role Control** (merged in #243 as `c940902`; human verification open) — one control per role group that ticks every role the editing user does not hold ([#214](https://github.com/dknauss/Maestro/issues/214))
 - [ ] **Phase 30: View-as-Role Preview (read-only)** — filter the admin menu to what a chosen role sees, without switching user ([#215](https://github.com/dknauss/Maestro/issues/215))
 - [ ] **Phase 31: Config Export/Import** — a versioned JSON export and a validated import, for carrying a setup between sites ([#216](https://github.com/dknauss/Maestro/issues/216))
 
@@ -540,22 +552,23 @@ should be made once.
   boundary hold for imported data exactly as for a save.
 
 ### Phase 29: Select-All Role Control
+**Status:** Both plans merged in #243, including the 50-role limit fix. Post-merge CI passed; real-site and screen-reader checks remain open in [29-VERIFICATION.md](phases/29-select-all-role-control/29-VERIFICATION.md). Real touch-device testing remains outstanding.
 **Goal**: Hiding a menu item from every role but your own takes one action, not one per role
 **Depends on**: nothing
 **Requirements**: UX-14
 **Success Criteria** (what must be TRUE):
-  1. One activation ticks every role the editing user does not hold, in a single save; a second clears them
+  1. One activation ticks every role the editing user does not hold when the complete result fits the server limit, in a single save; a second clears them. An over-limit bulk attempt preserves existing choices and explains the limit.
   2. The editing user still sees the item after reload — their own roles are never ticked by the control
   3. It is offered on both role groups and never on the per-person group
   4. Locked rows stay derived: never written to the model, still checked and `aria-disabled`
   5. The control has an accessible name that includes its group heading, and the result is announced
   6. Zero regression: unit, JS, both integration lanes, e2e, WPCS, PHPStan, Plugin Check
-**Plans**: 29-01 pure helpers (TDD) + roles payload · 29-02 control, a11y, e2e — both built 2026-10-23 in one PR; see `phases/29-select-all-role-control/29-SUMMARY.md`
+**Plans**: 29-01 pure helpers (TDD) + roles payload · 29-02 control, a11y, e2e — both merged 2026-10-23 in #243; see `phases/29-select-all-role-control/29-SUMMARY.md`
 **Notes**: [select-all todo](todos/completed/2026-10-08-select-all-roles-control.md)
 
 ### Phase 30: View-as-Role Preview (read-only)
 **Goal**: An admin can see the admin menu as a chosen role would, to decide what still needs hiding, while staying logged in as themselves
-**Depends on**: D2. Reuses Phase 29's roles payload if that has landed; does not require it
+**Depends on**: D2. Reuses Phase 29's merged roles payload; its explicit prerequisite remains D2
 **Requirements**: ROLE-03
 **Success Criteria** (what must be TRUE):
   1. Choosing a role shows the menu core and plugins build for that role's capabilities, plus Maestro's own rules for that role, with a banner naming the role and an exit
@@ -597,7 +610,7 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 **v1.5 is shipped** as the v1.5.x release line; v1.5.4 (PR #192, shipped 2026-09-21) is
 the final patch documented here for that line, adding compatibility fixes (#176, #179, #189) and E2E
 hardening. Release #232 (v1.7.0 menu width) has since merged; no deployment verification is claimed here.
-Current order: Phase 28 (acceptance open) → Phase 27 (v1.8, 3/5 plans on main) → Phases 29–31 (v1.9). Phase numbers remain non-contiguous by design because 21, 22, and 25
+Current implementation state: Phase 28 acceptance open; Phase 27 (v1.8) has all five plans built; Phase 29 is merged in #243 with human checks open; Phase 30 waits on D2; Phase 31 is unplanned. Phase numbers remain non-contiguous by design because 21, 22, and 25
 originated under the v1.4 roadmap and were not renumbered when they slipped.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -630,8 +643,8 @@ originated under the v1.4 roadmap and were not renumbered when they slipped.
 | 24. Release v1.4.0 | v1.4 | n/a (shipped as PR #113, not numbered plans) | Complete — v1.4.0 shipped; patch v1.4.1 2026-08-05 | 2026-08-04 |
 | 25. Edit-Mode Toolbar Dark-Surface Polish | v1.5 | 2/2 | Complete; included in the v1.5.3 line | 2026-08-09 |
 | 26. Release v1.5.0 | v1.5 | n/a | Complete; superseded by the v1.5.3 release line | 2026-08-19 |
-| 27. Cloned-Role Hiding Profiles | v1.8 | 3/5 | Storage and runtime hiding merged; editor and final gate pending | - |
+| 27. Cloned-Role Hiding Profiles | v1.8 | 5/5 built | Code and automated gate on main via #242; human acceptance open | - |
 | 28. Configurable Admin Menu Width | v1.7.0 | 2/3 | Built; affected human rechecks and real touch-device testing outstanding | - |
-| 29. Select-All Role Control | v1.9 | 0/TBD | Not started | - |
+| 29. Select-All Role Control | v1.9 | 2/2 built | Merged #243; CI green; real-site/screen-reader checks open | - |
 | 30. View-as-Role Preview (read-only) | v1.9 | 0/TBD | Not started — blocked on D2 | - |
 | 31. Config Export/Import | v1.9 | 0/TBD | Not started | - |
