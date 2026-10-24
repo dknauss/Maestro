@@ -12,6 +12,11 @@ across widths, and the tour uses a header close icon. Recheck those controls,
 keyboard obstruction, small targets and accidental dismissal on the final
 combined build. Touch-device acceptance remains open.
 
+Dialog polish follow-up: close icons now use a centered glyph and reserved
+header space, and desktop Preview uses the same close control. Recheck the
+desktop-to-phone Preview handoff and dismissal on hardware; automated geometry
+checks do not complete touch acceptance.
+
 Record tester, date, Maestro commit/version, device, OS/browser versions, admin
 language, Keel version (if active), and portrait/landscape results. Note any
 unavailable desktop-only control as not applicable, rather than a pass.
