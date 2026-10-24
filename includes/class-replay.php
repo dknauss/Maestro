@@ -622,6 +622,14 @@ class Replay {
 			return false;
 		}
 
+		// Role preview (Phase 30): answer for the previewed role, on the role
+		// axis only. Person and profile rules name people, and the viewer's own
+		// would not tell them what the role sees, so they are not applied.
+		$preview = Preview::role();
+		if ( null !== $preview ) {
+			return $hidden_roles && in_array( $preview, $hidden_roles, true );
+		}
+
 		$user = wp_get_current_user();
 		if ( ! $user || ! $user->ID ) {
 			return false; // Logged out: nothing to match against.
