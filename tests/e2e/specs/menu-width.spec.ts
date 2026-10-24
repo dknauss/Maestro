@@ -38,7 +38,7 @@ async function menuWidth( page ) {
 
 async function openSettings( page ) {
 	await page.locator( '.maestro-toolbar .maestro-settings-btn' ).click();
-	const dialog = page.getByRole( 'dialog', { name: 'Menu settings' } );
+	const dialog = page.getByRole( 'dialog', { name: 'Menu width', exact: true } );
 	await expect( dialog ).toBeVisible();
 	return dialog;
 }

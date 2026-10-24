@@ -83,10 +83,15 @@ the same control.
 
 ## Preview The Menu As A Role
 
-To check what a role still sees, pick it under **Preview as** in the editor
-toolbar and press **Preview**. On a phone, tap the eye button in the toolbar to
-open the same picker. Maestro saves anything still pending first; if
+To check what a role still sees, open **Preview as** using the eye button in the
+editor toolbar, choose a role, then press **Preview**. Changing the selection
+alone does not start a preview. Maestro saves anything still pending first; if
 the save fails, the preview does not open.
+
+On desktop, Visibility groups and Menu width save changes automatically. Use
+the close icon or Escape to dismiss them; closing does not cancel queued saves.
+Adding a new group still requires **Add group**. Save feedback appears above the
+toolbar, and a failed save remains visible until a successful retry.
 
 The Dashboard then shows the menu that role gets, with your rules for that role
 applied, under a "Previewing menu as Editor — read-only" banner. Use the

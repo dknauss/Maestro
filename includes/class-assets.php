@@ -391,6 +391,8 @@ class Assets {
 					'tourBack'             => __( 'Back', 'maestro-menu-editor' ),
 					'tourDone'             => __( 'Done', 'maestro-menu-editor' ),
 					'tourSkip'             => __( 'Skip', 'maestro-menu-editor' ),
+					'closeDialog'          => __( 'Close dialog', 'maestro-menu-editor' ),
+					'closeTour'            => __( 'Close tour', 'maestro-menu-editor' ),
 					/* translators: 1: current step number, 2: total steps. e.g. "2 of 5". */
 					'tourProgress'         => esc_html__( '%1$d of %2$d', 'maestro-menu-editor' ),
 					// Guided-tour steps, in the order the tour shows them: one per

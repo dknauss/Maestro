@@ -196,23 +196,10 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 	cursor: default;
 	border: 0;
 	background: transparent;
-	/* Phase 25: RESERVE the slot rather than collapsing to nothing.
-	 *
-	 * Measured before this change: the element grew 4px -> 24px as the status
-	 * appeared, and the rename field beside it was displaced 20px horizontally
-	 * (x: 230 -> 210) on every single save. `flex-shrink: 0` already stopped it
-	 * being compressed, but nothing reserved the space it would need, so the
-	 * whole toolbar shuffled each time a save cycled.
-	 *
-	 * The width holds the longest state the slot ever shows — the "Saving…"
-	 * glyph + label — so idle, saving and saved all occupy one stable box and
-	 * the content fades in and out inside it. */
-	min-width: 24px;
+	/* Floating feedback rules below remove this element from the flex flow. */
+	min-width: 0;
 	min-height: 0;
 	padding: 0 2px;
-}
-.maestro-toolbar .button:hover {
-	background: rgba( 255, 255, 255, 0.08 ); /* quiet hover-lighten, no colour change */
 }
 /* Phase 25: focus ring widened from #2271b1 (3.07:1 on #1d2327) to WP blue-30
  * #72aee6 (6.74:1). NOT a compliance fix — the old ring PASSED WCAG 1.4.11's
@@ -307,8 +294,7 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 
 /* Subtle, selection-only highlight: a tinted row with a left accent bar. */
 .maestro-editing #adminmenu .maestro-selected > a {
-	background: rgba( 34, 113, 177, 0.22 );
-	box-shadow: inset 3px 0 0 #2271b1;
+	box-shadow: inset 3px 0 0 currentColor;
 }
 /* Keyboard focus ring on the selected item's anchor for keyboard-reorder users.
    Uses :focus-visible so it only shows for keyboard navigation, not mouse clicks. */
@@ -1417,3 +1403,51 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 	.maestro-toolbar .maestro-rename-input { width: calc( 100% - 184px ); }
 }
 .maestro-mobile-sheet .maestro-vis-row { column-gap: 6px; }
+
+/* Compact global actions at every width; choosing a role never navigates until
+ * Preview is pressed in its dialog. */
+.maestro-toolbar .maestro-preview-toggle { display: inline-flex; }
+.maestro-dialog-close {
+	position: absolute;
+	inset-block-start: 4px;
+	inset-inline-end: 4px;
+	width: 44px;
+	height: 44px;
+	padding: 0;
+	font-size: 24px;
+	line-height: 1;
+	text-decoration: none;
+	color: #50575e;
+}
+.maestro-settings-title { padding-inline-end: 40px; }
+.maestro-tour-content { padding-inline-end: 48px; }
+.maestro-tour .maestro-tour-skip { margin: 0; text-decoration: none; }
+.maestro-mobile-sheet .maestro-dialog-close { display: none; }
+
+/* Feedback floats above the toolbar, so idle and save transitions consume no
+ * horizontal space and never move its controls. Errors persist until retry. */
+.maestro-toolbar .maestro-status {
+	position: absolute;
+	inset-inline-end: 8px;
+	bottom: calc( 100% + 8px );
+	padding: 8px 12px;
+	background: #1d2327;
+	border-radius: 2px;
+	min-height: 0;
+}
+.maestro-status .maestro-status-text {
+	position: static;
+	clip: auto;
+	clip-path: none;
+	width: auto;
+	height: auto;
+	margin: 0;
+	overflow: visible;
+}
+.maestro-toolbar .maestro-status-idle { padding: 0; min-width: 0; }
+.maestro-toolbar .button:hover {
+	background: var( --maestro-menu-accent, #2271b1 );
+	color: var( --maestro-menu-accent-text, #fff );
+}
+/* Let core provide menu hover colours for each scheme; mark selection without
+ * painting another fixed blue layer over those backgrounds. */

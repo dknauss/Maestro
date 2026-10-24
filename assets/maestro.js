@@ -816,11 +816,17 @@
 
 	function buildToolbar() {
 		var bar = el( 'div', 'maestro-toolbar' );
+		// Read core's active menu colours after the user's colour scheme loads.
+		var current = document.querySelector( '#adminmenu li.current > a, #adminmenu li.wp-has-current-submenu > a' );
+		if ( current ) {
+			var scheme = window.getComputedStyle( current );
+			bar.style.setProperty( '--maestro-menu-accent', scheme.backgroundColor );
+			bar.style.setProperty( '--maestro-menu-accent-text', scheme.color );
+		}
 
 		// Transient save-status — aria-live, empty at idle so no announcement fires.
-		// Icon-only: the per-state ::before dashicon (spinner/check/warning) is the
-		// visible cue; the word ("Saving…"/"Saved"/…) lives in a screen-reader-only
-		// child so assistive tech still announces it via the live region.
+		// Floats above the toolbar: visible state text and a shape cue, announced
+		// through the live region without reserving an empty toolbar column.
 		statusEl = el( 'span', 'maestro-status maestro-status-idle' );
 		statusEl.setAttribute( 'role', 'status' );
 		statusEl.setAttribute( 'aria-live', 'polite' );
@@ -1451,12 +1457,12 @@
 		pop.setAttribute( 'aria-modal', 'true' );
 		pop.setAttribute( 'aria-labelledby', 'maestro-settings-title' );
 
-		var title = el( 'h2', 'maestro-settings-title', I.settings );
+		var title = el( 'h2', 'maestro-settings-title', I.menuWidth );
 		title.id = 'maestro-settings-title';
 		pop.appendChild( title );
 
 		var group = el( 'div', 'maestro-width-field' );
-		var label = el( 'label', 'maestro-width-label', I.menuWidth );
+		var label = el( 'label', 'maestro-width-label screen-reader-text', I.menuWidth );
 		label.htmlFor = 'maestro-width-range';
 		group.appendChild( label );
 
@@ -1499,7 +1505,7 @@
 		var done = el( 'button', 'button button-primary maestro-settings-done', I.tourDone );
 		done.type = 'button';
 		actions.appendChild( reset );
-		actions.appendChild( done );
+		addDialogClose( pop, done );
 		pop.appendChild( actions );
 
 		widthControls = { range: range, number: number, state: state, reset: reset };
@@ -1626,11 +1632,9 @@
 		msg.hidden = true;
 		pop.appendChild( msg );
 
-		var actions = el( 'div', 'maestro-settings-actions' );
 		var done = el( 'button', 'button button-primary maestro-settings-done', I.tourDone );
 		done.type = 'button';
-		actions.appendChild( done );
-		pop.appendChild( actions );
+		addDialogClose( pop, done );
 
 		function say( text ) {
 			setText( msg, text || '' );
@@ -2826,7 +2830,7 @@
 			pop.maestroCleanup = null;
 		}
 		function resize() {
-			if ( window.innerWidth < 961 && pop.classList.contains( 'maestro-settings-popover' ) && ! pop.classList.contains( 'maestro-profiles-popover' ) ) {
+			if ( window.innerWidth < 961 && pop.classList.contains( 'maestro-settings-popover' ) && ! pop.classList.contains( 'maestro-profiles-popover' ) && ! pop.classList.contains( 'maestro-preview-popover' ) ) {
 				removePopover( pop );
 				var help = document.querySelector( '.maestro-tour-help' );
 				if ( help ) { help.focus(); }
@@ -3204,20 +3208,29 @@
 		if ( ! P ) { return null; }
 		var wrap = el( 'div', 'maestro-preview-picker' );
 
-		// Phones (#252's two-row toolbar) have no room for the inline select,
-		// so there a single toolbar button opens the same controls in the
-		// phone sheet. CSS shows one or the other (maestro.css).
+		// A single toolbar button opens the picker on desktop and phones.
 		var toggle = el( 'button', 'button maestro-preview-toggle' );
 		toggle.type = 'button';
 		toggle.setAttribute( 'aria-haspopup', 'dialog' );
 		iconButton( toggle, 'dashicons-visibility', I.previewAs );
 		toggle.addEventListener( 'click', function () { openPreviewDialog( toggle ); } );
 		wrap.appendChild( toggle );
-
-		var inline = el( 'div', 'maestro-preview-inline' );
-		previewControls( inline, 'maestro-preview-select' );
-		wrap.appendChild( inline );
 		return wrap;
+	}
+
+	// Autosaved dialogs close without committing or cancelling changes.
+	function addDialogClose( pop, button ) {
+		if ( isPhoneViewport() ) {
+			var actions = el( 'div', 'maestro-settings-actions' );
+			actions.appendChild( button );
+			pop.appendChild( actions );
+			return;
+		}
+		button.className = 'button-link maestro-dialog-close';
+		button.textContent = '\u00d7';
+		button.setAttribute( 'aria-label', I.closeDialog );
+		button.title = I.closeDialog;
+		pop.appendChild( button );
 	}
 
 	/*
@@ -3267,8 +3280,7 @@
 		return select;
 	}
 
-	// The phone dialog: same controls, in the scrollable sheet placePopover()
-	// gives every toolbar dialog at phone widths, with Done to close it.
+	// A desktop popover, promoted to the scrollable sheet at phone widths.
 	function openPreviewDialog( anchorBtn ) {
 		closePopovers();
 		var pop = el( 'div', 'maestro-popover maestro-settings-popover maestro-preview-popover' );
@@ -3298,6 +3310,18 @@
 			if ( e.key === 'Escape' ) {
 				e.preventDefault();
 				e.stopPropagation();
+			}
+			if ( e.key === 'Tab' ) {
+				var buttons = pop.querySelectorAll( 'select, button:not([disabled])' );
+				var first = buttons[ 0 ];
+				var last = buttons[ buttons.length - 1 ];
+				if ( e.shiftKey && document.activeElement === first ) {
+					e.preventDefault();
+					last.focus();
+				} else if ( ! e.shiftKey && document.activeElement === last ) {
+					e.preventDefault();
+					first.focus();
+				}
 			}
 		} );
 		pop.addEventListener( 'keyup', function ( e ) {
@@ -3557,8 +3581,10 @@
 		var isLast = tour.idx === tour.steps.length - 1;
 		var controls = el( 'div', 'maestro-tour-controls' );
 
-		var skip = el( 'button', 'button-link maestro-tour-skip', I.tourSkip );
+		var skip = el( 'button', 'button-link maestro-tour-skip maestro-dialog-close', '\u00d7' );
 		skip.type = 'button';
+		skip.setAttribute( 'aria-label', I.closeTour );
+		skip.title = I.closeTour;
 		skip.addEventListener( 'click', endTour );
 
 		var back = el( 'button', 'button maestro-tour-back', I.tourBack );
@@ -3582,7 +3608,7 @@
 			}
 		} );
 
-		controls.appendChild( skip );
+		box.appendChild( skip );
 		controls.appendChild( back );
 		controls.appendChild( next );
 		content.appendChild( progress );

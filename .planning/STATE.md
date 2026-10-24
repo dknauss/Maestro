@@ -3,32 +3,44 @@ gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: Client-Site Workflow
 status: in_progress
-stopped_at: "Phase 29 merged as #243 (c940902), including the role-limit fix; post-merge CI passed. Phase 27 verification landed through #242, superseding #241. Desktop human checks for Phases 27/28/29 passed on 2026-10-23; real touch-device testing remains outstanding. Phase 30 decisions approved; ready for implementation planning."
-last_updated: "2026-10-23T00:00:00.000Z"
-last_activity: "2026-10-23 — Recorded Dan's desktop sign-off on main 312c8b7 for Phases 27–29; touch-device acceptance remains open. Dan approved D2, super-admin handling and picker placement; Phase 30 is ready for planning."
+stopped_at: "Phase 30 role preview merged through #251 (9802065), with post-merge CI green. Desktop UX refinement in progress; contextual row controls planned for a later pass. Real touch-device acceptance remains open."
+last_updated: "2026-10-24T00:00:00.000Z"
+last_activity: "2026-10-24 — Desktop UX cleanup and preview-notice placement regression coverage; later contextual controls planned. Touch-device acceptance remains open."
 progress:
   total_phases: 3
   completed_phases: 0
-  total_plans: 2
-  completed_plans: 2
-  percent: 0 # Fully accepted across devices: 0/3; Phase 30/31 plan totals remain TBD.
+  total_plans: 4
+  completed_plans: 4
+  percent: 0 # Fully accepted across devices: 0/3; Phase 31 remains unplanned.
 ---
 
 # Project State
+
+## Desktop UX refinement — 2026-10-24
+
+Phase 30 role-preview UI is on main through #251 (`9802065`). The desktop cleanup
+reuses its compact Preview dialog, adds header close controls for autosaved
+Visibility groups/Menu width dialogs and the tour, floats save feedback above
+the toolbar, and derives toolbar hover colours from the active core menu.
+The preview notice moves to the standard notice area below Help/Screen Options.
+Contextual selected-row editing is planned in
+[DESKTOP-UX-NEXT-PASS.md](DESKTOP-UX-NEXT-PASS.md).
+Real touch-device acceptance remains open, including keyboard obstruction and
+usability rechecks on the final combined build.
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-07-03)
 
-**Current focus:** Phase 30 implementation planning; all three design decisions
-approved by Dan on 2026-10-23. Real touch-device acceptance remains open.
-Main includes #245 (`e1f2ffe`); its [post-merge CI](https://github.com/dknauss/Maestro/actions/runs/40016927229) passed.
+**Current focus:** Desktop UX refinements following Phase 30's merged role-preview
+implementation (#248 and #251). Real touch-device acceptance remains open.
+Main includes #251 (`9802065`).
 Dan passed all desktop human checks for Phases 27–29 on 2026-10-23, using
 main `312c8b7` (#244); its [post-merge CI](https://github.com/dknauss/Maestro/actions/runs/39914443207) passed. Phase 29
 ("All other roles", #214) merged in #243 as `c940902`, including atomic refusal
 of over-limit bulk selections. [Post-merge CI](https://github.com/dknauss/Maestro/actions/runs/39909963498) passed. Phase 27's five plans are
 on main: #242 included the commits from #241, which is superseded. Phase 30
-(view-as-role) is ready for implementation planning; Phase 31 (export/import) is unplanned.
+(view-as-role) is implemented through #251; Phase 31 (export/import) is unplanned.
 Release sequence: width v1.7.0, profiles v1.8.0 (release code merged in #242),
 Client-Site Workflow v1.9. Real touch-device testing remains outstanding.
 
@@ -40,8 +52,9 @@ recorded above; this note is kept only to date the paragraph that follows it.
 ## Current Position
 
 Milestone: **v1.9 Client-Site Workflow**. Phase 29's two plans are built and
-merged; desktop human checks passed, with touch-device acceptance open. Phase 30/31 plans remain TBD, so the progress
-percentage tracks phases fully accepted across devices (0/3), not the two known built plans.
+merged; desktop human checks passed, with touch-device acceptance open. Phase 30's
+two implementation plans are merged; Phase 31 is unplanned. The progress
+percentage tracks phases fully accepted across devices (0/3).
 
 Phase 27: **5/5 plans built on main** — #230 decisions, #237 storage/compile,
 #238 runtime hiding, #240 privacy/member validation, #239 editor, and 27-05
@@ -90,8 +103,8 @@ Dan approved all three recommendations, recorded in the
 D4 decided 2026-10-23 (Dan): imported rules for menu
 items missing on the target are dropped and reported. D5 remains open.
 **Update, later 2026-10-23:** 30-01 (server window, #248, merged 2026-10-24)
-and 30-02 (picker, banner, exit, parity e2e) are built and pass; 30-02 awaits
-Dan's review. Preview was narrowed to the Dashboard and to roles with `read`
+and 30-02 (picker, banner, exit, parity e2e, #251) are built and merged; post-merge
+CI passed on `9802065`. Preview was narrowed to the Dashboard and to roles with `read`
 after a real request showed core's nopriv globals refusing other pages. Desktop
 sign-off for Phases 27–29 is retained; **real touch-device testing remains
 outstanding** and no phase is marked fully accepted across devices.
@@ -649,8 +662,10 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-10-23
-Stopped at: #245 merged as e1f2ffe with post-merge CI green. Dan passed desktop human checks for Phases 27/28/29 on 2026-10-23; real touch-device testing remains outstanding. Phase 30 decisions approved; implementation planning is next.
+Last session: 2026-10-24
+Stopped at: Desktop cleanup following #251 (`9802065`, post-merge CI green).
+Contextual row controls are planned for a later pass. Touch-device acceptance
+remains open; earlier desktop sign-off is retained.
 
 **Earlier updates below are historical snapshots; the Current Position above is authoritative.**
 

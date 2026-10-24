@@ -19,7 +19,13 @@
 
 ## Next up
 
-**Current main: #245 merged as `e1f2ffe`, with post-merge CI green.** Phase 29
+Desktop refinement follow-up (2026-10-24): compact Preview picker on desktop,
+header close actions, one Menu width title, floating save status, admin-scheme
+hover colours and preview notices below Help/Screen Options. Next, prototype the
+[contextual selected-row controls](DESKTOP-UX-NEXT-PASS.md). Real touch-device
+acceptance stays open; no mobile sign-off is inferred from desktop changes.
+
+**Current main: #251 merged as `9802065`.** Phase 29
 select-all is implemented, including the role-limit refusal and save/reload
 regressions. Phase 27's editor and final automated verification are on main;
 #242 included all commits from #241, so #241 is superseded.
@@ -36,7 +42,7 @@ outstanding.** These phases are not marked fully accepted across devices.
 **Phase 30 decisions approved by Dan — 2026-10-23:** D2's narrow capability
 exception, no super-admin preview in the first release, and the labelled picker
 in the existing toolbar panel. See the [decision record](phases/30-view-as-role-preview/30-CONTEXT.md).
-Ready for implementation planning; no preview implementation is claimed.
+Role-preview server and picker implementations merged through #248 and #251.
 Real touch-device testing remains outstanding.
 
 Release sequence remains **width v1.7.0 → profiles v1.8.0 → Client-Site Workflow
@@ -569,7 +575,7 @@ should be made once.
 
 ### Phase 30: View-as-Role Preview (read-only)
 **Goal**: An admin can see the admin menu as a chosen role would, to decide what still needs hiding, while staying logged in as themselves
-**Depends on**: D2 approved 2026-10-23, together with super-admin handling and picker placement. Reuses Phase 29's merged roles payload; ready for implementation planning.
+**Depends on**: D2 approved 2026-10-23, together with super-admin handling and picker placement. Reuses Phase 29's merged roles payload; implementation merged through #251.
 **Requirements**: ROLE-03
 **Success Criteria** (what must be TRUE):
   1. Choosing a role shows the menu core and plugins build for that role's capabilities, plus Maestro's own rules for that role, with a banner naming the role and an exit
@@ -581,7 +587,7 @@ should be made once.
   7. The toolbar panel has a labelled native role selector and explicit Preview button; pending saves must succeed before entry. A persistent read-only role banner, picker and Exit preview replace editing controls and survive the simulated role's missing Maestro access; exit changes no rules.
   8. No capability persistence or identity changes; REST, AJAX, cron and ordinary browsing are outside the exception. Tests prove viewer isolation, subtraction, filter cleanup before page callbacks and no preview writes.
   9. Zero regression across the same gates as Phase 29
-**Plans**: 30-01 server window ([#248](https://github.com/dknauss/Maestro/pull/248)) · 30-02 picker, banner, exit and parity e2e — both built 2026-10-23, awaiting deep review; see `phases/30-view-as-role-preview/30-01-SUMMARY.md` and `30-02-SUMMARY.md`. Narrowed during 30-01 to the Dashboard and to roles with `read` (core's nopriv globals), for Dan to confirm.
+**Plans**: 30-01 server window ([#248](https://github.com/dknauss/Maestro/pull/248)) · 30-02 picker, banner, exit and parity e2e ([#251](https://github.com/dknauss/Maestro/pull/251)) — both merged; post-merge CI passed on `9802065`. Preview is restricted to the Dashboard and roles with `read`. Human acceptance remains open.
 **Out of this phase**: editing inside the preview (the scope selector's role and person scopes) and "View as: [person]". Both stay in the todo.
 **Notes**: [view-as-role todo](todos/pending/2026-10-07-view-menu-as-role-preview.md)
 **Review**: high-risk diff (touches capability resolution) — mandatory deep review before merge
@@ -614,7 +620,7 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 **v1.5 is shipped** as the v1.5.x release line; v1.5.4 (PR #192, shipped 2026-09-21) is
 the final patch documented here for that line, adding compatibility fixes (#176, #179, #189) and E2E
 hardening. Release #232 (v1.7.0 menu width) has since merged; no deployment verification is claimed here.
-Current implementation state: Phases 27–29 desktop human checks passed 2026-10-23; touch-device acceptance remains open. Phase 27 (v1.8) has all five plans built; Phase 29 is merged in #243; Phase 30 decisions approved, ready for implementation planning; Phase 31 is unplanned. Phase numbers remain non-contiguous by design because 21, 22, and 25
+Current implementation state: Phases 27–29 desktop human checks passed 2026-10-23; touch-device acceptance remains open. Phase 27 (v1.8) has all five plans built; Phase 29 is merged in #243; Phase 30 implementation merged through #251; Phase 31 is unplanned. Phase numbers remain non-contiguous by design because 21, 22, and 25
 originated under the v1.4 roadmap and were not renumbered when they slipped.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -650,5 +656,5 @@ originated under the v1.4 roadmap and were not renumbered when they slipped.
 | 27. Cloned-Role Hiding Profiles | v1.8 | 5/5 built | Code and automated gate on main via #242; desktop passed 2026-10-23; touch outstanding | - |
 | 28. Configurable Admin Menu Width | v1.7.0 | 2/3 | Built; desktop rechecks passed 2026-10-23; touch outstanding | - |
 | 29. Select-All Role Control | v1.9 | 2/2 built | Merged #243; CI green; desktop checks passed 2026-10-23; touch outstanding | - |
-| 30. View-as-Role Preview (read-only) | v1.9 | 0/TBD | Decisions approved 2026-10-23; ready for implementation planning | - |
+| 30. View-as-Role Preview (read-only) | v1.9 | 2/2 built | Merged through #251; human acceptance open | - |
 | 31. Config Export/Import | v1.9 | 0/TBD | Not started | - |
