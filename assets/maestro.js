@@ -34,6 +34,7 @@
 	var selectedKey = null;
 	var panel = {};        // references into the shared panel
 	var statusEl = null;   // status indicator span
+	var statusDismiss = null; // × that hides a stuck save error (the error itself stays)
 	var saveTimer = null;
 	var saveInFlight = false;  // a full-replace POST is currently running
 	var savePending = false;   // another change arrived mid-flight; save again on land
@@ -833,6 +834,24 @@
 		statusEl.setAttribute( 'aria-atomic', 'true' );
 		statusEl.appendChild( el( 'span', 'maestro-status-text' ) );
 		bar.appendChild( statusEl );
+
+		// A failed save stays up until a later save succeeds, so it can cover
+		// the page corner for a long time. The × hides the bubble only: the
+		// error state and lastSaveOk stand, so Preview still refuses, and the
+		// next setStatus() (another edit, or another failure) shows it again.
+		// A sibling, not a child, so the live region never announces it.
+		statusDismiss = el( 'button', 'button-link maestro-status-dismiss', '\u00d7' );
+		statusDismiss.type = 'button';
+		statusDismiss.hidden = true;
+		statusDismiss.setAttribute( 'aria-label', I.dismissSaveError );
+		statusDismiss.title = I.dismissSaveError;
+		statusDismiss.addEventListener( 'click', function () {
+			statusEl.classList.add( 'maestro-status-dismissed' );
+			statusDismiss.hidden = true;
+			var target = bar.querySelector( 'button:not([disabled]):not([hidden]):not(.maestro-status-dismiss)' );
+			if ( target ) { target.focus(); }
+		} );
+		bar.appendChild( statusDismiss );
 
 		// Shared panel — empty/hidden until something is selected.
 		var p = el( 'div', 'maestro-panel' );
@@ -3109,7 +3128,9 @@
 		if ( ! statusEl ) { return; }
 		// Preserve the visible text child and its live-region announcements while
 		// the state class supplies the spinner, success or error glyph.
+		// Rebuilding className also clears maestro-status-dismissed.
 		statusEl.className = 'maestro-status maestro-status-' + state;
+		if ( statusDismiss ) { statusDismiss.hidden = state !== 'error'; }
 		var label = window.maestroLogic.modeStatusLabel( state, I );
 		var textEl = statusEl.querySelector( '.maestro-status-text' );
 		if ( textEl ) { setText( textEl, label ); }

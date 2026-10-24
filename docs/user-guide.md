@@ -91,7 +91,10 @@ the save fails, the preview does not open.
 On desktop, Visibility groups and Menu width save changes automatically. Use
 the close icon or Escape to dismiss them; closing does not cancel queued saves.
 Adding a new group still requires **Add group**. Save feedback appears above the
-toolbar, and a failed save remains visible until a successful retry.
+toolbar, and a failed save remains visible until a successful retry. Its ×
+hides the message without clearing the failure: your next change retries the
+save and shows the message again if it still fails, and **Preview** stays
+unavailable until a save succeeds.
 
 The Dashboard then shows the menu that role gets, with your rules for that role
 applied, under a "Previewing menu as Editor — read-only" banner. Use the

@@ -1424,6 +1424,45 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 	min-height: 0;
 }
 .maestro-toolbar .maestro-status-idle { padding: 0; min-width: 0; }
+/* A stuck error carries a × (maestro.js buildToolbar). The bubble reserves
+ * room at its trailing end and the button sits over that room, both 36px tall
+ * here and 44px in the compact layout. Dismissed hides the bubble visually
+ * only; it stays in the accessibility tree until the next state replaces it. */
+.maestro-toolbar .maestro-status-error {
+	box-sizing: border-box;
+	min-height: 36px;
+	padding-inline-end: 40px;
+}
+.maestro-toolbar .maestro-status-dismiss {
+	position: absolute;
+	inset-inline-end: 8px;
+	bottom: calc( 100% + 8px );
+	width: 36px;
+	height: 36px;
+	padding: 0;
+	font-size: 20px;
+	line-height: 1;
+	color: #f0f0f1;
+	text-decoration: none;
+}
+.maestro-toolbar .maestro-status-dismiss:focus-visible {
+	outline: 2px solid #72aee6;
+	outline-offset: -2px;
+}
+.maestro-toolbar .maestro-status-dismiss[hidden] { display: none; }
+.maestro-toolbar .maestro-status-dismissed {
+	clip-path: inset( 50% );
+	width: 1px;
+	height: 1px;
+	min-height: 0;
+	padding: 0;
+	overflow: hidden;
+	white-space: nowrap;
+}
+@media screen and ( max-width: 782px ), screen and ( max-height: 500px ) {
+	.maestro-toolbar .maestro-status-error { min-height: 44px; padding-inline-end: 48px; }
+	.maestro-toolbar .maestro-status-dismiss { width: 44px; height: 44px; }
+}
 @media ( hover: hover ) {
 	.maestro-toolbar .button:not(:disabled):not(.button-link-delete):hover {
 		background: var( --maestro-menu-accent, #2271b1 );

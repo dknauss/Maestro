@@ -91,3 +91,69 @@ test.describe( 'touch hover', () => {
 		expect( Number( background.split( ',' )[ 3 ].replace( ')', '' ) ) ).toBeLessThan( 0.1 );
 	} );
 } );
+
+async function failSaves( page ) {
+	await page.route( '**/maestro/v1/config**', ( route ) => {
+		if ( route.request().method() === 'POST' ) {
+			return route.fulfill( { status: 500, body: '{}' } );
+		}
+		return route.continue();
+	} );
+}
+
+test( 'a stuck save error can be dismissed without clearing the failure', async ( { page } ) => {
+	await failSaves( page );
+	await page.locator( '#menu-posts > a.menu-top' ).click();
+	await page.locator( '.maestro-rename-input' ).fill( 'Broken' );
+	await page.locator( '.maestro-rename-input' ).press( 'Enter' );
+	const status = page.locator( '.maestro-toolbar .maestro-status' );
+	const dismiss = page.getByRole( 'button', { name: 'Dismiss save error' } );
+	await expect( status ).toHaveClass( /maestro-status-error/ );
+	await expect( dismiss ).toBeVisible();
+
+	// The × sits over the bubble's reserved trailing room, not over the page.
+	const bubble = ( await status.boundingBox() )!;
+	const x = ( await dismiss.boundingBox() )!;
+	expect( x.x ).toBeGreaterThanOrEqual( bubble.x );
+	expect( x.x + x.width ).toBeLessThanOrEqual( bubble.x + bubble.width + 1 );
+
+	await dismiss.click();
+	await expect( dismiss ).toBeHidden();
+	expect( ( await status.boundingBox() )!.width ).toBeLessThanOrEqual( 1 );
+	await expect( status ).toHaveText( /Save failed/ ); // still exposed to assistive tech
+	expect( await page.evaluate( () => document.activeElement!.closest( '.maestro-toolbar' ) !== null ) ).toBe( true );
+
+	// Dismissing hid the bubble, not the failure: Preview still refuses and
+	// brings the error back.
+	await page.locator( '.maestro-preview-toggle' ).click();
+	await page.getByRole( 'combobox', { name: 'Preview as' } ).selectOption( 'editor' );
+	await page.locator( '.maestro-preview-btn' ).click();
+	await expect( dismiss ).toBeVisible();
+	expect( page.url() ).not.toContain( 'maestro_preview' );
+	await page.keyboard.press( 'Escape' );
+
+	// A later successful save clears the error and its ×.
+	await page.unroute( '**/maestro/v1/config**' );
+	await page.locator( '.maestro-rename-input' ).fill( 'Fixed' );
+	await page.locator( '.maestro-rename-input' ).press( 'Enter' );
+	await expect( status ).toHaveClass( /maestro-status-saved/ );
+	await expect( dismiss ).toBeHidden();
+} );
+
+test( 'the save-error × is a 44px target in the compact phone layout', async ( { page } ) => {
+	await page.setViewportSize( { width: 390, height: 844 } );
+	await page.reload();
+	await failSaves( page );
+	await page.locator( '#menu-posts > a.menu-top' ).click();
+	await page.locator( '.maestro-rename-input' ).fill( 'Broken' );
+	await page.locator( '.maestro-rename-input' ).press( 'Enter' );
+	const dismiss = page.getByRole( 'button', { name: 'Dismiss save error' } );
+	await expect( dismiss ).toBeVisible();
+	const box = ( await dismiss.boundingBox() )!;
+	expect( box.width ).toBeGreaterThanOrEqual( 44 );
+	expect( box.height ).toBeGreaterThanOrEqual( 44 );
+	await dismiss.click();
+	await expect( dismiss ).toBeHidden();
+	// Tapping it must not close core's responsive menu, which holds the toolbar.
+	await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
+} );

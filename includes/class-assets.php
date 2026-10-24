@@ -273,6 +273,7 @@ class Assets {
 					'saving'               => __( 'Saving…', 'maestro-menu-editor' ),
 					'saved'                => __( 'Saved', 'maestro-menu-editor' ),
 					'saveError'            => __( 'Save failed. Retrying on next change.', 'maestro-menu-editor' ),
+					'dismissSaveError'     => __( 'Dismiss save error', 'maestro-menu-editor' ),
 					'modeLabel'            => __( 'Edit Mode', 'maestro-menu-editor' ),
 					'renamePlaceholder'    => __( 'Menu label', 'maestro-menu-editor' ),
 					'icon'                 => __( 'Icon', 'maestro-menu-editor' ),
