@@ -167,3 +167,13 @@ off-center mixed-state dash remains a visual defect. The exact commit remains un
 iPhone 17, Safari on iOS 26.6.2, and confirms Arabic/English parity; no RTL-specific
 regression was reported. Real Keel mobile interaction was not tested. This report does not close touch acceptance
 or replace the earlier desktop sign-off.
+
+## Combined mobile follow-up — #252, human recheck outstanding
+
+Claude's phone tour, containment, compact layout and hidden width Settings work
+is retained and combined with keyboard-aware scrollable sheets, explicit Done
+controls, 44px-wide/tall compact targets, focus/scroll cleanup and responsive
+handoff. See the [touch follow-up](../../TOUCH-DEVICE-CHECKLIST.md#mobile-usability-implementation-follow-up--real-device-acceptance-open).
+Desktop width settings still work at 961px and above; hiding the gear below that
+breakpoint does not clear the saved width. Automated regression coverage is
+separate from Dan's earlier desktop pass. **Real touch acceptance stays open.**
