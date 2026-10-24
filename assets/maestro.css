@@ -1484,3 +1484,135 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 		color: var( --maestro-menu-accent-text, #fff );
 	}
 }
+
+/* ---------- selected-row controls (prototype) ----------------------------
+ * DESKTOP-UX-NEXT-PASS: rename, move and icon controls sit on the selected
+ * row (buildRowControls() in maestro.js). The toolbar keeps Visibility, Reset
+ * item, the separator actions and every global control; its own rename field,
+ * arrows and icon button step aside while a non-separator row is selected.
+ *
+ * Colours come from --maestro-row-fg, read from an ordinary menu label at
+ * runtime, so the strip follows the admin colour scheme (light included).
+ * Targets are 32px with a fine pointer and 44px with a coarse one. The stored
+ * menu width never changes to make room: the strip wraps instead.
+ */
+.maestro-toolbar .maestro-panel-row-owned .maestro-rename-input,
+.maestro-toolbar .maestro-panel-row-owned .maestro-move-up,
+.maestro-toolbar .maestro-panel-row-owned .maestro-move-down,
+.maestro-toolbar .maestro-panel-row-owned .maestro-icon-btn {
+	display: none !important;
+}
+.maestro-editing #adminmenu li.maestro-selected {
+	position: relative;
+}
+.maestro-editing #adminmenu .maestro-row-strip {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	margin: 0;
+	padding: 2px 8px 6px;
+	padding-inline-start: 36px; /* under the label, past the icon column */
+	color: var( --maestro-row-fg, #f0f0f1 );
+}
+.maestro-editing #adminmenu li.maestro-subitem .maestro-row-strip {
+	padding-inline-start: 12px; /* the open submenu's link inset */
+}
+.maestro-editing #adminmenu .maestro-row-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	width: 32px;
+	height: 32px;
+	min-height: 0;
+	margin: 0;
+	padding: 0;
+	border: 1px solid currentColor;
+	border-radius: 2px;
+	background: transparent;
+	color: inherit;
+	opacity: 0.85;
+	cursor: pointer;
+	line-height: 1;
+}
+.maestro-editing #adminmenu .maestro-row-btn:hover {
+	opacity: 1;
+	background: rgba( 127, 127, 127, 0.2 );
+}
+.maestro-editing #adminmenu .maestro-row-btn .maestro-btn-label {
+	display: none;
+}
+.maestro-editing #adminmenu .maestro-row-btn .dashicons {
+	width: 20px;
+	height: 20px;
+	font-size: 20px;
+}
+.maestro-editing #adminmenu .maestro-row-btn:focus-visible,
+.maestro-editing #adminmenu .maestro-row-icon:focus-visible {
+	opacity: 1;
+	outline: 2px solid #72aee6;
+	outline-offset: 1px;
+}
+/* The selected row's icon becomes its own button: no glyph of its own, the
+ * real icon shows through, framed so it reads as pressable. Geometry is set
+ * from the icon column in placeRowControls(). */
+.maestro-editing #adminmenu .maestro-row-icon {
+	position: absolute;
+	top: 0;
+	inset-inline-start: 0;
+	z-index: 10001; /* above the row link, which core lifts to 10000 on phones */
+	box-sizing: border-box;
+	width: 36px;
+	height: 34px;
+	min-height: 0;
+	margin: 0;
+	padding: 0;
+	border: 1px dashed var( --maestro-row-fg, #f0f0f1 );
+	border-radius: 2px;
+	background: transparent;
+	cursor: pointer;
+}
+.maestro-editing #adminmenu .maestro-row-icon:hover {
+	border-style: solid;
+	background: rgba( 127, 127, 127, 0.2 );
+}
+.maestro-editing #adminmenu .maestro-row-rename-input {
+	position: absolute;
+	z-index: 10002;
+	box-sizing: border-box;
+	min-height: 0;
+	margin: 0;
+	padding: 0 6px;
+	border: 1px solid #2271b1;
+	border-radius: 2px;
+	background: #fff;
+	color: #1d2327;
+	font: inherit;
+	font-size: 14px;
+	line-height: 1.3;
+}
+.maestro-editing #adminmenu .maestro-row-rename-input:focus {
+	outline: 2px solid #72aee6;
+	outline-offset: 0;
+	box-shadow: none;
+}
+
+@media ( pointer: coarse ) {
+	.maestro-editing #adminmenu .maestro-row-strip {
+		padding-inline-start: 8px; /* three 44px targets need the full 160px */
+	}
+	.maestro-editing #adminmenu .maestro-row-btn {
+		width: 44px;
+		height: 44px;
+	}
+	.maestro-editing #adminmenu .maestro-row-rename-input {
+		font-size: 16px; /* below 16px iOS zooms the page on focus */
+	}
+	/* The icon column is about 34x30 on phones. Grow the hit area, not the
+	 * frame, so the target is 44px without covering the label. */
+	.maestro-editing #adminmenu .maestro-row-icon::before {
+		content: "";
+		position: absolute;
+		inset: -7px -5px;
+	}
+}

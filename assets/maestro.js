@@ -69,6 +69,7 @@
 	// as this session's own copy: a delete drops its entry.
 	var profileCarry = window.maestroLogic.dropProfileCarry( D.profileCarry, '' );
 	var profilesBtn = null;     // the toolbar button that opens the dialog
+	var rowCtl = null;          // the selected row's own controls (buildRowControls)
 
 	/* ---------- helpers ---------------------------------------------------- */
 
@@ -584,6 +585,7 @@
 		delete model[ slug ];
 		selectedKey = null;
 		panel.root.hidden = true;
+		placeRowControls( null );
 
 		// Keep focus in the menu, on the row that took its place.
 		if ( prev ) {
@@ -605,8 +607,9 @@
 			var a = e.target.closest( 'a' );
 			if ( a ) { e.preventDefault(); }
 
-			// Popovers may be placed over the menu region — let them handle their own clicks.
-			if ( e.target.closest( '.maestro-popover' ) ) {
+			// Popovers may be placed over the menu region, and the selected row
+			// carries its own controls — let them handle their own clicks.
+			if ( e.target.closest( '.maestro-popover, .maestro-row-ctl' ) ) {
 				return;
 			}
 
@@ -616,16 +619,26 @@
 		}, true );
 
 		menu.addEventListener( 'keydown', function ( e ) {
-			if ( e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar' ) {
+			var renameKey = !! rowCtl && ( e.key === 'F2' || e.key === 'Enter' );
+			if ( ! renameKey && e.key !== ' ' && e.key !== 'Spacebar' ) {
 				return;
 			}
-			if ( e.target.closest( '.maestro-popover' ) ) {
+			if ( e.target.closest( '.maestro-popover, .maestro-row-ctl' ) ) {
 				return;
 			}
 
 			var li = e.target.closest( 'li.maestro-item, li.maestro-subitem' );
 			if ( ! li ) { return; }
 			e.preventDefault();
+			// Enter on the row that is already selected renames it, as F2 does
+			// anywhere in the menu. F2 needs fn on most Mac keyboards, so Enter
+			// is the primary keyboard path and F2 the familiar extra.
+			if ( renameKey && ( e.key === 'F2' || li.classList.contains( 'maestro-selected' ) ) ) {
+				if ( ! li.classList.contains( 'maestro-selected' ) ) { selectItem( li ); }
+				startInlineRename();
+				return;
+			}
+			if ( e.key === 'F2' ) { return; }
 			selectItem( li, { focusPanel: true } );
 		}, true );
 
@@ -772,13 +785,215 @@
 		populatePanel( key );
 		closePopovers();
 		// A separator has no rename field; its first real control is Remove.
-		var focusTarget = model[ key ].isSeparator ? panel.removeSepBtn : panel.rename;
+		// With row controls on, any other row carries its own controls, so
+		// focus stays on the row and Tab reaches them next: nothing jumps to
+		// the toolbar, and a tap on a phone does not raise the keyboard.
+		var focusTarget = model[ key ].isSeparator ? panel.removeSepBtn : ( rowCtl ? ( li.querySelector( 'a' ) || li ) : panel.rename );
+		if ( opts.focusPanel && rowCtl && ! model[ key ].isSeparator ) {
+			speak( I.rowSelected.replace( '%s', function () { return model[ key ].title; } ) );
+		}
 		if ( opts.focusPanel && focusTarget ) {
 			try {
 				focusTarget.focus( { preventScroll: true } );
 			} catch ( err ) {
 				focusTarget.focus();
 			}
+		}
+	}
+
+	/* ---------- selected-row controls (prototype) ------------------------- */
+
+	/*
+	 * DESKTOP-UX-NEXT-PASS prototype: rename, move and icon controls on the
+	 * selected row itself rather than in the bottom toolbar. One set of nodes
+	 * is re-parented into whichever row is selected:
+	 *
+	 *   - the icon button covers the row's own icon column (top level only),
+	 *     so an icon becomes "Change icon" only once its row is selected; the
+	 *     first click on any row always just selects it;
+	 *   - a strip under the row holds Rename (pencil), Move up and Move down;
+	 *   - Rename swaps the label for a field over it until Enter, Escape or
+	 *     blur.
+	 *
+	 * They are children of the <li>, never of its <a>, so they neither
+	 * navigate nor nest interactive content, and a press on a <button> or
+	 * <input> never starts a sortable drag (`cancel`). Inside #adminmenu they
+	 * are also inside #adminmenuwrap, so on phones core never counts a tap on
+	 * them as a click outside the open menu.
+	 *
+	 * Separators keep their toolbar controls for now, as do Visibility, Reset
+	 * item and Add separator for every row.
+	 */
+	// Opt-in while it is a prototype, so the shipped toolbar flow (and every
+	// spec written against it) is unchanged: ?maestro_rows=1 turns it on and
+	// remembers that in this browser, ?maestro_rows=0 turns it back off.
+	function rowControlsEnabled() {
+		var flag = new window.URLSearchParams( window.location.search ).get( 'maestro_rows' );
+		try {
+			if ( flag === '1' || flag === '0' ) { window.localStorage.setItem( 'maestroRowControls', flag ); }
+			return window.localStorage.getItem( 'maestroRowControls' ) === '1';
+		} catch ( err ) {
+			return flag === '1';
+		}
+	}
+
+	function buildRowControls() {
+		if ( ! rowControlsEnabled() ) { return; }
+		document.body.classList.add( 'maestro-row-controls' );
+		var strip = el( 'div', 'maestro-row-strip maestro-row-ctl' );
+		strip.setAttribute( 'role', 'group' );
+
+		function stripButton( cls, glyph, label, onClick ) {
+			var b = el( 'button', 'maestro-row-btn maestro-row-ctl ' + cls );
+			b.type = 'button';
+			iconButton( b, glyph, label );
+			b.addEventListener( 'click', function ( e ) {
+				e.preventDefault();
+				onClick( b );
+			} );
+			strip.appendChild( b );
+			return b;
+		}
+
+		// A move re-inserts the row, which detaches the focused button inside
+		// it; put focus back so repeated presses chain.
+		function moveAndKeepFocus( dir ) {
+			return function ( b ) {
+				moveSelected( dir );
+				b.focus( { preventScroll: true } );
+			};
+		}
+
+		var renameBtn = stripButton( 'maestro-row-rename', 'dashicons-edit', I.renamePlaceholder, startInlineRename );
+		var moveUp    = stripButton( 'maestro-row-up', 'dashicons-arrow-up-alt2', I.moveUp, moveAndKeepFocus( 'up' ) );
+		var moveDown  = stripButton( 'maestro-row-down', 'dashicons-arrow-down-alt2', I.moveDown, moveAndKeepFocus( 'down' ) );
+
+		// The icon button draws nothing of its own: the row's real icon shows
+		// through it, framed while the row is selected (maestro.css).
+		var iconBtn = el( 'button', 'maestro-row-icon maestro-row-ctl' );
+		iconBtn.type = 'button';
+		iconBtn.setAttribute( 'aria-haspopup', 'dialog' );
+		iconBtn.addEventListener( 'click', function ( e ) {
+			e.preventDefault();
+			openIconPicker( iconBtn );
+		} );
+
+		var input = el( 'input', 'maestro-row-rename-input maestro-row-ctl' );
+		input.type = 'text';
+		input.dir = 'auto';
+		// Same accessible name as the toolbar field it stands in for (WCAG
+		// 2.5.3: the placeholder is the only visible label).
+		input.placeholder = I.renamePlaceholder;
+		input.setAttribute( 'aria-label', I.renamePlaceholder );
+
+		// The strip sits on the menu's own background, so take its colour from
+		// an ordinary (not current, not selected) label in the active scheme.
+		var menu = document.getElementById( 'adminmenu' );
+		var plain = menu && menu.querySelector( 'li.menu-top:not(.current):not(.wp-has-current-submenu) .wp-menu-name' );
+		if ( plain ) { menu.style.setProperty( '--maestro-row-fg', window.getComputedStyle( plain ).color ); }
+		window.addEventListener( 'resize', function () { placeRowControls( selectedKey ); } );
+
+		rowCtl = { strip: strip, renameBtn: renameBtn, moveUp: moveUp, moveDown: moveDown, iconBtn: iconBtn, input: input, editing: null };
+
+		input.addEventListener( 'keydown', function ( e ) {
+			if ( e.key === 'Enter' ) {
+				e.preventDefault();
+				finishInlineRename( true, true );
+			} else if ( e.key === 'Escape' ) {
+				e.preventDefault();
+				e.stopPropagation();
+				finishInlineRename( false, true );
+			}
+		} );
+		input.addEventListener( 'blur', function () { finishInlineRename( true, false ); } );
+	}
+
+	// Put the row controls into the selected row, or take them out (key null,
+	// or a separator). Called from populatePanel(), so it also follows a move
+	// or a drag.
+	function placeRowControls( key ) {
+		if ( ! rowCtl ) { return; }
+		var m  = key ? model[ key ] : null;
+		var li = m && ! m.isSeparator ? liForKey( key ) : null;
+		var a  = li ? li.querySelector( 'a' ) : null;
+		if ( ! a ) {
+			[ rowCtl.iconBtn, rowCtl.strip ].forEach( function ( n ) { if ( n.parentNode ) { n.parentNode.removeChild( n ); } } );
+			return;
+		}
+		// Row first, then Change icon, then the strip: the Tab order follows the
+		// row's reading order, and the submenu (if any) comes after them all.
+		var hasIcon = ! m.isSub && li.querySelector( '.wp-menu-image' );
+		if ( hasIcon ) {
+			if ( rowCtl.iconBtn.previousSibling !== a ) { li.insertBefore( rowCtl.iconBtn, a.nextSibling ); }
+			// Cover exactly the icon column, which core sizes differently in the
+			// responsive layout; the inline side comes from the CSS so RTL holds.
+			var ir = hasIcon.getBoundingClientRect();
+			var lr = li.getBoundingClientRect();
+			rowCtl.iconBtn.style.top    = ( ir.top - lr.top ) + 'px';
+			rowCtl.iconBtn.style.width  = ir.width + 'px';
+			rowCtl.iconBtn.style.height = ir.height + 'px';
+			var label = I.changeIconOf.replace( '%s', function () { return m.title; } );
+			rowCtl.iconBtn.setAttribute( 'aria-label', label );
+			rowCtl.iconBtn.title = label;
+		} else if ( rowCtl.iconBtn.parentNode ) {
+			rowCtl.iconBtn.parentNode.removeChild( rowCtl.iconBtn );
+		}
+		var after = hasIcon ? rowCtl.iconBtn : a;
+		if ( rowCtl.strip.previousSibling !== after ) { li.insertBefore( rowCtl.strip, after.nextSibling ); }
+		rowCtl.strip.setAttribute( 'aria-label', m.title );
+		var renameLabel = I.renameItem.replace( '%s', function () { return m.title; } );
+		rowCtl.renameBtn.setAttribute( 'aria-label', renameLabel );
+		rowCtl.renameBtn.title = renameLabel;
+	}
+
+	function startInlineRename() {
+		if ( ! rowCtl || ! selectedKey || ! model[ selectedKey ] || model[ selectedKey ].isSeparator ) { return; }
+		var m  = model[ selectedKey ];
+		var li = liForKey( selectedKey );
+		var a  = li && li.querySelector( 'a' );
+		if ( ! a ) { return; }
+		closePopovers();
+
+		// Cover the label, not the icon column. Measured, so RTL, a widened
+		// menu and a wrapped long label all line up without per-case CSS.
+		var target = ( ! m.isSub && a.querySelector( '.wp-menu-name' ) ) || a;
+		var lr = li.getBoundingClientRect();
+		var tr = target.getBoundingClientRect();
+		var ar = a.getBoundingClientRect();
+		var input = rowCtl.input;
+		input.style.top    = ( ar.top - lr.top ) + 'px';
+		input.style.height = ar.height + 'px';
+		var ts = window.getComputedStyle( target );
+		var padStart = parseFloat( ts.paddingLeft ) || 0;   // core pads the label past the icon
+		var padEnd   = parseFloat( ts.paddingRight ) || 0;
+		input.style.left   = ( tr.left + padStart - lr.left ) + 'px';
+		input.style.width  = Math.max( 60, tr.width - padStart - padEnd ) + 'px';
+		input.value = m.title;
+
+		rowCtl.editing = selectedKey;
+		li.classList.add( 'maestro-renaming' );
+		li.insertBefore( input, a.nextSibling );
+		input.focus( { preventScroll: true } );
+		input.select();
+	}
+
+	// Enter and blur commit, Escape cancels. Only the keyboard paths move
+	// focus (back to the pencil); a blur has already put it where the user
+	// wanted it.
+	function finishInlineRename( commit, refocus ) {
+		var key = rowCtl && rowCtl.editing;
+		if ( ! key ) { return; }
+		rowCtl.editing = null; // first, so the blur from removing the field is a no-op
+		var input = rowCtl.input;
+		var li = liForKey( key );
+		if ( li ) { li.classList.remove( 'maestro-renaming' ); }
+		if ( input.parentNode ) { input.parentNode.removeChild( input ); }
+		if ( commit && key === selectedKey ) {
+			panel.rename.value = input.value;
+			commitRename();
+		}
+		if ( refocus && key === selectedKey && rowCtl.renameBtn.parentNode ) {
+			rowCtl.renameBtn.focus( { preventScroll: true } );
 		}
 	}
 
@@ -963,6 +1178,7 @@
 		p.appendChild( addSepBtn );
 		p.appendChild( removeSepBtn );
 		bar.appendChild( p );
+		buildRowControls();
 
 		panel = {
 			root:         p,
@@ -1113,6 +1329,8 @@
 		// A separator can only be moved or removed; an item can gain one below
 		// it (top level only, and not where core would drop it as a duplicate).
 		var isSep = !! m.isSeparator;
+		placeRowControls( key );
+		panel.root.classList.toggle( 'maestro-panel-row-owned', !! rowCtl && ! isSep );
 		panel.rename.style.display       = isSep ? 'none' : '';
 		panel.visBtn.style.display       = isSep ? 'none' : '';
 		panel.resetBtn.style.display     = isSep ? 'none' : '';
@@ -3452,9 +3670,16 @@
 		// item first. A step whose control is not on screen is skipped.
 		return [
 			{ text: I.tourStep1, placement: 'right', anchor: firstMenuItem },
+		].concat( rowCtl ? [
+			// With row controls on, rename, move and icon live on the selected row.
+			{ text: I.tourRowRename, placement: 'right', before: tourSelectFirst, anchor: function () { return tourShown( rowCtl.renameBtn ); } },
+			{ text: I.tourRowMove, placement: 'right', before: tourSelectFirst, anchor: function () { return tourShown( rowCtl.moveUp ); } },
+			{ text: I.tourRowIcon, placement: 'right', before: tourSelectFirst, anchor: function () { return tourShown( rowCtl.iconBtn ); } },
+		] : [
 			{ text: I.tourStep2, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.rename ); } },
 			{ text: I.tourStep3, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.moveUp ); } },
 			{ text: I.tourStepIcon, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.iconBtn ); } },
+		] ).concat( [
 			{ text: I.tourStepVisibility, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.visBtn ); } },
 			{ text: I.tourStepResetItem, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.resetBtn ); } },
 			{ text: I.tourStepSeparator, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.addSepBtn ); } },
@@ -3473,7 +3698,7 @@
 			// to below the anchor when there's no room above, which is always
 			// the case this near the top of the viewport.
 			{ text: I.tourStep5, placement: 'top', anchor: function () { return document.getElementById( 'wp-admin-bar-maestro-toggle' ); } },
-		];
+		] );
 	}
 
 	function startTour() {

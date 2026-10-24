@@ -378,6 +378,12 @@ class Assets {
 					'moveUp'               => __( 'Move up', 'maestro-menu-editor' ),
 					/* translators: Accessible label for the "move selected item down" button in the editor panel. */
 					'moveDown'             => __( 'Move down', 'maestro-menu-editor' ),
+					/* translators: Accessible label for the pencil button on the selected menu row. %s: the item's name. */
+					'renameItem'           => esc_html__( 'Rename %s', 'maestro-menu-editor' ),
+					/* translators: Accessible label for the selected menu row's icon, which opens the icon picker. %s: the item's name. */
+					'changeIconOf'         => esc_html__( 'Change icon of %s', 'maestro-menu-editor' ),
+					/* translators: Announced when a menu row is selected. %s: the item's name. */
+					'rowSelected'          => esc_html__( '%s selected. Its editing buttons follow it in the menu.', 'maestro-menu-editor' ),
 					/* translators: Short label appended to modified menu items for screen readers. */
 					'modified'             => esc_html__( '(modified)', 'maestro-menu-editor' ),
 					/* translators: One-time hint shown to first-time users of the menu editor. */
@@ -401,6 +407,9 @@ class Assets {
 					'tourStep2'            => __( 'Type a new name for the selected item here.', 'maestro-menu-editor' ),
 					'tourStep3'            => __( 'Reorder items by dragging — or use the up and down arrows.', 'maestro-menu-editor' ),
 					'tourStepIcon'         => __( 'Change the item\'s icon. Pick one from Dashicons or Bootstrap, or choose no icon.', 'maestro-menu-editor' ),
+					'tourRowRename'        => __( 'Rename the selected item in place: use the pencil, press Enter on the selected row, or press F2.', 'maestro-menu-editor' ),
+					'tourRowMove'          => __( 'Reorder items by dragging, or move the selected item with these arrows.', 'maestro-menu-editor' ),
+					'tourRowIcon'          => __( 'Click the selected item\'s icon to change it. Pick one from Dashicons or Bootstrap, or choose no icon.', 'maestro-menu-editor' ),
 					'tourStepVisibility'   => __( 'Hide the item from chosen roles or people. Everyone else still sees it.', 'maestro-menu-editor' ),
 					'tourStepResetItem'    => __( 'Undo every change to just this item.', 'maestro-menu-editor' ),
 					'tourStepSeparator'    => __( 'Add a separator line below this item. To remove one, select the separator and use the trash button.', 'maestro-menu-editor' ),
