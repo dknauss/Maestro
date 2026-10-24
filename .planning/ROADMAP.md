@@ -544,7 +544,7 @@ should be made once.
 | D2 | Whether a request-scoped, viewer-only, subtract-only capability filter fits SPEC's "never changes a capability", or the wording gets a carve-out | Phase 30 | **Decided 2026-10-23 (Dan):** approve the narrow viewer-only, subtract-only menu-construction exception; see [decisions](phases/30-view-as-role-preview/30-CONTEXT.md) |
 | D3 | Label and form of the select-all control ("All other roles"; tri-state checkbox or a pair of links) | Phase 29 | **Decided 2026-10-23 (Dan):** a tri-state checkbox labelled "All other roles", as built in Phase 29 |
 | D4 | Import behaviour for rules whose menu item is missing on the target site: keep dormant, or drop and report | Phase 31 | **Decided 2026-10-23 (Dan): drop and report.** Rules naming a menu item the target site does not have are not stored; the import result lists them so the user knows what was not applied |
-| D5 | Release shape: one v1.9.0 after all three, or cut after Phases 29–30 and let Phase 31 follow | Before the cut | Open — recommended 2026-10-23: cut v1.9.0 after Phases 29–30 once #248/#251 pass Dan's deep review; Phase 31 ships as a follow-up release. Awaiting Dan's confirmation |
+| D5 | Release shape: one v1.9.0 after all three, or cut after Phases 29–30 and let Phase 31 follow | Before the cut | Recommended 2026-10-23: cut after Phases 29–30, Phase 31 follows. 2026-10-24: release PR cuts **v1.9.0** from main after #260 (1.8.0 was never tagged, so its changes ship in 1.9.0). Decided when Dan approves that PR |
 | D6 | Milestone version | Before the cut | **Decided 2026-10-22:** width v1.7.0, profiles v1.8, Client-Site Workflow v1.9 |
 
 ### Shared seams (build once, reuse)
