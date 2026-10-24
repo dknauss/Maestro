@@ -97,7 +97,7 @@ The preview is an approximation. It narrows your own capabilities to the
 role's while the menu is built, then hands them back, so the page itself still
 opens as you. It does not show:
 
-- rules for specific people or hiding profiles;
+- rules for specific people or Visibility groups;
 - capabilities given to an individual user rather than to their role;
 - people who hold more than one role;
 - plugins that build their menu from the user's ID rather than capabilities.
@@ -106,6 +106,14 @@ The preview runs on the Dashboard only, and only for roles that can reach the
 admin (`read`). Network super admins on multisite cannot preview: WordPress
 grants them every capability before any filter can narrow it. Use a site
 administrator account to preview that site's roles.
+
+## Editing on a phone
+
+The toolbar uses touch-sized controls in portrait and landscape. Visibility,
+the icon picker and Visibility groups open in a scrollable sheet. Tap **Done**
+to close it; tapping the page behind the sheet leaves it open. The footer stays
+outside the scrollable content, and the sheet follows the space available above
+the on-screen keyboard. Width-only Menu settings appear only at desktop widths.
 
 ## Visibility Is Not Access Control
 
@@ -138,7 +146,8 @@ The width is a global setting, like everything else in Maestro: it applies on
 every admin page, for everyone, not only while you are editing. It goes from
 160px (the WordPress default) to 320px and applies on screens 961px and wider.
 Below that, WordPress folds the menu to icons or turns it into an overlay, and
-the width does not apply. Folding still works at any width.
+the width does not apply, so the edge handle and **Menu settings** are not
+shown there. Folding still works at any width.
 
 If another plugin already sets the menu width, that plugin wins. **Menu
 settings** tells you when this happens, so a value that has no effect never

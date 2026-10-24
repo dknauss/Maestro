@@ -95,8 +95,12 @@
 		n.textContent = text;
 		n.dir = 'auto';
 	}
+	function removePopover( pop ) {
+		if ( pop.maestroCleanup ) { pop.maestroCleanup(); }
+		pop.remove();
+	}
 	function closePopovers() {
-		document.querySelectorAll( '.maestro-popover' ).forEach( function ( p ) { p.remove(); } );
+		document.querySelectorAll( '.maestro-popover' ).forEach( removePopover );
 	}
 	// The row marker means "this row has a hide rule of its own", on any axis.
 	function refreshHiddenMarker( key ) {
@@ -1024,11 +1028,12 @@
 		var menuWrap = document.getElementById( 'adminmenuwrap' );
 		var hamburger = document.getElementById( 'wp-admin-bar-menu-toggle' );
 
-		if ( menuWrap && hamburger && hamburger.offsetParent !== null ) {
-			menuWrap.appendChild( bar );
-		} else {
-			document.body.appendChild( bar );
+		function mountToolbar() {
+			var parent = menuWrap && hamburger && hamburger.offsetParent !== null ? menuWrap : document.body;
+			if ( bar.parentNode !== parent ) { parent.appendChild( bar ); }
 		}
+		mountToolbar();
+		window.addEventListener( 'resize', mountToolbar );
 
 		bindAdminBarExit();
 	}
@@ -1326,8 +1331,13 @@
 			}
 		} );
 
-		placePopover( pop, anchorBtn );
+		var reposition = placePopover( pop, anchorBtn );
 		applyFilter();
+		// The grid only fills in applyFilter(), so the first placement measured
+		// a near-empty popover: placed above the anchor by that height, the full
+		// one ran off the bottom of a short screen. Once, so later filtering
+		// still does not move the grid under the pointer.
+		reposition();
 		search.focus();
 	}
 
@@ -1433,6 +1443,7 @@
 	}
 
 	function openSettings( anchorBtn ) {
+		if ( window.innerWidth < 961 ) { return; }
 		closePopovers();
 
 		var pop = el( 'div', 'maestro-popover maestro-settings-popover' );
@@ -1652,6 +1663,9 @@
 			var row = el( 'section', 'maestro-profile' );
 			row.dataset.profileId = p.id;
 
+			var guidance = el( 'p', 'maestro-profile-guidance description', I.profileGuidance );
+			guidance.id = 'maestro-profile-guidance-' + p.id;
+
 			var head = el( 'div', 'maestro-profile-head' );
 			var name = el( 'input', 'maestro-profile-name' );
 			name.type = 'text';
@@ -1659,6 +1673,7 @@
 			name.dir = 'auto';
 			name.maxLength = limits.name;
 			name.setAttribute( 'aria-label', I.profileName );
+			name.setAttribute( 'aria-describedby', guidance.id );
 			name.setAttribute( 'autocomplete', 'off' );
 			head.appendChild( name );
 
@@ -1667,6 +1682,7 @@
 			iconButton( del, 'dashicons-trash', I.profileDelete.replace( '%s', function () { return p.name; } ) );
 			head.appendChild( del );
 			row.appendChild( head );
+			row.appendChild( guidance );
 
 			var picker = buildPersonPicker(
 				I.profileMembers.replace( '%s', function () { return p.name; } ),
@@ -1688,11 +1704,12 @@
 				var problem = window.maestroLogic.profileNameProblem( name.value, profiles, p.id );
 				if ( problem ) {
 					name.setAttribute( 'aria-invalid', 'true' );
-					name.setAttribute( 'aria-describedby', msg.id );
+					name.setAttribute( 'aria-describedby', guidance.id + ' ' + msg.id );
 					say( problemText( problem ) );
 					return;
 				}
 				name.removeAttribute( 'aria-invalid' );
+				name.setAttribute( 'aria-describedby', guidance.id );
 				say( '' );
 				p.name = name.value.trim();
 				var membersHead = picker.el.querySelector( '.maestro-vis-head' );
@@ -1707,6 +1724,7 @@
 				if ( 'true' === name.getAttribute( 'aria-invalid' ) ) {
 					name.value = p.name;
 					name.removeAttribute( 'aria-invalid' );
+					name.setAttribute( 'aria-describedby', guidance.id );
 					say( '' );
 				}
 			} );
@@ -2735,11 +2753,17 @@
 
 	/* ---------- popover placement ----------------------------------------- */
 
+	function isPhoneViewport() {
+		return window.innerWidth <= 782 || ( window.innerWidth < 961 && window.innerHeight <= 500 );
+	}
+
 	function placePopover( pop, anchorBtn ) {
+		if ( isPhoneViewport() ) {
+			return placeMobilePopover( pop, anchorBtn );
+		}
 		// Core treats clicks and Tab outside #adminmenuwrap as dismissal of
 		// the responsive menu. Settings belongs to that menu, like its toolbar.
-		var responsiveParent = pop.classList.contains( 'maestro-settings-popover' )
-			? anchorBtn.closest( '#adminmenuwrap' ) : null;
+		var responsiveParent = anchorBtn.closest( '#adminmenuwrap' );
 		( responsiveParent || document.body ).appendChild( pop );
 		if ( responsiveParent ) { pop.style.position = 'fixed'; }
 
@@ -2747,6 +2771,12 @@
 			var scrollY = responsiveParent ? 0 : window.scrollY;
 			var scrollX = responsiveParent ? 0 : window.scrollX;
 			var r = anchorBtn.getBoundingClientRect();
+			var roomAbove = Math.floor( r.top - 14 );
+			if ( pop.offsetHeight > roomAbove && roomAbove > window.innerHeight - r.bottom ) {
+				pop.style.boxSizing = 'border-box';
+				pop.style.maxHeight = roomAbove + 'px';
+				pop.style.overflowY = 'auto';
+			}
 			// Toolbar lives at the bottom — prefer placing the popover above the
 			// anchor so it doesn't overflow off-screen.
 			var top = scrollY + r.top - pop.offsetHeight - 6;
@@ -2769,39 +2799,150 @@
 		// measured at 1280x720). Re-anchor on resize so it grows upward instead.
 		// Other popovers keep a fixed place, so filtering icons does not move
 		// the grid under the pointer.
+		var ro;
 		var grows = pop.classList.contains( 'maestro-vis-popover' ) || pop.classList.contains( 'maestro-profiles-popover' );
 		if ( grows && window.ResizeObserver ) {
-			var ro = new window.ResizeObserver( function () {
+			ro = new window.ResizeObserver( function () {
 				if ( ! document.contains( pop ) ) { ro.disconnect(); return; }
 				position();
 			} );
 			ro.observe( pop );
 		}
 
-		setTimeout( function () {
-			document.addEventListener( 'click', function handler( e ) {
-				// Closed some other way (Done, Escape, another popover): drop the
-				// listener without moving focus, or it would pull focus out of
-				// whatever opened next.
-				if ( ! document.contains( pop ) ) {
-					document.removeEventListener( 'click', handler );
-					return;
-				}
-				if ( ! pop.contains( e.target ) && e.target !== anchorBtn ) {
-					pop.remove();
-					document.removeEventListener( 'click', handler );
-					// Phase 25 (M3): return focus to the anchor, mirroring what the
-					// Escape handler already does. Without this, dismissing by
-					// clicking away drops focus to <body> and a keyboard user has to
-					// tab back from the top of the document — WCAG 2.4.3, and an
-					// inconsistency INSIDE one component, which is the kind users
-					// experience as the thing being broken rather than merely spare.
-					if ( anchorBtn && document.contains( anchorBtn ) ) {
-						anchorBtn.focus();
-					}
-				}
-			} );
+		function outside( e ) {
+			if ( ! pop.contains( e.target ) && ! anchorBtn.contains( e.target ) ) {
+				removePopover( pop );
+				if ( document.contains( anchorBtn ) ) { anchorBtn.focus(); }
+			}
+		}
+		var outsideTimer = setTimeout( function () {
+			if ( document.contains( pop ) ) { document.addEventListener( 'click', outside ); }
 		}, 0 );
+		function cleanup() {
+			clearTimeout( outsideTimer );
+			document.removeEventListener( 'click', outside );
+			window.removeEventListener( 'resize', resize );
+			if ( ro ) { ro.disconnect(); }
+			pop.maestroCleanup = null;
+		}
+		function resize() {
+			if ( window.innerWidth < 961 && pop.classList.contains( 'maestro-settings-popover' ) && ! pop.classList.contains( 'maestro-profiles-popover' ) ) {
+				removePopover( pop );
+				var help = document.querySelector( '.maestro-tour-help' );
+				if ( help ) { help.focus(); }
+			} else if ( isPhoneViewport() ) {
+				cleanup();
+				placeMobilePopover( pop, anchorBtn );
+			} else {
+				position();
+			}
+		}
+		pop.maestroCleanup = cleanup;
+		window.addEventListener( 'resize', resize );
+		return position;
+	}
+
+	// Phone dialogs use a scrollable sheet and explicit dismissal. All controls
+	// stay within core's responsive-menu subtree, including detached click targets.
+	function placeMobilePopover( pop, anchorBtn ) {
+		var previousFocus = document.activeElement;
+		forceResponsiveOpen();
+		var parent = anchorBtn.closest( '#adminmenuwrap' ) || document.body;
+		var content = el( 'div', 'maestro-mobile-body' );
+		var actions = pop.querySelector( '.maestro-settings-actions' );
+		if ( actions ) { actions.remove(); }
+		while ( pop.firstChild ) { content.appendChild( pop.firstChild ); }
+		pop.appendChild( content );
+		if ( ! actions ) {
+			actions = el( 'div', 'maestro-settings-actions' );
+			var done = el( 'button', 'button button-primary', I.tourDone );
+			done.type = 'button';
+			done.addEventListener( 'click', close );
+			actions.appendChild( done );
+		}
+		pop.appendChild( actions );
+		pop.classList.add( 'maestro-mobile-sheet' );
+		parent.appendChild( pop );
+		var oldBodyOverflow = document.body.style.overflow;
+		var oldRootOverflow = document.documentElement.style.overflow;
+		document.body.style.overflow = 'hidden';
+		document.documentElement.style.overflow = 'hidden';
+		var viewport = window.visualViewport;
+		var frame;
+
+		function close() {
+			closePopovers();
+			anchorBtn.focus( { preventScroll: true } );
+		}
+		function position() {
+			if ( ! document.contains( pop ) ) { return; }
+			var parentNow = anchorBtn.closest( '#adminmenuwrap' ) || document.body;
+			if ( pop.parentNode !== parentNow ) { parentNow.appendChild( pop ); }
+			forceResponsiveOpen();
+			var v = window.visualViewport;
+			pop.style.left = ( ( v ? v.offsetLeft : 0 ) + 8 ) + 'px';
+			var bar = document.getElementById( 'wpadminbar' );
+			var top = Math.max( ( v ? v.offsetTop : 0 ) + 8, bar ? bar.getBoundingClientRect().bottom + 8 : 8 );
+			var bottom = ( v ? v.offsetTop + v.height : window.innerHeight ) - 8;
+			pop.style.top = top + 'px';
+			pop.style.width = Math.max( 0, ( v ? v.width : window.innerWidth ) - 16 ) + 'px';
+			pop.style.height = Math.max( 0, bottom - top ) + 'px';
+			pop.style.maxHeight = pop.style.height;
+			cancelAnimationFrame( frame );
+			frame = requestAnimationFrame( function () {
+				var focused = document.activeElement;
+				if ( content.contains( focused ) ) { focused.scrollIntoView( { block: 'nearest' } ); }
+			} );
+		}
+		function outside( e ) {
+			if ( ! pop.contains( e.target ) ) {
+				e.preventDefault();
+				e.stopPropagation();
+			}
+		}
+		// A result/chip/button can remove itself before core's document handler
+		// runs. Stop bubbling while the event still passes through the sheet.
+		pop.addEventListener( 'click', function ( e ) { e.stopPropagation(); } );
+		pop.addEventListener( 'keydown', function ( e ) {
+			if ( e.key === 'Escape' ) {
+				e.preventDefault(); e.stopImmediatePropagation(); return;
+			}
+			if ( e.key !== 'Tab' ) { return; }
+			e.stopImmediatePropagation();
+			var controls = Array.prototype.filter.call( pop.querySelectorAll( 'input, button, select, [tabindex]' ), function ( n ) {
+				return ! n.disabled && n.tabIndex >= 0 && n.getClientRects().length;
+			} );
+			if ( ! controls.length ) { return; }
+			var first = controls[ 0 ], last = controls[ controls.length - 1 ];
+			if ( e.shiftKey && document.activeElement === first ) { e.preventDefault(); last.focus(); }
+			else if ( ! e.shiftKey && document.activeElement === last ) { e.preventDefault(); first.focus(); }
+		}, true );
+		pop.addEventListener( 'keyup', function ( e ) {
+			if ( e.key === 'Tab' ) { e.stopImmediatePropagation(); }
+			if ( e.key === 'Escape' ) { e.preventDefault(); e.stopImmediatePropagation(); close(); }
+		}, true );
+		pop.addEventListener( 'focusin', position );
+		document.addEventListener( 'click', outside, true );
+		window.addEventListener( 'resize', position );
+		if ( viewport ) {
+			viewport.addEventListener( 'resize', position );
+			viewport.addEventListener( 'scroll', position );
+		}
+		pop.maestroCleanup = function () {
+			cancelAnimationFrame( frame );
+			document.removeEventListener( 'click', outside, true );
+			window.removeEventListener( 'resize', position );
+			if ( viewport ) {
+				viewport.removeEventListener( 'resize', position );
+				viewport.removeEventListener( 'scroll', position );
+			}
+			document.body.style.overflow = oldBodyOverflow;
+			document.documentElement.style.overflow = oldRootOverflow;
+			pop.maestroCleanup = null;
+		};
+		position();
+		if ( content.contains( previousFocus ) ) { previousFocus.focus( { preventScroll: true } ); }
+		return position;
 	}
 
 	/* ---------- sortable --------------------------------------------------- */
@@ -3174,6 +3315,21 @@
 		return node && node.getClientRects().length ? node : null;
 	}
 
+	/*
+	 * Where the coachmark is mounted. At narrow widths it joins the toolbar
+	 * inside #adminmenuwrap, for the toolbar's own reason (buildToolbar()):
+	 * core closes the responsive menu on any click outside the hamburger and
+	 * #adminmenuwrap. On <body>, the first tap on Next closed the menu, which
+	 * took the toolbar with it, so every control step after that found its
+	 * anchor unrendered and was skipped (1, 2, then straight to Exit). The box
+	 * is position:fixed, so the parent does not move it.
+	 */
+	function tourHost() {
+		var menuWrap = document.getElementById( 'adminmenuwrap' );
+		var hamburger = document.getElementById( 'wp-admin-bar-menu-toggle' );
+		return menuWrap && hamburger && hamburger.offsetParent !== null ? menuWrap : document.body;
+	}
+
 	function tourSteps() {
 		// One step per editing control, in toolbar order, so every glyph the
 		// editor shows has been named once. The panel steps reference controls
@@ -3187,9 +3343,11 @@
 			{ text: I.tourStepVisibility, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.visBtn ); } },
 			{ text: I.tourStepResetItem, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.resetBtn ); } },
 			{ text: I.tourStepSeparator, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.addSepBtn ); } },
-			// The edge handle only renders at 961px and wider (maestro.css).
-			{ text: I.tourStepWidth, placement: 'right', anchor: function () { return tourShown( widthHandle ); } },
-			{ text: I.tourStepSettings, placement: 'top', anchor: function () { return tourShown( document.querySelector( '.maestro-settings-btn' ) ); } },
+			// The edge handle and the Settings gear only render at 961px and
+			// wider (maestro.css): the width they set does not apply below it.
+			{ text: I.tourStepWidth, placement: 'right', byViewport: true, anchor: function () { return tourShown( widthHandle ); } },
+			{ text: I.tourStepProfiles, placement: 'top', anchor: function () { return tourShown( profilesBtn ); } },
+			{ text: I.tourStepSettings, placement: 'top', byViewport: true, anchor: function () { return tourShown( document.querySelector( '.maestro-settings-btn' ) ); } },
 			{ text: I.tourStepHelp, placement: 'top', anchor: function () { return tourShown( document.querySelector( '.maestro-tour-help' ) ); } },
 			{ text: I.tourStep4, placement: 'top', anchor: function () { return tourShown( document.querySelector( '.maestro-reset-all' ) ); } },
 			// The last step anchors to the WP Toolbar (admin-bar) "Exit Menu
@@ -3203,7 +3361,13 @@
 
 	function startTour() {
 		if ( tour.active ) { return; }
-		tour.steps = tourSteps();
+		// A step the viewport hides (byViewport) is dropped before the tour
+		// starts, so "3 of 11" counts only what will be shown rather than
+		// jumping from 7 to 9 on a phone. A panel control hidden only for the
+		// selected item cannot be known yet, so renderTourStep still skips it.
+		tour.steps = tourSteps().filter( function ( step ) {
+			return ! step.byViewport || step.anchor();
+		} );
 		tour.active = true;
 		tour.idx = 0;
 		tour.lastFocus = document.activeElement;
@@ -3358,7 +3522,15 @@
 		box.appendChild( arrow );
 		box.appendChild( content );
 		box.appendChild( controls );
-		document.body.appendChild( box );
+		/*
+		 * Mounting inside #adminmenuwrap is not enough on its own: Next, Back,
+		 * Skip and Done all remove this box before their click reaches core's
+		 * document handler, and a detached target is outside every container,
+		 * so core still closed the menu. The tour is modal, so nothing behind
+		 * it needs to hear its clicks.
+		 */
+		box.addEventListener( 'click', function ( e ) { e.stopPropagation(); } );
+		tourHost().appendChild( box );
 		tour.root = box;
 
 		positionTour( box, anchor, step.placement );

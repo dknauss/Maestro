@@ -55,16 +55,17 @@ Hiding a menu item only declutters the menu — the underlying page still loads 
    shared role who doesn't need a tool). A parent's sub-items can be hidden per
    person too, with the parent left visible. Same cosmetic-only guarantee: the
    page still loads by URL for anyone authorized to see it.
-8. Hide items from a **named group of people** with a hiding profile. Open
-   **Hiding profiles** in the toolbar, name a profile ("Reduced view"), add
+8. Hide items from a **named group of people** with a visibility group. Open
+   **Visibility groups** in the toolbar, name a group ("Reduced view"), add
    people to it, then tick it in any item's visibility popover. Membership is
-   read on every page load, so changing who is in a profile updates every item
-   it hides. A profile is **not a role and not access control**: WordPress never
+   read on every page load, so changing who is in a group updates every item
+   it hides. A group is **not a role and not access control**: WordPress never
    sees it, it grants or removes no capability, and its pages still load by URL.
    If a role already matches the people you mean, use the role.
 9. Widen the menu so longer labels fit: drag the handle on the menu's edge, or
    set an exact width under **Menu settings** (the gear in the toolbar). It
-   applies on every admin page for everyone, from 961px wide, and stands aside
+   applies on every admin page for everyone, from 961px wide (the handle and
+   the gear only appear there), and stands aside
    when another plugin already sets the width.
 10. Use **Reset this item** to discard one item's customizations, or **Reset
    all** to delete the saved configuration and return to WordPress defaults.
@@ -80,7 +81,7 @@ For the longer walkthrough, see [`docs/user-guide.md`](docs/user-guide.md).
 - **Debounced autosave (~500 ms)** on reorder, rename, icon pick, visibility toggle, and per-item reset — no manual Save button; a "Saving… / Saved" status indicator (dashicon + text) instead. Saves are serialized (single-flight) so a slow request can't overwrite newer edits. Reload only on Exit (which flushes any pending save) and on Reset all.
 - **Click-to-select with one shared controls panel.** No edit chrome until an item is selected: each row shows only a hover/focus-revealed drag handle. Selecting an item opens the shared panel (rename, icon picker for top-level items, per-role and per-person visibility, reset-this-item).
 
-- **Visibility on six independent axes.** The popover carries hide-by-role, hide-by-person and hide-by-profile, each in a "this item" and an "its sub-items" variant, so a parent can stay visible while its children vanish for exactly the roles or people you choose. The person picker searches core's `wp/v2/users` endpoint (already gated by `list_users`), so it scales past a few hundred users instead of dumping the whole user base into the page. A hiding profile is a named, reusable list of people: the items it hides are compiled onto each item when saved, and who is in it is resolved live on every request, so membership changes need no re-save. Profiles are authored only by users with `list_users`, and are withheld from everyone else server-side. Every axis is cosmetic: a hidden page still loads by URL, and `current_user_can()` is provably unchanged — asserted by a dedicated guardrail test that snapshots the target role's entire capability map before, during, and after a rule.
+- **Visibility on six independent axes.** The popover carries hide-by-role, hide-by-person and hide-by-group, each in a "this item" and an "its sub-items" variant, so a parent can stay visible while its children vanish for exactly the roles or people you choose. The person picker searches core's `wp/v2/users` endpoint (already gated by `list_users`), so it scales past a few hundred users instead of dumping the whole user base into the page. A visibility group is a named, reusable list of people: the items it hides are compiled onto each item when saved, and who is in it is resolved live on every request, so membership changes need no re-save. Groups are authored only by users with `list_users`, and are withheld from everyone else server-side. Every axis is cosmetic: a hidden page still loads by URL, and `current_user_can()` is provably unchanged — asserted by a dedicated guardrail test that snapshots the target role's entire capability map before, during, and after a rule.
 - **Stable expanded menu while editing.** Folded/auto-fold mode is neutralized on entry and re-stripped if `common.js` reapplies it, so editing always happens against the expanded menu.
 - **Icons: all four native WordPress forms** (dashicon, `none`, base64 image data-URI, image URL), validated server-side. The picker bundles two sets — all 342 dashicons and ~87 curated [Bootstrap Icons](https://icons.getbootstrap.com/) — with a search filter and a "No icon" option, and is keyboard-accessible (dialog/tablist roles, arrow-key navigation, focus trap) and mobile-sized. Icon changes persist via autosave (covered by E2E: pick → POST carries the icon → survives reload).
 

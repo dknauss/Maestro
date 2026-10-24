@@ -321,23 +321,25 @@ class Assets {
 					/* translators: %d: maximum number of people allowed per hide list. Shown when the editor tries to add one more than the limit. */
 					'userLimitReached'     => esc_html__( 'Limit reached — up to %d people per list. Remove someone to add another.', 'maestro-menu-editor' ),
 					/* translators: Heading for the group of checkboxes, one per hiding profile, that hide THIS menu item from everyone in the ticked profiles (Phase 27). */
-					'hideForProfiles'      => __( 'Hide this item for profiles:', 'maestro-menu-editor' ),
+					'hideForProfiles'      => __( 'Hide this item for visibility groups:', 'maestro-menu-editor' ),
 					/* translators: Heading for the group of checkboxes, one per hiding profile, that hide ALL of a parent's sub-items from everyone in the ticked profiles. Shown only for parents that have children. */
-					'hideChildrenProfiles' => __( 'Hide its sub-items for profiles:', 'maestro-menu-editor' ),
+					'hideChildrenProfiles' => __( 'Hide its sub-items for visibility groups:', 'maestro-menu-editor' ),
 					/* translators: Shown in the Visibility popover when no hiding profiles exist yet. */
-					'profilesNone'         => __( 'No profiles yet.', 'maestro-menu-editor' ),
+					'profilesNone'         => __( 'No visibility groups yet.', 'maestro-menu-editor' ),
 					/* translators: Button in the Visibility popover and toolbar label that opens the dialog for creating and editing hiding profiles. */
-					'manageProfiles'       => __( 'Manage profiles…', 'maestro-menu-editor' ),
+					'manageProfiles'       => __( 'Manage groups…', 'maestro-menu-editor' ),
 					/* translators: Title of the dialog for creating and editing hiding profiles (named groups of people that items can be hidden from). */
-					'profiles'             => __( 'Hiding profiles', 'maestro-menu-editor' ),
+					'profiles'             => __( 'Visibility groups', 'maestro-menu-editor' ),
 					/* translators: Explanation at the top of the hiding-profiles dialog. */
-					'profilesIntro'        => __( 'A profile is a named group of people. Tick it in an item\'s Visibility to hide that item from everyone in it.', 'maestro-menu-editor' ),
+					'profilesIntro'        => __( 'A visibility group lets you hide a menu item from everyone in the group. Add people to the group, then select it in the menu item\'s Visibility controls. This hides the menu link without changing page access.', 'maestro-menu-editor' ),
+					/* translators: Persistent next-step guidance beside each saved hiding profile. */
+					'profileGuidance'      => __( 'Add people below, then select this group in a menu item\'s Visibility controls. Changes save automatically.', 'maestro-menu-editor' ),
 					/* translators: Accessible label for the text field that renames a hiding profile. */
-					'profileName'          => __( 'Profile name', 'maestro-menu-editor' ),
+					'profileName'          => __( 'Group name', 'maestro-menu-editor' ),
 					/* translators: Placeholder and accessible label for the field where a new hiding profile's name is typed. */
-					'profileNewName'       => __( 'New profile name', 'maestro-menu-editor' ),
+					'profileNewName'       => __( 'New group name', 'maestro-menu-editor' ),
 					/* translators: Button that creates a hiding profile with the name typed beside it. */
-					'profileAdd'           => __( 'Add profile', 'maestro-menu-editor' ),
+					'profileAdd'           => __( 'Add group', 'maestro-menu-editor' ),
 					/* translators: %s: profile name. Heading for the list of people in that hiding profile. */
 					'profileMembers'       => esc_html__( 'People in %s:', 'maestro-menu-editor' ),
 					/* translators: %s: profile name. Accessible label for the button that deletes that hiding profile. */
@@ -345,17 +347,17 @@ class Assets {
 					/* translators: 1: profile name, 2: number of menu items the profile hides, 3: number of people in the profile. Confirmation before a hiding profile is deleted. */
 					'profileDeleteConfirm' => __( 'Delete “%1$s”? Items it hides: %2$d. People in it: %3$d. Those people will see the items again.', 'maestro-menu-editor' ),
 					/* translators: Caution shown in the hiding-profiles dialog while the editor's own account is among a profile's people. */
-					'profileSelfWarning'   => __( 'You are in this profile, so the items it hides are hidden from your own account too. You can still reach those pages by URL, and the editor stays available.', 'maestro-menu-editor' ),
+					'profileSelfWarning'   => __( 'You are in this group, so the items it hides are hidden from your own account too. You can still reach those pages by URL, and the editor stays available.', 'maestro-menu-editor' ),
 					/* translators: Shown when a hiding profile's name is left empty. */
-					'profileNameEmpty'     => __( 'Enter a name for the profile.', 'maestro-menu-editor' ),
+					'profileNameEmpty'     => __( 'Enter a name for the group.', 'maestro-menu-editor' ),
 					/* translators: Shown when a hiding profile is given a name another profile already uses (names are compared ignoring case). */
-					'profileNameTaken'     => __( 'Another profile already has that name.', 'maestro-menu-editor' ),
+					'profileNameTaken'     => __( 'Another group already has that name.', 'maestro-menu-editor' ),
 					/* translators: %d: maximum number of hiding profiles. Shown when the limit is reached. */
-					'profileLimit'         => esc_html__( 'Limit reached — up to %d profiles.', 'maestro-menu-editor' ),
+					'profileLimit'         => esc_html__( 'Limit reached — up to %d groups.', 'maestro-menu-editor' ),
 					/* translators: Screen-reader announcement after a hiding profile is created. */
-					'profileAdded'         => __( 'Profile added', 'maestro-menu-editor' ),
+					'profileAdded'         => __( 'Group added', 'maestro-menu-editor' ),
 					/* translators: Screen-reader announcement after a hiding profile is deleted. */
-					'profileDeleted'       => __( 'Profile deleted', 'maestro-menu-editor' ),
+					'profileDeleted'       => __( 'Group deleted', 'maestro-menu-editor' ),
 					/* translators: Label for the role picker that previews the menu as another role. */
 					'previewAs'            => __( 'Preview as', 'maestro-menu-editor' ),
 					'previewBtn'           => __( 'Preview', 'maestro-menu-editor' ),
@@ -402,6 +404,8 @@ class Assets {
 					'tourStepSeparator'    => __( 'Add a separator line below this item. To remove one, select the separator and use the trash button.', 'maestro-menu-editor' ),
 					/* translators: Guided-tour step pointing at the draggable edge of the admin menu. */
 					'tourStepWidth'        => __( 'Drag the menu\'s edge to make it wider or narrower. When the edge has focus, the arrow keys work too.', 'maestro-menu-editor' ),
+					/* translators: Guided-tour step pointing at the Visibility groups toolbar button. */
+					'tourStepProfiles'     => __( 'Visibility groups let you hide a menu item from everyone in a group. Add people to the group, then select it in the menu item\'s Visibility controls.', 'maestro-menu-editor' ),
 					'tourStepSettings'     => __( 'Menu settings let you type an exact menu width or go back to the default.', 'maestro-menu-editor' ),
 					'tourStepHelp'         => __( 'Want this tour again? Use the help button anytime.', 'maestro-menu-editor' ),
 					'tourStep4'            => __( 'Your changes save automatically. Reset All returns the whole menu to the WordPress defaults.', 'maestro-menu-editor' ),

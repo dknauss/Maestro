@@ -182,7 +182,7 @@ class Preview {
 				echo esc_html( sprintf( __( 'Previewing menu as %s — read-only', 'maestro-menu-editor' ), $name ) );
 				?>
 			</strong></p>
-			<p><?php esc_html_e( 'This is the menu WordPress and your plugins build for this role, with Maestro’s rules for the role applied. It is an approximation: rules for specific people or hiding profiles, capabilities given to individual users, people with more than one role, and plugins that check the user directly can differ. Pages still open as you.', 'maestro-menu-editor' ); ?></p>
+			<p><?php esc_html_e( 'This is the menu WordPress and your plugins build for this role, with Maestro’s rules for the role applied. It is an approximation: rules for specific people or Visibility groups, capabilities given to individual users, people with more than one role, and plugins that check the user directly can differ. Pages still open as you.', 'maestro-menu-editor' ); ?></p>
 			<form method="get" action="<?php echo esc_url( admin_url( 'index.php' ) ); ?>" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px;">
 				<label for="maestro-preview-role"><?php esc_html_e( 'Preview as', 'maestro-menu-editor' ); ?></label>
 				<select id="maestro-preview-role" name="<?php echo esc_attr( self::QUERY ); ?>">

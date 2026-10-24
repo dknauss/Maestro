@@ -57,3 +57,36 @@ the browser refusal case failed before the fix.
 **Real touch-device testing remains outstanding.** Browser emulation and these
 automated checks are separate from Dan's desktop sign-off and do not complete
 touch-device acceptance.
+
+## Partial real touch-device report — 2026-10-23
+
+Dan supplied functional successes and mobile usability findings. See the
+[consolidated touch results and remaining checks](../../TOUCH-DEVICE-CHECKLIST.md#dans-reported-touch-results--2026-10-23).
+Small targets/accidental dismissal, cramped dialogs, keyboard obstruction and
+three-tip tour coverage remain unresolved. Role-control behavior subsequently passed all five directed checks; an
+off-center mixed-state dash remains a visual defect. The exact commit remains unrecorded. Dan identifies current main in Playground on
+iPhone 17, Safari on iOS 26.6.2, and confirms Arabic/English parity; no RTL-specific
+regression was reported. Real Keel mobile interaction was not tested. This report does not close touch acceptance
+or replace the earlier desktop sign-off.
+
+### Real-device role-control behavior — passed with a visual exception
+
+Dan passed all five directed role-control steps on iPhone 17, Safari on iOS
+26.6.2 in Playground/current main: partial/mixed-state behavior, select/clear in
+both role sections, locked child rows resisting changes, unlocking after the
+parent rule is cleared, and persistence after reload. The screenshot shows the
+mixed-state dash displaced toward the upper-left. Keep that visual defect open;
+this functional pass does not close overall real touch-device acceptance or the
+other mobile usability findings.
+
+### Mixed-state dash — CSS correction, real-device recheck open
+
+The fixed desktop-size offsets did not track core's larger mobile checkbox.
+Percentage centering now follows its actual dimensions in LTR and RTL. The
+rendered-pixel regression reproduced a 4.5px error in Chromium and WebKit before
+the fix; 16 cases now pass across both engines at 375/782/783/1280px. No role
+selection, checked/indeterminate semantics or persistence behavior was changed.
+
+This is automated evidence, not iPhone sign-off. Dan's role-control behavior
+pass stands; dash visual acceptance requires an actual iPhone recheck. All other
+mobile usability findings and overall real touch-device acceptance stay open.

@@ -156,3 +156,24 @@ JavaScript tests: 99/99; doc links and JavaScript syntax pass.
 
 **Desktop human rechecks passed 2026-10-23; real touch-device testing remains outstanding.**
 The automated tour evidence above is separate from that human sign-off.
+
+## Partial real touch-device report — 2026-10-23
+
+Dan supplied functional successes and mobile usability findings. See the
+[consolidated touch results and remaining checks](../../TOUCH-DEVICE-CHECKLIST.md#dans-reported-touch-results--2026-10-23).
+Small targets/accidental dismissal, cramped dialogs, keyboard obstruction and
+three-tip tour coverage remain unresolved. Role-control behavior subsequently passed all five directed checks; an
+off-center mixed-state dash remains a visual defect. The exact commit remains unrecorded. Dan identifies current main in Playground on
+iPhone 17, Safari on iOS 26.6.2, and confirms Arabic/English parity; no RTL-specific
+regression was reported. Real Keel mobile interaction was not tested. This report does not close touch acceptance
+or replace the earlier desktop sign-off.
+
+## Combined mobile follow-up — #252, human recheck outstanding
+
+Claude's phone tour, containment, compact layout and hidden width Settings work
+is retained and combined with keyboard-aware scrollable sheets, explicit Done
+controls, 44px-wide/tall compact targets, focus/scroll cleanup and responsive
+handoff. See the [touch follow-up](../../TOUCH-DEVICE-CHECKLIST.md#mobile-usability-implementation-follow-up--real-device-acceptance-open).
+Desktop width settings still work at 961px and above; hiding the gear below that
+breakpoint does not clear the saved width. Automated regression coverage is
+separate from Dan's earlier desktop pass. **Real touch acceptance stays open.**
