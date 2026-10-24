@@ -31,6 +31,20 @@ before merge, plus a real-site check of the banner and picker.
 - **Helpers**: `Preview::previewable_roles()`, `available()`, `url()`,
   `exit_url()`.
 
+## After Dan's review (2026-10-24)
+
+- Merged main (Visibility groups rename #249/#250, phone fixes #252); the
+  group wording, guidance and coachtips are kept as main has them.
+- **Phones:** #252 packs the toolbar into two rows upright and one on its
+  side, to the pixel, so the inline select cannot fit. Below 783px (or 500px
+  tall) the picker is one "Preview as" toolbar button that opens the same
+  labelled select and Preview button in the phone sheet, both 44px targets.
+  To keep the row budget with that button, the upright rename field gives up
+  one button's width and Reset All shows its icon only at phone widths (its
+  name, title and confirm are unchanged).
+- **Tour:** a "Preview as" coachtip between Visibility groups and Settings,
+  shown at every width, so the phone tour's numbering stays continuous.
+
 ## Tests
 
 - `tests/integration/PreviewUiTest.php`, 11 tests: banner contents, picker
@@ -54,5 +68,5 @@ before merge, plus a real-site check of the banner and picker.
 ## Not done here
 
 - Real-site and screen-reader checks of the picker and banner, and touch.
-- Previewing a person or a hiding profile, and editing inside the preview,
+- Previewing a person or a Visibility group, and editing inside the preview,
   stay out of scope (ROADMAP).

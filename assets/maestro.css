@@ -902,6 +902,28 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 .maestro-preview-select {
 	max-width: 12em;
 }
+.maestro-preview-inline {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+.maestro-toolbar .maestro-preview-toggle {
+	display: none;
+}
+.maestro-toolbar .maestro-preview-toggle .maestro-btn-label {
+	display: none;
+}
+.maestro-preview-popover .maestro-preview-label,
+.maestro-preview-popover .maestro-preview-unavailable {
+	color: inherit;
+	white-space: normal;
+}
+.maestro-preview-dialog-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+}
 /* (Reset All shares the unified control box near the top of this file. Exit
  * lives on the WP Toolbar admin-bar toggle, not this right-side group — UX-09.) */
 
@@ -1265,13 +1287,6 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 	.maestro-toolbar {
 		gap: 4px;
 	}
-	/* The role preview picker (Phase 30) is a row of its own, under the
-	 * other controls, so the two rows above keep the sizes worked out here. */
-	.maestro-preview-picker {
-		order: 1;
-		flex: 1 0 100%;
-		justify-content: flex-end;
-	}
 	.maestro-panel,
 	.maestro-toolbar-right {
 		display: contents;
@@ -1283,8 +1298,7 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 		flex: 1 0 auto;
 		width: calc( 100% - 120px );
 	}
-	.maestro-toolbar-right > :first-child,
-	.maestro-toolbar-right > .maestro-preview-picker + * {
+	.maestro-toolbar-right > :first-child {
 		margin-inline-start: auto;
 	}
 	.maestro-toolbar .maestro-reset-all .maestro-btn-label {
@@ -1356,7 +1370,8 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 .maestro-mobile-sheet button,
 .maestro-mobile-sheet input[type='text'],
 .maestro-mobile-sheet input[type='search'],
-.maestro-mobile-sheet input[type='number'] {
+.maestro-mobile-sheet input[type='number'],
+.maestro-mobile-sheet select {
 	min-height: 44px;
 	min-width: 44px;
 	font-size: 16px; /* avoid iOS focus zoom */
@@ -1384,9 +1399,21 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 @media screen and ( max-width: 782px ), screen and ( max-height: 500px ) {
 	.maestro-editing .maestro-toolbar .button { min-width: 44px; min-height: 44px; box-sizing: border-box; }
 	.maestro-toolbar .maestro-rename-input { font-size: 16px; }
+	/* Role preview (Phase 30): on phones the inline picker becomes one
+	 * toolbar button that opens it in the sheet, so #252's row budget holds. */
+	.maestro-toolbar .maestro-preview-inline { display: none; }
+	.maestro-toolbar .maestro-preview-toggle { display: inline-flex; }
+	/* That button is one more 44px target in rows already packed to the
+	 * pixel. On its side the row pays for it with Reset All's text (its
+	 * aria-label, title and confirm dialog are unchanged), as it already does
+	 * upright below 560px. */
+	.maestro-toolbar .maestro-reset-all .maestro-btn-label { display: none; }
 	.maestro-tour button { min-width: 44px; min-height: 44px; }
 }
 @media screen and ( max-width: 560px ) {
-	.maestro-toolbar .maestro-rename-input { width: calc( 100% - 136px ); }
+	/* Upright, the rename field gives up one button's width (48px) so the
+	 * preview button still leaves two rows: the icon button moves up beside
+	 * Down, and the field grows back into what is left. */
+	.maestro-toolbar .maestro-rename-input { width: calc( 100% - 184px ); }
 }
 .maestro-mobile-sheet .maestro-vis-row { column-gap: 6px; }

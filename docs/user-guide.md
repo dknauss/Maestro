@@ -84,7 +84,8 @@ the same control.
 ## Preview The Menu As A Role
 
 To check what a role still sees, pick it under **Preview as** in the editor
-toolbar and press **Preview**. Maestro saves anything still pending first; if
+toolbar and press **Preview**. On a phone, tap the eye button in the toolbar to
+open the same picker. Maestro saves anything still pending first; if
 the save fails, the preview does not open.
 
 The Dashboard then shows the menu that role gets, with your rules for that role

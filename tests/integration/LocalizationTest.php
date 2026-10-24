@@ -92,6 +92,7 @@ class LocalizationTest extends WP_UnitTestCase {
 			'tourStepResetItem',
 			'tourStepSeparator',
 			'tourStepWidth',
+			'tourStepPreview',
 			'tourStepSettings',
 			'tourStepHelp',
 			'settings',

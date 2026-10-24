@@ -144,7 +144,13 @@ match a real signed-in user of that role, with no rules and again with Maestro
 rules for the role. The spec also covers the banner and exit, switching role
 from the banner, a refused nonce, an editor getting no preview and no message,
 no config writes while previewing, a pending rename saved before the preview
-opens, and a failed save keeping the editor open.
+opens, and a failed save keeping the editor open. At 320x640, 375x667 and
+667x375 it checks the phone form: one toolbar button opens the select and
+Preview in the phone sheet, all three are 44px targets on screen, the page does
+not scroll sideways, and a preview starts from the sheet.
+[`tests/e2e/specs/phone-layout.spec.ts`](tests/e2e/specs/phone-layout.spec.ts)
+still holds the toolbar to two rows upright and one on its side with that
+button in it, and lists the "Preview as" coachtip in the numbered phone tour.
 
 (ROLE-02) the per-user axes are covered in
 [`tests/integration/ReplayHiddenUsersTest.php`](tests/integration/ReplayHiddenUsersTest.php)

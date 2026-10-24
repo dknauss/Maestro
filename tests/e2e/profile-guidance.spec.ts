@@ -52,11 +52,11 @@ test( 'tour skips a missing Profiles anchor in both directions', async ( { page 
 	await page.locator( '.maestro-tour-help' ).click();
 	const text = page.locator( '.maestro-tour-text' );
 	for ( let i = 0; i < 8; i++ ) { await page.locator( '.maestro-tour-next' ).click(); }
-	await expect( text ).toContainText( 'Menu settings' );
+	await expect( text ).toContainText( 'Preview as' );
 	await page.locator( '.maestro-tour-back' ).click();
 	await expect( text ).toContainText( 'edge' );
 	await page.locator( '.maestro-tour-next' ).click();
-	await expect( text ).toContainText( 'Menu settings' );
+	await expect( text ).toContainText( 'Preview as' );
 	await page.keyboard.press( 'Escape' );
 	await expect( page.locator( '.maestro-tour' ) ).toHaveCount( 0 );
 } );

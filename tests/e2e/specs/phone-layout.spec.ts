@@ -42,6 +42,7 @@ const PHONE_STEPS: ( string | RegExp )[] = [
 	'Undo every change',
 	'separator',
 	/Hiding profiles|Visibility groups/,
+	'Preview as',
 	'tour again',
 	'Reset All',
 	'Exit',

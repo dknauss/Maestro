@@ -43,7 +43,7 @@ async function menuLinks( page ): Promise< string[] > {
 /** Start a preview through the editor's own picker. */
 async function previewFromEditor( page, role: string ) {
 	await page.goto( '/wp-admin/index.php?maestro_edit=1' );
-	const select = page.getByLabel( 'Preview as' );
+	const select = page.getByRole( 'combobox', { name: 'Preview as' } );
 	await expect( select ).toBeVisible();
 	await select.selectOption( role );
 	await Promise.all( [
@@ -166,7 +166,7 @@ test.describe( 'role preview', () => {
 		await panel.locator( '.maestro-rename-input' ).fill( 'Articles' );
 
 		const save = page.waitForResponse( ( r ) => POST_SAVE( r.url() ) && r.request().method() === 'POST' );
-		await page.getByLabel( 'Preview as' ).selectOption( 'editor' );
+		await page.getByRole( 'combobox', { name: 'Preview as' } ).selectOption( 'editor' );
 		await page.locator( '.maestro-preview-btn' ).click();
 		expect( ( await save ).ok() ).toBe( true );
 		await page.waitForURL( /maestro_preview=editor/ );
@@ -183,7 +183,7 @@ test.describe( 'role preview', () => {
 		} );
 		await page.locator( '#menu-posts > a.menu-top' ).click();
 		await page.locator( '.maestro-toolbar .maestro-panel .maestro-rename-input' ).fill( 'Broken' );
-		await page.getByLabel( 'Preview as' ).selectOption( 'editor' );
+		await page.getByRole( 'combobox', { name: 'Preview as' } ).selectOption( 'editor' );
 		await page.locator( '.maestro-preview-btn' ).click();
 		await expect( page.locator( '.maestro-status-error' ) ).toBeVisible();
 		await expect( page.locator( '.maestro-preview-btn' ) ).toBeEnabled();
@@ -240,3 +240,56 @@ test.describe( 'role preview parity with real users', () => {
 		} );
 	}
 } );
+
+/**
+ * The picker on a phone. The toolbar keeps #252's row budget, so the picker is
+ * one toolbar button there; it opens the labelled select and the Preview button
+ * in the phone sheet. Every one of them is a 44px target, stays on screen, and
+ * the page never scrolls sideways.
+ */
+for ( const viewport of [ { width: 320, height: 640 }, { width: 375, height: 667 }, { width: 667, height: 375 } ] ) {
+	test.describe( `role preview picker at ${ viewport.width }x${ viewport.height }`, () => {
+		test.use( { viewport } );
+
+		test( 'the toggle, select and button are 44px targets and nothing overflows', async ( { page } ) => {
+			await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+			await page.locator( '#menu-posts > a.menu-top' ).click();
+			await expect( page.locator( '.maestro-panel' ) ).toBeVisible();
+			const toggle = page.getByRole( 'button', { name: 'Preview as' } );
+			await expect( toggle ).toBeVisible();
+			await toggle.click();
+			const sheet = page.getByRole( 'dialog', { name: 'Preview as' } );
+			await expect( sheet ).toBeVisible();
+			await expect( sheet.getByRole( 'combobox', { name: 'Preview as' } ) ).toBeFocused();
+
+			const m = await page.evaluate( () => {
+				const box = ( sel: string ) => {
+					const r = document.querySelector( sel )!.getBoundingClientRect();
+					return { left: r.left, right: r.right, width: r.width, height: r.height };
+				};
+				return {
+					toggle: box( '.maestro-preview-toggle' ),
+					select: box( '.maestro-preview-popover .maestro-preview-select' ),
+					button: box( '.maestro-preview-popover .maestro-preview-btn' ),
+					clientWidth: document.documentElement.clientWidth,
+					scrollWidth: document.documentElement.scrollWidth,
+				};
+			} );
+			for ( const target of [ m.toggle, m.select, m.button ] ) {
+				expect( target.height ).toBeGreaterThanOrEqual( 44 );
+				expect( target.width ).toBeGreaterThanOrEqual( 44 );
+				expect( target.left ).toBeGreaterThanOrEqual( 0 );
+				expect( target.right ).toBeLessThanOrEqual( m.clientWidth );
+			}
+			expect( m.scrollWidth ).toBeLessThanOrEqual( m.clientWidth );
+
+			// It works from the sheet too.
+			await sheet.getByRole( 'combobox', { name: 'Preview as' } ).selectOption( 'author' );
+			await Promise.all( [
+				page.waitForURL( /maestro_preview=author/ ),
+				sheet.getByRole( 'button', { name: 'Preview', exact: true } ).click(),
+			] );
+			await expect( page.locator( '.maestro-preview-banner' ) ).toContainText( 'Author' );
+		} );
+	} );
+}

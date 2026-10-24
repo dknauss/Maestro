@@ -78,13 +78,13 @@ test( 'touch tour keeps the menu open and covers all phone controls', async ( { 
 	await page.locator( '.maestro-tour-help' ).tap();
 	const texts: string[] = [];
 	while ( await page.locator( '.maestro-tour' ).count() ) {
-		expect( texts.length ).toBeLessThan( 14 );
+		expect( texts.length ).toBeLessThan( 15 );
 		texts.push( await page.locator( '.maestro-tour-text' ).innerText() );
 		await page.locator( '.maestro-tour-next' ).tap();
 		await expect( page.locator( '#adminmenu' ) ).toBeVisible();
 	}
-	expect( texts ).toHaveLength( 11 );
-	for ( const label of [ 'Type a new name', 'Reorder', 'icon', 'Hide the item', 'Visibility groups', 'Reset All', 'Exit' ] ) {
+	expect( texts ).toHaveLength( 12 );
+	for ( const label of [ 'Type a new name', 'Reorder', 'icon', 'Hide the item', 'Visibility groups', 'Preview as', 'Reset All', 'Exit' ] ) {
 		expect( texts.some( text => text.includes( label ) ), label ).toBe( true );
 	}
 	expect( texts.some( text => text.includes( 'Menu settings' ) ) ).toBe( false );
