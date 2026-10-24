@@ -20,9 +20,12 @@ checks do not complete touch acceptance.
 Mobile follow-up: remove the remaining Done footers, keep Close in a fixed
 header, and size short dialogs to content. Menu taps and dialog entry no longer
 focus text fields on phones. Group/person changes return to a non-text control;
-explicit input taps and keyboard navigation still permit typing. Recheck all of
-this in portrait and landscape, especially with the iOS keyboard open. These
-fixes do not constitute human acceptance.
+explicit input taps and keyboard navigation still permit typing. The same tap
+rules apply on tablets and touch laptops. Tapping another row commits a typed
+name, and the toolbar follows the visual viewport above the keyboard while the
+name field is focused. Recheck all of this in portrait and landscape,
+especially with the iOS keyboard open, and on an iPad. Automated checks
+simulate keyboard geometry; these fixes do not constitute human acceptance.
 
 Record tester, date, Maestro commit/version, device, OS/browser versions, admin
 language, Keel version (if active), and portrait/landscape results. Note any

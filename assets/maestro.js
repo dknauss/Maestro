@@ -614,7 +614,8 @@
 			if ( ! li ) { return; }
 			// Touch selection exposes controls without opening the software
 			// keyboard. Keyboard activation still enters the rename field.
-			selectItem( li, { focusPanel: ! isPhoneViewport() || e.detail === 0 } );
+			var touch = e.detail !== 0 && ( isPhoneViewport() || touchPointer() );
+			selectItem( li, { focusPanel: ! touch, focusRow: touch } );
 		}, true );
 
 		menu.addEventListener( 'keydown', function ( e ) {
@@ -762,6 +763,9 @@
 			: li.dataset.maestroSlug;
 		if ( ! key || ! model[ key ] ) { return; }
 		opts = opts || {};
+		// A tap does not always move focus before click (iOS never focuses
+		// links), so commit a pending rename while the old item is selected.
+		if ( panel.rename && document.activeElement === panel.rename ) { panel.rename.blur(); }
 
 		document.querySelectorAll( '.maestro-selected' ).forEach( function ( n ) {
 			n.classList.remove( 'maestro-selected' );
@@ -781,7 +785,7 @@
 			} catch ( err ) {
 				focusTarget.focus();
 			}
-		} else if ( isPhoneViewport() ) {
+		} else if ( opts.focusRow ) {
 			var rowLink = li.querySelector( 'a' );
 			if ( rowLink ) { rowLink.focus( { preventScroll: true } ); }
 		}
@@ -892,6 +896,7 @@
 			}
 		} );
 		rename.addEventListener( 'blur', commitRename );
+		rename.addEventListener( 'focus', liftToolbarAboveKeyboard );
 
 		// ▲/▼ reorder buttons — Tab-reachable from the rename input, OS-independent.
 		// These are the primary reorder affordance; the existing Alt+Arrow path remains
@@ -1166,6 +1171,30 @@
 		populatePanel( selectedKey ); // refresh breadcrumb for renamed parents
 		refreshModifiedIndicator( selectedKey );
 		scheduleAutosave();
+	}
+
+	// iOS keeps fixed elements on the layout viewport, so its keyboard covers
+	// the bottom toolbar. While the name field is edited, follow the visible
+	// bottom edge instead, never lifting the toolbar off the top of the screen.
+	function liftToolbarAboveKeyboard() {
+		var v = window.visualViewport;
+		var bar = panel.rename.closest( '.maestro-toolbar' );
+		if ( ! v || ! bar || ! ( isPhoneViewport() || touchPointer() ) ) { return; }
+		function place() {
+			var lift = window.innerHeight - ( v.offsetTop + v.height );
+			lift = Math.min( lift, window.innerHeight - bar.offsetHeight );
+			bar.style.bottom = lift > 0 ? Math.round( lift ) + 'px' : '';
+		}
+		function stop() {
+			v.removeEventListener( 'resize', place );
+			v.removeEventListener( 'scroll', place );
+			panel.rename.removeEventListener( 'blur', stop );
+			bar.style.bottom = '';
+		}
+		v.addEventListener( 'resize', place );
+		v.addEventListener( 'scroll', place );
+		panel.rename.addEventListener( 'blur', stop );
+		place();
 	}
 
 	function updateMenuLabel( key ) {
@@ -2912,7 +2941,12 @@
 		function position() {
 			if ( ! document.contains( pop ) ) { return; }
 			var parentNow = anchorBtn.closest( '#adminmenuwrap' ) || document.body;
-			if ( pop.parentNode !== parentNow ) { parentNow.appendChild( pop ); }
+			if ( pop.parentNode !== parentNow ) {
+				// Moving the node drops focus to the page, and with it Escape and Tab.
+				var held = pop.contains( document.activeElement ) ? document.activeElement : null;
+				parentNow.appendChild( pop );
+				if ( held ) { held.focus( { preventScroll: true } ); }
+			}
 			forceResponsiveOpen();
 			var v = window.visualViewport;
 			pop.style.left = ( ( v ? v.offsetLeft : 0 ) + 8 ) + 'px';
@@ -3259,9 +3293,28 @@
 		pop.appendChild( button );
 	}
 
+	// Focusing a text field from a tap opens the software keyboard, so touch
+	// opens a dialog on its Close control. Keyboard and mouse keep the field.
 	function focusDialogControl( pop, control ) {
-		var target = isPhoneViewport() ? pop.querySelector( '.maestro-dialog-close' ) : control;
+		var target = control;
+		if ( pop && ( isPhoneViewport() || touchPointer() ) ) {
+			// Desktop Icons and Visibility have no Close, so the dialog itself
+			// takes focus there; Tab still reaches every control inside it.
+			target = pop.querySelector( '.maestro-dialog-close' );
+			if ( ! target ) {
+				pop.tabIndex = -1;
+				target = pop;
+			}
+		}
 		if ( target ) { target.focus( { preventScroll: true } ); }
+	}
+
+	// Touch can come from a tablet or touch laptop as well as a phone.
+	var lastPointerType = '';
+	document.addEventListener( 'pointerdown', function ( e ) { lastPointerType = e.pointerType; }, true );
+	document.addEventListener( 'keydown', function () { lastPointerType = ''; }, true );
+	function touchPointer() {
+		return lastPointerType === 'touch' || lastPointerType === 'pen';
 	}
 
 	function setCloseGlyph( button ) {

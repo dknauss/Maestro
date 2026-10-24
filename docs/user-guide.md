@@ -126,12 +126,18 @@ toolbar to return to the ordinary menu.
 
 The toolbar uses touch-sized controls in portrait and landscape. Tapping a menu
 item selects it without opening the keyboard; tap its name field to rename it.
+Tapping another item saves the name you typed. While you type a name, the
+toolbar stays above the on-screen keyboard. Tablets and touch screens behave
+the same way when you tap; a mouse click or the keyboard still goes straight to
+the name field.
+
 Visibility, the icon picker, Preview and Visibility groups open in dialogs that
 fit their content and scroll when needed. Use the header close icon to dismiss
-them; tapping the page behind leaves them open. Opening a dialog focuses Close
-instead of a text field. Tap a search or name field when ready to type. The
-header stays outside the scrolling body as the dialog follows the space above
-the keyboard. Width-only Menu width controls appear only at desktop widths.
+them; tapping the page behind leaves them open. Opening a dialog by touch
+focuses Close instead of a text field, and so does adding or removing a group
+or person. Tap a search or name field when ready to type. The header stays
+outside the scrolling body as the dialog follows the space above the keyboard.
+Width-only Menu width controls appear only at desktop widths.
 
 ## Visibility Is Not Access Control
 

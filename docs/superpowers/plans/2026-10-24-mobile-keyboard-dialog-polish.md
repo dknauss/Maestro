@@ -57,10 +57,10 @@
 
 - [x] Add a portrait regression: tap parent/child rows, assert row focus and no rename focus; tap the name field to type; Enter on a selected row still enters renaming.
 - [x] Route icon/Visibility/groups/Preview dialog entry to Close on phones.
-- [ ] Extend selection coverage to 667×375 and 844×390 landscape and a wide touch-device viewport. Prefer actual event pointer type for touch where available if the current viewport-only test misses it; keep synthesized keyboard activation supported.
-- [ ] Verify successful group creation/deletion and person add/remove leave valid non-text focus on phones, including when list rendering removes the clicked node. Preserve desktop behavior and direct text-entry validation.
-- [ ] Audit remaining `.focus()` calls. Retain focus after explicit typing/validation and keyboard navigation; do not indiscriminately disable focus or mark inputs readonly.
-- [ ] Check intentional toolbar renaming with keyboard geometry: the name field must remain reachable above the keyboard, especially in landscape. If fixed toolbar positioning hides it, add a bounded visualViewport-aware offset for the editing toolbar and test it; never claim the automatic-focus correction alone proves this case.
+- [x] Extend selection coverage to 667×375 and 844×390 landscape and a wide touch-device viewport. Prefer actual event pointer type for touch where available if the current viewport-only test misses it; keep synthesized keyboard activation supported.
+- [x] Verify successful group creation/deletion and person add/remove leave valid non-text focus on phones, including when list rendering removes the clicked node. Preserve desktop behavior and direct text-entry validation.
+- [x] Audit remaining `.focus()` calls. Retain focus after explicit typing/validation and keyboard navigation; do not indiscriminately disable focus or mark inputs readonly.
+- [x] Check intentional toolbar renaming with keyboard geometry: the name field must remain reachable above the keyboard, especially in landscape. If fixed toolbar positioning hides it, add a bounded visualViewport-aware offset for the editing toolbar and test it; never claim the automatic-focus correction alone proves this case.
 
 ## Task 2 — Finish mobile dialog layout and landscape coverage
 
@@ -70,19 +70,19 @@
 
 - [x] New tests assert Preview/groups are compact (portrait Preview <220px; empty groups <420px), all four dialogs have Close with no Done, header position survives body scrolling, and focus returns on close.
 - [x] Update existing phone tests to dismiss via Close and expect phone Preview entry focus on Close.
-- [ ] Add landscape runs at 667×375 and 844×390 for Preview/groups/Visibility/icons. Assert bounds stay within visible space and short content does not acquire forced blank space.
-- [ ] Simulate a landscape visualViewport keyboard (e.g. width 667, height 190, offsetTop 32). Assert Close remains visible, focused name/search input stays within the scroll body and viewport, and background scroll remains locked. Explicitly type before simulating the keyboard; opening alone must not focus text.
-- [ ] Exercise long group/member content and dynamic search results after a compact dialog is opened. Ensure natural growth reaches maxHeight then scrolls; focused content remains reachable. Review whether a ResizeObserver is needed; add it only with a reproducing test.
-- [ ] Test desktop→phone and portrait→landscape transitions with the dialog open, then Escape/Close and reopen; assert no duplicate wrappers, listeners or stale scroll locks.
+- [x] Add landscape runs at 667×375 and 844×390 for Preview/groups/Visibility/icons. Assert bounds stay within visible space and short content does not acquire forced blank space.
+- [x] Simulate a landscape visualViewport keyboard (e.g. width 667, height 190, offsetTop 32). Assert Close remains visible, focused name/search input stays within the scroll body and viewport, and background scroll remains locked. Explicitly type before simulating the keyboard; opening alone must not focus text.
+- [x] Exercise long group/member content and dynamic search results after a compact dialog is opened. Ensure natural growth reaches maxHeight then scrolls; focused content remains reachable. Review whether a ResizeObserver is needed; add it only with a reproducing test.
+- [x] Test desktop→phone and portrait→landscape transitions with the dialog open, then Escape/Close and reopen; assert no duplicate wrappers, listeners or stale scroll locks.
 
 ## Task 3 — Verify, document and open a PR
 
-- [ ] Review the full diff against current main and Claude's latest branch. Do not replace or cherry-pick #259's copy changes unnecessarily.
-- [ ] Re-run the changed focus and landscape cases, then the existing mobile, dialog, tour and role-preview regressions affected by the new focus expectations.
-- [ ] Capture and inspect portrait and landscape dialogs on the disposable local site. Real iPhone follow-up remains required.
-- [ ] Update user-guide and touch checklist to match final behavior. Preserve accepted prior human results and contextual-controls deferral.
-- [ ] Run JavaScript syntax, unit tests, documentation checks, `git diff --check`; commit only task files, push and open a PR with validation and hardware limitations clearly stated. Attach the PR to this task.
-- [ ] Do not merge automatically: this task asks for fixes; hand off the reviewable PR and CI status.
+- [x] Review the full diff against current main and Claude's latest branch. Do not replace or cherry-pick #259's copy changes unnecessarily.
+- [x] Re-run the changed focus and landscape cases, then the existing mobile, dialog, tour and role-preview regressions affected by the new focus expectations.
+- [x] Capture and inspect portrait and landscape dialogs on the disposable local site. Real iPhone follow-up remains required.
+- [x] Update user-guide and touch checklist to match final behavior. Preserve accepted prior human results and contextual-controls deferral.
+- [x] Run JavaScript syntax, unit tests, documentation checks, `git diff --check`; commit only task files, push and open a PR with validation and hardware limitations clearly stated. Attach the PR to this task.
+- [x] Do not merge automatically: this task asks for fixes; hand off the reviewable PR and CI status.
 
 ## Verification evidence and environment
 
