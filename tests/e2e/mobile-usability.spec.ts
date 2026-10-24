@@ -40,7 +40,7 @@ for ( const kind of [ 'visibility', 'icons', 'groups' ] ) {
 		await page.touchscreen.tap( 2, 200 ); // outside sheet must not dismiss it or the menu
 		await expect( pop ).toBeVisible();
 		await expect( page.locator( '#adminmenu' ) ).toBeVisible();
-		await pop.getByRole( 'button', { name: 'Done', exact: true } ).tap();
+		await pop.getByRole( 'button', { name: 'Close dialog', exact: true } ).tap();
 		await expect( pop ).toHaveCount( 0 );
 		await expect( page.locator( '#adminmenu' ) ).toBeVisible();
 		await expect( trigger ).toBeFocused();
@@ -67,7 +67,7 @@ test( 'group sheet follows visual viewport and keeps focused input above keyboar
 	const r = ( await pop.boundingBox() )!;
 	expect( r.y + r.height ).toBeLessThanOrEqual( 364 );
 	await expect.poll( async () => ( await input.boundingBox() )!.y + ( await input.boundingBox() )!.height ).toBeLessThanOrEqual( 364 );
-	const done = pop.getByRole( 'button', { name: 'Done', exact: true } );
+	const done = pop.getByRole( 'button', { name: 'Close dialog', exact: true } );
 	const footer = ( await done.boundingBox() )!;
 	expect( footer.y + footer.height ).toBeLessThanOrEqual( 364 );
 	await done.tap();
@@ -117,7 +117,7 @@ test( 'phone RTL dialog hand-off and Escape restore scrolling and menu focus', a
 	await expect( page.locator( '.maestro-profiles-btn' ) ).toBeFocused();
 	expect( await page.evaluate( () => document.body.style.overflow ) ).not.toBe( 'hidden' );
 	await page.locator( '.maestro-profiles-btn' ).tap();
-	await dialog.getByRole( 'button', { name: 'Done', exact: true } ).tap();
+	await dialog.getByRole( 'button', { name: 'Close dialog', exact: true } ).tap();
 	await expect( dialog ).toHaveCount( 0 );
 } );
 
@@ -141,7 +141,7 @@ test( 'an open desktop dialog becomes a phone sheet after resize', async ( { pag
 	await expect( sheet ).toBeVisible();
 	await page.touchscreen.tap( 2, 200 );
 	await expect( sheet ).toBeVisible();
-	await sheet.getByRole( 'button', { name: 'Done', exact: true } ).tap();
+	await sheet.getByRole( 'button', { name: 'Close dialog', exact: true } ).tap();
 	await expect( sheet ).toHaveCount( 0 );
 	expect( await page.evaluate( () => document.body.style.overflow ) ).not.toBe( 'hidden' );
 } );

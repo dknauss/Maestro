@@ -128,7 +128,7 @@ for ( const [ name, viewport ] of [ [ 'portrait', PORTRAIT ], [ 'landscape', LAN
 				expect( await menuOpen( page ) ).toBe( true );
 			}
 
-			await picker.getByRole( 'button', { name: 'Done', exact: true } ).click();
+			await picker.getByRole( 'button', { name: 'Close dialog', exact: true } ).click();
 			await page.locator( '.maestro-toolbar .maestro-vis-btn' ).click();
 			const vis = page.locator( '.maestro-vis-popover' );
 			await expect( vis ).toBeVisible();

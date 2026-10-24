@@ -124,11 +124,14 @@ toolbar to return to the ordinary menu.
 
 ## Editing on a phone
 
-The toolbar uses touch-sized controls in portrait and landscape. Visibility,
-the icon picker and Visibility groups open in a scrollable sheet. Tap **Done**
-to close it; tapping the page behind the sheet leaves it open. The footer stays
-outside the scrollable content, and the sheet follows the space available above
-the on-screen keyboard. Width-only Menu settings appear only at desktop widths.
+The toolbar uses touch-sized controls in portrait and landscape. Tapping a menu
+item selects it without opening the keyboard; tap its name field to rename it.
+Visibility, the icon picker, Preview and Visibility groups open in dialogs that
+fit their content and scroll when needed. Use the header close icon to dismiss
+them; tapping the page behind leaves them open. Opening a dialog focuses Close
+instead of a text field. Tap a search or name field when ready to type. The
+header stays outside the scrolling body as the dialog follows the space above
+the keyboard. Width-only Menu width controls appear only at desktop widths.
 
 ## Visibility Is Not Access Control
 

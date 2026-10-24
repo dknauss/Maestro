@@ -17,6 +17,13 @@ header space, and desktop Preview uses the same close control. Recheck the
 desktop-to-phone Preview handoff and dismissal on hardware; automated geometry
 checks do not complete touch acceptance.
 
+Mobile follow-up: remove the remaining Done footers, keep Close in a fixed
+header, and size short dialogs to content. Menu taps and dialog entry no longer
+focus text fields on phones. Group/person changes return to a non-text control;
+explicit input taps and keyboard navigation still permit typing. Recheck all of
+this in portrait and landscape, especially with the iOS keyboard open. These
+fixes do not constitute human acceptance.
+
 Record tester, date, Maestro commit/version, device, OS/browser versions, admin
 language, Keel version (if active), and portrait/landscape results. Note any
 unavailable desktop-only control as not applicable, rather than a pass.
