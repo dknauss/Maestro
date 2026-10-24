@@ -37,11 +37,13 @@ preview is a separate follow-up requiring its own design and review.
 
 ## Picker placement and transitions
 
-Use the existing toolbar controls panel, without another toolbar icon or a
-settings page:
+Updated 2026-10-24 by Dan's approved desktop-refinement request: use one
+accessible **Preview as** toolbar button opening the picker dialog at every
+width. This supersedes the 2026-10-23 inline-toolbar placement decision:
 
-1. A visible **Preview as** label, native single-role selector populated from the
-   site's roles, and explicit **Preview** button. Selecting alone does not reload.
+1. In the dialog, a visible **Preview as** label, native single-role selector
+   populated from the site's roles, and explicit **Preview** button. Selecting
+   alone does not reload.
 2. Before entering preview, finish any pending edit save successfully. A failed
    save must not silently discard edits by navigating into preview.
 3. Entry reloads to the server-rendered preview. Replace editing controls with a

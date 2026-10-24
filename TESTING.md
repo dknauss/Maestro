@@ -287,7 +287,7 @@ width, flyouts opening at its edge, folded still 36px, core's auto-fold at 960px
 and below, a Keel-style `!important` width winning, and an unrelated edit-mode
 autosave carrying the width forward.
 [`tests/e2e/specs/menu-width.spec.ts`](tests/e2e/specs/menu-width.spec.ts)
-(28-03) covers the controls: the Menu settings field previews live, saves, and
+(28-03) covers the controls: the Menu width field previews live, saves, and
 applies on an ordinary admin page after reload; the slider is keyboard-operable;
 **Use default** clears the width; the edge handle resizes by drag and by
 keyboard; **Reset this item** leaves the width alone; the dialog stays inside the

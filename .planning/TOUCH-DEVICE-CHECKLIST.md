@@ -7,6 +7,11 @@ in WordPress Playground, using Safari on iOS 26.6.2 (reported by Dan). Exact
 commit and separate Safari version were not captured.
 Retain the accepted desktop checks in the three phase verification records.
 
+Desktop refinement follow-up (2026-10-24): the compact Preview dialog is shared
+across widths, and the tour uses a header close icon. Recheck those controls,
+keyboard obstruction, small targets and accidental dismissal on the final
+combined build. Touch-device acceptance remains open.
+
 Record tester, date, Maestro commit/version, device, OS/browser versions, admin
 language, Keel version (if active), and portrait/landscape results. Note any
 unavailable desktop-only control as not applicable, rather than a pass.
@@ -24,7 +29,7 @@ unavailable desktop-only control as not applicable, rather than a pass.
   confirmation.
 - [x] **Role controls (behavior passed; visual exception below):** select and clear All other roles in both role groups;
   partial selections show mixed state and locked rows retain their behavior.
-- [ ] **Tour:** Next, Back, Skip and Done work at narrow widths; coachmarks stay
+- [ ] **Tour:** Next, Back, Close tour and Done work at narrow widths; coachmarks stay
   on screen and skip unavailable controls in both directions.
 - [x] **Arabic/RTL:** repeat key toolbar, dialog and group interactions in an
   actual Arabic admin. Check alignment, English fallback punctuation and tour

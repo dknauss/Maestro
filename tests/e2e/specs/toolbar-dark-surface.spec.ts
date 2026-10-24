@@ -20,7 +20,7 @@ async function enterEditMode( page ) {
 
 test.describe( 'Phase 25 — toolbar dark surface', () => {
 
-	test( 'the status slot is reserved: a save no longer displaces the rename field', async ( { page } ) => {
+	test( 'floating save feedback never displaces the rename field', async ( { page } ) => {
 		await enterEditMode( page );
 
 		const rename = page.locator( '.maestro-toolbar input[type="text"]' ).first();
@@ -37,12 +37,9 @@ test.describe( 'Phase 25 — toolbar dark surface', () => {
 		// field occupied. Pre-fix this was [230, 210] — a 20px shift on every
 		// save, caused by .maestro-status growing 4px → 24px beside it.
 		const xs = new Set<number>();
-		const statusWidths = new Set<number>();
 		for ( let i = 0; i < 22; i++ ) {
 			const rb = await rename.boundingBox();
-			const sb = await status.boundingBox();
 			if ( rb ) { xs.add( Math.round( rb.x ) ); }
-			if ( sb ) { statusWidths.add( Math.round( sb.width ) ); }
 			await page.waitForTimeout( 120 );
 		}
 
@@ -51,8 +48,8 @@ test.describe( 'Phase 25 — toolbar dark surface', () => {
 			'the rename field must hold ONE x position across idle → saving → saved'
 		).toHaveLength( 1 );
 
-		// And the slot itself must not collapse back to nothing.
-		expect( Math.min( ...statusWidths ) ).toBeGreaterThanOrEqual( 24 );
+		// Feedback is outside the flex flow, so idle needs no reserved column.
+		await expect( status ).toHaveCSS( 'position', 'absolute' );
 	} );
 
 	test( 'the focus ring meets its widened contrast margin on the dark toolbar', async ( { page } ) => {

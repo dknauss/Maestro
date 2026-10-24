@@ -43,6 +43,7 @@ async function menuLinks( page ): Promise< string[] > {
 /** Start a preview through the editor's own picker. */
 async function previewFromEditor( page, role: string ) {
 	await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+	await page.locator( '.maestro-preview-toggle' ).click();
 	const select = page.getByRole( 'combobox', { name: 'Preview as' } );
 	await expect( select ).toBeVisible();
 	await select.selectOption( role );
@@ -93,6 +94,23 @@ async function signInAs( browser, login: string ) {
 }
 
 test.describe( 'role preview', () => {
+
+	test( 'preview notice follows Screen Options and Help with either panel open', async ( { page } ) => {
+		await previewFromEditor( page, 'administrator' );
+		const banner = page.locator( '.maestro-preview-banner' );
+		for ( const [ toggle, panel ] of [ [ '#show-settings-link', '#screen-options-wrap' ], [ '#contextual-help-link', '#contextual-help-wrap' ] ] ) {
+			await page.locator( toggle ).click();
+			await expect( page.locator( panel ) ).toBeVisible();
+			await expect.poll( async () => {
+				const bounds = await page.locator( panel ).boundingBox();
+				const notice = await banner.boundingBox();
+				return bounds!.y + bounds!.height <= notice!.y;
+			} ).toBe( true );
+			await page.locator( toggle ).click();
+			await expect( page.locator( panel ) ).toBeHidden();
+		}
+		expect( await banner.evaluate( node => !! ( document.querySelector( '#screen-meta' )!.compareDocumentPosition( node ) & Node.DOCUMENT_POSITION_FOLLOWING ) ) ).toBe( true );
+	} );
 	test( 'the banner says read-only, explains the approximation, and offers the picker and exit', async ( { page } ) => {
 		await previewFromEditor( page, 'editor' );
 		const banner = page.locator( '.maestro-preview-banner' );
@@ -166,6 +184,7 @@ test.describe( 'role preview', () => {
 		await panel.locator( '.maestro-rename-input' ).fill( 'Articles' );
 
 		const save = page.waitForResponse( ( r ) => POST_SAVE( r.url() ) && r.request().method() === 'POST' );
+		await page.locator( '.maestro-preview-toggle' ).click();
 		await page.getByRole( 'combobox', { name: 'Preview as' } ).selectOption( 'editor' );
 		await page.locator( '.maestro-preview-btn' ).click();
 		expect( ( await save ).ok() ).toBe( true );
@@ -183,6 +202,7 @@ test.describe( 'role preview', () => {
 		} );
 		await page.locator( '#menu-posts > a.menu-top' ).click();
 		await page.locator( '.maestro-toolbar .maestro-panel .maestro-rename-input' ).fill( 'Broken' );
+		await page.locator( '.maestro-preview-toggle' ).click();
 		await page.getByRole( 'combobox', { name: 'Preview as' } ).selectOption( 'editor' );
 		await page.locator( '.maestro-preview-btn' ).click();
 		await expect( page.locator( '.maestro-status-error' ) ).toBeVisible();

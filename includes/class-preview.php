@@ -105,7 +105,9 @@ class Preview {
 		add_action( 'auth_redirect', array( $this, 'begin' ), PHP_INT_MAX );
 		add_filter( 'custom_menu_order', array( $this, 'end_at_menu_order' ), PHP_INT_MAX );
 		add_action( 'admin_init', array( $this, 'end' ), PHP_INT_MIN );
-		add_action( 'in_admin_header', array( $this, 'render_banner' ) );
+		// Core renders Screen Options and Help after in_admin_header. Put the
+		// banner in the normal notice area below that screen chrome instead.
+		add_action( 'admin_notices', array( $this, 'render_banner' ) );
 		add_action( 'admin_notices', array( $this, 'render_refusal' ) );
 	}
 
@@ -175,7 +177,7 @@ class Preview {
 		$roles = self::previewable_roles();
 		$name  = isset( $roles[ self::$role ] ) ? $roles[ self::$role ] : self::$role;
 		?>
-		<div class="notice notice-info inline maestro-preview-banner" role="region" aria-labelledby="maestro-preview-title" style="margin:10px 20px 0 2px;">
+		<div class="notice notice-info inline maestro-preview-banner" role="region" aria-labelledby="maestro-preview-title" style="clear:both;">
 			<p id="maestro-preview-title"><strong>
 				<?php
 				/* translators: %s: role name, such as "Editor". */
