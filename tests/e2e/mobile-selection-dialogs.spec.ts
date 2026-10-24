@@ -214,6 +214,11 @@ test.describe( 'wide touch screen', () => {
 				const a = document.activeElement as HTMLElement;
 				return !! a.closest( '.maestro-popover' ) && ! a.matches( 'input[type="text"], input[type="search"], input:not([type])' );
 			} ) ).toBe( true );
+			// A hardware keyboard can still Tab either way without leaving the dialog.
+			for ( const key of [ 'Shift+Tab', 'Tab', 'Tab' ] ) {
+				await page.keyboard.press( key );
+				expect( await page.evaluate( () => !! document.activeElement!.closest( '.maestro-popover' ) ), key ).toBe( true );
+			}
 		} );
 	}
 } );

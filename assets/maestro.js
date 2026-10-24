@@ -3304,9 +3304,23 @@
 			if ( ! target ) {
 				pop.tabIndex = -1;
 				target = pop;
+				pop.addEventListener( 'keydown', wrapFromDialog );
 			}
 		}
 		if ( target ) { target.focus( { preventScroll: true } ); }
+	}
+
+	// The dialogs' own Tab traps wrap from their first control, not from the
+	// container, so Shift+Tab from a focused container goes to the last one.
+	function wrapFromDialog( e ) {
+		if ( e.key !== 'Tab' || ! e.shiftKey || document.activeElement !== e.currentTarget ) { return; }
+		var controls = Array.prototype.filter.call( e.currentTarget.querySelectorAll( 'input, button, select, [tabindex]:not([tabindex="-1"])' ), function ( n ) {
+			return ! n.disabled && n.getClientRects().length;
+		} );
+		if ( ! controls.length ) { return; }
+		e.preventDefault();
+		e.stopImmediatePropagation();
+		controls[ controls.length - 1 ].focus();
 	}
 
 	// Touch can come from a tablet or touch laptop as well as a phone.
