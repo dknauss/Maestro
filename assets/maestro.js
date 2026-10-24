@@ -612,7 +612,10 @@
 
 			var li = e.target.closest( 'li.maestro-item, li.maestro-subitem' );
 			if ( ! li ) { return; }
-			selectItem( li, { focusPanel: true } );
+			// Touch selection exposes controls without opening the software
+			// keyboard. Keyboard activation still enters the rename field.
+			var touch = e.detail !== 0 && ( isPhoneViewport() || touchPointer() );
+			selectItem( li, { focusPanel: ! touch, focusRow: touch } );
 		}, true );
 
 		menu.addEventListener( 'keydown', function ( e ) {
@@ -760,6 +763,9 @@
 			: li.dataset.maestroSlug;
 		if ( ! key || ! model[ key ] ) { return; }
 		opts = opts || {};
+		// A tap does not always move focus before click (iOS never focuses
+		// links), so commit a pending rename while the old item is selected.
+		if ( panel.rename && document.activeElement === panel.rename ) { panel.rename.blur(); }
 
 		document.querySelectorAll( '.maestro-selected' ).forEach( function ( n ) {
 			n.classList.remove( 'maestro-selected' );
@@ -779,6 +785,9 @@
 			} catch ( err ) {
 				focusTarget.focus();
 			}
+		} else if ( opts.focusRow ) {
+			var rowLink = li.querySelector( 'a' );
+			if ( rowLink ) { rowLink.focus( { preventScroll: true } ); }
 		}
 	}
 
@@ -887,6 +896,7 @@
 			}
 		} );
 		rename.addEventListener( 'blur', commitRename );
+		rename.addEventListener( 'focus', liftToolbarAboveKeyboard );
 
 		// ▲/▼ reorder buttons — Tab-reachable from the rename input, OS-independent.
 		// These are the primary reorder affordance; the existing Alt+Arrow path remains
@@ -1163,6 +1173,30 @@
 		scheduleAutosave();
 	}
 
+	// iOS keeps fixed elements on the layout viewport, so its keyboard covers
+	// the bottom toolbar. While the name field is edited, follow the visible
+	// bottom edge instead, never lifting the toolbar off the top of the screen.
+	function liftToolbarAboveKeyboard() {
+		var v = window.visualViewport;
+		var bar = panel.rename.closest( '.maestro-toolbar' );
+		if ( ! v || ! bar || ! ( isPhoneViewport() || touchPointer() ) ) { return; }
+		function place() {
+			var lift = window.innerHeight - ( v.offsetTop + v.height );
+			lift = Math.min( lift, window.innerHeight - bar.offsetHeight );
+			bar.style.bottom = lift > 0 ? Math.round( lift ) + 'px' : '';
+		}
+		function stop() {
+			v.removeEventListener( 'resize', place );
+			v.removeEventListener( 'scroll', place );
+			panel.rename.removeEventListener( 'blur', stop );
+			bar.style.bottom = '';
+		}
+		v.addEventListener( 'resize', place );
+		v.addEventListener( 'scroll', place );
+		panel.rename.addEventListener( 'blur', stop );
+		place();
+	}
+
 	function updateMenuLabel( key ) {
 		var li = liForKey( key );
 		if ( ! li ) { return; }
@@ -1363,7 +1397,7 @@
 		// one ran off the bottom of a short screen. Once, so later filtering
 		// still does not move the grid under the pointer.
 		reposition();
-		search.focus();
+		focusDialogControl( pop, search );
 	}
 
 	/* ---------- menu-wide settings: menu width (Phase 28-03) -------------- */
@@ -1768,7 +1802,7 @@
 				renderList();
 				say( '' );
 				speak( I.profileDeleted );
-				addInput.focus();
+				focusDialogControl( pop, addInput );
 			} );
 
 			return row;
@@ -1798,7 +1832,7 @@
 			scheduleAutosave();
 			// Straight on to choosing who is in it.
 			var search = list.lastChild.querySelector( '.maestro-user-search' );
-			( search || addInput ).focus();
+			focusDialogControl( pop, search || addInput );
 		}
 
 		addBtn.addEventListener( 'click', function ( e ) {
@@ -1857,7 +1891,7 @@
 
 		renderList();
 		placePopover( pop, anchorBtn );
-		( profiles.length ? list.querySelector( '.maestro-profile-name' ) : addInput ).focus();
+		focusDialogControl( pop, profiles.length ? list.querySelector( '.maestro-profile-name' ) : addInput );
 	}
 
 	// Remove a profile and every item's reference to it. The save rebuilds
@@ -2498,7 +2532,7 @@
 
 		placePopover( pop, anchorBtn );
 		var initialFocus = pop.querySelector( 'input:not([disabled])' ) || pop;
-		initialFocus.focus();
+		focusDialogControl( pop, initialFocus );
 	}
 
 	/*
@@ -2603,7 +2637,7 @@
 					e.stopPropagation();
 					setSet( window.maestroLogic.removeUserTarget( getSet(), target.id ) );
 					afterChange();
-					search.focus();
+					focusDialogControl( search.closest( '.maestro-popover' ), search );
 				} );
 				li.appendChild( rm );
 				chips.appendChild( li );
@@ -2631,7 +2665,7 @@
 			search.value = '';
 			say( atLimit() ? limitMsg() : '' );
 			afterChange();
-			search.focus();
+			focusDialogControl( search.closest( '.maestro-popover' ), search );
 		}
 
 		function renderResults( users ) {
@@ -2873,17 +2907,24 @@
 		var parent = anchorBtn.closest( '#adminmenuwrap' ) || document.body;
 		var content = el( 'div', 'maestro-mobile-body' );
 		var actions = pop.querySelector( '.maestro-settings-actions' );
-		if ( actions ) { actions.remove(); }
-		while ( pop.firstChild ) { content.appendChild( pop.firstChild ); }
-		pop.appendChild( content );
-		if ( ! actions ) {
-			actions = el( 'div', 'maestro-settings-actions' );
-			var done = el( 'button', 'button button-primary', I.tourDone );
-			done.type = 'button';
-			done.addEventListener( 'click', close );
-			actions.appendChild( done );
+		if ( actions && ! actions.children.length ) { actions.remove(); actions = null; }
+		var header = el( 'div', 'maestro-mobile-header' );
+		var title = pop.querySelector( '.maestro-settings-title' );
+		if ( ! title ) {
+			title = el( 'h2', 'maestro-settings-title', pop.getAttribute( 'aria-label' ) || '' );
 		}
-		pop.appendChild( actions );
+		header.appendChild( title );
+		var closeButton = pop.querySelector( '.maestro-dialog-close' );
+		if ( ! closeButton ) {
+			closeButton = el( 'button' );
+			closeButton.type = 'button';
+			addDialogClose( pop, closeButton );
+			closeButton.addEventListener( 'click', close );
+		}
+		header.appendChild( closeButton );
+		while ( pop.firstChild ) { content.appendChild( pop.firstChild ); }
+		pop.appendChild( header );
+		pop.appendChild( content );
 		pop.classList.add( 'maestro-mobile-sheet' );
 		parent.appendChild( pop );
 		var oldBodyOverflow = document.body.style.overflow;
@@ -2900,7 +2941,12 @@
 		function position() {
 			if ( ! document.contains( pop ) ) { return; }
 			var parentNow = anchorBtn.closest( '#adminmenuwrap' ) || document.body;
-			if ( pop.parentNode !== parentNow ) { parentNow.appendChild( pop ); }
+			if ( pop.parentNode !== parentNow ) {
+				// Moving the node drops focus to the page, and with it Escape and Tab.
+				var held = pop.contains( document.activeElement ) ? document.activeElement : null;
+				parentNow.appendChild( pop );
+				if ( held ) { held.focus( { preventScroll: true } ); }
+			}
 			forceResponsiveOpen();
 			var v = window.visualViewport;
 			pop.style.left = ( ( v ? v.offsetLeft : 0 ) + 8 ) + 'px';
@@ -2909,8 +2955,8 @@
 			var bottom = ( v ? v.offsetTop + v.height : window.innerHeight ) - 8;
 			pop.style.top = top + 'px';
 			pop.style.width = Math.max( 0, ( v ? v.width : window.innerWidth ) - 16 ) + 'px';
-			pop.style.height = Math.max( 0, bottom - top ) + 'px';
-			pop.style.maxHeight = pop.style.height;
+			pop.style.height = 'auto';
+			pop.style.maxHeight = Math.max( 0, bottom - top ) + 'px';
 			cancelAnimationFrame( frame );
 			frame = requestAnimationFrame( function () {
 				var focused = document.activeElement;
@@ -3240,17 +3286,49 @@
 
 	// Autosaved dialogs close without committing or cancelling changes.
 	function addDialogClose( pop, button ) {
-		if ( isPhoneViewport() ) {
-			var actions = el( 'div', 'maestro-settings-actions' );
-			actions.appendChild( button );
-			pop.appendChild( actions );
-			return;
-		}
 		button.className = 'button-link maestro-dialog-close';
 		setCloseGlyph( button );
 		button.setAttribute( 'aria-label', I.closeDialog );
 		button.title = I.closeDialog;
 		pop.appendChild( button );
+	}
+
+	// Focusing a text field from a tap opens the software keyboard, so touch
+	// opens a dialog on its Close control. Keyboard and mouse keep the field.
+	function focusDialogControl( pop, control ) {
+		var target = control;
+		if ( pop && ( isPhoneViewport() || touchPointer() ) ) {
+			// Desktop Icons and Visibility have no Close, so the dialog itself
+			// takes focus there; Tab still reaches every control inside it.
+			target = pop.querySelector( '.maestro-dialog-close' );
+			if ( ! target ) {
+				pop.tabIndex = -1;
+				target = pop;
+				pop.addEventListener( 'keydown', wrapFromDialog );
+			}
+		}
+		if ( target ) { target.focus( { preventScroll: true } ); }
+	}
+
+	// The dialogs' own Tab traps wrap from their first control, not from the
+	// container, so Shift+Tab from a focused container goes to the last one.
+	function wrapFromDialog( e ) {
+		if ( e.key !== 'Tab' || ! e.shiftKey || document.activeElement !== e.currentTarget ) { return; }
+		var controls = Array.prototype.filter.call( e.currentTarget.querySelectorAll( 'input, button, select, [tabindex]:not([tabindex="-1"])' ), function ( n ) {
+			return ! n.disabled && n.getClientRects().length;
+		} );
+		if ( ! controls.length ) { return; }
+		e.preventDefault();
+		e.stopImmediatePropagation();
+		controls[ controls.length - 1 ].focus();
+	}
+
+	// Touch can come from a tablet or touch laptop as well as a phone.
+	var lastPointerType = '';
+	document.addEventListener( 'pointerdown', function ( e ) { lastPointerType = e.pointerType; }, true );
+	document.addEventListener( 'keydown', function () { lastPointerType = ''; }, true );
+	function touchPointer() {
+		return lastPointerType === 'touch' || lastPointerType === 'pen';
 	}
 
 	function setCloseGlyph( button ) {
@@ -3358,7 +3436,7 @@
 		} );
 
 		placePopover( pop, anchorBtn );
-		( select || done ).focus();
+		focusDialogControl( pop, select || done );
 	}
 
 	function waitForSaveIdle() {

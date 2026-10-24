@@ -64,7 +64,7 @@ test( 'desktop Preview remains dismissible after resizing to a phone', async ( {
 	const sheet = page.locator( '.maestro-preview-popover.maestro-mobile-sheet' );
 	await expect( sheet ).toBeVisible();
 	await expect( sheet.getByRole( 'combobox', { name: 'Preview as' } ) ).toBeVisible();
-	await sheet.getByRole( 'button', { name: 'Done', exact: true } ).click();
+	await sheet.getByRole( 'button', { name: 'Close dialog', exact: true } ).click();
 	await expect( sheet ).toHaveCount( 0 );
 	await expect( trigger ).toBeFocused();
 } );

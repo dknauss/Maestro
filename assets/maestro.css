@@ -1320,8 +1320,8 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 	display: none;
 }
 
-/* Phone sheets use visualViewport dimensions supplied by placeMobilePopover.
- * The footer stays outside the scroll region and above the software keyboard. */
+/* Phone dialogs fit their content up to the visual viewport limit. The header
+ * and close control stay outside the scrolling body, above the keyboard. */
 .maestro-popover.maestro-mobile-sheet {
 	position: fixed;
 	z-index: 100100;
@@ -1333,12 +1333,15 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 	overflow: hidden;
 }
 .maestro-mobile-body {
-	flex: 1 1 auto;
+	flex: 0 1 auto;
 	min-height: 0;
 	overflow-y: auto;
 	overscroll-behavior: contain;
 	padding: 2px;
 }
+.maestro-mobile-header { position: relative; flex: none; min-height: 44px; }
+.maestro-mobile-header .maestro-settings-title { margin: 0; padding-block: 8px; }
+.maestro-popover .maestro-mobile-header .maestro-dialog-close { inset-block-start: 0; inset-inline-end: 0; }
 .maestro-mobile-sheet > .maestro-settings-actions {
 	flex: none;
 	margin-top: 8px;
@@ -1425,7 +1428,6 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 }
 .maestro-tour-content { padding-inline-end: 48px; }
 .maestro-tour .maestro-tour-skip { margin: 0; text-decoration: none; }
-.maestro-popover.maestro-mobile-sheet .maestro-dialog-close { display: none; }
 
 /* Feedback floats above the toolbar, so idle and save transitions consume no
  * horizontal space and never move its controls. Errors persist until retry. */
