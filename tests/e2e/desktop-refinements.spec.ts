@@ -105,6 +105,7 @@ test( 'a stuck save error can be dismissed without clearing the failure', async 
 	await failSaves( page );
 	await page.locator( '#menu-posts > a.menu-top' ).click();
 	await page.locator( '.maestro-rename-input' ).fill( 'Broken' );
+	await page.locator( '.maestro-rename-input' ).press( 'Enter' );
 	const status = page.locator( '.maestro-toolbar .maestro-status' );
 	const dismiss = page.getByRole( 'button', { name: 'Dismiss save error' } );
 	await expect( status ).toHaveClass( /maestro-status-error/ );
@@ -134,6 +135,7 @@ test( 'a stuck save error can be dismissed without clearing the failure', async 
 	// A later successful save clears the error and its ×.
 	await page.unroute( '**/maestro/v1/config**' );
 	await page.locator( '.maestro-rename-input' ).fill( 'Fixed' );
+	await page.locator( '.maestro-rename-input' ).press( 'Enter' );
 	await expect( status ).toHaveClass( /maestro-status-saved/ );
 	await expect( dismiss ).toBeHidden();
 } );
@@ -144,6 +146,7 @@ test( 'the save-error × is a 44px target in the compact phone layout', async ( 
 	await failSaves( page );
 	await page.locator( '#menu-posts > a.menu-top' ).click();
 	await page.locator( '.maestro-rename-input' ).fill( 'Broken' );
+	await page.locator( '.maestro-rename-input' ).press( 'Enter' );
 	const dismiss = page.getByRole( 'button', { name: 'Dismiss save error' } );
 	await expect( dismiss ).toBeVisible();
 	const box = ( await dismiss.boundingBox() )!;
