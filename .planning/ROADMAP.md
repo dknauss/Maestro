@@ -581,7 +581,7 @@ should be made once.
   7. The toolbar panel has a labelled native role selector and explicit Preview button; pending saves must succeed before entry. A persistent read-only role banner, picker and Exit preview replace editing controls and survive the simulated role's missing Maestro access; exit changes no rules.
   8. No capability persistence or identity changes; REST, AJAX, cron and ordinary browsing are outside the exception. Tests prove viewer isolation, subtraction, filter cleanup before page callbacks and no preview writes.
   9. Zero regression across the same gates as Phase 29
-**Plans**: TBD — decisions checkpoint settled by Dan on 2026-10-23 in [30-CONTEXT.md](phases/30-view-as-role-preview/30-CONTEXT.md); implementation planning is next.
+**Plans**: 30-01 server window ([#248](https://github.com/dknauss/Maestro/pull/248)) · 30-02 picker, banner, exit and parity e2e — both built 2026-10-23, awaiting deep review; see `phases/30-view-as-role-preview/30-01-SUMMARY.md` and `30-02-SUMMARY.md`. Narrowed during 30-01 to the Dashboard and to roles with `read` (core's nopriv globals), for Dan to confirm.
 **Out of this phase**: editing inside the preview (the scope selector's role and person scopes) and "View as: [person]". Both stay in the todo.
 **Notes**: [view-as-role todo](todos/pending/2026-10-07-view-menu-as-role-preview.md)
 **Review**: high-risk diff (touches capability resolution) — mandatory deep review before merge

@@ -38,6 +38,7 @@
 	var saveInFlight = false;  // a full-replace POST is currently running
 	var savePending = false;   // another change arrived mid-flight; save again on land
 	var inFlight = null;       // promise that settles when the whole save chain is done
+	var lastSaveOk = true;     // outcome of the last settled save (role preview waits on it)
 	var savedClearTimer = null; // reverts the transient "Saved" tile back to idle
 	var groupIdSeq = 0;    // monotonic counter for unique role-group heading ids
 	// Core/plugin separators the user removed. A removed row is not rendered,
@@ -995,6 +996,8 @@
 			profilesBtn.addEventListener( 'click', function () { openProfiles( profilesBtn ); } );
 			right.appendChild( profilesBtn );
 		}
+		var preview = buildPreviewPicker();
+		if ( preview ) { right.appendChild( preview ); }
 		right.appendChild( settings );
 		right.appendChild( help );
 		right.appendChild( resetAll );
@@ -3170,6 +3173,7 @@
 			savePending = false;
 			return doAutosave(); // captures edits made while the last POST was in flight
 		}
+		lastSaveOk = ok;
 		setStatus( ok ? 'saved' : 'error' );
 		inFlight = null;
 		// The "Saved" tile is transient — fade it back to idle so the toolbar
@@ -3185,6 +3189,127 @@
 			}, 2000 );
 		}
 		return null;
+	}
+
+	/*
+	 * Read-only role preview (Phase 30, ROLE-03; 30-CONTEXT.md). A labelled
+	 * native select and an explicit Preview button: choosing a role does
+	 * nothing until the button is pressed. The preview opens on the Dashboard
+	 * (see class-preview.php for why), and only once every pending save has
+	 * landed, so what is previewed is what is stored. A failed save keeps the
+	 * user here with the error rather than previewing stale rules.
+	 */
+	function buildPreviewPicker() {
+		var P = D.preview;
+		if ( ! P ) { return null; }
+		var wrap = el( 'div', 'maestro-preview-picker' );
+
+		// Phones (#252's two-row toolbar) have no room for the inline select,
+		// so there a single toolbar button opens the same controls in the
+		// phone sheet. CSS shows one or the other (maestro.css).
+		var toggle = el( 'button', 'button maestro-preview-toggle' );
+		toggle.type = 'button';
+		toggle.setAttribute( 'aria-haspopup', 'dialog' );
+		iconButton( toggle, 'dashicons-visibility', I.previewAs );
+		toggle.addEventListener( 'click', function () { openPreviewDialog( toggle ); } );
+		wrap.appendChild( toggle );
+
+		var inline = el( 'div', 'maestro-preview-inline' );
+		previewControls( inline, 'maestro-preview-select' );
+		wrap.appendChild( inline );
+		return wrap;
+	}
+
+	/*
+	 * The picker itself, built into `host`: a labelled native select and an
+	 * explicit Preview button, or the super-admin explanation in their place.
+	 */
+	function previewControls( host, id ) {
+		var P = D.preview;
+		if ( ! P.available ) {
+			host.appendChild( el( 'span', 'maestro-preview-unavailable', I.previewUnavailable ) );
+			return null;
+		}
+
+		var label = el( 'label', 'maestro-preview-label', I.previewAs );
+		label.setAttribute( 'for', id );
+		var select = el( 'select', 'maestro-preview-select' );
+		select.id = id;
+		Object.keys( P.roles || {} ).forEach( function ( key ) {
+			var opt = el( 'option', '', P.roles[ key ] );
+			opt.value = key;
+			select.appendChild( opt );
+		} );
+		var go = el( 'button', 'button maestro-preview-btn', I.previewBtn );
+		go.type = 'button';
+		go.addEventListener( 'click', function () {
+			if ( ! select.value ) { return; }
+			go.disabled = true;
+			waitForSaveIdle().then( function () {
+				if ( ! lastSaveOk ) {
+					go.disabled = false;
+					setStatus( 'error' );
+					go.title = I.previewSaveFailed;
+					speak( I.previewSaveFailed, 'assertive' );
+					return;
+				}
+				var url = P.url +
+					( P.url.indexOf( '?' ) === -1 ? '?' : '&' ) +
+					'maestro_preview=' + encodeURIComponent( select.value ) +
+					'&maestro_preview_nonce=' + encodeURIComponent( P.nonce );
+				window.location.assign( url );
+			} );
+		} );
+
+		host.appendChild( label );
+		host.appendChild( select );
+		host.appendChild( go );
+		return select;
+	}
+
+	// The phone dialog: same controls, in the scrollable sheet placePopover()
+	// gives every toolbar dialog at phone widths, with Done to close it.
+	function openPreviewDialog( anchorBtn ) {
+		closePopovers();
+		var pop = el( 'div', 'maestro-popover maestro-settings-popover maestro-preview-popover' );
+		pop.setAttribute( 'role', 'dialog' );
+		pop.setAttribute( 'aria-modal', 'true' );
+		pop.setAttribute( 'aria-labelledby', 'maestro-preview-title' );
+		var title = el( 'h2', 'maestro-settings-title', I.previewAs );
+		title.id = 'maestro-preview-title';
+		pop.appendChild( title );
+
+		var body = el( 'div', 'maestro-preview-dialog-row' );
+		var select = previewControls( body, 'maestro-preview-select-dialog' );
+		pop.appendChild( body );
+
+		var actions = el( 'div', 'maestro-settings-actions' );
+		var done = el( 'button', 'button button-primary maestro-settings-done', I.tourDone );
+		done.type = 'button';
+		actions.appendChild( done );
+		pop.appendChild( actions );
+
+		function close() {
+			closePopovers();
+			anchorBtn.focus();
+		}
+		done.addEventListener( 'click', close );
+		pop.addEventListener( 'keydown', function ( e ) {
+			if ( e.key === 'Escape' ) {
+				e.preventDefault();
+				e.stopPropagation();
+			}
+		} );
+		pop.addEventListener( 'keyup', function ( e ) {
+			if ( e.key === 'Tab' ) { e.stopPropagation(); }
+			if ( e.key === 'Escape' ) {
+				e.stopPropagation();
+				close();
+			}
+		} );
+
+		placePopover( pop, anchorBtn );
+		( select || done ).focus();
 	}
 
 	function waitForSaveIdle() {
@@ -3288,6 +3413,8 @@
 			// wider (maestro.css): the width they set does not apply below it.
 			{ text: I.tourStepWidth, placement: 'right', byViewport: true, anchor: function () { return tourShown( widthHandle ); } },
 			{ text: I.tourStepProfiles, placement: 'top', anchor: function () { return tourShown( profilesBtn ); } },
+			// Role preview (Phase 30) sits between the groups and Settings.
+			{ text: I.tourStepPreview, placement: 'top', anchor: function () { return tourShown( document.querySelector( '.maestro-preview-picker' ) ); } },
 			{ text: I.tourStepSettings, placement: 'top', byViewport: true, anchor: function () { return tourShown( document.querySelector( '.maestro-settings-btn' ) ); } },
 			{ text: I.tourStepHelp, placement: 'top', anchor: function () { return tourShown( document.querySelector( '.maestro-tour-help' ) ); } },
 			{ text: I.tourStep4, placement: 'top', anchor: function () { return tourShown( document.querySelector( '.maestro-reset-all' ) ); } },

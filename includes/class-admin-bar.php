@@ -65,6 +65,19 @@ class Admin_Bar {
 			return;
 		}
 
+		// Phase 30: while previewing a role, the toggle is the way back.
+		if ( null !== Preview::role() ) {
+			$bar->add_node(
+				array(
+					'id'    => 'maestro-toggle',
+					'title' => '<span class="ab-icon dashicons dashicons-exit" style="margin-top:2px;"></span><span class="maestro-ab-label" dir="auto">' . esc_html__( 'Exit preview', 'maestro-menu-editor' ) . '</span>',
+					'href'  => esc_url( Preview::exit_url() ),
+					'meta'  => array( 'title' => esc_attr__( 'Exit role preview', 'maestro-menu-editor' ) ),
+				)
+			);
+			return;
+		}
+
 		$editing = is_edit_mode();
 
 		/*

@@ -87,9 +87,12 @@ Dan approved all three recommendations, recorded in the
   existing toolbar panel; await pending saves, show a persistent read-only role
   banner and Exit preview, and restore the menu without configuration changes.
 
-Phase 30 is ready for implementation planning; no preview code or runtime
-verification is claimed. D4 decided 2026-10-23 (Dan): imported rules for menu
-items missing on the target are dropped and reported. D5 remains open. Desktop
+D4 decided 2026-10-23 (Dan): imported rules for menu
+items missing on the target are dropped and reported. D5 remains open.
+**Update, later 2026-10-23:** 30-01 (server window, #248, merged 2026-10-24)
+and 30-02 (picker, banner, exit, parity e2e) are built and pass; 30-02 awaits
+Dan's review. Preview was narrowed to the Dashboard and to roles with `read`
+after a real request showed core's nopriv globals refusing other pages. Desktop
 sign-off for Phases 27–29 is retained; **real touch-device testing remains
 outstanding** and no phase is marked fully accepted across devices.
 
