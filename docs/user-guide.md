@@ -81,6 +81,14 @@ Visibility settings are global. If an item is hidden from the Author role, it is
 hidden from all Author users. Custom roles registered by other plugins appear in
 the same control.
 
+## Editing on a phone
+
+The toolbar uses touch-sized controls in portrait and landscape. Visibility,
+the icon picker and Visibility groups open in a scrollable sheet. Tap **Done**
+to close it; tapping the page behind the sheet leaves it open. The footer stays
+outside the scrollable content, and the sheet follows the space available above
+the on-screen keyboard. Width-only Menu settings appear only at desktop widths.
+
 ## Visibility Is Not Access Control
 
 Role visibility only declutters the menu. It does not prevent access to the
@@ -112,7 +120,8 @@ The width is a global setting, like everything else in Maestro: it applies on
 every admin page, for everyone, not only while you are editing. It goes from
 160px (the WordPress default) to 320px and applies on screens 961px and wider.
 Below that, WordPress folds the menu to icons or turns it into an overlay, and
-the width does not apply. Folding still works at any width.
+the width does not apply, so the edge handle and **Menu settings** are not
+shown there. Folding still works at any width.
 
 If another plugin already sets the menu width, that plugin wins. **Menu
 settings** tells you when this happens, so a value that has no effect never

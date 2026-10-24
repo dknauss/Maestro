@@ -74,26 +74,31 @@ test( 'guided tour: auto-launch, step through, seen-flag, replay, Esc', async ( 
 } );
 
 
-test( 'narrow tour: Back crosses the hidden width step', async ( { page } ) => {
+test( 'narrow tour: the hidden width and Settings steps are dropped, and Back walks to the start', async ( { page } ) => {
 	await page.setViewportSize( { width: 900, height: 900 } );
 	await page.goto( '/wp-admin/index.php?maestro_edit=1' );
 	await page.evaluate( () => window.localStorage.removeItem( 'maestroFirstRunDone' ) );
 	await page.reload();
 	const text = page.locator( '.maestro-tour-text' );
+	const progress = page.locator( '.maestro-tour-progress' );
 	await expect( page.locator( '.maestro-tour' ) ).toBeVisible();
-	// Eight visible steps precede Settings, including Profiles; width is skipped.
+	// The width handle and the Settings gear only render at 961px and up, so
+	// below that their steps are not in the tour at all and the count has no
+	// gap where they were. Eight steps, Profiles included, precede Help.
+	await expect( progress ).toHaveText( '1 of 11' );
 	for ( let i = 0; i < 8; i++ ) {
 		await page.locator( '.maestro-tour-next' ).click();
 	}
-	await expect( text ).toContainText( 'Menu settings' );
+	await expect( text ).toContainText( 'tour again' );
+	await expect( progress ).toHaveText( '9 of 11' );
 	await page.locator( '.maestro-tour-back' ).click();
-	await expect( text ).toContainText( 'Visibility groups' );
+	await expect( text ).toContainText( /Hiding profiles|Visibility groups/ );
 	await page.locator( '.maestro-tour-back' ).click();
 	await expect( text ).toContainText( 'Add a separator' );
 	await page.locator( '.maestro-tour-next' ).click();
-	await expect( text ).toContainText( 'Visibility groups' );
+	await expect( text ).toContainText( /Hiding profiles|Visibility groups/ );
 	await page.locator( '.maestro-tour-next' ).click();
-	await expect( text ).toContainText( 'Menu settings' );
+	await expect( text ).toContainText( 'tour again' );
 	// Back must keep moving across every remaining step and stop at the first.
 	for ( let i = 0; i < 8; i++ ) {
 		await page.locator( '.maestro-tour-back' ).click();

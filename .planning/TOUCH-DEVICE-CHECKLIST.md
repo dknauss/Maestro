@@ -115,3 +115,37 @@ is not a real iPhone recheck.
 pass, RTL parity and earlier desktop sign-off. Toolbar targets/dismissal,
 cramped dialogs, keyboard obstruction, tour coverage and the remaining touch
 acceptance remain open; this narrowly scoped CSS fix does not resolve them.
+
+## Mobile usability implementation follow-up — real-device acceptance open
+
+This follow-up combines Claude's existing #252 with additional dialog/keyboard
+work, preserving its commits rather than shipping a second competing phone fix.
+
+- Keep Claude's portrait/landscape toolbar compaction, no-sideways-overflow rule,
+  tour/menu containment and continuous viewport-specific tour numbering. Width
+  Settings stays hidden below 961px without changing the stored width.
+- Increase controls to at least 44×44px in compact layouts, including landscape;
+  keep the compact row layout and icon-only separator actions.
+- Use scrollable, visual-viewport-sized phone sheets for Visibility, icons and
+  groups, with readable text, a persistent Done footer, background scroll lock
+  and explicit dismissal. Outside taps no longer dismiss the sheet or menu.
+- Keep inputs/footer above the keyboard via visualViewport resize/scroll events;
+  remove global listeners and restore scrolling/focus on close. Move toolbar and
+  an open dialog safely when crossing responsive breakpoints.
+- Retain main's Visibility groups naming, saved-profile guidance and mixed-dash
+  fix. No role/profile storage, permission, or autosave contract is changed.
+
+Browser regressions cover toolbar targets, outside taps, all three sheets,
+keyboard viewport geometry, RTL hand-off, Escape/focus/cleanup, portrait and
+landscape tour traversal, 320px layout, desktop Settings and open-dialog resize.
+A combined 62-case run passed in Chromium and WebKit on the disposable
+WordPress 7.1.3 / SQLite Studio site, including the preserved portrait/landscape
+regressions and the profile, tour and checkbox cases. JavaScript: 142 passed;
+syntax, documentation links and whitespace checks passed. The original six
+WebKit mobile regressions failed before the fix. Keyboard geometry is simulated in automation; it does not replace iPhone testing.
+
+**Touch acceptance stays open.** Recheck targets, dismissal, sheet readability,
+software-keyboard behavior and the full tour on iPhone 17 / iOS 26.6.2 Safari.
+The previously reported role behavior and Arabic/English parity remain accepted.
+The mixed-state dash still needs its actual-iPhone visual recheck. These are
+implementation fixes awaiting human verification, not new human passes.
