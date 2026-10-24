@@ -88,7 +88,8 @@ Dan approved all three recommendations, recorded in the
   banner and Exit preview, and restore the menu without configuration changes.
 
 Phase 30 is ready for implementation planning; no preview code or runtime
-verification is claimed. D4 and D5 retain their later decision gates. Desktop
+verification is claimed. D4 decided 2026-10-23 (Dan): imported rules for menu
+items missing on the target are dropped and reported. D5 remains open. Desktop
 sign-off for Phases 27–29 is retained; **real touch-device testing remains
 outstanding** and no phase is marked fully accepted across devices.
 
