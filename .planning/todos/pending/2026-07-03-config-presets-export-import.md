@@ -3,12 +3,18 @@ created: 2026-07-03T18:00:00.000Z
 title: Named config presets + JSON export/import
 area: config
 files:
-  - includes/class-config.php (schema + sanitize() — reusable as import validation; no schema_version key yet)
+  - includes/class-config.php (schema + sanitize() — reusable as import validation; schema_version 2 already exists; transfer envelope version is separate)
   - includes/class-rest.php (maestro/v1 namespace — presets/import routes would live here, reusing can_edit() + nonce pattern)
   - SPEC.md:199 (Roadmap item 6 — "Import/export config as JSON", already-deferred precursor)
 ---
 
-**Scheduled:** plain export/import is v1.7 Client-Site Workflow, Phase 31 (#216). Named and bundled presets are not scheduled.
+**Scheduled:** plain export/import is v1.9 Client-Site Workflow, Phase 31 (#216). Named and bundled presets are not scheduled.
+
+## Phase 31 update — 2026-10-24
+
+Plain export/import is implemented on `feat/config-export-import`; review and
+human acceptance are open. Named/bundled presets remain deferred. The original
+research below is historical; the active design is the Phase 31 plan.
 
 ## Problem
 

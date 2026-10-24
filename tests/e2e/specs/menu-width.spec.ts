@@ -38,7 +38,7 @@ async function menuWidth( page ) {
 
 async function openSettings( page ) {
 	await page.locator( '.maestro-toolbar .maestro-settings-btn' ).click();
-	const dialog = page.getByRole( 'dialog', { name: 'Menu width', exact: true } );
+	const dialog = page.getByRole( 'dialog', { name: 'Settings', exact: true } );
 	await expect( dialog ).toBeVisible();
 	return dialog;
 }
@@ -216,14 +216,14 @@ test.describe( 'Phase 28-03 — menu width controls', () => {
 	// Settings holds only the width, which does nothing below 961px, so the
 	// gear goes with the edge handle there (Dan, 2026-10-23). It follows a
 	// resize without a reload, and a stored width is untouched by hiding it.
-	test( 'the Settings gear is hidden below 961px and returns at 961px', async ( { page } ) => {
+	test( 'Settings remains available below 961px for configuration transfer', async ( { page } ) => {
 		wp( [ 'option', 'update', 'maestro_config', '{"menu_width":240}', '--format=json' ] );
 		const gear = page.locator( '.maestro-toolbar .maestro-settings-btn' );
 		for ( const width of [ 375, 782, 960 ] ) {
 			await page.setViewportSize( { width, height: 900 } );
 			await page.goto( '/wp-admin/index.php?maestro_edit=1' );
 			await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
-			await expect( gear, `at ${ width }px` ).toBeHidden();
+			await expect( gear, `at ${ width }px` ).toBeVisible();
 		}
 		await page.setViewportSize( { width: 961, height: 900 } );
 		await expect( gear ).toBeVisible();

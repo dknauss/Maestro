@@ -63,6 +63,15 @@ Maestro uses the `maestro-menu-editor` text domain and ships a translation templ
 
 == Frequently Asked Questions ==
 
+= Can I copy a configuration to another site? =
+
+Yes. In Edit Menu, open Settings, export the JSON file, then review and import
+it on the destination. Import replaces portable menu settings and reports
+missing roles and menu items. People rules and visibility groups are excluded
+from exports; those already on the destination are preserved. Hiding remains
+cosmetic and does not change page access.
+
+
 = Does hiding a menu item block access to that page or disable its features? =
 
 No — and this is important. Hiding an item is **cosmetic**: it removes the link from the admin menu but does not stop anyone from reaching the page by typing or

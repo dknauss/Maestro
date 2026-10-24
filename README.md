@@ -28,6 +28,11 @@ Click any screenshot to open the full-size image.
 | [![Per-role visibility picker for hiding a menu item from selected roles](.wordpress-org/screenshot-3.png)](.wordpress-org/screenshot-3.png) | [![Renamed menu item saved through debounced autosave](.wordpress-org/screenshot-4.png)](.wordpress-org/screenshot-4.png) |
 | Per-role visibility picker for hiding a menu item from selected roles. | Renamed menu item saved through debounced autosave. |
 
+Export/import in **Settings** carries portable menu rules between sites as a
+versioned JSON file. Review missing menus and roles before applying. Destination
+people rules and visibility groups are preserved; those private settings are
+not included in exports. See the [user guide](docs/user-guide.md#export-and-import-a-menu-configuration).
+
 ## Important: visibility is cosmetic, not access control
 
 Hiding a menu item only declutters the menu — the underlying page still loads for anyone who knows its URL, because a page's own registered capability is the real lock. For actual access control, pair this with a capability manager ([User Role Editor](https://wordpress.org/plugins/user-role-editor/), or [PublishPress Capabilities](https://wordpress.org/plugins/capability-manager-enhanced/)). The `maestro_capability` filter lets such a plugin hand editing rights to a custom capability instead of the default `manage_options`.
@@ -63,7 +68,7 @@ Hiding a menu item only declutters the menu — the underlying page still loads 
    sees it, it grants or removes no capability, and its pages still load by URL.
    If a role already matches the people you mean, use the role.
 9. Widen the menu so longer labels fit: drag the handle on the menu's edge, or
-   set an exact width under **Menu settings** (the gear in the toolbar). It
+   set an exact width under **Settings** (the gear in the toolbar). It
    applies on every admin page for everyone, from 961px wide (the handle and
    the gear only appear there), and stands aside
    when another plugin already sets the width.

@@ -3,18 +3,29 @@ gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: Client-Site Workflow
 status: in_progress
-stopped_at: "Phase 30 role preview merged through #251 (9802065), with post-merge CI green. Desktop UX refinement in progress; contextual row controls planned for a later pass. Real touch-device acceptance remains open."
+stopped_at: "Phase 31 export/import implemented on feat/config-export-import against d34a576; verification and PR review in progress. Real-device acceptance remains open."
 last_updated: "2026-10-24T00:00:00.000Z"
-last_activity: "2026-10-24 — Desktop UX cleanup and preview-notice placement regression coverage; later contextual controls planned. Touch-device acceptance remains open."
+last_activity: "2026-10-24 — Phase 31 export/import implementation and regression verification; touch-device acceptance remains open."
 progress:
   total_phases: 3
   completed_phases: 0
-  total_plans: 4
-  completed_plans: 4
-  percent: 0 # Fully accepted across devices: 0/3; Phase 31 remains unplanned.
+  total_plans: 8
+  completed_plans: 8
+  percent: 0 # Fully accepted across devices: 0/3; implementation is separate from acceptance.
 ---
 
 # Project State
+
+## Phase 31 implementation — 2026-10-24
+
+Export/import is implemented on `feat/config-export-import` against main
+`d34a576`, including private-rule preservation, fresh server-owned menu
+inventory, explicit analyze/apply, versioned JSON and mobile Settings.
+See the [implementation plan](phases/31-config-export-import/31-IMPLEMENTATION-PLAN.md)
+and [verification record](phases/31-config-export-import/31-VERIFICATION.md).
+Review, CI and real-device/human acceptance remain open. Historical snapshots
+below predate this branch; no release or D5 decision is implied.
+
 
 ## Desktop UX refinement — 2026-10-24
 

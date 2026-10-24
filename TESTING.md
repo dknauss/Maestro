@@ -352,3 +352,21 @@ npx wp-env run cli wp plugin check /var/www/html/wp-content/plugins/maestro-menu
 ```
 
 `npm run audit:npm` wraps `npm audit` with a narrow allowlist for the current dev-only `@wordpress/env` → `js-yaml` advisory. Remove that allowlist when upstream ships a clean dependency path.
+
+### Phase 31: configuration transfer
+
+- `TransferTest` exercises format versions, map/list types, private-field
+  exclusion, duplicate JSON members (including escaped keys), source-host and
+  qualified submenu identity, role drops, separator additions/removals, and
+  ambiguous submenu-order parents.
+- `RestTransferTest` checks read-only analysis, explicit apply/reset, preserved
+  destination people/groups for both administrators and delegated editors,
+  context/revision/file binding, successful no-ops, one-use context, oversized
+  storage refusal, and pre-replay qualified inventory. Run both integration lanes.
+- [config-transfer.spec.ts](tests/e2e/config-transfer.spec.ts) tests browser file download/review/import,
+  drop reports, persisted reload, real cookie-auth nonce failures, failed saves,
+  concurrent editor changes and mobile Settings/focus containment.
+- Exercise the complete workflow between two disposable sites with different
+  menus and roles. Confirm storage and rendered menus, not just success text.
+  Real-device iPhone/iPad acceptance and human screen-reader feedback remain
+  separate from browser emulation.

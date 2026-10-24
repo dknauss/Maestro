@@ -999,15 +999,11 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 	}
 }
 
-/* Settings holds only the menu width, which applies from 961px (above). Below
- * that the dialog opened a control that could change nothing on screen, and
- * on a phone it cost the cramped toolbar a slot, so the gear goes with the
- * edge handle. A width saved on a wider screen still applies there. The
- * tour's Settings step is dropped with it (tourSteps(), byViewport). */
+/* Settings remains available for transfer at every width; width controls
+ * apply only where the desktop menu width itself can change. */
 @media screen and ( max-width: 960px ) {
-	.maestro-toolbar .maestro-settings-btn {
-		display: none;
-	}
+	.maestro-settings-popover .maestro-width-field,
+	.maestro-settings-popover .maestro-width-reset { display: none; }
 }
 
 /* ---------- guided tour (coachmarks) ----------------------------------- */
@@ -1233,7 +1229,7 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 		padding: 4px 6px;
 	}
 	.maestro-toolbar .maestro-rename-input {
-		width: 128px;
+		width: 112px;
 	}
 	.maestro-toolbar .maestro-add-separator .maestro-btn-label,
 	.maestro-toolbar .maestro-remove-separator .maestro-btn-label {
@@ -1390,9 +1386,9 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 }
 @media screen and ( max-width: 560px ) {
 	/* Upright, the rename field gives up one button's width (48px) so the
-	 * preview button still leaves two rows: the icon button moves up beside
-	 * Down, and the field grows back into what is left. */
-	.maestro-toolbar .maestro-rename-input { width: calc( 100% - 184px ); }
+	 * preview and Settings buttons still leave two rows: icon and Visibility
+	 * move up beside Down, and the field grows into the remaining space. */
+	.maestro-toolbar .maestro-rename-input { width: calc( 100% - 232px ); }
 }
 .maestro-mobile-sheet .maestro-vis-row { column-gap: 6px; }
 
@@ -1486,3 +1482,12 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 		color: var( --maestro-menu-accent-text, #fff );
 	}
 }
+
+/* Configuration transfer shares Settings without adding a toolbar icon. */
+.maestro-transfer { margin-block-start: 16px; border-top: 1px solid #c3c4c7; }
+.maestro-transfer-file-label { display: block; margin-block: 12px 4px; }
+.maestro-transfer-file { display: block; width: 100%; margin-block-end: 12px; }
+.maestro-transfer-result { margin-block: 12px; overflow-wrap: anywhere; }
+.maestro-transfer-result ul { list-style: disc; padding-inline-start: 20px; max-height: 160px; overflow: auto; }
+.maestro-transfer-confirm { display: block; margin-block: 12px; }
+.maestro-transfer [hidden] { display: none !important; }

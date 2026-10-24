@@ -603,7 +603,7 @@ should be made once.
   4. Rules for menu items absent on the target are dropped, not stored (D4, decided 2026-10-23), and the user is told what was not applied
   5. An importing user without `list_users` cannot use import to destroy or write per-person rules (the boundary `sanitize()` and `reset()` already hold)
   6. Zero regression across the same gates as Phase 29
-**Plans**: TBD
+**Plans**: [31 implementation plan](phases/31-config-export-import/31-IMPLEMENTATION-PLAN.md) — contract/inventory, REST/persistence, Settings workflow, verification/docs. Implementation is on `feat/config-export-import`; review and human acceptance remain open.
 **Out of this phase**: named presets, a preset manager, bundled starter presets. They stay in the todo.
 **Notes**: [presets and export/import todo](todos/pending/2026-07-03-config-presets-export-import.md)
 **Review**: high-risk diff (new REST endpoint, deserialization) — mandatory deep review before merge

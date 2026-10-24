@@ -38,6 +38,15 @@ class ConfigSanitizeTest extends TestCase {
 		$GLOBALS['maestro_unit_caps'] = array();
 	}
 
+	public function test_transfer_at_private_item_cap_preserves_every_profile_hide() {
+		$slugs = array_map( function ( $n ) { return 'menu' . $n; }, range( 1, Config::MAX_ITEMS ) );
+		$this->config->save( array( 'profiles' => array( 'p_1' => array( 'name' => 'Private', 'hides' => $slugs ) ) ) );
+		$out = $this->config->sanitize( array( 'items' => array( 'new-menu' => array( 'title' => 'New' ), 'menu200?ver=2' => array( 'title' => 'Renamed' ) ) ), true );
+		$this->assertSame( $slugs, array_map( array( \Maestro\Slug::class, 'normalize_qualified' ), $out['profiles']['p_1']['hides'] ) );
+		$this->assertArrayNotHasKey( 'new-menu', $out['items'] );
+		$this->assertSame( 'Renamed', $out['items']['menu200?ver=2']['title'] );
+	}
+
 	/* -----------------------------------------------------------------------
 	 * Title byte cap (MAX_TITLE_BYTES)
 	 * --------------------------------------------------------------------- */
