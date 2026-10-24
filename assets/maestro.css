@@ -999,11 +999,16 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 	}
 }
 
-/* Settings remains available for transfer at every width; width controls
- * apply only where the desktop menu width itself can change. */
+/* Settings holds the menu width, which applies from 961px (above), and
+ * configuration export/import, a desk task. Below 961px the gear would cost
+ * the cramped phone toolbar a slot it does not have (#252: two rows upright,
+ * one on its side), so it goes with the edge handle. A width saved on a wider
+ * screen still applies there. The tour's Settings step is dropped with it
+ * (tourSteps(), byViewport). */
 @media screen and ( max-width: 960px ) {
-	.maestro-settings-popover .maestro-width-field,
-	.maestro-settings-popover .maestro-width-reset { display: none; }
+	.maestro-toolbar .maestro-settings-btn {
+		display: none;
+	}
 }
 
 /* ---------- guided tour (coachmarks) ----------------------------------- */
@@ -1229,7 +1234,7 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 		padding: 4px 6px;
 	}
 	.maestro-toolbar .maestro-rename-input {
-		width: 112px;
+		width: 128px;
 	}
 	.maestro-toolbar .maestro-add-separator .maestro-btn-label,
 	.maestro-toolbar .maestro-remove-separator .maestro-btn-label {
@@ -1386,9 +1391,9 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 }
 @media screen and ( max-width: 560px ) {
 	/* Upright, the rename field gives up one button's width (48px) so the
-	 * preview and Settings buttons still leave two rows: icon and Visibility
-	 * move up beside Down, and the field grows into the remaining space. */
-	.maestro-toolbar .maestro-rename-input { width: calc( 100% - 232px ); }
+	 * preview button still leaves two rows: the icon button moves up beside
+	 * Down, and the field grows back into what is left. */
+	.maestro-toolbar .maestro-rename-input { width: calc( 100% - 184px ); }
 }
 .maestro-mobile-sheet .maestro-vis-row { column-gap: 6px; }
 

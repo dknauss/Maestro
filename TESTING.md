@@ -365,7 +365,7 @@ npx wp-env run cli wp plugin check /var/www/html/wp-content/plugins/maestro-menu
   storage refusal, and pre-replay qualified inventory. Run both integration lanes.
 - [config-transfer.spec.ts](tests/e2e/config-transfer.spec.ts) tests browser file download/review/import,
   drop reports, persisted reload, real cookie-auth nonce failures, failed saves,
-  concurrent editor changes and mobile Settings/focus containment.
+  concurrent editor changes, and that phones show no Settings gear.
 - Exercise the complete workflow between two disposable sites with different
   menus and roles. Confirm storage and rendered menus, not just success text.
   Real-device iPhone/iPad acceptance and human screen-reader feedback remain

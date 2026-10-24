@@ -89,6 +89,20 @@ class RestTransferTest extends WP_UnitTestCase {
 		$this->assertWPError( $r );
 		$this->assertSame( $before, get_option( MAESTRO_OPTION ) );
 	}
+	public function test_checked_save_announces_the_update_and_keeps_autoload() {
+		$this->config->save( array( 'menu_width' => 240 ) );
+		$autoload = $GLOBALS['wpdb']->get_var( $GLOBALS['wpdb']->prepare( "SELECT autoload FROM {$GLOBALS['wpdb']->options} WHERE option_name = %s", MAESTRO_OPTION ) );
+		$seen = array();
+		$spy = function ( $old, $value ) use ( &$seen ) {
+			$seen[] = array( $old['menu_width'] ?? null, $value['menu_width'] ?? null );
+		};
+		add_action( 'update_option_' . MAESTRO_OPTION, $spy, 10, 2 );
+		$r = $this->config->save_import( array( 'menu_width' => 280 ), $this->transfer->revision() );
+		remove_action( 'update_option_' . MAESTRO_OPTION, $spy, 10 );
+		$this->assertNotWPError( $r );
+		$this->assertSame( array( array( 240, 280 ) ), $seen );
+		$this->assertSame( $autoload, $GLOBALS['wpdb']->get_var( $GLOBALS['wpdb']->prepare( "SELECT autoload FROM {$GLOBALS['wpdb']->options} WHERE option_name = %s", MAESTRO_OPTION ) ) );
+	}
 	public function test_replay_inventory_precedes_hiding_and_qualifies_shared_children() {
 		global $menu, $submenu;
 		set_current_screen( 'dashboard' );

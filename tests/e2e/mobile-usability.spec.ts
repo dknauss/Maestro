@@ -8,9 +8,9 @@ test.beforeEach( async ( { page } ) => {
 	await page.goto( '/wp-admin/index.php?maestro_edit=1' );
 } );
 
-test( 'phone toolbar has touch targets and transfer Settings', async ( { page } ) => {
+test( 'phone toolbar has touch targets and no width-only Settings', async ( { page } ) => {
 	await page.locator( '#menu-posts > a.menu-top' ).click();
-	await expect( page.locator( '.maestro-settings-btn' ) ).toBeVisible();
+	await expect( page.locator( '.maestro-settings-btn' ) ).toBeHidden();
 	const sizes = await page.locator( '.maestro-toolbar button:visible' ).evaluateAll( buttons => buttons.map( b => {
 		const r = b.getBoundingClientRect(); return { width: r.width, height: r.height };
 	} ) );
@@ -83,11 +83,11 @@ test( 'touch tour keeps the menu open and covers all phone controls', async ( { 
 		await page.locator( '.maestro-tour-next' ).tap();
 		await expect( page.locator( '#adminmenu' ) ).toBeVisible();
 	}
-	expect( texts ).toHaveLength( 13 );
+	expect( texts ).toHaveLength( 12 );
 	for ( const label of [ 'Type a new name', 'Reorder', 'icon', 'Hide the item', 'Visibility groups', 'Preview as', 'Reset All', 'Exit' ] ) {
 		expect( texts.some( text => text.includes( label ) ), label ).toBe( true );
 	}
-	expect( texts.some( text => text.includes( 'Settings contains' ) ) ).toBe( true );
+	expect( texts.some( text => text.includes( 'Menu settings' ) ) ).toBe( false );
 	await page.locator( '.maestro-tour-help' ).tap();
 	await page.locator( '.maestro-tour-next' ).tap();
 	await expect( page.locator( '.maestro-tour-text' ) ).toContainText( 'Type a new name' );

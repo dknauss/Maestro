@@ -29,7 +29,8 @@ const LANDSCAPE_WIDE = { width: 844, height: 390 };
 const menuOpen = ( page: Page ) =>
 	page.evaluate( () => document.getElementById( 'wpwrap' )!.classList.contains( 'wp-responsive-open' ) );
 
-// Only the width handle is desktop-only; Settings now offers transfer on phones.
+// Every step but the width handle's and Settings', which only render at
+// 961px and up: the menu width they set does not apply below that.
 // The profiles tip is matched by either name, so this spec survives the
 // Visibility groups rename (#250) in either merge order.
 const PHONE_STEPS: ( string | RegExp )[] = [
@@ -42,7 +43,6 @@ const PHONE_STEPS: ( string | RegExp )[] = [
 	'separator',
 	/Hiding profiles|Visibility groups/,
 	'Preview as',
-	'Settings contains',
 	'tour again',
 	'Reset All',
 	'Exit',

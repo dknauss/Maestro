@@ -411,7 +411,7 @@ class Assets {
 					/* translators: Guided-tour step pointing at the Visibility groups toolbar button. */
 					'tourStepProfiles'     => __( 'Visibility groups let you hide a menu item from everyone in a group. Add people to the group, then select it in the menu item\'s Visibility controls.', 'maestro-menu-editor' ),
 					'tourStepPreview'      => __( 'Preview as shows the menu a role would see, read-only. Pick a role and press Preview; your changes are saved first.', 'maestro-menu-editor' ),
-					'tourStepSettings'     => __( 'Settings contains configuration export/import and, on desktop, menu width.', 'maestro-menu-editor' ),
+					'tourStepSettings'     => __( 'Settings holds the menu width and configuration export/import.', 'maestro-menu-editor' ),
 					'tourStepHelp'         => __( 'Want this tour again? Use the help button anytime.', 'maestro-menu-editor' ),
 					'tourStep4'            => __( 'Your changes save automatically. Reset All returns the whole menu to the WordPress defaults.', 'maestro-menu-editor' ),
 					'tourStep5'            => __( 'Click Exit when you are done. Your changes stay live for everyone.', 'maestro-menu-editor' ),

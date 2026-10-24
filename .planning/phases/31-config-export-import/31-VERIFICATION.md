@@ -20,7 +20,8 @@ The branch is isolated at `/Users/dan-knauss/.codex/worktrees/maestro-config-tra
   proof also binds the exact file. REST does not synthesize menu registration.
 - Config writes use the common sanitizer and atomic option compare-and-swap.
 - Imports never trigger an unconditional old-model autosave before applying.
-- Settings is available on phones; width controls remain desktop-only.
+- Settings, and with it transfer, stays desktop-only (961px and up), keeping
+  #252's phone toolbar row budget (Dan, 2026-10-24).
 
 ## Automated evidence
 

@@ -63,16 +63,12 @@ test( 'failed autosave blocks export and review', async ( { page } ) => {
 
 test.describe( 'phone transfer', () => {
 	test.use( { viewport: { width: 375, height: 812 }, hasTouch: true, isMobile: true } );
-	test( 'Settings exposes transfer without width controls and traps focus', async ( { page } ) => {
-		await openSettings( page );
-		const dialog = page.getByRole( 'dialog', { name: 'Settings', exact: true } );
-		await expect( dialog.locator( '.maestro-width-field' ) ).toBeHidden();
-		await expect( dialog.getByRole( 'button', { name: 'Export configuration', exact: true } ) ).toBeVisible();
-		await expect( dialog.getByRole( 'button', { name: 'Close dialog', exact: true } ) ).toBeFocused();
-		await page.keyboard.press( 'Shift+Tab' );
-		expect( await dialog.evaluate( node => node.contains( document.activeElement ) ) ).toBe( true );
-		await page.keyboard.press( 'Escape' );
-		await expect( dialog ).toHaveCount( 0 );
+	// Export/import is a desk task; the phone toolbar keeps #252's row budget.
+	test( 'Settings, and with it transfer, stays off the phone toolbar', async ( { page } ) => {
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
+		await expect( page.locator( '.maestro-settings-btn' ) ).toBeHidden();
+		await expect( page.locator( '.maestro-transfer' ) ).toHaveCount( 0 );
 	} );
 } );
 

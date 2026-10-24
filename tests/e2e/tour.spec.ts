@@ -34,7 +34,7 @@ test( 'guided tour: auto-launch, step through, seen-flag, replay, Esc', async ( 
 		'edge',
 		'Visibility groups',
 		'Preview as',
-		'Settings contains',
+		'Settings holds',
 		'tour again',
 		'Reset All',
 		'Exit',
@@ -75,7 +75,7 @@ test( 'guided tour: auto-launch, step through, seen-flag, replay, Esc', async ( 
 } );
 
 
-test( 'narrow tour: only the hidden width step is dropped, and Back walks to the start', async ( { page } ) => {
+test( 'narrow tour: the hidden width and Settings steps are dropped, and Back walks to the start', async ( { page } ) => {
 	await page.setViewportSize( { width: 900, height: 900 } );
 	await page.goto( '/wp-admin/index.php?maestro_edit=1' );
 	await page.evaluate( () => window.localStorage.removeItem( 'maestroFirstRunDone' ) );
@@ -83,14 +83,16 @@ test( 'narrow tour: only the hidden width step is dropped, and Back walks to the
 	const text = page.locator( '.maestro-tour-text' );
 	const progress = page.locator( '.maestro-tour-progress' );
 	await expect( page.locator( '.maestro-tour' ) ).toBeVisible();
-	// Only the width handle is absent below 961px. Settings remains available
-	// for transfer and is the tenth step, after Preview.
-	await expect( progress ).toHaveText( '1 of 13' );
+	// The width handle and the Settings gear only render at 961px and up, so
+	// below that their steps are not in the tour at all and the count has no
+	// gap where they were. Nine steps, Visibility groups and Preview as
+	// included, precede Help.
+	await expect( progress ).toHaveText( '1 of 12' );
 	for ( let i = 0; i < 9; i++ ) {
 		await page.locator( '.maestro-tour-next' ).click();
 	}
-	await expect( text ).toContainText( 'Settings contains' );
-	await expect( progress ).toHaveText( '10 of 13' );
+	await expect( text ).toContainText( 'tour again' );
+	await expect( progress ).toHaveText( '10 of 12' );
 	await page.locator( '.maestro-tour-back' ).click();
 	await expect( text ).toContainText( 'Preview as' );
 	await page.locator( '.maestro-tour-back' ).click();
@@ -102,11 +104,9 @@ test( 'narrow tour: only the hidden width step is dropped, and Back walks to the
 	await page.locator( '.maestro-tour-next' ).click();
 	await expect( text ).toContainText( 'Preview as' );
 	await page.locator( '.maestro-tour-next' ).click();
-	await expect( text ).toContainText( 'Settings contains' );
-	await page.locator( '.maestro-tour-next' ).click();
 	await expect( text ).toContainText( 'tour again' );
 	// Back must keep moving across every remaining step and stop at the first.
-	for ( let i = 0; i < 10; i++ ) {
+	for ( let i = 0; i < 9; i++ ) {
 		await page.locator( '.maestro-tour-back' ).click();
 	}
 	await expect( text ).toContainText( 'Click any menu item' );

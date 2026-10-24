@@ -20,7 +20,7 @@ progress:
 
 Export/import is implemented on `feat/config-export-import` against main
 `d34a576`, including private-rule preservation, fresh server-owned menu
-inventory, explicit analyze/apply, versioned JSON and mobile Settings.
+inventory, explicit analyze/apply and versioned JSON. Settings stays desktop-only.
 See the [implementation plan](phases/31-config-export-import/31-IMPLEMENTATION-PLAN.md)
 and [verification record](phases/31-config-export-import/31-VERIFICATION.md).
 Review, CI and real-device/human acceptance remain open. Historical snapshots

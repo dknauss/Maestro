@@ -1504,6 +1504,7 @@
 	}
 
 	function openSettings( anchorBtn ) {
+		if ( window.innerWidth < 961 ) { return; }
 		closePopovers();
 
 		var pop = el( 'div', 'maestro-popover maestro-settings-popover' );
@@ -1629,7 +1630,7 @@
 
 		placePopover( pop, anchorBtn );
 		syncWidthControls();
-		focusDialogControl( pop, window.innerWidth >= 961 ? range : done );
+		range.focus();
 	}
 
 	/* Phase 31: explicit file review/apply, sharing Settings at every width. */
@@ -3686,8 +3687,9 @@
 			{ text: I.tourStepVisibility, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.visBtn ); } },
 			{ text: I.tourStepResetItem, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.resetBtn ); } },
 			{ text: I.tourStepSeparator, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.addSepBtn ); } },
-			// The width handle is desktop-only. Settings also offers transfer
-			// at phone widths.
+			// The edge handle and the Settings gear only render at 961px and
+			// wider (maestro.css): the width they set does not apply below it,
+			// and export/import is a desk task.
 			{ text: I.tourStepWidth, placement: 'right', byViewport: true, anchor: function () { return tourShown( widthHandle ); } },
 			{ text: I.tourStepProfiles, placement: 'top', anchor: function () { return tourShown( profilesBtn ); } },
 			// Role preview (Phase 30) sits between the groups and Settings.

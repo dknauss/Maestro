@@ -248,5 +248,5 @@ Image URLs are carried as URLs: an icon hosted on the source site still needs
 that image to be reachable. Import does not upload or copy media.
 
 After import, the editor reloads from saved settings and shows a success notice.
-Settings is available on phones for transfer; the width field and edge handle
-remain desktop-only. Named presets and starter configurations are not included.
+Export/import is a desktop task: like the menu width, Settings shows only on
+screens 961px and wider. Named presets and starter configurations are not included.

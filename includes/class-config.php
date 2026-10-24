@@ -397,11 +397,14 @@ class Config {
 		if ( strlen( serialize( $clean ) ) > self::MAX_CONFIG_BYTES ) {
 			return new \WP_Error( 'maestro_transfer_size', __( 'The imported settings exceed the storage limit.', 'maestro-menu-editor' ), array( 'status' => 400 ) );
 		}
-		if ( false === get_option( MAESTRO_OPTION, false ) ) {
+		$created = false === get_option( MAESTRO_OPTION, false );
+		if ( $created ) {
 			$written = add_option( MAESTRO_OPTION, $clean, '', false );
 		} else {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Atomic revision check cannot be expressed by update_option(). Cache invalidated below.
-			$written = $wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->options} SET option_value = %s, autoload = 'no' WHERE option_name = %s AND BINARY option_value = BINARY %s", maybe_serialize( $clean ), MAESTRO_OPTION, maybe_serialize( $stored ) ) );
+			// The row already carries the autoload value save() gave it, so only
+			// option_value changes.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Atomic revision check cannot be expressed by update_option(). Cache invalidated and update hooks fired below.
+			$written = $wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND BINARY option_value = BINARY %s", maybe_serialize( $clean ), MAESTRO_OPTION, maybe_serialize( $stored ) ) );
 		}
 		wp_cache_delete( MAESTRO_OPTION, 'options' );
 		wp_cache_delete( 'alloptions', 'options' );
@@ -409,6 +412,16 @@ class Config {
 		$this->cache = null;
 		if ( false === $written || ( 0 === $written && $this->get() !== $clean ) ) {
 			return new \WP_Error( 'maestro_transfer_write', __( 'The import could not be saved. Review the file again.', 'maestro-menu-editor' ), array( 'status' => 409 ) );
+		}
+		// The raw UPDATE skips update_option(), so announce the change the way
+		// it would: audit-log, sync and cache plugins listen for these. add_option()
+		// fires its own. The pre_update_option filters are not applied: a filter
+		// could rewrite the value after the revision check approved it.
+		if ( ! $created && $written ) {
+			// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Core's own hooks.
+			do_action( 'update_option_' . MAESTRO_OPTION, $stored, $clean, MAESTRO_OPTION );
+			do_action( 'updated_option', MAESTRO_OPTION, $stored, $clean );
+			// phpcs:enable WordPress.NamingConventions.PrefixAllGlobals
 		}
 		$this->cache = $clean;
 		return $clean;
