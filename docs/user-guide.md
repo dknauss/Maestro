@@ -90,6 +90,8 @@ the save fails, the preview does not open.
 
 On desktop, Visibility groups and Menu width save changes automatically. Use
 the close icon or Escape to dismiss them; closing does not cancel queued saves.
+Preview uses the same close icon; closing it leaves you in edit mode. Its role
+selector stays labelled for assistive technology without repeating the heading.
 Adding a new group still requires **Add group**. Save feedback appears above the
 toolbar, and a failed save remains visible until a successful retry.
 

@@ -1393,24 +1393,39 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 }
 .maestro-mobile-sheet .maestro-vis-row { column-gap: 6px; }
 
-/* Compact global actions at every width; choosing a role never navigates until
- * Preview is pressed in its dialog. */
-.maestro-dialog-close {
+/* Shared close control: a centered glyph in a generous target, clear of text. */
+.maestro-popover .maestro-dialog-close,
+.maestro-tour .maestro-dialog-close {
 	position: absolute;
+	/* A glyph has no text direction; inherit the card's direction so logical
+	 * corner placement mirrors correctly in Arabic, despite button dir=auto. */
+	direction: inherit;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
 	inset-block-start: 4px;
 	inset-inline-end: 4px;
 	width: 44px;
 	height: 44px;
 	padding: 0;
+	margin: 0;
+	border: 0;
+	text-align: center;
 	font-size: 24px;
 	line-height: 1;
 	text-decoration: none;
 	color: #50575e;
 }
-.maestro-settings-title { padding-inline-end: 40px; }
+.maestro-dialog-close .dashicons { width: 20px; height: 20px; font-size: 20px; line-height: 1; }
+.maestro-settings-title {
+	padding-inline-end: 40px;
+	min-height: 32px;
+	box-sizing: border-box;
+}
 .maestro-tour-content { padding-inline-end: 48px; }
 .maestro-tour .maestro-tour-skip { margin: 0; text-decoration: none; }
-.maestro-mobile-sheet .maestro-dialog-close { display: none; }
+.maestro-popover.maestro-mobile-sheet .maestro-dialog-close { display: none; }
 
 /* Feedback floats above the toolbar, so idle and save transitions consume no
  * horizontal space and never move its controls. Errors persist until retry. */

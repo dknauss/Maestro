@@ -3226,10 +3226,17 @@
 			return;
 		}
 		button.className = 'button-link maestro-dialog-close';
-		button.textContent = '\u00d7';
+		setCloseGlyph( button );
 		button.setAttribute( 'aria-label', I.closeDialog );
 		button.title = I.closeDialog;
 		pop.appendChild( button );
+	}
+
+	function setCloseGlyph( button ) {
+		button.textContent = '';
+		var glyph = el( 'span', 'dashicons dashicons-no-alt' );
+		glyph.setAttribute( 'aria-hidden', 'true' );
+		button.appendChild( glyph );
 	}
 
 	/*
@@ -3243,7 +3250,7 @@
 			return null;
 		}
 
-		var label = el( 'label', 'maestro-preview-label', I.previewAs );
+		var label = el( 'label', 'maestro-preview-label screen-reader-text', I.previewAs );
 		label.setAttribute( 'for', id );
 		var select = el( 'select', 'maestro-preview-select' );
 		select.id = id;
@@ -3294,11 +3301,9 @@
 		var select = previewControls( body, 'maestro-preview-select-dialog' );
 		pop.appendChild( body );
 
-		var actions = el( 'div', 'maestro-settings-actions' );
 		var done = el( 'button', 'button button-primary maestro-settings-done', I.tourDone );
 		done.type = 'button';
-		actions.appendChild( done );
-		pop.appendChild( actions );
+		addDialogClose( pop, done );
 
 		function close() {
 			closePopovers();
@@ -3580,7 +3585,8 @@
 		var isLast = tour.idx === tour.steps.length - 1;
 		var controls = el( 'div', 'maestro-tour-controls' );
 
-		var skip = el( 'button', 'button-link maestro-tour-skip maestro-dialog-close', '\u00d7' );
+		var skip = el( 'button', 'button-link maestro-tour-skip maestro-dialog-close' );
+		setCloseGlyph( skip );
 		skip.type = 'button';
 		skip.setAttribute( 'aria-label', I.closeTour );
 		skip.title = I.closeTour;

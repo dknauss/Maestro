@@ -39,7 +39,7 @@ test( 'compact preview waits for explicit action and tour closes from its header
 	await page.getByRole( 'combobox', { name: 'Preview as' } ).selectOption( 'editor' );
 	await expect( page ).not.toHaveURL( /maestro_preview=/ );
 	await page.keyboard.press( 'Shift+Tab' );
-	await expect( page.getByRole( 'button', { name: 'Done', exact: true } ) ).toBeFocused();
+	await expect( page.getByRole( 'button', { name: 'Close dialog', exact: true } ) ).toBeFocused();
 	await page.keyboard.press( 'Tab' );
 	await expect( page.getByRole( 'combobox', { name: 'Preview as' } ) ).toBeFocused();
 	await page.keyboard.press( 'Escape' );
