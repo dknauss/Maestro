@@ -66,3 +66,28 @@ test( 'save feedback never shifts toolbar controls and hover uses the menu schem
 	} );
 	expect( colours.actual ).toBe( colours.expected );
 } );
+
+test( 'hovering a disabled action preserves its neutral glyph colour', async ( { page } ) => {
+	await page.locator( '#menu-posts > a.menu-top' ).click();
+	const reset = page.locator( '.maestro-reset-item' );
+	await expect( reset ).toBeDisabled();
+	const colour = await reset.evaluate( node => getComputedStyle( node ).color );
+	await reset.hover();
+	await expect( reset ).toHaveCSS( 'color', colour );
+	await expect( reset ).toHaveCSS( 'background-color', 'rgba(0, 0, 0, 0)' );
+} );
+
+test.describe( 'touch hover', () => {
+	test.use( { hasTouch: true } );
+	test( 'touch input does not activate desktop accent hover', async ( { page } ) => {
+		await page.locator( '#menu-posts > a.menu-top' ).tap();
+		const button = page.locator( '.maestro-vis-btn' );
+		await button.tap();
+		expect( await page.evaluate( () => matchMedia( '(hover: hover)' ).matches ) ).toBe( false );
+		const background = await button.evaluate( node => getComputedStyle( node ).backgroundColor );
+		// Core may retain a subtle translucent hover; the desktop solid accent
+		// must not stick after a tap.
+		expect( background ).toMatch( /^rgba\(/ );
+		expect( Number( background.split( ',' )[ 3 ].replace( ')', '' ) ) ).toBeLessThan( 0.1 );
+	} );
+} );

@@ -96,8 +96,9 @@ Dan approved all three recommendations, recorded in the
   regression evidence and deep review before implementation merges.
 - **Super admins:** disable preview with an explanation, reject crafted requests
   server-side, and preserve existing ordinary editing support.
-- **Picker:** labelled native role selector plus explicit Preview button in the
-  existing toolbar panel; await pending saves, show a persistent read-only role
+- **Picker (placement updated 2026-10-24):** one Preview as toolbar button opens
+  a dialog with a labelled native role selector and explicit Preview button;
+  await pending saves, show a persistent read-only role
   banner and Exit preview, and restore the menu without configuration changes.
 
 D4 decided 2026-10-23 (Dan): imported rules for menu

@@ -113,6 +113,10 @@ admin (`read`). Network super admins on multisite cannot preview: WordPress
 grants them every capability before any filter can narrow it. Use a site
 administrator account to preview that site's roles.
 
+Plugins that suppress all WordPress admin notices can also hide the preview
+banner and its picker. **Exit preview** remains available in the WordPress
+toolbar to return to the ordinary menu.
+
 ## Editing on a phone
 
 The toolbar uses touch-sized controls in portrait and landscape. Visibility,

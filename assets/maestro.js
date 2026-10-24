@@ -831,7 +831,7 @@
 		statusEl.setAttribute( 'role', 'status' );
 		statusEl.setAttribute( 'aria-live', 'polite' );
 		statusEl.setAttribute( 'aria-atomic', 'true' );
-		statusEl.appendChild( el( 'span', 'maestro-status-text screen-reader-text' ) );
+		statusEl.appendChild( el( 'span', 'maestro-status-text' ) );
 		bar.appendChild( statusEl );
 
 		// Shared panel — empty/hidden until something is selected.
@@ -3107,9 +3107,8 @@
 
 	function setStatus( state ) {
 		if ( ! statusEl ) { return; }
-		// Class change drives the visible ::before glyph; the word goes into the
-		// SR-only child (not statusEl.textContent, which would wipe that child and
-		// render the word visibly). The live region still announces the change.
+		// Preserve the visible text child and its live-region announcements while
+		// the state class supplies the spinner, success or error glyph.
 		statusEl.className = 'maestro-status maestro-status-' + state;
 		var label = window.maestroLogic.modeStatusLabel( state, I );
 		var textEl = statusEl.querySelector( '.maestro-status-text' );
@@ -3568,7 +3567,7 @@
 		/* The card body holds the pointer content (progress + text); controls
 		 * live in a footer band below, mirroring wp-pointer-content /
 		 * wp-pointer-buttons. Grouping is presentational only — the same
-		 * progress/text/Skip/Back/Next nodes and classes as before. */
+		 * progress/text/Back/Next nodes and a header Close tour control. */
 		var content = el( 'div', 'maestro-tour-content' );
 
 		var progress = el(
@@ -3618,7 +3617,7 @@
 		box.appendChild( controls );
 		/*
 		 * Mounting inside #adminmenuwrap is not enough on its own: Next, Back,
-		 * Skip and Done all remove this box before their click reaches core's
+		 * Close and Done all remove this box before their click reaches core's
 		 * document handler, and a detached target is outside every container,
 		 * so core still closed the menu. The tour is modal, so nothing behind
 		 * it needs to hear its clicks.

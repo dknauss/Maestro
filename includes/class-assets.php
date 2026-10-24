@@ -390,7 +390,6 @@ class Assets {
 					'tourNext'             => __( 'Next', 'maestro-menu-editor' ),
 					'tourBack'             => __( 'Back', 'maestro-menu-editor' ),
 					'tourDone'             => __( 'Done', 'maestro-menu-editor' ),
-					'tourSkip'             => __( 'Skip', 'maestro-menu-editor' ),
 					'closeDialog'          => __( 'Close dialog', 'maestro-menu-editor' ),
 					'closeTour'            => __( 'Close tour', 'maestro-menu-editor' ),
 					/* translators: 1: current step number, 2: total steps. e.g. "2 of 5". */
@@ -409,12 +408,12 @@ class Assets {
 					/* translators: Guided-tour step pointing at the Visibility groups toolbar button. */
 					'tourStepProfiles'     => __( 'Visibility groups let you hide a menu item from everyone in a group. Add people to the group, then select it in the menu item\'s Visibility controls.', 'maestro-menu-editor' ),
 					'tourStepPreview'      => __( 'Preview as shows the menu a role would see, read-only. Pick a role and press Preview; your changes are saved first.', 'maestro-menu-editor' ),
-					'tourStepSettings'     => __( 'Menu settings let you type an exact menu width or go back to the default.', 'maestro-menu-editor' ),
+					'tourStepSettings'     => __( 'Menu width lets you type an exact width or go back to the default.', 'maestro-menu-editor' ),
 					'tourStepHelp'         => __( 'Want this tour again? Use the help button anytime.', 'maestro-menu-editor' ),
 					'tourStep4'            => __( 'Your changes save automatically. Reset All returns the whole menu to the WordPress defaults.', 'maestro-menu-editor' ),
 					'tourStep5'            => __( 'Click Exit when you are done. Your changes stay live for everyone.', 'maestro-menu-editor' ),
 					/* translators: Accessible label / tooltip for the toolbar button, and title of the dialog, holding menu-wide settings. */
-					'settings'             => __( 'Menu settings', 'maestro-menu-editor' ),
+					'settings'             => __( 'Menu width', 'maestro-menu-editor' ),
 					'menuWidth'            => __( 'Menu width', 'maestro-menu-editor' ),
 					'menuWidthPx'          => __( 'Menu width in pixels', 'maestro-menu-editor' ),
 					'menuWidthHint'        => __( 'Widen the menu so longer labels fit on one line. Applies on every admin page, for everyone, on screens 961px and wider.', 'maestro-menu-editor' ),

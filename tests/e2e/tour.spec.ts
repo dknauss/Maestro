@@ -34,7 +34,7 @@ test( 'guided tour: auto-launch, step through, seen-flag, replay, Esc', async ( 
 		'edge',
 		'Visibility groups',
 		'Preview as',
-		'Menu settings',
+		'Menu width',
 		'tour again',
 		'Reset All',
 		'Exit',

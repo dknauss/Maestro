@@ -166,9 +166,10 @@ This model supersedes the original always-visible per-item control clusters, whi
   autosave, reset or write configuration. Reject super-admin preview requests
   server-side; explain the limitation in the UI. Regression tests and deep
   review must establish these boundaries before implementation merges.
-- **Preview UI — approved, implementation pending.** Use a labelled native
-  **Preview as** role selector and explicit **Preview** button in the existing
-  toolbar panel. Await successful pending saves before entry. Preview replaces
+- **Preview UI — implemented; desktop refinement approved 2026-10-24.** A
+  **Preview as** toolbar button opens a dialog with a labelled native role
+  selector and explicit **Preview** button at every width. Selecting a role
+  alone does not navigate. Await successful pending saves before entry. Preview replaces
   editing controls with a persistent role/read-only banner, role picker and
   **Exit preview**, available even if the simulated role lacks Maestro access.
   Exit restores the ordinary menu without changing rules. Explain that generic
