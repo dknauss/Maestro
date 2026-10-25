@@ -620,7 +620,8 @@
 
 		menu.addEventListener( 'keydown', function ( e ) {
 			var renameKey = !! rowCtl && ( e.key === 'F2' || e.key === 'Enter' );
-			if ( ! renameKey && e.key !== ' ' && e.key !== 'Spacebar' ) {
+			// Enter selects rows in both modes, including anchorless separators.
+			if ( ! renameKey && e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar' ) {
 				return;
 			}
 			if ( e.target.closest( '.maestro-popover, .maestro-row-ctl' ) ) {
