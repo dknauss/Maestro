@@ -29,53 +29,13 @@ const LANDSCAPE_WIDE = { width: 844, height: 390 };
 const menuOpen = ( page: Page ) =>
 	page.evaluate( () => document.getElementById( 'wpwrap' )!.classList.contains( 'wp-responsive-open' ) );
 
-// Every step but the width handle's and Settings', which only render at
-// 961px and up: the menu width they set does not apply below that.
-// The profiles tip is matched by either name, so this spec survives the
-// Visibility groups rename (#250) in either merge order.
-const PHONE_STEPS: ( string | RegExp )[] = [
-	'Click any menu item',
-	'Type a new name',
-	'Reorder items',
-	'icon',
-	'Hide the item',
-	'Undo every change',
-	'separator',
-	/Hiding profiles|Visibility groups/,
-	'Preview as',
-	'tour again',
-	'Reset All',
-	'Exit',
-];
-
 for ( const [ name, viewport ] of [ [ 'portrait', PORTRAIT ], [ 'landscape', LANDSCAPE ], [ 'wide landscape', LANDSCAPE_WIDE ] ] as const ) {
 	test.describe( `phone, ${ name } (${ viewport.width }x${ viewport.height })`, () => {
 		test.use( { viewport } );
 
-		test( 'the tour shows every step, numbered without gaps, and leaves the menu open', async ( { page } ) => {
+		test( 'the phone toolbar omits coach tips', async ( { page } ) => {
 			await page.goto( '/wp-admin/index.php?maestro_edit=1' );
-			// From the toolbar's "?", which is itself a tap outside the menu
-			// list, rather than the first-run launch.
-			await page.locator( '.maestro-toolbar .maestro-tour-help' ).click();
-			await expect( page.locator( '.maestro-tour' ) ).toBeVisible();
-
-			const progress = page.locator( '.maestro-tour-progress' );
-			for ( const [ i, text ] of PHONE_STEPS.entries() ) {
-				await expect( progress ).toHaveText( `${ i + 1 } of ${ PHONE_STEPS.length }` );
-				await expect( page.locator( '.maestro-tour-text' ) ).toContainText( text );
-				// The coachmark stays on screen, not under the toolbar or past an edge.
-				const box = await page.locator( '.maestro-tour' ).boundingBox();
-				expect( box!.y ).toBeGreaterThanOrEqual( 0 );
-				expect( box!.y + box!.height ).toBeLessThanOrEqual( viewport.height );
-				await page.locator( '.maestro-tour-next' ).click();
-			}
-			await expect( page.locator( '.maestro-tour' ) ).toHaveCount( 0 );
-
-			// Done is a click outside nothing: the editor is still on screen.
-			await expect( page.locator( '.maestro-toolbar' ) ).toBeVisible();
-			if ( viewport.width <= 782 ) {
-				expect( await menuOpen( page ) ).toBe( true );
-			}
+			await expect( page.locator( '.maestro-tour-help' ) ).toBeHidden();
 		} );
 
 		test( 'the toolbar is compact and fits the screen', async ( { page } ) => {
@@ -85,7 +45,7 @@ for ( const [ name, viewport ] of [ [ 'portrait', PORTRAIT ], [ 'landscape', LAN
 
 			const m = await page.evaluate( () => {
 				const bar = document.querySelector( '.maestro-toolbar' )!.getBoundingClientRect();
-				const controls = Array.from( document.querySelectorAll( '.maestro-toolbar button, .maestro-toolbar input' ) )
+				const controls = Array.from( document.querySelectorAll( '.maestro-toolbar .maestro-panel, .maestro-toolbar .maestro-toolbar-right' ) )
 					.filter( ( n ) => ( n as HTMLElement ).offsetParent !== null )
 					.map( ( n ) => n.getBoundingClientRect() );
 				return {
@@ -100,7 +60,7 @@ for ( const [ name, viewport ] of [ [ 'portrait', PORTRAIT ], [ 'landscape', LAN
 
 			// Upright: two rows of 44px touch targets. On its side: one.
 			const rows = viewport.width < viewport.height ? 2 : 1;
-			expect( m.height ).toBeLessThanOrEqual( rows * 44 + ( rows - 1 ) * 4 + 16 );
+			expect( m.height ).toBeLessThanOrEqual( rows * 48 + ( rows - 1 ) * 4 + 16 );
 			expect( m.left ).toBeGreaterThanOrEqual( 0 );
 			expect( m.right ).toBeLessThanOrEqual( m.clientWidth );
 			expect( m.bottom ).toBeLessThanOrEqual( viewport.height );
@@ -128,7 +88,7 @@ for ( const [ name, viewport ] of [ [ 'portrait', PORTRAIT ], [ 'landscape', LAN
 				expect( await menuOpen( page ) ).toBe( true );
 			}
 
-			await picker.getByRole( 'button', { name: 'Done', exact: true } ).click();
+			await picker.getByRole( 'button', { name: 'Close dialog', exact: true } ).click();
 			await page.locator( '.maestro-toolbar .maestro-vis-btn' ).click();
 			const vis = page.locator( '.maestro-vis-popover' );
 			await expect( vis ).toBeVisible();

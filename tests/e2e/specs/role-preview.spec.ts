@@ -280,7 +280,7 @@ for ( const viewport of [ { width: 320, height: 640 }, { width: 375, height: 667
 			await toggle.click();
 			const sheet = page.getByRole( 'dialog', { name: 'Preview as' } );
 			await expect( sheet ).toBeVisible();
-			await expect( sheet.getByRole( 'combobox', { name: 'Preview as' } ) ).toBeFocused();
+			await expect( sheet.getByRole( 'button', { name: 'Close dialog' } ) ).toBeFocused();
 
 			const m = await page.evaluate( () => {
 				const box = ( sel: string ) => {

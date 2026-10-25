@@ -274,7 +274,7 @@ class Assets {
 					'saved'                => __( 'Saved', 'maestro-menu-editor' ),
 					'saveError'            => __( 'Save failed. Retrying on next change.', 'maestro-menu-editor' ),
 					'dismissSaveError'     => __( 'Dismiss save error', 'maestro-menu-editor' ),
-					'modeLabel'            => __( 'Edit Mode', 'maestro-menu-editor' ),
+					'modeLabel'            => __( 'Edit mode', 'maestro-menu-editor' ),
 					'renamePlaceholder'    => __( 'Menu label', 'maestro-menu-editor' ),
 					'icon'                 => __( 'Icon', 'maestro-menu-editor' ),
 					'iconDialog'           => __( 'Choose an icon', 'maestro-menu-editor' ),
@@ -282,13 +282,13 @@ class Assets {
 					'iconNone'             => __( 'No icon', 'maestro-menu-editor' ),
 					'iconNoneHint'         => __( 'Remove the icon (uses the menu default).', 'maestro-menu-editor' ),
 					'visibility'           => __( 'Visibility', 'maestro-menu-editor' ),
-					'resetItem'            => __( 'Reset Item', 'maestro-menu-editor' ),
+					'resetItem'            => __( 'Reset item', 'maestro-menu-editor' ),
 					'separator'            => __( 'Separator', 'maestro-menu-editor' ),
 					'addSeparator'         => __( 'Add separator below', 'maestro-menu-editor' ),
 					'removeSeparator'      => __( 'Remove separator', 'maestro-menu-editor' ),
 					'separatorAdded'       => __( 'Separator added', 'maestro-menu-editor' ),
 					'separatorRemoved'     => __( 'Separator removed', 'maestro-menu-editor' ),
-					'resetAll'             => __( 'Reset All', 'maestro-menu-editor' ),
+					'resetAll'             => __( 'Reset all', 'maestro-menu-editor' ),
 					/* translators: Heading for the role-checkbox group that hides THIS menu item (parent or submenu row). */
 					'hideFrom'             => __( 'Hide this item from:', 'maestro-menu-editor' ),
 					/* translators: Heading for the role-checkbox group that cosmetically hides ALL of a parent's sub-items, independent of the parent's own visibility (COMPAT-10). Shown only for parents that have children. */
@@ -332,9 +332,9 @@ class Assets {
 					/* translators: Title of the dialog for creating and editing hiding profiles (named groups of people that items can be hidden from). */
 					'profiles'             => __( 'Visibility groups', 'maestro-menu-editor' ),
 					/* translators: Explanation at the top of the hiding-profiles dialog. */
-					'profilesIntro'        => __( 'A visibility group lets you hide a menu item from everyone in the group. Add people to the group, then select it in the menu item\'s Visibility controls. This hides the menu link without changing page access.', 'maestro-menu-editor' ),
+					'profilesIntro'        => __( 'A visibility group lets you hide a menu item from everyone in the group. Add people to the group, then select the group in the menu item\'s Visibility settings. This hides the menu link without changing page access.', 'maestro-menu-editor' ),
 					/* translators: Persistent next-step guidance beside each saved hiding profile. */
-					'profileGuidance'      => __( 'Add people below, then select this group in a menu item\'s Visibility controls. Changes save automatically.', 'maestro-menu-editor' ),
+					'profileGuidance'      => __( 'Add people below, then select this group in a menu item\'s Visibility settings. Changes save automatically.', 'maestro-menu-editor' ),
 					/* translators: Accessible label for the text field that renames a hiding profile. */
 					'profileName'          => __( 'Group name', 'maestro-menu-editor' ),
 					/* translators: Placeholder and accessible label for the field where a new hiding profile's name is typed. */
@@ -346,7 +346,14 @@ class Assets {
 					/* translators: %s: profile name. Accessible label for the button that deletes that hiding profile. */
 					'profileDelete'        => esc_html__( 'Delete %s', 'maestro-menu-editor' ),
 					/* translators: 1: profile name, 2: number of menu items the profile hides, 3: number of people in the profile. Confirmation before a hiding profile is deleted. */
-					'profileDeleteConfirm' => __( 'Delete “%1$s”? Items it hides: %2$d. People in it: %3$d. Those people will see the items again.', 'maestro-menu-editor' ),
+					'profileDeleteConfirm' => __( 'Delete “%1$s”? It hides %2$d items from %3$d people.', 'maestro-menu-editor' ),
+					/* translators: 1: group name, 2: item count, 3: member count. Complete variants keep singular nouns translatable. */
+					'profileDeleteItem'    => __( 'Delete “%1$s”? It hides %2$d item from %3$d people.', 'maestro-menu-editor' ),
+					/* translators: 1: group name, 2: item count, 3: member count. */
+					'profileDeletePerson'  => __( 'Delete “%1$s”? It hides %2$d items from %3$d person.', 'maestro-menu-editor' ),
+					/* translators: 1: group name, 2: item count, 3: member count. */
+					'profileDeleteBoth'    => __( 'Delete “%1$s”? It hides %2$d item from %3$d person.', 'maestro-menu-editor' ),
+					'profileDeleteEffect'  => __( 'Deleting this group removes its visibility rules. Other rules may still hide these items from its members.', 'maestro-menu-editor' ),
 					/* translators: Caution shown in the hiding-profiles dialog while the editor's own account is among a profile's people. */
 					'profileSelfWarning'   => __( 'You are in this group, so the items it hides are hidden from your own account too. You can still reach those pages by URL, and the editor stays available.', 'maestro-menu-editor' ),
 					/* translators: Shown when a hiding profile's name is left empty. */
@@ -364,7 +371,7 @@ class Assets {
 					'previewBtn'           => __( 'Preview', 'maestro-menu-editor' ),
 					'previewUnavailable'   => __( 'Role preview is not available to network super admins: WordPress grants them every capability, so their menu cannot be narrowed to a role.', 'maestro-menu-editor' ),
 					'previewSaveFailed'    => __( 'Your latest changes could not be saved, so the preview did not open. Try again once they are saved.', 'maestro-menu-editor' ),
-					'confirmAll'           => __( 'Reset ALL menu customizations to WordPress defaults? This cannot be undone.', 'maestro-menu-editor' ),
+					'confirmAll'           => __( 'Reset all menu customizations to WordPress defaults? This cannot be undone.', 'maestro-menu-editor' ),
 					'drag'                 => __( 'Drag to reorder', 'maestro-menu-editor' ),
 					/* translators: 1: item title, 2: direction ("up"/"down"), 3: new position number, 4: total items. */
 					'moved'                => esc_html__( '%1$s moved %2$s, position %3$d of %4$d', 'maestro-menu-editor' ),
@@ -416,11 +423,11 @@ class Assets {
 					/* translators: Guided-tour step pointing at the draggable edge of the admin menu. */
 					'tourStepWidth'        => __( 'Drag the menu\'s edge to make it wider or narrower. When the edge has focus, the arrow keys work too.', 'maestro-menu-editor' ),
 					/* translators: Guided-tour step pointing at the Visibility groups toolbar button. */
-					'tourStepProfiles'     => __( 'Visibility groups let you hide a menu item from everyone in a group. Add people to the group, then select it in the menu item\'s Visibility controls.', 'maestro-menu-editor' ),
+					'tourStepProfiles'     => __( 'Visibility groups let you hide a menu item from everyone in a group. Add people to the group, then select the group in the menu item\'s Visibility settings.', 'maestro-menu-editor' ),
 					'tourStepPreview'      => __( 'Preview as shows the menu a role would see, read-only. Pick a role and press Preview; your changes are saved first.', 'maestro-menu-editor' ),
 					'tourStepSettings'     => __( 'Menu width lets you type an exact width or go back to the default.', 'maestro-menu-editor' ),
 					'tourStepHelp'         => __( 'Want this tour again? Use the help button anytime.', 'maestro-menu-editor' ),
-					'tourStep4'            => __( 'Your changes save automatically. Reset All returns the whole menu to the WordPress defaults.', 'maestro-menu-editor' ),
+					'tourStep4'            => __( 'Your changes save automatically. Reset all returns the whole menu to the WordPress defaults.', 'maestro-menu-editor' ),
 					'tourStep5'            => __( 'Click Exit when you are done. Your changes stay live for everyone.', 'maestro-menu-editor' ),
 					/* translators: Accessible label / tooltip for the toolbar button, and title of the dialog, holding menu-wide settings. */
 					'settings'             => __( 'Menu width', 'maestro-menu-editor' ),

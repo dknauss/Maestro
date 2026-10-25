@@ -413,6 +413,21 @@ function profileNameProblem( name, profiles, exceptId ) {
 	return taken ? 'taken' : '';
 }
 
+/** Build a deletion confirmation without promising visibility changes. */
+function profileDeleteMessage( name, items, people, strings ) {
+	var template = items === 1 ?
+		( people === 1 ? strings.profileDeleteBoth : strings.profileDeleteItem ) :
+		( people === 1 ? strings.profileDeletePerson : strings.profileDeleteConfirm );
+	var message = template
+		.replace( '%1$s', function () { return name; } )
+		.replace( '%2$d', function () { return String( items ); } )
+		.replace( '%3$d', function () { return String( people ); } );
+	if ( items > 0 && people > 0 ) {
+		message += ' ' + strings.profileDeleteEffect;
+	}
+	return message;
+}
+
 /**
  * How many items a profile hides, counted from the editor's assignments: an
  * item hidden through both its own and its sub-items axis counts once.
@@ -728,6 +743,7 @@ var api = {
 	dropProfileCarry:          dropProfileCarry,
 	profileNameProblem:        profileNameProblem,
 	profileItemCount:          profileItemCount,
+	profileDeleteMessage:      profileDeleteMessage,
 	buildProfilesPayload:      buildProfilesPayload,
 	carryProfileHides:         carryProfileHides,
 	carrySeparators:           carrySeparators,

@@ -82,7 +82,14 @@ test.describe( 'touch hover', () => {
 	test( 'touch input does not activate desktop accent hover', async ( { page } ) => {
 		await page.locator( '#menu-posts > a.menu-top' ).tap();
 		const button = page.locator( '.maestro-vis-btn' );
+		// An open tool keeps its solid background on purpose, so close the
+		// popover with a tap outside it (Escape would return keyboard focus,
+		// which shows the accent too) before checking that the tap left no
+		// hover accent behind.
 		await button.tap();
+		await expect( button ).toHaveAttribute( 'aria-expanded', 'true' );
+		await page.touchscreen.tap( 900, 600 );
+		await expect( button ).toHaveAttribute( 'aria-expanded', 'false' );
 		expect( await page.evaluate( () => matchMedia( '(hover: hover)' ).matches ) ).toBe( false );
 		const background = await button.evaluate( node => getComputedStyle( node ).backgroundColor );
 		// Core may retain a subtle translucent hover; the desktop solid accent

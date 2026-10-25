@@ -16,6 +16,15 @@ progress:
 
 # Project State
 
+## Release prep — 1.9.0 (2026-10-24)
+
+Main after #260 (`d34a576`) is being cut as **1.9.0**. 1.8.0 was bumped in #242 but
+never tagged or released, so 1.9.0 carries visibility groups (Phase 27), the width
+follow-ups, "All other roles" (Phase 29), preview as a role (Phase 30) and the
+desktop and mobile polish (#256–#260). Phase 31 (export/import) follows in a later
+release, per the D5 recommendation; the release PR is Dan's confirmation of D5.
+The POT is regenerated. Real iPhone/iPad checks of #260 remain Dan's.
+
 ## Desktop UX refinement — 2026-10-24
 
 Phase 30 role-preview UI is on main through #251 (`9802065`). The desktop cleanup
