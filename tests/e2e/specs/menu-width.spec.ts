@@ -256,13 +256,18 @@ test.describe( 'Phase 28-03 — menu width controls', () => {
 				};
 				const panel = visible( '.maestro-panel button, .maestro-panel input' );
 				const all = visible( '.maestro-toolbar button, .maestro-toolbar input' );
+				// Each tool group scrolls sideways inside itself on a phone, so a
+				// control may sit past the edge of the screen. The groups, which
+				// clip it, must fit, and the page itself must not scroll.
+				const zones = visible( '.maestro-toolbar .maestro-panel, .maestro-toolbar .maestro-toolbar-right' );
 				return {
 					panelControls: panel.length,
 					panelRows: rowsOf( panel ),
 					rows: rowsOf( all ),
-					left: Math.min( ...all.map( ( r ) => r.left ) ),
-					right: Math.max( ...all.map( ( r ) => r.right ) ),
+					left: Math.min( ...zones.map( ( r ) => r.left ) ),
+					right: Math.max( ...zones.map( ( r ) => r.right ) ),
 					viewport: document.documentElement.clientWidth,
+					pageWidth: document.documentElement.scrollWidth,
 				};
 			} );
 
@@ -275,6 +280,7 @@ test.describe( 'Phase 28-03 — menu width controls', () => {
 			expect( layout.rows ).toBeLessThanOrEqual( maxRows );
 			expect( layout.left ).toBeGreaterThanOrEqual( 0 );
 			expect( layout.right ).toBeLessThanOrEqual( layout.viewport );
+			expect( layout.pageWidth ).toBeLessThanOrEqual( layout.viewport );
 		} );
 	}
 

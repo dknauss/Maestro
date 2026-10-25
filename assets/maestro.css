@@ -1483,6 +1483,83 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 @media ( hover: hover ) {
 	.maestro-toolbar .button:not(:disabled):not(.button-link-delete):hover {
 		background: var( --maestro-menu-accent, #2271b1 );
-		color: var( --maestro-menu-accent-text, #fff );
 	}
+}
+
+/* Dialog standard: shared geometry and one focus treatment, including controls
+ * supplied by WordPress. Native checkboxes/radios keep their familiar shapes. */
+.wp-core-ui :is(.maestro-popover, .maestro-tour) {
+	--maestro-control-radius: 3px;
+	--maestro-focus-color: #2271b1;
+}
+.wp-core-ui :is(.maestro-popover, .maestro-tour) :is(button.button, button.button-link, button, input[type='text'], input[type='search'], input[type='number'], input:not([type]), select) {
+	border-radius: var(--maestro-control-radius);
+}
+.wp-core-ui :is(.maestro-popover, .maestro-tour) :is(button.button, button.button-link, button, input, select, [tabindex]):focus {
+	box-shadow: none;
+	outline: none;
+}
+.wp-core-ui :is(.maestro-popover, .maestro-tour) :is(button.button, button.button-link, button, input, select, [tabindex]):focus-visible {
+	outline: 2px solid var(--maestro-focus-color);
+	outline-offset: 2px;
+}
+/* Safari may consider programmatic focus after a tap focus-visible. Keep focus
+ * for containment without drawing a keyboard ring until keyboard input resumes.
+ * Text fields retain their focus indicator, including while typing by touch. */
+.maestro-pointer-input .wp-core-ui :is(.maestro-popover, .maestro-tour) :is(button.button, button.button-link, button, [tabindex]:not(input):not(select):not(textarea)):focus {
+	box-shadow: none;
+	outline: none;
+}
+
+/* Toolbar icons retain their neutral/destructive colours in every state.
+ * Background indicates the open tool independently of pointer focus. */
+.maestro-toolbar .button:not(:disabled):not(.button-link-delete):is(:hover, :focus, :active) {
+	color: #c3c4c7;
+}
+.maestro-toolbar .button:not(:disabled):is(:focus-visible, :active, [aria-expanded="true"]) {
+	background: var(--maestro-menu-accent, #2271b1);
+}
+@media (hover: hover) {
+	.maestro-toolbar .button.button-link-delete:hover {
+		background: var(--maestro-menu-accent, #2271b1);
+	}
+}
+
+/* Phone tools occupy two bounded rows, or one on short landscape screens.
+ * Each group scrolls horizontally rather than wrapping or shrinking targets. */
+@media screen and (max-width: 782px), screen and (max-width: 960px) and (max-height: 500px) {
+	.maestro-toolbar {
+		flex-direction: column;
+		flex-wrap: nowrap;
+		align-items: stretch;
+		gap: 4px;
+	}
+	.maestro-toolbar .maestro-panel,
+	.maestro-toolbar .maestro-toolbar-right {
+		display: flex;
+		flex: 0 0 auto;
+		flex-wrap: nowrap;
+		align-items: center;
+		max-width: 100%;
+		min-width: 0;
+		gap: 4px;
+		margin: 0;
+		padding: 2px;
+		box-sizing: border-box;
+		overflow-x: auto;
+		overscroll-behavior-x: contain;
+	}
+	.maestro-toolbar .maestro-panel[hidden] { display: none; }
+	.maestro-toolbar .maestro-panel > *,
+	.maestro-toolbar .maestro-toolbar-right > * { flex-shrink: 0; }
+	.maestro-toolbar .maestro-toolbar-right > :first-child { margin-inline-start: 0; }
+	.maestro-toolbar .maestro-rename-input { flex: 0 0 128px; width: 128px; min-height: 44px; }
+}
+@media screen and (max-width: 960px) and (max-height: 500px) and (orientation: landscape) {
+	.maestro-toolbar { flex-direction: row; }
+	.maestro-toolbar .maestro-panel { flex: 1 1 auto; }
+	.maestro-toolbar .maestro-toolbar-right { flex: 0 0 auto; }
+}
+@media screen and (max-width: 782px), screen and (max-width: 960px) and (max-height: 500px) {
+	.maestro-toolbar .maestro-tour-help { display: none; }
 }

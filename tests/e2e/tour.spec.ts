@@ -36,7 +36,7 @@ test( 'guided tour: auto-launch, step through, seen-flag, replay, Esc', async ( 
 		'Preview as',
 		'Menu width',
 		'tour again',
-		'Reset All',
+		'Reset all',
 		'Exit',
 	];
 	await expect( page.locator( '.maestro-tour-progress' ) ).toHaveText( `1 of ${ expected.length }` );
