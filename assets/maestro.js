@@ -382,6 +382,7 @@
 			// width slider previews live). Re-read who owns the width so the
 			// handle and an open Menu settings dialog stop showing a stale one.
 			syncWidthControls();
+			placeRowControls( selectedKey );
 		}
 
 		apply();
@@ -894,9 +895,14 @@
 		if ( plain ) { menu.style.setProperty( '--maestro-row-fg', window.getComputedStyle( plain ).color ); }
 		window.addEventListener( 'resize', function () { placeRowControls( selectedKey ); } );
 
-		rowCtl = { strip: strip, renameBtn: renameBtn, moveUp: moveUp, moveDown: moveDown, iconBtn: iconBtn, input: input, editing: null };
+		rowCtl = { strip: strip, renameBtn: renameBtn, moveUp: moveUp, moveDown: moveDown, iconBtn: iconBtn, input: input, editing: null, composing: false };
 
+		input.addEventListener( 'compositionstart', function () { rowCtl.composing = true; } );
+		input.addEventListener( 'compositionend', function () { rowCtl.composing = false; } );
 		input.addEventListener( 'keydown', function ( e ) {
+			// IME confirmation/cancellation belongs to the composition, not the edit.
+			// WebKit can clear isComposing on the final key but still report 229.
+			if ( e.isComposing || rowCtl.composing || e.keyCode === 229 ) { return; }
 			if ( e.key === 'Enter' ) {
 				e.preventDefault();
 				finishInlineRename( true, true );
@@ -923,9 +929,11 @@
 		}
 		// Row first, then Change icon, then the strip: the Tab order follows the
 		// row's reading order, and the submenu (if any) comes after them all.
+		// Keep the focused editor directly after the link while repositioning.
+		var leading = rowCtl.editing === key && rowCtl.input.parentNode === li ? rowCtl.input : a;
 		var hasIcon = ! m.isSub && li.querySelector( '.wp-menu-image' );
 		if ( hasIcon ) {
-			if ( rowCtl.iconBtn.previousSibling !== a ) { li.insertBefore( rowCtl.iconBtn, a.nextSibling ); }
+			if ( rowCtl.iconBtn.previousSibling !== leading ) { li.insertBefore( rowCtl.iconBtn, leading.nextSibling ); }
 			// Cover exactly the icon column, which core sizes differently in the
 			// responsive layout; the inline side comes from the CSS so RTL holds.
 			var ir = hasIcon.getBoundingClientRect();
@@ -939,12 +947,13 @@
 		} else if ( rowCtl.iconBtn.parentNode ) {
 			rowCtl.iconBtn.parentNode.removeChild( rowCtl.iconBtn );
 		}
-		var after = hasIcon ? rowCtl.iconBtn : a;
+		var after = hasIcon ? rowCtl.iconBtn : leading;
 		if ( rowCtl.strip.previousSibling !== after ) { li.insertBefore( rowCtl.strip, after.nextSibling ); }
 		rowCtl.strip.setAttribute( 'aria-label', m.title );
 		var renameLabel = I.renameItem.replace( '%s', function () { return m.title; } );
 		rowCtl.renameBtn.setAttribute( 'aria-label', renameLabel );
 		rowCtl.renameBtn.title = renameLabel;
+		if ( rowCtl.editing === key ) { positionInlineRename(); }
 	}
 
 	function startInlineRename() {
@@ -955,6 +964,25 @@
 		if ( ! a ) { return; }
 		closePopovers();
 
+		var input = rowCtl.input;
+		input.value = m.title;
+
+		rowCtl.editing = selectedKey;
+		li.classList.add( 'maestro-renaming' );
+		li.insertBefore( input, a.nextSibling );
+		positionInlineRename();
+		input.focus( { preventScroll: true } );
+		input.select();
+	}
+
+	// Width owners can resize without a window resize. Re-measure only geometry:
+	// never replace the field or reset its value, focus, or selection.
+	function positionInlineRename() {
+		var key = rowCtl && rowCtl.editing;
+		var m = key && model[ key ];
+		var li = m && liForKey( key );
+		var a = li && li.querySelector( 'a' );
+		if ( ! a ) { return; }
 		// Cover the label, not the icon column. Measured, so RTL, a widened
 		// menu and a wrapped long label all line up without per-case CSS.
 		var target = ( ! m.isSub && a.querySelector( '.wp-menu-name' ) ) || a;
@@ -969,13 +997,6 @@
 		var padEnd   = parseFloat( ts.paddingRight ) || 0;
 		input.style.left   = ( tr.left + padStart - lr.left ) + 'px';
 		input.style.width  = Math.max( 60, tr.width - padStart - padEnd ) + 'px';
-		input.value = m.title;
-
-		rowCtl.editing = selectedKey;
-		li.classList.add( 'maestro-renaming' );
-		li.insertBefore( input, a.nextSibling );
-		input.focus( { preventScroll: true } );
-		input.select();
 	}
 
 	// Enter and blur commit, Escape cancels. Only the keyboard paths move
@@ -985,6 +1006,7 @@
 		var key = rowCtl && rowCtl.editing;
 		if ( ! key ) { return; }
 		rowCtl.editing = null; // first, so the blur from removing the field is a no-op
+		rowCtl.composing = false;
 		var input = rowCtl.input;
 		var li = liForKey( key );
 		if ( li ) { li.classList.remove( 'maestro-renaming' ); }

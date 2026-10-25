@@ -1,5 +1,6 @@
 import { test, expect } from '../fixtures';
 import type { Page } from '@playwright/test';
+import { execFileSync } from 'child_process';
 
 /**
  * Selected-row controls prototype (.planning/DESKTOP-UX-NEXT-PASS.md).
@@ -74,6 +75,35 @@ test.describe( 'selected-row controls, desktop', () => {
 		await expect( posts( page ).locator( '.wp-menu-name' ) ).toHaveText( /^Articles/ );
 	} );
 
+	for ( const key of [ 'Enter', 'Escape' ] ) {
+		test( `IME ${ key } leaves rename open until composition ends`, async ( { page } ) => {
+			await openEditor( page );
+			await posts( page ).locator( '> a' ).click();
+			await strip( page ).locator( '.maestro-row-rename' ).click();
+			const field = posts( page ).locator( '.maestro-row-rename-input' );
+			await field.fill( '未確定' );
+			await field.dispatchEvent( 'keydown', { key, isComposing: true } );
+			await expect( field ).toBeFocused();
+			await field.dispatchEvent( 'compositionstart' );
+			// Some IMEs omit isComposing on the confirming key.
+			await field.dispatchEvent( 'keydown', { key } );
+			await expect( field ).toBeFocused();
+			await field.dispatchEvent( 'compositionend', { data: '未確定' } );
+			// WebKit may report keyCode 229 on the final composition key.
+			await field.dispatchEvent( 'keydown', { key, keyCode: 229 } );
+			await expect( field ).toBeFocused();
+			await expect( field ).toHaveValue( '未確定' );
+			await expect( posts( page ).locator( '.wp-menu-name' ) ).toHaveText( /^Posts/ );
+
+			const save = key === 'Enter' ? saved( page ) : null;
+			await field.press( key );
+			if ( save ) { await save; }
+			await expect( field ).toHaveCount( 0 );
+			await expect( strip( page ).locator( '.maestro-row-rename' ) ).toBeFocused();
+			await expect( posts( page ).locator( '.wp-menu-name' ) ).toHaveText( key === 'Enter' ? /^未確定/ : /^Posts/ );
+		} );
+	}
+
 	test( 'Enter on the selected row and F2 both start a rename', async ( { page } ) => {
 		await openEditor( page );
 		const row = posts( page ).locator( '> a' );
@@ -136,6 +166,72 @@ test.describe( 'selected-row controls, desktop', () => {
 		await expect( strip( page ) ).toHaveCount( 0 );
 		await expect( page.locator( '.maestro-toolbar .maestro-rename-input' ) ).toBeFocused();
 	} );
+} );
+
+// A real RTL locale loads WordPress's RTL styles as well as its direction.
+test.describe( 'selected-row controls, RTL live widths', () => {
+	test.use( { viewport: { width: 1280, height: 800 } } );
+	let previousLanguage: string;
+	function wp( args: string[] ) {
+		return execFileSync( 'npx', [ 'wp-env', 'run', 'tests-cli', 'wp', ...args ], {
+			encoding: 'utf8', stdio: [ 'ignore', 'pipe', 'pipe' ],
+		} );
+	}
+	test.beforeAll( () => {
+		previousLanguage = JSON.parse( wp( [ 'eval', "echo wp_json_encode( get_option( 'WPLANG', '' ) );" ] ) );
+		wp( [ 'language', 'core', 'install', 'ar', '--activate' ] );
+	} );
+	test.afterAll( () => {
+		wp( [ 'option', 'update', 'WPLANG', previousLanguage ] );
+	} );
+
+	for ( const submenu of [ false, true ] ) {
+		test( `live resizing keeps the ${ submenu ? 'submenu' : 'top-level' } rename field aligned in RTL`, async ( { page } ) => {
+			await openEditor( page );
+			await expect( page.locator( 'html' ) ).toHaveAttribute( 'dir', 'rtl' );
+			// Simulate an external width owner (Keel), without a window resize.
+			await page.addStyleTag( { content: '#adminmenuwrap, #adminmenu { width: var(--review-width, 320px) !important; }' } );
+			await posts( page ).locator( '> a' ).click();
+			const row = submenu ? posts( page ).locator( '.maestro-subitem' ).first() : posts( page );
+			await row.locator( '> a' ).focus();
+			await page.keyboard.press( 'F2' );
+			const field = row.locator( '.maestro-row-rename-input' );
+			await field.fill( 'قائمة طويلة للغاية لاختبار عرض عناصر التحكم بجانب الصف المحدد' );
+			const save = saved( page );
+			await field.press( 'Enter' );
+			await save;
+			await strip( page ).locator( '.maestro-row-rename' ).click();
+			await field.fill( 'نص غير محفوظ لاختبار عرض القائمة' );
+			await field.evaluate( ( input: HTMLInputElement ) => input.setSelectionRange( 2, 5 ) );
+
+			for ( const width of [ 160, 240, 320, 160 ] ) {
+				await page.evaluate( w => document.documentElement.style.setProperty( '--review-width', `${ w }px` ), width );
+				// Also exercise the window-resize path without changing the menu width.
+				if ( width === 240 ) { await page.setViewportSize( { width: 1100, height: 800 } ); }
+				await expect.poll( () => row.evaluate( ( li, isSub ) => {
+					const a = li.querySelector( 'a' )!;
+					const label = isSub ? a : a.querySelector( '.wp-menu-name' )!;
+					const r = label.getBoundingClientRect();
+					const ar = a.getBoundingClientRect();
+					const style = getComputedStyle( label );
+					const left = parseFloat( style.paddingLeft ) || 0;
+					const right = parseFloat( style.paddingRight ) || 0;
+					const f = li.querySelector( '.maestro-row-rename-input' )!.getBoundingClientRect();
+					return Math.max( Math.abs( f.left - r.left - left ), Math.abs( f.width - ( r.width - left - right ) ), Math.abs( f.top - ar.top ), Math.abs( f.height - ar.height ) );
+				}, submenu ) ).toBeLessThan( 1 );
+				await expect( field ).toBeFocused();
+				await expect( field ).toHaveValue( 'نص غير محفوظ لاختبار عرض القائمة' );
+				expect( await field.evaluate( ( input: HTMLInputElement ) => [ input.selectionStart, input.selectionEnd ] ) ).toEqual( [ 2, 5 ] );
+				const menu = ( await page.locator( '#adminmenu' ).boundingBox() )!;
+				const box = ( await field.boundingBox() )!;
+				expect( box.x ).toBeGreaterThanOrEqual( menu.x );
+				expect( box.x + box.width ).toBeLessThanOrEqual( menu.x + menu.width );
+			}
+			await page.keyboard.press( 'Escape' );
+			await expect( field ).toHaveCount( 0 );
+			await expect( strip( page ).locator( '.maestro-row-rename' ) ).toBeFocused();
+		} );
+	}
 } );
 
 test.describe( 'selected-row controls, phone', () => {
