@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-24T22:01:10+00:00\n"
+"POT-Creation-Date: 2026-10-25T21:29:59+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: maestro-menu-editor\n"
@@ -82,7 +82,7 @@ msgid "Dismiss save error"
 msgstr ""
 
 #: includes/class-assets.php:277
-msgid "Edit Mode"
+msgid "Edit mode"
 msgstr ""
 
 #: includes/class-assets.php:278
@@ -114,7 +114,7 @@ msgid "Visibility"
 msgstr ""
 
 #: includes/class-assets.php:285
-msgid "Reset Item"
+msgid "Reset item"
 msgstr ""
 
 #: includes/class-assets.php:286
@@ -138,7 +138,7 @@ msgid "Separator removed"
 msgstr ""
 
 #: includes/class-assets.php:291
-msgid "Reset All"
+msgid "Reset all"
 msgstr ""
 
 #. translators: Heading for the role-checkbox group that hides THIS menu item (parent or submenu row).
@@ -255,12 +255,12 @@ msgstr ""
 
 #. translators: Explanation at the top of the hiding-profiles dialog.
 #: includes/class-assets.php:335
-msgid "A visibility group lets you hide a menu item from everyone in the group. Add people to the group, then select it in the menu item's Visibility controls. This hides the menu link without changing page access."
+msgid "A visibility group lets you hide a menu item from everyone in the group. Add people to the group, then select the group in the menu item's Visibility settings. This hides the menu link without changing page access."
 msgstr ""
 
 #. translators: Persistent next-step guidance beside each saved hiding profile.
 #: includes/class-assets.php:337
-msgid "Add people below, then select this group in a menu item's Visibility controls. Changes save automatically."
+msgid "Add people below, then select this group in a menu item's Visibility settings. Changes save automatically."
 msgstr ""
 
 #. translators: Accessible label for the text field that renames a hiding profile.
@@ -293,268 +293,290 @@ msgstr ""
 #. translators: 1: profile name, 2: number of menu items the profile hides, 3: number of people in the profile. Confirmation before a hiding profile is deleted.
 #: includes/class-assets.php:349
 #, php-format
-msgid "Delete “%1$s”? Items it hides: %2$d. People in it: %3$d. Those people will see the items again."
+msgid "Delete “%1$s”? It hides %2$d items from %3$d people."
+msgstr ""
+
+#. translators: 1: group name, 2: item count, 3: member count. Complete variants keep singular nouns translatable.
+#: includes/class-assets.php:351
+#, php-format
+msgid "Delete “%1$s”? It hides %2$d item from %3$d people."
+msgstr ""
+
+#. translators: 1: group name, 2: item count, 3: member count.
+#: includes/class-assets.php:353
+#, php-format
+msgid "Delete “%1$s”? It hides %2$d items from %3$d person."
+msgstr ""
+
+#. translators: 1: group name, 2: item count, 3: member count.
+#: includes/class-assets.php:355
+#, php-format
+msgid "Delete “%1$s”? It hides %2$d item from %3$d person."
+msgstr ""
+
+#: includes/class-assets.php:356
+msgid "Deleting this group removes its visibility rules. Other rules may still hide these items from its members."
 msgstr ""
 
 #. translators: Caution shown in the hiding-profiles dialog while the editor's own account is among a profile's people.
-#: includes/class-assets.php:351
+#: includes/class-assets.php:358
 msgid "You are in this group, so the items it hides are hidden from your own account too. You can still reach those pages by URL, and the editor stays available."
 msgstr ""
 
 #. translators: Shown when a hiding profile's name is left empty.
-#: includes/class-assets.php:353
+#: includes/class-assets.php:360
 msgid "Enter a name for the group."
 msgstr ""
 
 #. translators: Shown when a hiding profile is given a name another profile already uses (names are compared ignoring case).
-#: includes/class-assets.php:355
+#: includes/class-assets.php:362
 msgid "Another group already has that name."
 msgstr ""
 
 #. translators: %d: maximum number of hiding profiles. Shown when the limit is reached.
-#: includes/class-assets.php:357
+#: includes/class-assets.php:364
 #, php-format
 msgid "Limit reached — up to %d groups."
 msgstr ""
 
 #. translators: Screen-reader announcement after a hiding profile is created.
-#: includes/class-assets.php:359
+#: includes/class-assets.php:366
 msgid "Group added"
 msgstr ""
 
 #. translators: Screen-reader announcement after a hiding profile is deleted.
-#: includes/class-assets.php:361
+#: includes/class-assets.php:368
 msgid "Group deleted"
 msgstr ""
 
 #. translators: Label for the role picker that previews the menu as another role.
-#: includes/class-assets.php:363
+#: includes/class-assets.php:370
 #: includes/class-preview.php:189
 msgid "Preview as"
 msgstr ""
 
-#: includes/class-assets.php:364
+#: includes/class-assets.php:371
 #: includes/class-preview.php:196
 msgid "Preview"
 msgstr ""
 
-#: includes/class-assets.php:365
+#: includes/class-assets.php:372
 msgid "Role preview is not available to network super admins: WordPress grants them every capability, so their menu cannot be narrowed to a role."
 msgstr ""
 
-#: includes/class-assets.php:366
+#: includes/class-assets.php:373
 msgid "Your latest changes could not be saved, so the preview did not open. Try again once they are saved."
 msgstr ""
 
-#: includes/class-assets.php:367
-msgid "Reset ALL menu customizations to WordPress defaults? This cannot be undone."
+#: includes/class-assets.php:374
+msgid "Reset all menu customizations to WordPress defaults? This cannot be undone."
 msgstr ""
 
-#: includes/class-assets.php:368
+#: includes/class-assets.php:375
 msgid "Drag to reorder"
 msgstr ""
 
 #. translators: 1: item title, 2: direction ("up"/"down"), 3: new position number, 4: total items.
-#: includes/class-assets.php:370
+#: includes/class-assets.php:377
 #, php-format
 msgid "%1$s moved %2$s, position %3$d of %4$d"
 msgstr ""
 
 #. translators: %s: item title.
-#: includes/class-assets.php:372
+#: includes/class-assets.php:379
 #, php-format
 msgid "%s is already first"
 msgstr ""
 
 #. translators: %s: item title.
-#: includes/class-assets.php:374
+#: includes/class-assets.php:381
 #, php-format
 msgid "%s is already last"
 msgstr ""
 
-#: includes/class-assets.php:375
+#: includes/class-assets.php:382
 msgid "up"
 msgstr ""
 
-#: includes/class-assets.php:376
+#: includes/class-assets.php:383
 msgid "down"
 msgstr ""
 
 #. translators: Accessible label for the "move selected item up" button in the editor panel.
-#: includes/class-assets.php:378
+#: includes/class-assets.php:385
 msgid "Move up"
 msgstr ""
 
 #. translators: Accessible label for the "move selected item down" button in the editor panel.
-#: includes/class-assets.php:380
+#: includes/class-assets.php:387
 msgid "Move down"
 msgstr ""
 
 #. translators: Short label appended to modified menu items for screen readers.
-#: includes/class-assets.php:382
+#: includes/class-assets.php:389
 msgid "(modified)"
 msgstr ""
 
 #. translators: One-time hint shown to first-time users of the menu editor.
-#: includes/class-assets.php:384
+#: includes/class-assets.php:391
 msgid "Click a menu item to start editing."
 msgstr ""
 
 #. translators: Label for the button that dismisses the first-run hint.
-#: includes/class-assets.php:386
+#: includes/class-assets.php:393
 msgid "Got it"
 msgstr ""
 
 #. translators: Accessible label / tooltip for the toolbar button that replays the guided tour.
-#: includes/class-assets.php:388
+#: includes/class-assets.php:395
 msgid "Show me around"
 msgstr ""
 
 #. translators: Title of the guided-tour tooltip dialog.
-#: includes/class-assets.php:390
+#: includes/class-assets.php:397
 msgid "Editing the menu"
 msgstr ""
 
-#: includes/class-assets.php:391
+#: includes/class-assets.php:398
 msgid "Next"
 msgstr ""
 
-#: includes/class-assets.php:392
+#: includes/class-assets.php:399
 msgid "Back"
 msgstr ""
 
-#: includes/class-assets.php:393
+#: includes/class-assets.php:400
 msgid "Done"
 msgstr ""
 
-#: includes/class-assets.php:394
+#: includes/class-assets.php:401
 msgid "Close dialog"
 msgstr ""
 
-#: includes/class-assets.php:395
+#: includes/class-assets.php:402
 msgid "Close tour"
 msgstr ""
 
 #. translators: 1: current step number, 2: total steps. e.g. "2 of 5".
-#: includes/class-assets.php:397
+#: includes/class-assets.php:404
 #, php-format
 msgid "%1$d of %2$d"
 msgstr ""
 
-#: includes/class-assets.php:400
+#: includes/class-assets.php:407
 msgid "Click any menu item to edit it right here on the menu."
 msgstr ""
 
-#: includes/class-assets.php:401
+#: includes/class-assets.php:408
 msgid "Type a new name for the selected item here."
 msgstr ""
 
-#: includes/class-assets.php:402
+#: includes/class-assets.php:409
 msgid "Reorder items by dragging — or use the up and down arrows."
 msgstr ""
 
-#: includes/class-assets.php:403
+#: includes/class-assets.php:410
 msgid "Change the item's icon. Pick one from Dashicons or Bootstrap, or choose no icon."
 msgstr ""
 
-#: includes/class-assets.php:404
+#: includes/class-assets.php:411
 msgid "Hide the item from chosen roles or people. Everyone else still sees it."
 msgstr ""
 
-#: includes/class-assets.php:405
+#: includes/class-assets.php:412
 msgid "Undo every change to just this item."
 msgstr ""
 
-#: includes/class-assets.php:406
+#: includes/class-assets.php:413
 msgid "Add a separator line below this item. To remove one, select the separator and use the trash button."
 msgstr ""
 
 #. translators: Guided-tour step pointing at the draggable edge of the admin menu.
-#: includes/class-assets.php:408
+#: includes/class-assets.php:415
 msgid "Drag the menu's edge to make it wider or narrower. When the edge has focus, the arrow keys work too."
 msgstr ""
 
 #. translators: Guided-tour step pointing at the Visibility groups toolbar button.
-#: includes/class-assets.php:410
-msgid "Visibility groups let you hide a menu item from everyone in a group. Add people to the group, then select it in the menu item's Visibility controls."
+#: includes/class-assets.php:417
+msgid "Visibility groups let you hide a menu item from everyone in a group. Add people to the group, then select the group in the menu item's Visibility settings."
 msgstr ""
 
-#: includes/class-assets.php:411
+#: includes/class-assets.php:418
 msgid "Preview as shows the menu a role would see, read-only. Pick a role and press Preview; your changes are saved first."
 msgstr ""
 
-#: includes/class-assets.php:412
+#: includes/class-assets.php:419
 msgid "Menu width lets you type an exact width or go back to the default."
 msgstr ""
 
-#: includes/class-assets.php:413
+#: includes/class-assets.php:420
 msgid "Want this tour again? Use the help button anytime."
 msgstr ""
 
-#: includes/class-assets.php:414
-msgid "Your changes save automatically. Reset All returns the whole menu to the WordPress defaults."
+#: includes/class-assets.php:421
+msgid "Your changes save automatically. Reset all returns the whole menu to the WordPress defaults."
 msgstr ""
 
-#: includes/class-assets.php:415
+#: includes/class-assets.php:422
 msgid "Click Exit when you are done. Your changes stay live for everyone."
 msgstr ""
 
 #. translators: Accessible label / tooltip for the toolbar button, and title of the dialog, holding menu-wide settings.
-#: includes/class-assets.php:417
-#: includes/class-assets.php:418
+#: includes/class-assets.php:424
+#: includes/class-assets.php:425
 msgid "Menu width"
 msgstr ""
 
-#: includes/class-assets.php:419
+#: includes/class-assets.php:426
 msgid "Menu width in pixels"
 msgstr ""
 
-#: includes/class-assets.php:420
+#: includes/class-assets.php:427
 msgid "Widen the menu so longer labels fit on one line. Applies on every admin page, for everyone, on screens 961px and wider."
 msgstr ""
 
 #. translators: %d: WordPress's default admin menu width in pixels.
-#: includes/class-assets.php:422
+#: includes/class-assets.php:429
 #, php-format
 msgid "Using the WordPress default (%dpx)."
 msgstr ""
 
 #. translators: %d: the stored admin menu width in pixels.
-#: includes/class-assets.php:424
+#: includes/class-assets.php:431
 #, php-format
 msgid "Custom width: %dpx."
 msgstr ""
 
 #. translators: %d: the width in pixels another plugin is holding the admin menu at.
-#: includes/class-assets.php:426
+#: includes/class-assets.php:433
 #, php-format
 msgid "Another plugin sets the menu width (%dpx), so this setting has no effect while that plugin is active."
 msgstr ""
 
-#: includes/class-assets.php:427
+#: includes/class-assets.php:434
 msgid "Use default"
 msgstr ""
 
-#: includes/class-assets.php:428
+#: includes/class-assets.php:435
 msgid "Menu width reset to the WordPress default."
 msgstr ""
 
 #. translators: Accessible label / tooltip for the handle on the admin menu's edge that resizes it.
-#: includes/class-assets.php:430
+#: includes/class-assets.php:437
 msgid "Resize menu"
 msgstr ""
 
 #. translators: %d: a width in pixels, read out by screen readers.
-#: includes/class-assets.php:432
+#: includes/class-assets.php:439
 #, php-format
 msgid "%d pixels"
 msgstr ""
 
-#: includes/class-assets.php:547
+#: includes/class-assets.php:554
 msgid "Dashicons"
 msgstr ""
 
-#: includes/class-assets.php:562
+#: includes/class-assets.php:569
 msgid "Bootstrap"
 msgstr ""
 

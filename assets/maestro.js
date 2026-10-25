@@ -97,6 +97,7 @@
 		n.dir = 'auto';
 	}
 	function removePopover( pop ) {
+		if ( pop.maestroAnchor ) { pop.maestroAnchor.setAttribute( 'aria-expanded', 'false' ); }
 		if ( pop.maestroCleanup ) { pop.maestroCleanup(); }
 		pop.remove();
 	}
@@ -831,7 +832,6 @@
 		if ( current ) {
 			var scheme = window.getComputedStyle( current );
 			bar.style.setProperty( '--maestro-menu-accent', scheme.backgroundColor );
-			bar.style.setProperty( '--maestro-menu-accent-text', scheme.color );
 		}
 
 		// Transient save-status — aria-live, empty at idle so no announcement fires.
@@ -1067,6 +1067,10 @@
 			var parent = menuWrap && hamburger && hamburger.offsetParent !== null ? menuWrap : document.body;
 			if ( bar.parentNode !== parent ) { parent.appendChild( bar ); }
 		}
+		bar.querySelectorAll( '.maestro-icon-btn, .maestro-vis-btn, .maestro-settings-btn, .maestro-profiles-btn, .maestro-preview-toggle, .maestro-tour-help' ).forEach( function ( button ) {
+			button.setAttribute( 'aria-haspopup', 'dialog' );
+			button.setAttribute( 'aria-expanded', 'false' );
+		} );
 		mountToolbar();
 		window.addEventListener( 'resize', mountToolbar );
 
@@ -1793,10 +1797,7 @@
 				var count = window.maestroLogic.profileItemCount( p.id, assignments() );
 				// Function replacers: a name is user text, and a "$&" in it would
 				// otherwise be read as a replacement pattern.
-				var question = I.profileDeleteConfirm
-					.replace( '%1$s', function () { return p.name; } )
-					.replace( '%2$d', function () { return String( count ); } )
-					.replace( '%3$d', function () { return String( p.users.length ); } );
+				var question = window.maestroLogic.profileDeleteMessage( p.name, count, p.users.length, I );
 				if ( ! window.confirm( question ) ) { return; }
 				deleteProfile( p.id );
 				renderList();
@@ -2815,6 +2816,9 @@
 	}
 
 	function placePopover( pop, anchorBtn ) {
+		if ( tour && tour.active ) { endTour(); }
+		pop.maestroAnchor = anchorBtn;
+		anchorBtn.setAttribute( 'aria-expanded', 'true' );
 		if ( isPhoneViewport() ) {
 			return placeMobilePopover( pop, anchorBtn );
 		}
@@ -2953,6 +2957,9 @@
 			var bar = document.getElementById( 'wpadminbar' );
 			var top = Math.max( ( v ? v.offsetTop : 0 ) + 8, bar ? bar.getBoundingClientRect().bottom + 8 : 8 );
 			var bottom = ( v ? v.offsetTop + v.height : window.innerHeight ) - 8;
+			// Keep the other tool buttons available even when this is a long sheet.
+			var toolbar = document.querySelector( '.maestro-toolbar' );
+			if ( toolbar ) { bottom = Math.min( bottom, toolbar.getBoundingClientRect().top - 8 ); }
 			pop.style.top = top + 'px';
 			pop.style.width = Math.max( 0, ( v ? v.width : window.innerWidth ) - 16 ) + 'px';
 			pop.style.height = 'auto';
@@ -2965,6 +2972,9 @@
 		}
 		function outside( e ) {
 			if ( ! pop.contains( e.target ) ) {
+				// Tool buttons replace this dialog through their own click handler.
+				// Other page controls remain inert while the phone sheet is open.
+				if ( e.target.closest( '.maestro-toolbar [aria-haspopup="dialog"]:not(:disabled)' ) ) { return; }
 				e.preventDefault();
 				e.stopPropagation();
 			}
@@ -3278,7 +3288,7 @@
 		var toggle = el( 'button', 'button maestro-preview-toggle' );
 		toggle.type = 'button';
 		toggle.setAttribute( 'aria-haspopup', 'dialog' );
-		iconButton( toggle, 'dashicons-visibility', I.previewAs );
+		iconButton( toggle, 'dashicons-welcome-view-site', I.previewAs );
 		toggle.addEventListener( 'click', function () { openPreviewDialog( toggle ); } );
 		wrap.appendChild( toggle );
 		return wrap;
@@ -3325,8 +3335,14 @@
 
 	// Touch can come from a tablet or touch laptop as well as a phone.
 	var lastPointerType = '';
-	document.addEventListener( 'pointerdown', function ( e ) { lastPointerType = e.pointerType; }, true );
-	document.addEventListener( 'keydown', function () { lastPointerType = ''; }, true );
+	document.addEventListener( 'pointerdown', function ( e ) {
+		lastPointerType = e.pointerType;
+		document.documentElement.classList.add( 'maestro-pointer-input' );
+	}, true );
+	document.addEventListener( 'keydown', function () {
+		lastPointerType = '';
+		document.documentElement.classList.remove( 'maestro-pointer-input' );
+	}, true );
 	function touchPointer() {
 		return lastPointerType === 'touch' || lastPointerType === 'pen';
 	}
@@ -3556,6 +3572,9 @@
 
 	function startTour() {
 		if ( tour.active ) { return; }
+		closePopovers();
+		var help = document.querySelector( '.maestro-tour-help' );
+		if ( help ) { help.setAttribute( 'aria-expanded', 'true' ); }
 		// A step the viewport hides (byViewport) is dropped before the tour
 		// starts, so "3 of 11" counts only what will be shown rather than
 		// jumping from 7 to 9 on a phone. A panel control hidden only for the
@@ -3575,6 +3594,8 @@
 	}
 
 	function endTour() {
+		var help = document.querySelector( '.maestro-tour-help' );
+		if ( help ) { help.setAttribute( 'aria-expanded', 'false' ); }
 		tour.active = false;
 		if ( tour.root ) { tour.root.remove(); tour.root = null; }
 		document.removeEventListener( 'keydown', onTourKeydown, true );
