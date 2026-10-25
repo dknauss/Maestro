@@ -3478,7 +3478,7 @@
 		var toggle = el( 'button', 'button maestro-preview-toggle' );
 		toggle.type = 'button';
 		toggle.setAttribute( 'aria-haspopup', 'dialog' );
-		iconButton( toggle, 'dashicons-visibility', I.previewAs );
+		iconButton( toggle, 'dashicons-welcome-view-site', I.previewAs );
 		toggle.addEventListener( 'click', function () { openPreviewDialog( toggle ); } );
 		wrap.appendChild( toggle );
 		return wrap;

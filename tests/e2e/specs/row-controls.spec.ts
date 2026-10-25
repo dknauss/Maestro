@@ -95,6 +95,8 @@ test.describe( 'selected-row controls, desktop', () => {
 		await expect( page.locator( '.maestro-toolbar .maestro-move-up' ) ).toBeHidden();
 		// What stays in the toolbar for now.
 		await expect( page.locator( '.maestro-toolbar .maestro-vis-btn' ) ).toBeVisible();
+		await expect( page.locator( '.maestro-vis-btn .dashicons-visibility' ) ).toBeVisible();
+		await expect( page.locator( '.maestro-preview-toggle .dashicons-welcome-view-site' ) ).toBeVisible();
 		await expect( page.locator( '.maestro-toolbar .maestro-reset-item' ) ).toBeVisible();
 
 		// Row, then Change icon, Rename, Move up, Move down.
