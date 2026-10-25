@@ -843,6 +843,17 @@
 		}
 	}
 
+
+	// Menu labels are content, never credentials. Keep native autocomplete off
+	// and offer extension-specific ignore hints without changing field semantics
+	// or blocking focus/paste. Browsers and extensions may override these hints.
+	function discourageCredentialAutofill( input ) {
+		input.setAttribute( 'autocomplete', 'off' );
+		[ 'data-1p-ignore', 'data-lpignore', 'data-bwignore', 'data-protonpass-ignore' ].forEach( function ( attr ) {
+			input.setAttribute( attr, 'true' );
+		} );
+	}
+
 	function buildRowControls() {
 		if ( ! rowControlsEnabled() ) { return; }
 		document.body.classList.add( 'maestro-row-controls' );
@@ -886,6 +897,7 @@
 
 		var input = el( 'input', 'maestro-row-rename-input maestro-row-ctl' );
 		input.type = 'text';
+		discourageCredentialAutofill( input );
 		input.dir = 'auto';
 		// Same accessible name as the toolbar field it stands in for (WCAG
 		// 2.5.3: the placeholder is the only visible label).
@@ -1117,6 +1129,7 @@
 		setText( renameLabel, I.renamePlaceholder );
 		var rename = el( 'input', 'maestro-rename-input' );
 		rename.type = 'text';
+		discourageCredentialAutofill( rename );
 		rename.id = 'maestro-rename-field';
 		rename.placeholder = I.renamePlaceholder;
 		rename.dir = 'auto'; // a typed or translated title sets its own direction

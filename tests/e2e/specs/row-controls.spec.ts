@@ -107,6 +107,29 @@ test.describe( 'selected-row controls, desktop', () => {
 		}
 	} );
 
+
+	for ( const enabled of [ false, true ] ) {
+		test( `rename discourages credential autofill with row controls ${ enabled }`, async ( { page } ) => {
+			await openEditor( page, `/wp-admin/index.php?maestro_edit=1&maestro_rows=${ enabled ? 1 : 0 }` );
+			await posts( page ).locator( '> a' ).click();
+			if ( enabled ) { await strip( page ).locator( '.maestro-row-rename' ).click(); }
+			const field = page.locator( enabled ? '.maestro-row-rename-input' : '.maestro-toolbar .maestro-rename-input' );
+			await expect( field ).toHaveAttribute( 'type', 'text' );
+			await expect( field ).toHaveAttribute( 'autocomplete', 'off' );
+			await expect( field ).toHaveAttribute( 'data-1p-ignore', 'true' );
+			await expect( field ).toHaveAttribute( 'data-lpignore', 'true' );
+			await expect( field ).toHaveAttribute( 'data-bwignore', 'true' );
+			await expect( field ).toHaveAttribute( 'data-protonpass-ignore', 'true' );
+			await expect( field ).toHaveAccessibleName( 'Menu label' );
+			await field.fill( 'Edited without credential autofill' );
+			const save = saved( page );
+			await field.press( 'Enter' );
+			await save;
+			await page.reload();
+			await expect( posts( page ).locator( '.wp-menu-name' ) ).toHaveText( /^Edited without credential autofill/ );
+		} );
+	}
+
 	test( 'rename in place: Enter commits, Escape cancels, focus returns to the pencil', async ( { page } ) => {
 		await openEditor( page );
 		await posts( page ).locator( '> a' ).click();
