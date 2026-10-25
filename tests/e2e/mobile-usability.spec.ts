@@ -74,7 +74,9 @@ test( 'group sheet follows visual viewport and keeps focused input above keyboar
 	await expect( pop ).toHaveCount( 0 );
 } );
 
-test( 'touch tour keeps the menu open and covers all phone controls', async ( { page } ) => {
+test( 'coach tips are omitted on phones and remain available on larger screens', async ( { page } ) => {
+	await expect( page.locator( '.maestro-tour-help' ) ).toBeHidden();
+	await page.setViewportSize( { width: 900, height: 900 } );
 	await page.locator( '.maestro-tour-help' ).tap();
 	const texts: string[] = [];
 	while ( await page.locator( '.maestro-tour' ).count() ) {
@@ -84,7 +86,7 @@ test( 'touch tour keeps the menu open and covers all phone controls', async ( { 
 		await expect( page.locator( '#adminmenu' ) ).toBeVisible();
 	}
 	expect( texts ).toHaveLength( 12 );
-	for ( const label of [ 'Type a new name', 'Reorder', 'icon', 'Hide the item', 'Visibility groups', 'Preview as', 'Reset All', 'Exit' ] ) {
+	for ( const label of [ 'Type a new name', 'Reorder', 'icon', 'Hide the item', 'Visibility groups', 'Preview as', 'Reset all', 'Exit' ] ) {
 		expect( texts.some( text => text.includes( label ) ), label ).toBe( true );
 	}
 	expect( texts.some( text => text.includes( 'Menu settings' ) ) ).toBe( false );
