@@ -50,7 +50,9 @@ Local verification on 2026-10-24; session logs are in
 The two completion regressions failed before their implementations and passed
 with the fixes. #263's full CI browser run reported 206 passes and only those
 two failures; this follow-up reran the affected flows and related responsive
-checks locally. A complete browser-suite rerun remains delegated to PR CI.
+checks locally. The CI workflow targets PRs into main, so a complete browser-suite rerun
+will occur when this follow-up is incorporated into #263. The stacked PR itself
+only runs the review gate.
 Baseline before Phase 31: PHP unit 234 tests/555 assertions; JavaScript 142/142.
 
 ## Fresh review
