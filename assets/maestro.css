@@ -1496,3 +1496,8 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 .maestro-transfer-result ul { list-style: disc; padding-inline-start: 20px; max-height: 160px; overflow: auto; }
 .maestro-transfer-confirm { display: block; margin-block: 12px; }
 .maestro-transfer [hidden] { display: none !important; }
+
+.maestro-transfer-recovery {
+ position: fixed; z-index: 100002; top: 56px; inset-inline: 16px;
+ padding: 12px; max-width: 480px; margin-inline: auto;
+}

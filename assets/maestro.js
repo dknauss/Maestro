@@ -1695,6 +1695,13 @@
 			if ( saveTimer || saveInFlight || savePending ) { await flushAutosave(); }
 			if ( ! lastSaveOk ) { throw new Error( I.transferSaveFailed ); }
 		}
+		function download( data, name ) {
+			var url = URL.createObjectURL( new Blob( [ JSON.stringify( data, null, 2 ) + '\n' ], { type: 'application/json' } ) );
+			var a = el( 'a' ); a.href = url; a.download = name;
+			document.body.appendChild( a ); a.click(); a.remove();
+			setTimeout( function () { URL.revokeObjectURL( url ); }, 1000 );
+		}
+
 		function show( message, report ) {
 			result.textContent = message;
 			if ( report && report.length ) {
@@ -1702,6 +1709,13 @@
 				var list = el( 'ul' );
 				report.slice( 0, 50 ).forEach( function ( row ) { list.appendChild( el( 'li', '', row.reference ) ); } );
 				result.appendChild( list );
+				if ( report.length > 50 ) {
+					result.appendChild( el( 'p', '', I.transferReportMore ) );
+					var all = el( 'button', 'button', I.transferReportFile );
+					all.type = 'button';
+					all.addEventListener( 'click', function () { download( report, 'maestro-import-report.json' ); } );
+					result.appendChild( all );
+				}
 			}
 			speak( message );
 		}
@@ -1723,10 +1737,7 @@
 			work( async function () {
 				await saved();
 				var data = await request( D.restUrl + '/export' );
-				var url = URL.createObjectURL( new Blob( [ JSON.stringify( data, null, 2 ) + '\n' ], { type: 'application/json' } ) );
-				var a = el( 'a' ); a.href = url; a.download = 'maestro-menu-config.json';
-				document.body.appendChild( a ); a.click(); a.remove();
-				setTimeout( function () { URL.revokeObjectURL( url ); }, 1000 );
+				download( data, 'maestro-menu-config.json' );
 				result.textContent = '';
 			} );
 		} );
@@ -1759,6 +1770,13 @@
 				// Freeze the old full-replace model until PHP rebuilds it from storage.
 				show( I.transferSuccess, data.report );
 				pop.inert = true;
+				var recovery = el( 'div', 'notice notice-success maestro-transfer-recovery' );
+				recovery.appendChild( el( 'p', '', I.transferSuccess ) );
+				var reload = el( 'a', 'button button-primary', I.transferReload );
+				reload.href = window.location.href;
+				recovery.appendChild( reload );
+				document.body.appendChild( recovery );
+				reload.focus();
 				window.location.reload();
 				// Keep the old model frozen even if a browser defers navigation.
 				await new Promise( function () {} );
