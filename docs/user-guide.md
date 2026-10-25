@@ -83,7 +83,7 @@ the same control.
 
 ## Preview The Menu As A Role
 
-To check what a role still sees, open **Preview as** using the eye button in the
+To check what a role still sees, open **Preview as** using the screen button in the
 editor toolbar, choose a role, then press **Preview**. Changing the selection
 alone does not start a preview. Maestro saves anything still pending first; if
 the save fails, the preview does not open.
