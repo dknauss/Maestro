@@ -432,6 +432,8 @@ class Assets {
 					'transferSuccess'      => __( 'Configuration imported. People rules and visibility groups were kept.', 'maestro-menu-editor' ),
 					'transferWaiting'      => __( 'Working…', 'maestro-menu-editor' ),
 					'transferFailure'      => __( 'Transfer failed. Please try again.', 'maestro-menu-editor' ),
+					'transferReload'       => __( 'Reload editor', 'maestro-menu-editor' ),
+					'transferReport'       => __( 'Download full report', 'maestro-menu-editor' ),
 					'transferDrops'        => __( 'Not applied:', 'maestro-menu-editor' ),
 					'transferFileRequired' => __( 'Choose a configuration file first.', 'maestro-menu-editor' ),
 					'menuWidth'            => __( 'Menu width', 'maestro-menu-editor' ),

@@ -234,7 +234,9 @@ portable settings; it preserves that site's existing people rules and
 visibility groups. An empty result requires an additional **Reset portable
 settings** confirmation. Hiding remains cosmetic and does not change page access.
 
-Menus or roles missing on the destination are dropped and reported. Imports
+Menus or roles missing on the destination are dropped and reported. The dialog
+previews up to 50 entries; **Download full report** saves every entry, including
+its reason code, as a JSON file. Imports
 use the destination's actual Dashboard menu registrations, before Maestro
 hides anything. A plugin that registers different menus on different screens
 may need checking on the destination. Plugins, roles or settings changed since
@@ -248,5 +250,7 @@ Image URLs are carried as URLs: an icon hosted on the source site still needs
 that image to be reachable. Import does not upload or copy media.
 
 After import, the editor reloads from saved settings and shows a success notice.
+If you cancel the reload, editing stays locked to protect the imported settings.
+Use **Reload editor** to continue with the saved configuration.
 Export/import is a desktop task: like the menu width, Settings shows only on
 screens 961px and wider. Named presets and starter configurations are not included.

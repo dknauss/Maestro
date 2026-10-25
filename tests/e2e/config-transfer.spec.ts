@@ -147,11 +147,28 @@ test( 'a canceled reload leaves a safe recovery link instead of resuming stale a
 	await page.locator( '.maestro-transfer-file' ).setInputFiles( { name: 'menu.json', mimeType: 'application/json', buffer: Buffer.from( file() ) } );
 	await page.getByRole( 'button', { name: 'Review file', exact: true } ).click();
 	await expect( page.getByRole( 'button', { name: 'Import configuration', exact: true } ) ).toBeVisible();
+	const staleSaves: string[] = [];
+	page.on( 'request', request => {
+		if ( request.method() === 'POST' && new URL( request.url() ).pathname.endsWith( '/maestro/v1/config' ) ) { staleSaves.push( request.url() ); }
+	} );
 	await page.evaluate( () => window.addEventListener( 'beforeunload', e => { e.preventDefault(); e.returnValue = ''; } ) );
 	page.once( 'dialog', d => d.dismiss() );
 	await page.getByRole( 'button', { name: 'Import configuration', exact: true } ).click();
 	await expect( page.getByRole( 'link', { name: 'Reload editor', exact: true } ) ).toBeVisible();
 	expect( await page.locator( '#adminmenu' ).evaluate( node => ( node as HTMLElement ).inert ) ).toBe( true );
+	const reload = page.getByRole( 'link', { name: 'Reload editor', exact: true } );
+	await expect( reload ).toBeFocused();
+	await page.keyboard.press( 'Escape' );
+	await page.locator( '#wpbody-content' ).click( { position: { x: 500, y: 20 } } );
+	await expect( reload ).toBeVisible();
+	await reload.focus();
+	await page.keyboard.press( 'Tab' );
+	await expect( reload ).toBeFocused();
+	page.once( 'dialog', d => d.accept() );
+	await reload.click();
+	await expect( page.locator( '#menu-posts .wp-menu-name' ) ).toContainText( 'Imported articles' );
+	await expect( page.locator( '.maestro-transfer-notice' ) ).toBeVisible();
+	expect( staleSaves ).toEqual( [] );
 } );
 
 test( 'large drop reports can be downloaded in full', async ( { page } ) => {
@@ -161,8 +178,14 @@ test( 'large drop reports can be downloaded in full', async ( { page } ) => {
 	await page.getByRole( 'button', { name: 'Review file', exact: true } ).click();
 	const pending = page.waitForEvent( 'download' );
 	await page.getByRole( 'button', { name: 'Download full report', exact: true } ).click();
-	const stream = await ( await pending ).createReadStream();
+	const download = await pending;
+	expect( download.suggestedFilename() ).toBe( 'maestro-import-report.json' );
+	const stream = await download.createReadStream();
 	const chunks: Buffer[] = [];
 	for await ( const chunk of stream! ) { chunks.push( Buffer.from( chunk ) ); }
-	expect( JSON.parse( Buffer.concat( chunks ).toString() ) ).toHaveLength( 60 );
+	const report = JSON.parse( Buffer.concat( chunks ).toString() );
+	expect( report ).toHaveLength( 60 );
+	expect( report.map( row => row.reference ) ).toEqual( Object.keys( missing ) );
+	expect( report.every( row => typeof row.code === 'string' ) ).toBe( true );
+	await expect( page.locator( '.maestro-transfer-result li' ) ).toHaveCount( 50 );
 } );

@@ -51,6 +51,7 @@
 	// Phase 28: the one menu-wide setting so far. null means "use WordPress's
 	// default"; the sparse contract never stores the default itself.
 	var transferBusy = false;
+	var transferReloadRequired = false;
 	var transferEditVersion = 0;
 	var widthBounds = D.menuWidth || { min: 160, max: 320, default: 160, value: null };
 	var menuWidth = widthBounds.value || null;
@@ -99,6 +100,7 @@
 		n.dir = 'auto';
 	}
 	function removePopover( pop ) {
+		if ( transferReloadRequired ) { return; }
 		if ( pop.maestroCleanup ) { pop.maestroCleanup(); }
 		pop.remove();
 	}
@@ -1586,6 +1588,7 @@
 		} );
 
 		function close() {
+			if ( transferReloadRequired ) { return; }
 			widthControls = null;
 			closePopovers();
 			anchorBtn.focus();
@@ -1601,7 +1604,7 @@
 			}
 			if ( e.key !== 'Tab' ) { return; }
 			var focusable = Array.prototype.filter.call(
-				pop.querySelectorAll( 'input, button' ),
+				pop.querySelectorAll( 'input, button, a[href]' ),
 				function ( n ) { return ! n.disabled && n.offsetParent !== null; }
 			);
 			if ( ! focusable.length ) { return; }
@@ -1633,7 +1636,7 @@
 		range.focus();
 	}
 
-	/* Phase 31: explicit file review/apply, sharing Settings at every width. */
+	/* Phase 31: explicit file review/apply in desktop Settings. */
 	function buildTransferControls( pop ) {
 		var section = el( 'section', 'maestro-transfer' );
 		section.appendChild( el( 'h3', '', I.transferTitle ) );
@@ -1695,6 +1698,14 @@
 			if ( saveTimer || saveInFlight || savePending ) { await flushAutosave(); }
 			if ( ! lastSaveOk ) { throw new Error( I.transferSaveFailed ); }
 		}
+		function downloadJson( data, filename ) {
+			var url = URL.createObjectURL( new Blob( [ JSON.stringify( data, null, 2 ) + '\n' ], { type: 'application/json' } ) );
+			var a = el( 'a' ); a.href = url; a.download = filename;
+			// A synthetic download is not an outside click dismissing Settings.
+			a.addEventListener( 'click', function ( e ) { e.stopPropagation(); } );
+			document.body.appendChild( a ); a.click(); a.remove();
+			setTimeout( function () { URL.revokeObjectURL( url ); }, 1000 );
+		}
 		function show( message, report ) {
 			result.textContent = message;
 			if ( report && report.length ) {
@@ -1702,6 +1713,10 @@
 				var list = el( 'ul' );
 				report.slice( 0, 50 ).forEach( function ( row ) { list.appendChild( el( 'li', '', row.reference ) ); } );
 				result.appendChild( list );
+				var download = el( 'button', 'button', I.transferReport );
+				download.type = 'button';
+				download.addEventListener( 'click', function () { downloadJson( report, 'maestro-import-report.json' ); } );
+				result.appendChild( download );
 			}
 			speak( message );
 		}
@@ -1713,7 +1728,7 @@
 				analysis = '';
 				apply.hidden = true;
 				show( e.message || I.transferFailure );
-			} finally { lock( false ); }
+			} finally { if ( ! transferReloadRequired ) { lock( false ); } }
 		}
 		file.addEventListener( 'change', function () {
 			analysis = ''; apply.hidden = true; confirmLabel.hidden = true; confirm.checked = false;
@@ -1723,10 +1738,7 @@
 			work( async function () {
 				await saved();
 				var data = await request( D.restUrl + '/export' );
-				var url = URL.createObjectURL( new Blob( [ JSON.stringify( data, null, 2 ) + '\n' ], { type: 'application/json' } ) );
-				var a = el( 'a' ); a.href = url; a.download = 'maestro-menu-config.json';
-				document.body.appendChild( a ); a.click(); a.remove();
-				setTimeout( function () { URL.revokeObjectURL( url ); }, 1000 );
+				downloadJson( data, 'maestro-menu-config.json' );
 				result.textContent = '';
 			} );
 		} );
@@ -1756,12 +1768,20 @@
 				}
 				var data = await request( D.restUrl + '/import', { file: source, context: context, mode: 'apply', analysis: analysis, confirm_empty: confirm.checked } );
 				try { sessionStorage.setItem( storageKey, I.transferSuccess ); } catch ( e ) { /* Optional reload feedback. */ }
-				// Freeze the old full-replace model until PHP rebuilds it from storage.
+				// Never resume editing the old full-replace model, even when the
+				// browser cancels navigation. Only recovery/report controls stay live.
+				transferReloadRequired = true;
 				show( I.transferSuccess, data.report );
-				pop.inert = true;
+				pop.querySelectorAll( 'input, button' ).forEach( function ( control ) {
+					control.disabled = ! result.contains( control );
+				} );
+				var reload = el( 'a', 'button button-primary', I.transferReload );
+				reload.href = window.location.href;
+				result.appendChild( reload );
+				pop.inert = false;
+				pop.setAttribute( 'aria-busy', 'false' );
+				reload.focus();
 				window.location.reload();
-				// Keep the old model frozen even if a browser defers navigation.
-				await new Promise( function () {} );
 			} );
 		} );
 	}
@@ -3032,6 +3052,7 @@
 			pop.maestroCleanup = null;
 		}
 		function resize() {
+			if ( transferReloadRequired ) { position(); return; }
 			if ( window.innerWidth < 961 && pop.classList.contains( 'maestro-settings-popover' ) && ! pop.classList.contains( 'maestro-profiles-popover' ) && ! pop.classList.contains( 'maestro-preview-popover' ) ) {
 				removePopover( pop );
 				var help = document.querySelector( '.maestro-tour-help' );
@@ -3359,6 +3380,7 @@
 	// resolves only after the whole chain (including the trailing save) is done,
 	// so bindAdminBarExit's click intercept can safely await it.
 	function doAutosave() {
+		if ( transferReloadRequired ) { return Promise.resolve(); }
 		saveTimer = null;
 
 		if ( saveInFlight ) {
