@@ -1608,11 +1608,14 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 	.maestro-editing #adminmenu .maestro-row-rename-input {
 		font-size: 16px; /* below 16px iOS zooms the page on focus */
 	}
-	/* The icon column is about 34x30 on phones. Grow the hit area, not the
-	 * frame, so the target is 44px without covering the label. */
-	.maestro-editing #adminmenu .maestro-row-icon::before {
-		content: "";
-		position: absolute;
-		inset: -7px -5px;
+	/* Keep the real 44px icon button inside its row and clear of the label.
+	 * An expanded pseudo-element was smaller than 44px and clipped at the
+	 * viewport edge. placeRowControls() sizes the button itself instead. */
+	.maestro-editing #adminmenu li.maestro-selected > a.menu-top {
+		box-sizing: border-box;
+		min-height: 44px;
+	}
+	.maestro-editing #adminmenu li.maestro-selected > a.menu-top .wp-menu-name {
+		padding-inline-start: 44px;
 	}
 }

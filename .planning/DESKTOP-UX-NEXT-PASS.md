@@ -46,7 +46,7 @@ toolbar; separators keep all their toolbar controls.
   a phone tap no longer raises the keyboard). Tab order is row, Change icon,
   Rename, Move up, Move down, then the submenu. Selection is announced.
 - **Sizes**: 32px targets with a fine pointer, 44px with a coarse one; the
-  phone icon target grows its hit area to 44px without growing the frame. At
+  phone icon is a real 44px button inside its row, with label space reserved. At
   160px the three buttons fit; the strip wraps rather than widening the menu.
 - **Folded menu**: edit mode already unfolds the menu from 783px up
   (`forceUnfold()`), so there is no folded state to design for while editing.

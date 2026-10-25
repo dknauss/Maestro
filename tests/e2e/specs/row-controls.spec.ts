@@ -27,6 +27,61 @@ async function openEditor( page: Page, url = EDIT ) {
 	if ( await closeTour.isVisible() ) { await closeTour.click(); }
 }
 
+
+// Pointer selection must commit the OLD row before the shared controls move.
+async function renameThenSelect( page: Page, touch: boolean, submenu: boolean ) {
+	await openEditor( page );
+	const activate = async ( selector: string ) => touch ? page.locator( selector ).tap() : page.locator( selector ).click();
+	await activate( '#menu-posts > a' );
+	const row = submenu ? posts( page ).locator( '.maestro-subitem' ).first() : posts( page );
+	if ( submenu ) {
+		if ( touch ) { await row.locator( '> a' ).tap(); } else { await row.locator( '> a' ).click(); }
+	}
+	await activate( '.maestro-row-rename' );
+	await row.locator( '.maestro-row-rename-input' ).fill( 'Saved before switching rows' );
+	const save = saved( page );
+	await activate( '#menu-media > a' );
+	await expect( row.locator( submenu ? '> a' : '.wp-menu-name' ) ).toHaveText( /^Saved before switching rows/ );
+	await save;
+	await expect( page.locator( '#menu-media' ) ).toHaveClass( /maestro-selected/ );
+	await expect( page.locator( '#menu-media > a' ) ).toBeFocused();
+	await expect( page.locator( '.maestro-row-rename-input' ) ).toHaveCount( 0 );
+	await page.reload();
+	await expect( row.locator( submenu ? '> a' : '.wp-menu-name' ) ).toHaveText( /^Saved before switching rows/ );
+	await expect( page.locator( '#menu-media .wp-menu-name' ) ).not.toHaveText( /^Saved before switching rows/ );
+}
+
+async function checkIconTouchTarget( page: Page ) {
+	await openEditor( page );
+	await posts( page ).locator( '> a' ).tap();
+	const icon = posts( page ).locator( '> .maestro-row-icon' );
+	await icon.scrollIntoViewIfNeeded();
+	const box = ( await icon.boundingBox() )!;
+	const menu = ( await page.locator( '#adminmenu' ).boundingBox() )!;
+	const link = ( await posts( page ).locator( '> a' ).boundingBox() )!;
+	expect( box.width ).toBeGreaterThanOrEqual( 44 );
+	expect( box.height ).toBeGreaterThanOrEqual( 44 );
+	expect( box.x ).toBeGreaterThanOrEqual( Math.max( 0, menu.x ) );
+	expect( box.x + box.width ).toBeLessThanOrEqual( Math.min( page.viewportSize()!.width, menu.x + menu.width ) );
+	expect( box.y ).toBeGreaterThanOrEqual( link.y );
+	expect( box.y + box.height ).toBeLessThanOrEqual( link.y + link.height );
+	// All four corners must really hit the icon, not an overlapping link.
+	for ( const x of [ box.x + 1, box.x + box.width - 1 ] ) {
+		for ( const y of [ box.y + 1, box.y + box.height - 1 ] ) {
+			expect( await icon.evaluate( ( button, point ) => button.contains( document.elementFromPoint( point.x, point.y ) ), { x, y } ) ).toBe( true );
+		}
+	}
+	expect( await icon.evaluate( ( button, point ) => button.contains( document.elementFromPoint( point.x, point.y ) ), { x: box.x + box.width / 2, y: link.y - 2 } ) ).toBe( false );
+	// Tap near the far edge of the 44px box, beyond the old narrow target.
+	await page.touchscreen.tap( box.x + box.width - 2, box.y + box.height - 2 );
+	await expect( page.locator( '.maestro-icon-popover' ) ).toBeVisible();
+	await page.keyboard.press( 'Escape' );
+	await expect( icon ).toBeFocused();
+	const rtl = await page.locator( 'html' ).getAttribute( 'dir' ) === 'rtl';
+	await page.touchscreen.tap( rtl ? box.x - 8 : box.x + box.width + 8, link.y + link.height / 2 );
+	await expect( page.locator( '.maestro-icon-popover' ) ).toHaveCount( 0 );
+}
+
 test.describe( 'selected-row controls, desktop', () => {
 	test.use( { viewport: { width: 1280, height: 800 } } );
 
@@ -74,6 +129,13 @@ test.describe( 'selected-row controls, desktop', () => {
 		await page.reload();
 		await expect( posts( page ).locator( '.wp-menu-name' ) ).toHaveText( /^Articles/ );
 	} );
+
+
+	for ( const submenu of [ false, true ] ) {
+		test( `mouse switching rows commits the ${ submenu ? 'submenu' : 'top-level' } rename`, async ( { page } ) => {
+			await renameThenSelect( page, false, submenu );
+		} );
+	}
 
 	for ( const key of [ 'Enter', 'Escape' ] ) {
 		test( `IME ${ key } leaves rename open until composition ends`, async ( { page } ) => {
@@ -232,10 +294,29 @@ test.describe( 'selected-row controls, RTL live widths', () => {
 			await expect( strip( page ).locator( '.maestro-row-rename' ) ).toBeFocused();
 		} );
 	}
+
+	test.describe( 'phone', () => {
+		test.use( { viewport: { width: 375, height: 667 }, hasTouch: true, isMobile: true } );
+		test( 'RTL icon has a usable 44px touch target', async ( { page } ) => {
+			await checkIconTouchTarget( page );
+		} );
+	} );
+
 } );
 
 test.describe( 'selected-row controls, phone', () => {
 	test.use( { viewport: { width: 375, height: 667 }, hasTouch: true, isMobile: true } );
+
+
+	for ( const submenu of [ false, true ] ) {
+		test( `touch switching rows commits the ${ submenu ? 'submenu' : 'top-level' } rename`, async ( { page } ) => {
+			await renameThenSelect( page, true, submenu );
+		} );
+	}
+
+	test( 'LTR icon has a usable 44px touch target', async ( { page } ) => {
+		await checkIconTouchTarget( page );
+	} );
 
 	test( 'targets are 44px, live inside #adminmenuwrap, and leave the menu open', async ( { page } ) => {
 		await openEditor( page );

@@ -776,6 +776,10 @@
 		if ( ! key || ! model[ key ] ) { return; }
 		opts = opts || {};
 
+		// Sortable can defer blur until click selection has already changed.
+		// Commit against the old selected key before moving the shared controls.
+		if ( rowCtl && rowCtl.editing ) { finishInlineRename( true, false ); }
+
 		document.querySelectorAll( '.maestro-selected' ).forEach( function ( n ) {
 			n.classList.remove( 'maestro-selected' );
 			n.removeAttribute( 'aria-keyshortcuts' );
@@ -934,13 +938,14 @@
 		var hasIcon = ! m.isSub && li.querySelector( '.wp-menu-image' );
 		if ( hasIcon ) {
 			if ( rowCtl.iconBtn.previousSibling !== leading ) { li.insertBefore( rowCtl.iconBtn, leading.nextSibling ); }
-			// Cover exactly the icon column, which core sizes differently in the
-			// responsive layout; the inline side comes from the CSS so RTL holds.
+			// Cover the icon column; coarse pointers get a real 44px target inside
+			// the row. CSS reserves label space and chooses the inline side for RTL.
 			var ir = hasIcon.getBoundingClientRect();
 			var lr = li.getBoundingClientRect();
-			rowCtl.iconBtn.style.top    = ( ir.top - lr.top ) + 'px';
-			rowCtl.iconBtn.style.width  = ir.width + 'px';
-			rowCtl.iconBtn.style.height = ir.height + 'px';
+			var touchTarget = window.matchMedia( '(pointer: coarse)' ).matches;
+			rowCtl.iconBtn.style.top    = ( touchTarget ? 0 : ir.top - lr.top ) + 'px';
+			rowCtl.iconBtn.style.width  = Math.max( touchTarget ? 44 : 0, ir.width ) + 'px';
+			rowCtl.iconBtn.style.height = Math.max( touchTarget ? 44 : 0, ir.height ) + 'px';
 			var label = I.changeIconOf.replace( '%s', function () { return m.title; } );
 			rowCtl.iconBtn.setAttribute( 'aria-label', label );
 			rowCtl.iconBtn.title = label;
