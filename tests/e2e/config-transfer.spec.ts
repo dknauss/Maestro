@@ -243,10 +243,14 @@ test( 'transfer is keyboard operable and has no axe violations', async ( { page 
 	await page.keyboard.press( 'Enter' );
 	const apply = dialog.getByRole( 'button', { name: 'Import configuration', exact: true } );
 	await expect( apply ).toBeVisible();
+	// Locking the dialog while it works must not strand focus on <body>.
+	await expect( review ).toBeFocused();
 	await expect( page.locator( '.maestro-transfer-result' ) ).toContainText( 'gone.php' );
 	await axe( 'Settings after review, with a drop report' );
 	await apply.focus();
 	await page.keyboard.press( 'Enter' );
 	await expect( page.locator( '#menu-posts .wp-menu-name' ) ).toContainText( 'Imported articles' );
 	await expect( page.locator( '.maestro-transfer-notice' ) ).toBeVisible();
+	// The notice is on the page at load, so it is spoken, not just shown.
+	await expect( page.locator( '#a11y-speak-polite' ) ).toContainText( 'Configuration imported' );
 } );

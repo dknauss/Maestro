@@ -1789,13 +1789,24 @@
 		}
 		async function work( run ) {
 			if ( transferBusy ) { return; }
+			// Locking disables and inerts the pressed button, which drops focus
+			// to <body>. Hand it back, or keyboard and screen-reader users are
+			// left outside the dialog with the result they just asked for.
+			var returnTo = document.activeElement;
 			lock( true );
 			show( I.transferWaiting );
 			try { await run(); } catch ( e ) {
 				analysis = '';
 				apply.hidden = true;
 				show( e.message || I.transferFailure );
-			} finally { if ( ! transferReloadRequired ) { lock( false ); } }
+			} finally {
+				if ( ! transferReloadRequired ) {
+					lock( false );
+					if ( returnTo && pop.contains( returnTo ) && ! returnTo.disabled && ! returnTo.hidden && ! pop.contains( document.activeElement ) ) {
+						returnTo.focus();
+					}
+				}
+			}
 		}
 		file.addEventListener( 'change', function () {
 			analysis = ''; apply.hidden = true; confirmLabel.hidden = true; confirm.checked = false;
@@ -1875,6 +1886,13 @@
 				var notice = el( 'div', 'notice notice-success maestro-transfer-notice' );
 				notice.appendChild( el( 'p', '', I.transferSuccess ) );
 				document.querySelector( '#wpbody-content' ).prepend( notice );
+				// A notice already on the page at load is not announced; say it.
+				// wp.a11y creates its live regions on DOM ready, so wait for it.
+				if ( window.wp && window.wp.domReady ) {
+					window.wp.domReady( function () { setTimeout( function () { speak( I.transferSuccess ); }, 500 ); } );
+				} else {
+					setTimeout( function () { speak( I.transferSuccess ); }, 500 );
+				}
 			}
 		} catch ( e ) { /* Storage is optional; persisted settings are authoritative. */ }
 	})();
