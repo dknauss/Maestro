@@ -58,8 +58,18 @@ test.describe( 'Menu separators', () => {
 				await expect( page.locator( '.maestro-row-rename-input' ) ).toHaveCount( 0 );
 
 				const panel = page.locator( '.maestro-toolbar .maestro-panel' );
-				await expect( panel.locator( '.maestro-remove-separator' ) ).toBeVisible();
-				await expect( panel.locator( '.maestro-move-up' ) ).toBeVisible();
+				if ( rows ) {
+					// Row controls: Up, Down and Remove sit on the separator's own row.
+					const strip = sep.locator( '> .maestro-row-strip' );
+					await expect( strip.locator( '> button:visible' ) ).toHaveCount( 3 );
+					await expect( strip.getByRole( 'button', { name: 'Remove separator' } ) ).toBeVisible();
+					await expect( strip.getByRole( 'button', { name: 'Move up' } ) ).toBeVisible();
+					await expect( panel.locator( '.maestro-remove-separator' ) ).toBeHidden();
+					await expect( panel.locator( '.maestro-move-up' ) ).toBeHidden();
+				} else {
+					await expect( panel.locator( '.maestro-remove-separator' ) ).toBeVisible();
+					await expect( panel.locator( '.maestro-move-up' ) ).toBeVisible();
+				}
 				await expect( panel.locator( '.maestro-rename-input' ) ).toBeHidden();
 				await expect( panel.locator( '.maestro-icon-btn' ) ).toBeHidden();
 				await expect( panel.locator( '.maestro-vis-btn' ) ).toBeHidden();
