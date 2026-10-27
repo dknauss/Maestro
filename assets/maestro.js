@@ -1086,6 +1086,7 @@
 		rowCtl.moreBtn.hidden   = ! rowHasMore();
 		var moreLabel = I.moreActionsFor.replace( '%s', function () { return m.title; } );
 		rowCtl.moreBtn.setAttribute( 'aria-label', moreLabel );
+		rowCtl.menu.setAttribute( 'aria-label', moreLabel );
 		rowCtl.moreBtn.title = moreLabel;
 		// Row first, then Change icon, then the strip: the Tab order follows the
 		// row's reading order, and the submenu (if any) comes after them all.
@@ -1136,7 +1137,12 @@
 			li.insertBefore( input, a.nextSibling );
 			positionInlineRename();
 		}
-		input.focus( { preventScroll: true } );
+		// On touch screens let the browser scroll the field clear of the
+		// keyboard and its floating bars, which it does natively for a focused
+		// field; preventScroll left the keyboard over it on an upright iPhone.
+		// Mouse and keyboard keep the menu where it is.
+		var touch = window.matchMedia( '(pointer: coarse)' ).matches;
+		input.focus( { preventScroll: ! touch || renameInSheet() } );
 		input.select();
 	}
 
