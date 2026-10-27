@@ -30,11 +30,13 @@ Maestro's enhancements are only activated for logged-in users with an Administra
 * **Rename** any top-level or submenu item — just click the label.
 * **Reorder** items by dragging (top-level items among themselves, submenu items within their parent), or with the keyboard (`Alt`+`Arrow`).
 * **Group** the menu with separators: move or remove the existing ones, or add a new separator below any top-level item.
-* **Swap icons** on top-level items. The icon picker offers Dashicons and bundled Bootstrap Icons with search. It accepts any of WordPress's four native icon forms (dashicon, "none", base64 image data-URI, or an image URL).
+* **Swap icons** on top-level items. The icon picker offers all 342 Dashicons and 437 bundled Bootstrap Icons, grouped and searchable by admin topic. SVG icons take the menu's colours in every admin colour scheme, just like a Dashicon. It accepts any of WordPress's four native icon forms (dashicon, "none", base64 image data-URI, or an image URL).
 * **Hide** items from chosen roles — including administrators. **All other roles** at the top of the list ticks every role except your own in one step. Custom roles registered by other plugins ([User Role Editor](https://wordpress.org/plugins/user-role-editor/), [Members](https://wordpress.org/plugins/members/), etc.) appear automatically.
 * **Hide items from specific people**, by name, when a role is the wrong unit — one person on a shared role who doesn't need a particular tool. Search for someone in the visibility popover and add them; a parent's sub-items can be hidden per person too, with the parent left visible. Like every other hide in Maestro, this is cosmetic only: the page still loads by URL for anyone authorized to see it.
 * **Hide items from a named group of people** with a visibility group — say "Reduced view" for the client's staff. Make the group once under **Visibility groups** in the editing toolbar, add people to it, then tick it in any item's visibility popover. Change who is in it later and every item it hides follows. A group is not a role: WordPress never sees it, and it grants or removes nothing. It is cosmetic only, like every hide in Maestro: the page still loads by URL for anyone authorized to see it.
-* **Widen the menu** so longer labels fit on one line. Drag the menu's edge while editing, or set an exact width under **Menu settings**. The width applies on every admin page, for everyone, on screens 961px and wider. If another plugin already sets the menu width, that plugin wins and Maestro tells you so.
+* **Widen the menu** so longer labels fit on one line. Drag the menu's edge while editing, or set an exact width under **Settings** (the gear in the editing toolbar). The width applies on every admin page, for everyone, on screens 961px and wider. If another plugin already sets the menu width, that plugin wins and Maestro tells you so.
+* **Preview the menu as a role.** Press **Preview as**, choose a role, and the Dashboard shows that role's menu under a read-only banner. You stay signed in as yourself, and nothing is saved.
+* **Copy a menu to another site** with export/import under **Settings**. Export a JSON file of names, icons, role rules, ordering, separators and menu width, then review it on the destination before anything changes. Rules for named people and visibility groups never leave the site.
 * **Reset** a single item to its WordPress default, or reset everything at once.
 
 Changes are **global** — one configuration applies to everyone. Your custom menu configuration is stored as a sparse delta (just the differences) layered over the menu WordPress builds on each load. Nothing is rebuilt or duplicated, so a reset simply removes the delta, and the original menu returns. 
@@ -166,12 +168,14 @@ their current parent.
 
 == Screenshots ==
 
-1. The inline editor — select any admin-menu item to edit it in place using the quiet, wp-admin-native toolbar and shared controls panel (rename, icon, visibility, reset). A single admin-bar toggle enters and exits edit mode — labelled "Edit Menu" when idle and "Exit Menu Editor" while editing.
-2. The icon picker: searchable Dashicons and bundled Bootstrap Icons tabs for swapping a top-level admin menu icon.
+1. The inline editor — select any admin-menu item to edit it in place using the quiet, wp-admin-native editing toolbar (rename, move, icon, visibility, reset, and the menu-wide tools on the right). A single admin-bar toggle enters and exits edit mode — labelled "Edit Menu" when idle and "Exit Menu Editor" while editing.
+2. The icon picker: searchable Dashicons and Bootstrap Icons tabs, in square single-colour cells, for swapping a top-level admin menu icon.
 3. Visibility — open the selector to hide an item from selected roles, named individuals or visibility groups, and (on an item with children) to hide its sub-items independently while the parent stays visible. Cosmetic declutter, not access control.
-4. A renamed item showing the transient "Saved" state — the indicator auto-clears to idle once the autosave settles.
+4. A renamed item ("My Content Hub") with the transient "Saved" status above the toolbar — it clears on its own once the autosave settles.
 5. Reordering a top-level menu group by dragging — a live sortable-helper shows the item in motion.
 6. Reordering a submenu item using the ▲/▼ move controls — the OS-independent, keyboard-accessible reorder path.
+7. Settings: the menu width, and export/import after reviewing a file. The review lists what this site can't apply, and nothing changes until you press Import configuration.
+8. Preview as: the Dashboard as an Editor sees it, under the read-only preview banner with Exit preview.
 
 == Architecture (for developers) ==
 
@@ -194,9 +198,9 @@ Maestro is built to stay out of the way:
 * **Storage tracks your edits, not your plugin count.** Maestro stores a sparse delta: three renamed items are three renamed items, whether the site runs five plugins or fifty. A typical configuration is 5–15 KB, with a hard 1 MB ceiling.
 * **Minimal storage.** One `wp_options` row, created only when you first save a change — a fresh install stores nothing. No custom tables, no post or user meta, no transients, no cron jobs. Uninstalling deletes that single row.
 * **Measured, not asserted.** At a typical configuration size Maestro adds roughly **0.1 ms** to an admin page load; even a pathological config at the 1 MB ceiling adds about **1 ms**. Menu changes are applied in memory during the `admin_menu` pass, not through extra queries. Method and full numbers: [config size vs. page-load cost](https://github.com/dknauss/Maestro/blob/main/docs/performance/config-size-and-page-load.md).
-* **Small install** — roughly a 115 KB download.
+* **Small install** — roughly a 290 KB download. Nearly a third of that is the Bootstrap Icons set, which the editor fetches only when you first open its tab in the icon picker.
 
-(Size figures are a v1.4.1 snapshot; timings were measured 2026-08-03 on WordPress 7.0 / PHP 8.3.)
+(Size figures are a v1.10.0 snapshot; timings were measured 2026-08-03 on WordPress 7.0 / PHP 8.3.)
 
 == Known limits / deferred to v2 ==
 

@@ -60,8 +60,17 @@ Changes are autosaved after each move.
 Top-level menu items can use custom icons. Select a top-level item and open the
 icon picker.
 
-The picker includes Dashicons, bundled Bootstrap Icons, search, and a **No icon**
-option. The saved icon value is validated server-side and may use any native
+The picker includes all 342 Dashicons, 437 bundled Bootstrap Icons, search, and
+a **No icon** option. Both sets show in square, single-colour cells, and the
+Bootstrap set is grouped by admin topic, so a search for a word like "shop" or
+"users" finds related icons. The Bootstrap set loads the first time you open
+its tab. The picker opens on the tab of the item's current icon.
+
+A Bootstrap or other SVG icon takes the menu's colours, like a Dashicon: grey
+at rest, the hover colour under the pointer and the current-item colour, in
+every admin colour scheme.
+
+The saved icon value is validated server-side and may use any native
 WordPress icon form:
 
 - a Dashicon class
@@ -173,8 +182,8 @@ Below that, WordPress folds the menu to icons or turns it into an overlay, and
 the width does not apply, so the edge handle and width fields are not
 shown there. Folding still works at any width.
 
-If another plugin already sets the menu width, that plugin wins. **Menu
-settings** tells you when this happens, so a value that has no effect never
+If another plugin already sets the menu width, that plugin wins. **Settings**
+tells you when this happens, so a value that has no effect never
 looks like it does.
 
 To go back to WordPress's width, choose **Use default** in **Settings**.
@@ -263,5 +272,6 @@ that image to be reachable. Import does not upload or copy media.
 After import, the editor reloads from saved settings and shows a success notice.
 If you cancel the reload, editing stays locked to protect the imported settings.
 Use **Reload editor** to continue with the saved configuration.
+
 Export/import is a desktop task: like the menu width, Settings shows only on
 screens 961px and wider. Named presets and starter configurations are not included.

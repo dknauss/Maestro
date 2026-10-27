@@ -10,9 +10,11 @@ import * as path from 'path';
  *   1. Editor active — toolbar + selected-item controls (full context)
  *   2. Icon picker open (full context)
  *   3. Per-role visibility selector — cropped to the bottom (menu + popover + toolbar)
- *   4. Renamed item + "Saved" state — cropped to the left half (menu + toolbar)
+ *   4. Renamed item + "Saved" state (full context; the status sits at the toolbar's end)
  *   5. Reordering a top-level menu GROUP — zoomed mid-drag (live sortable helper)
  *   6. Reordering a sub-ITEM in a submenu — zoomed mid-drag
+ *   7. Settings — menu width plus export/import, with a reviewed file's report
+ *   8. Preview as — the Dashboard as an Editor sees it, under the preview banner
  *
  * GUARD: skipped unless MAESTRO_CAPTURE is set (via `npm run screenshots`), so a normal
  * `test:e2e` / CI run never regenerates the committed PNGs. Gate is at the describe level.
@@ -182,7 +184,7 @@ test.describe( 'Directory screenshots — v1.2 editor UI (MAESTRO_CAPTURE-gated)
 	} );
 
 	// 4 — Renamed item + "Saved", cropped to the left half (menu + toolbar).
-	test( 'screenshot 4 — renamed item, "Saved" (cropped to menu + toolbar)', async ( { page } ) => {
+	test( 'screenshot 4 — renamed item, "Saved"', async ( { page } ) => {
 		await enterEditorAndSelect( page );
 		const renameInput = page.locator( '.maestro-rename-input' );
 		await expect( renameInput ).toBeVisible();
@@ -196,7 +198,10 @@ test.describe( 'Directory screenshots — v1.2 editor UI (MAESTRO_CAPTURE-gated)
 		await expect(
 			page.locator( '.maestro-status.maestro-status-saved' )
 		).toBeVisible( { timeout: 10000 } );
-		await dualShot( page, 4, { clip: { x: 0, y: 0, width: 720, height: 980 } } );
+		// Full frame: the "Saved" status floats above the toolbar's far end.
+		await dualShot( page, 4 );
+		// Put the label back so the later captures show the stock Dashboard.
+		wp( [ 'option', 'delete', 'maestro_config' ] );
 	} );
 
 	// 5 — Reordering a top-level menu GROUP: zoomed mid-drag (live sortable helper).
@@ -246,5 +251,49 @@ test.describe( 'Directory screenshots — v1.2 editor UI (MAESTRO_CAPTURE-gated)
 
 		// Left half: the selected sub-item (highlighted, top) + the toolbar ▲/▼ controls (bottom).
 		await dualShot( page, 6, { clip: { x: 0, y: 0, width: 720, height: 980 } } );
+	} );
+
+	// 7 — Settings: menu width and export/import, after reviewing a file that
+	// names a menu item this site lacks. The review stops short of importing.
+	test( 'screenshot 7 — Settings with export/import and a reviewed file', async ( { page } ) => {
+		await page.setViewportSize( { width: 1440, height: 980 } );
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		await page.locator( '.maestro-settings-btn' ).click();
+		const dialog = page.getByRole( 'dialog', { name: 'Settings', exact: true } );
+		await expect( dialog ).toBeVisible();
+		const file = JSON.stringify( {
+			format: 'maestro-menu-config', schema_version: 1,
+			config: {
+				schema_version: 2,
+				items: { 'edit.php': { title: 'Articles' }, 'client-reports': { title: 'Reports' } },
+				top_order: [ 'index.php', 'edit.php' ], sub_order: {}, menu_width: 200,
+			},
+		} );
+		await page.locator( '.maestro-transfer-file' ).setInputFiles( {
+			name: 'client-menu.json', mimeType: 'application/json', buffer: Buffer.from( file ),
+		} );
+		await page.getByRole( 'button', { name: 'Review file', exact: true } ).click();
+		await expect( page.locator( '.maestro-transfer-result' ) ).toContainText( 'client-reports' );
+		await expect( page.getByRole( 'button', { name: 'Import configuration', exact: true } ) ).toBeVisible();
+		// The dialog keeps the place it opened at while the report grows it, so
+		// re-anchor it above the toolbar the way a window resize does.
+		await page.evaluate( () => window.dispatchEvent( new Event( 'resize' ) ) );
+		await dualShot( page, 7 );
+	} );
+
+	// 8 — Preview as: the Dashboard as an Editor sees it, under the read-only banner.
+	test( 'screenshot 8 — Preview as a role', async ( { page } ) => {
+		await page.setViewportSize( { width: 1440, height: 980 } );
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		await page.locator( '.maestro-preview-toggle' ).click();
+		const select = page.getByRole( 'combobox', { name: 'Preview as' } );
+		await expect( select ).toBeVisible();
+		await select.selectOption( 'editor' );
+		await Promise.all( [
+			page.waitForURL( /maestro_preview=/ ),
+			page.locator( '.maestro-preview-btn' ).click(),
+		] );
+		await expect( page.locator( '.maestro-preview-banner' ) ).toBeVisible();
+		await dualShot( page, 8 );
 	} );
 } );
