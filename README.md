@@ -25,7 +25,7 @@ new one. It is a prototype on its own branch
 yet, so the released plugin and the demos above still use the bottom toolbar.
 
 - **▶ [Open the prototype in WordPress Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/proto/selected-row-controls/playground/blueprint-row-controls.json)** — a throwaway site in your browser, already in edit mode.
-- **[Tester guide](https://github.com/dknauss/Maestro/blob/proto/selected-row-controls/docs/testing-row-controls-prototype.md)** — what changed, and five to ten minutes of things to try on a desktop, a phone or the keyboard.
+- **[Tester guide](https://newlocalmedia.github.io/guides/maestro-prototype-testing/)** — what changed, and five to ten minutes of things to try on a desktop, a phone or the keyboard. ([Copy on the prototype branch](https://github.com/dknauss/Maestro/blob/proto/selected-row-controls/docs/testing-row-controls-prototype.md).)
 - **[Send feedback](https://github.com/dknauss/Maestro/issues/new?template=03-prototype-feedback.yml)** — a short form; every field but the first is optional, and screenshots are welcome.
 
 ## Screenshots
