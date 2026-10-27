@@ -3226,18 +3226,30 @@
 			var scrollY = responsiveParent ? 0 : window.scrollY;
 			var scrollX = responsiveParent ? 0 : window.scrollX;
 			var r = anchorBtn.getBoundingClientRect();
+			// The fixed bottom toolbar is the floor, not the viewport: a dialog
+			// opened from a menu row (the row controls' More) dropped down
+			// behind it. Toolbar anchors sit below the floor and never open
+			// downward, so they are unaffected.
+			var bar = document.querySelector( '.maestro-toolbar' );
+			var floor = window.innerHeight;
+			if ( bar && ! bar.contains( anchorBtn ) && bar.getClientRects().length ) {
+				floor = Math.min( floor, bar.getBoundingClientRect().top );
+			}
 			var roomAbove = Math.floor( r.top - 14 );
-			if ( pop.offsetHeight > roomAbove && roomAbove > window.innerHeight - r.bottom ) {
+			var roomBelow = Math.floor( floor - r.bottom - 12 );
+			pop.style.maxHeight = '';
+			var height = pop.offsetHeight;
+			// Above the anchor if it fits there, else below if it fits there,
+			// else on the roomier side, scrolling inside.
+			var below = height > roomAbove && ( height <= roomBelow || roomBelow > roomAbove );
+			var room = below ? roomBelow : roomAbove;
+			if ( height > room ) {
 				pop.style.boxSizing = 'border-box';
-				pop.style.maxHeight = roomAbove + 'px';
+				pop.style.maxHeight = room + 'px';
 				pop.style.overflowY = 'auto';
+				height = pop.offsetHeight;
 			}
-			// Toolbar lives at the bottom — prefer placing the popover above the
-			// anchor so it doesn't overflow off-screen.
-			var top = scrollY + r.top - pop.offsetHeight - 6;
-			if ( top < scrollY + 8 ) {
-				top = scrollY + r.bottom + 4;
-			}
+			var top = below ? scrollY + r.bottom + 4 : scrollY + r.top - height - 6;
 			pop.style.top  = top + 'px';
 			// Anchored at its left edge, but never past the viewport's right edge:
 			// a control in the toolbar's right zone would otherwise push the dialog
