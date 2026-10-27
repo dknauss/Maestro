@@ -3,31 +3,51 @@ gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: Client-Site Workflow
 status: in_progress
-stopped_at: "Phase 30 role preview merged through #251 (9802065), with post-merge CI green. Desktop UX refinement in progress; contextual row controls planned for a later pass. Real touch-device acceptance remains open."
-last_updated: "2026-10-26T00:00:00.000Z"
-last_activity: "2026-10-24 — Desktop UX cleanup and preview-notice placement regression coverage; later contextual controls planned. Touch-device acceptance remains open."
+stopped_at: "1.10.0 release merged in #271 (Phase 31 export/import #263, icon picker #266, RTL fix #268), awaiting Dan's v1.10.0 tag. Real VoiceOver and iPad acceptance remain open; browser simulations passed."
+last_updated: "2026-10-27T00:00:00.000Z"
+last_activity: "2026-10-27 — 1.10.0 release PR #271 merged; issues #216 and #162 closed; planning reconciled (#269)."
 progress:
   total_phases: 3
   completed_phases: 0
-  total_plans: 4
-  completed_plans: 4
-  percent: 0 # Fully accepted across devices: 0/3; Phase 31 is built in open PR #263.
+  total_plans: 8
+  completed_plans: 8
+  percent: 0 # Fully accepted across devices: 0/3; implementation is separate from acceptance.
 ---
 
 # Project State
 
-## Current reconciliation — 2026-10-26
+## Current reconciliation — 2026-10-27
 
-v1.9.0 is released. Phone/dialog polish #265, RTL title clearance #268 and
-icon-picker/recolouring #266 are merged. Export/import #263 remains open for
-final verification of the reviewed fixes and acceptance; #264 is closed with its recovery changes
-incorporated into #263. Selected-row prototype #261 remains a separate open
-experiment. Real-device and human screen-reader acceptance remain open.
-Dan verified all five phone fixes on iPhone in portrait and landscape on
-2026-10-26; see [iPhone issues](../docs/testing/iphone-issues.md). iPad and
-human screen-reader acceptance remain separate and open.
+v1.10.0 is cut: release PR #271 merged 2026-10-27 and awaits Dan's `v1.10.0`
+tag. It carries Phase 31 export/import (#263, which absorbed #264's recovery
+changes), the unified icon picker and SVG menu-icon colouring (#266, #172) and
+the RTL dialog-close fix (#268). Issue #216 is closed as shipped; #162 is closed
+as answered by #266. Selected-row prototype #261 remains a separate opt-in
+experiment (draft, own Playground link). Dan verified all five phone fixes on
+iPhone in portrait and landscape on 2026-10-26; see
+[iPhone issues](../docs/testing/iphone-issues.md). iPad and human screen-reader
+acceptance remain open.
 
 Historical progress notes below do not supersede this reconciliation.
+
+## Release prep — 1.10.0 (2026-10-27)
+
+Main after #263 (`ebd1143`) is being cut as **1.10.0**: Phase 31 export/import
+(#263), the unified icon picker and SVG menu-icon colouring (#266, #172) and the
+RTL dialog-close fix (#268). The POT is regenerated. Browser simulations in
+WebKit (Mac Safari, iPad landscape) and phone emulation passed after two
+screen-reader fixes in #263; a real VoiceOver and iPad pass remains Dan's.
+
+## Phase 31 implementation — 2026-10-26
+
+1.9.0 shipped without export/import (tag `v1.9.0`, 2026-10-25). Phase 31 is in
+[#263](https://github.com/dknauss/Maestro/pull/263), now merged up with 1.9.0, #265 and #266-#268, for the next release. It includes
+private-rule preservation, fresh server-owned menu inventory, explicit
+analyze/apply, versioned JSON, canceled-reload recovery and full report
+downloads. Settings, and with it export/import, stays desktop-only (961px and up).
+See the [implementation plan](phases/31-config-export-import/31-IMPLEMENTATION-PLAN.md)
+and [verification record](phases/31-config-export-import/31-VERIFICATION.md).
+Codex's deep review found two issues, both fixed at `e2633c1` and re-reviewed clean. Real-device and screen-reader acceptance remain open.
 
 ## Desktop UX refinement — 2026-10-24
 

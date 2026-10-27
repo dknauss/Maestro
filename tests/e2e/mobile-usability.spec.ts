@@ -127,7 +127,7 @@ test( 'width Settings returns at the desktop breakpoint', async ( { page } ) => 
 	await page.setViewportSize( { width: 961, height: 900 } );
 	await page.reload();
 	await page.locator( '.maestro-settings-btn' ).click();
-	const dialog = page.getByRole( 'dialog', { name: 'Menu width', exact: true } );
+	const dialog = page.getByRole( 'dialog', { name: 'Settings', exact: true } );
 	await expect( dialog.getByLabel( 'Menu width in pixels' ) ).toBeVisible();
 	await dialog.getByRole( 'button', { name: 'Close dialog', exact: true } ).click();
 	await expect( dialog ).toHaveCount( 0 );

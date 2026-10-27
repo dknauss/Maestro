@@ -554,7 +554,7 @@ should be made once.
 | D2 | Whether a request-scoped, viewer-only, subtract-only capability filter fits SPEC's "never changes a capability", or the wording gets a carve-out | Phase 30 | **Decided 2026-10-23 (Dan):** approve the narrow viewer-only, subtract-only menu-construction exception; see [decisions](phases/30-view-as-role-preview/30-CONTEXT.md) |
 | D3 | Label and form of the select-all control ("All other roles"; tri-state checkbox or a pair of links) | Phase 29 | **Decided 2026-10-23 (Dan):** a tri-state checkbox labelled "All other roles", as built in Phase 29 |
 | D4 | Import behaviour for rules whose menu item is missing on the target site: keep dormant, or drop and report | Phase 31 | **Decided 2026-10-23 (Dan): drop and report.** Rules naming a menu item the target site does not have are not stored; the import result lists them so the user knows what was not applied |
-| D5 | Release shape: one v1.9.0 after all three, or cut after Phases 29–30 and let Phase 31 follow | Before the cut | **Decided 2026-10-25 (Dan): cut after Phases 29–30.** v1.9.0 shipped from d2da4f7 (#262), with 1.8.0's changes folded in; Phase 31 export/import (#263) ships in the next release |
+| D5 | Release shape: one v1.9.0 after all three, or cut after Phases 29–30 and let Phase 31 follow | Before the cut | **Decided 2026-10-25 (Dan): cut after Phases 29–30.** v1.9.0 shipped from d2da4f7 (#262), with 1.8.0's changes folded in; Phase 31 export/import (#263) ships in 1.10.0 |
 | D6 | Milestone version | Before the cut | **Decided 2026-10-22:** width v1.7.0, profiles v1.8, Client-Site Workflow v1.9 |
 
 ### Shared seams (build once, reuse)
@@ -613,10 +613,10 @@ should be made once.
   4. Rules for menu items absent on the target are dropped, not stored (D4, decided 2026-10-23), and the user is told what was not applied
   5. An importing user without `list_users` cannot use import to destroy or write per-person rules (the boundary `sanitize()` and `reset()` already hold)
   6. Zero regression across the same gates as Phase 29
-**Plans**: TBD
+**Plans**: [31 implementation plan](phases/31-config-export-import/31-IMPLEMENTATION-PLAN.md) — contract/inventory, REST/persistence, Settings workflow, verification/docs. Implementation merged in [#263](https://github.com/dknauss/Maestro/pull/263) and shipped in 1.10.0 (#271); human acceptance remains open.
 **Out of this phase**: named presets, a preset manager, bundled starter presets. They stay in the todo.
 **Notes**: [presets and export/import todo](todos/pending/2026-07-03-config-presets-export-import.md)
-**Review**: reviewed with findings and regression fixes recorded in Phase 31 verification and #264; final combined-diff/fix verification is still required after integration with current main. Do not restart the original review as unperformed.
+**Review**: deep review done; findings and regression fixes are recorded in Phase 31 verification and #264, re-reviewed clean at `e2633c1` before #263 merged.
 
 ---
 
@@ -630,7 +630,7 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 **v1.5 is shipped** as the v1.5.x release line; v1.5.4 (PR #192, shipped 2026-09-21) is
 the final patch documented here for that line, adding compatibility fixes (#176, #179, #189) and E2E
 hardening. Release #232 (v1.7.0 menu width) has since merged; no deployment verification is claimed here.
-Current implementation state: Phases 27–29 desktop human checks passed 2026-10-23; touch-device acceptance remains open. Phase 27 (v1.8) has all five plans built; Phase 29 is merged in #243; Phase 30 implementation merged through #251; Phase 31 is built in open PR #263, reviewed with fixes implemented; awaiting final verification and acceptance. Phase numbers remain non-contiguous by design because 21, 22, and 25
+Current implementation state: Phases 27–29 desktop human checks passed 2026-10-23; touch-device acceptance remains open. Phase 27 (v1.8) has all five plans built; Phase 29 is merged in #243; Phase 30 implementation merged through #251; Phase 31 merged in #263 and shipped in 1.10.0 (#271); human acceptance remains open. Phase numbers remain non-contiguous by design because 21, 22, and 25
 originated under the v1.4 roadmap and were not renumbered when they slipped.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -667,4 +667,4 @@ originated under the v1.4 roadmap and were not renumbered when they slipped.
 | 28. Configurable Admin Menu Width | v1.7.0 | 2/3 | Built; desktop rechecks passed 2026-10-23; touch outstanding | - |
 | 29. Select-All Role Control | v1.9 | 2/2 built | Merged #243; CI green; desktop checks passed 2026-10-23; touch outstanding | - |
 | 30. View-as-Role Preview (read-only) | v1.9 | 2/2 built | Merged through #251; human acceptance open | - |
-| 31. Config Export/Import | After v1.9.0 | Built in #263 | Reviewed; final verification and acceptance outstanding | - |
+| 31. Config Export/Import | v1.10.0 | Built, merged #263 | Shipped in 1.10.0 (#271); human acceptance outstanding | - |
