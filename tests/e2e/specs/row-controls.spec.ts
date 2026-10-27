@@ -433,6 +433,9 @@ test.describe( 'selected-row controls, phone', () => {
 		// Four 44px buttons do not fit, so More stays in the phone toolbar.
 		await expect( strip( page ).locator( '.maestro-row-more' ) ).toBeHidden();
 		await expect( page.locator( '.maestro-toolbar .maestro-vis-btn' ) ).toBeVisible();
+		// What is left in the toolbar shares one row.
+		const tops = await page.locator( '.maestro-toolbar .button:visible' ).evaluateAll( bs => bs.map( b => Math.round( b.getBoundingClientRect().top ) ) );
+		expect( new Set( tops ).size ).toBe( 1 );
 		// Selecting does not raise the on-screen keyboard.
 		expect( await page.evaluate( () => document.activeElement?.tagName ) ).not.toBe( 'INPUT' );
 

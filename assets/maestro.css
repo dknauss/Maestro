@@ -1755,6 +1755,15 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 	.maestro-toolbar .maestro-toolbar-right > :first-child { margin-inline-start: 0; }
 	.maestro-toolbar .maestro-rename-input { flex: 0 0 128px; width: 128px; min-height: 44px; }
 }
+/* With row controls on, the rename field, arrows and icon button live on the
+ * menu row, which leaves at most six 44px buttons here (Visibility, Reset
+ * item, Add separator; groups, Preview as, Reset All): one row at 320px and
+ * up. Each group still scrolls rather than wrapping if a plugin adds more. */
+@media screen and (max-width: 782px), screen and (max-width: 960px) and (max-height: 500px) {
+	body.maestro-row-controls .maestro-toolbar { flex-direction: row; align-items: center; }
+	body.maestro-row-controls .maestro-toolbar .maestro-panel { flex: 0 1 auto; }
+	body.maestro-row-controls .maestro-toolbar .maestro-toolbar-right { flex: 0 1 auto; margin-inline-start: auto; }
+}
 @media screen and (max-width: 960px) and (max-height: 500px) and (orientation: landscape) {
 	.maestro-toolbar { flex-direction: row; }
 	.maestro-toolbar .maestro-panel { flex: 1 1 auto; }
