@@ -1348,14 +1348,14 @@
 			} );
 		}
 
-		function activateTab( idx, keepFocus ) {
+		function activateTab( idx ) {
 			tabs.forEach( function ( t, i ) {
 				t.setAttribute( 'aria-selected', i === idx ? 'true' : 'false' );
 				t.tabIndex = i === idx ? 0 : -1;
 				panels[ i ].hidden = i !== idx;
 			} );
 			loadSet( sets[ idx ], panels[ idx ] );
-			if ( ! keepFocus ) { tabs[ idx ].focus(); }
+			tabs[ idx ].focus();
 			applyFilter();
 		}
 
@@ -1434,14 +1434,6 @@
 				first.focus();
 			}
 		} );
-
-		// Open on the tab that holds the current icon: a stored data-URI is a
-		// Bootstrap icon, so its cell is shown (and loaded) straight away.
-		var current  = model[ slug ].icon || '';
-		var startTab = sets.findIndex( function ( set ) {
-			return set.type === 'data' && /^data:image\/svg\+xml/.test( current );
-		} );
-		activateTab( startTab > 0 ? startTab : 0, true );
 
 		var reposition = placePopover( pop, anchorBtn );
 		applyFilter();

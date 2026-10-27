@@ -96,8 +96,7 @@ same change.
 - One colour: a Bootstrap cell paints its SVG as a mask in the cell's text
   colour (`#1d2327`), the same as the Dashicons glyphs.
 - Option 1: `assets/icons-bootstrap.json` (437 icons, ~350 KB, ~85 KB gzipped)
-  is fetched the first time the Bootstrap tab opens. The picker opens on that
-  tab when the current icon is a data-URI. The original 87 data-URIs are
+  is fetched the first time the Bootstrap tab opens. The original 87 data-URIs are
   byte-identical, so stored icons still find their cell.
 - Usage survey not done: the set is picked by hand from the concept list above,
   with each group's words as search terms (the npm package ships no tags).
