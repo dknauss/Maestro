@@ -360,6 +360,22 @@ test.describe( 'selected-row controls, RTL live widths', () => {
 		wp( [ 'option', 'update', 'WPLANG', previousLanguage ] );
 	} );
 
+	test( 'dialog Close never covers an untranslated title in RTL', async ( { page } ) => {
+		await openEditor( page );
+		await expect( page.locator( 'html' ) ).toHaveAttribute( 'dir', 'rtl' );
+		await page.locator( '.maestro-settings-btn' ).click();
+		const pop = page.locator( '.maestro-settings-popover' );
+		await expect( pop ).toBeVisible();
+		const gap = await pop.evaluate( dialog => {
+			const range = document.createRange();
+			range.selectNodeContents( dialog.querySelector( '.maestro-settings-title' )! );
+			const text = range.getBoundingClientRect();
+			const close = dialog.querySelector( '.maestro-dialog-close' )!.getBoundingClientRect();
+			return text.left - close.right; // Close sits on the page's start side, the left
+		} );
+		expect( gap ).toBeGreaterThanOrEqual( 0 );
+	} );
+
 	for ( const submenu of [ false, true ] ) {
 		test( `live resizing keeps the ${ submenu ? 'submenu' : 'top-level' } rename field aligned in RTL`, async ( { page } ) => {
 			await openEditor( page );
