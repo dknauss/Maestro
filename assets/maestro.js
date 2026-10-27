@@ -50,6 +50,9 @@
 	var droppedSeparators = [];
 	// Phase 28: the one menu-wide setting so far. null means "use WordPress's
 	// default"; the sparse contract never stores the default itself.
+	var transferBusy = false;
+	var transferReloadRequired = false;
+	var transferEditVersion = 0;
 	var widthBounds = D.menuWidth || { min: 160, max: 320, default: 160, value: null };
 	var menuWidth = widthBounds.value || null;
 	var widthPreviewEl = null;  // <style> holding the live preview rule
@@ -98,6 +101,7 @@
 		n.dir = 'auto';
 	}
 	function removePopover( pop ) {
+		if ( transferReloadRequired ) { return; }
 		if ( pop.maestroAnchor ) { pop.maestroAnchor.setAttribute( 'aria-expanded', 'false' ); }
 		if ( pop.maestroCleanup ) { pop.maestroCleanup(); }
 		pop.remove();
@@ -2048,7 +2052,7 @@
 		pop.setAttribute( 'aria-modal', 'true' );
 		pop.setAttribute( 'aria-labelledby', 'maestro-settings-title' );
 
-		var title = el( 'h2', 'maestro-settings-title', I.menuWidth );
+		var title = el( 'h2', 'maestro-settings-title', I.settings );
 		title.id = 'maestro-settings-title';
 		pop.appendChild( title );
 
@@ -2089,6 +2093,7 @@
 		hint.id = 'maestro-width-hint';
 		group.appendChild( hint );
 		pop.appendChild( group );
+		buildTransferControls( pop );
 
 		var actions = el( 'div', 'maestro-settings-actions' );
 		var reset = el( 'button', 'button maestro-width-reset', I.widthUseDefault );
@@ -2121,6 +2126,7 @@
 		} );
 
 		function close() {
+			if ( transferReloadRequired ) { return; }
 			widthControls = null;
 			closePopovers();
 			anchorBtn.focus();
@@ -2136,7 +2142,7 @@
 			}
 			if ( e.key !== 'Tab' ) { return; }
 			var focusable = Array.prototype.filter.call(
-				pop.querySelectorAll( 'input, button' ),
+				pop.querySelectorAll( 'input, button, a[href]' ),
 				function ( n ) { return ! n.disabled && n.offsetParent !== null; }
 			);
 			if ( ! focusable.length ) { return; }
@@ -2167,6 +2173,206 @@
 		syncWidthControls();
 		range.focus();
 	}
+
+	/* Phase 31: explicit file review/apply in desktop Settings. */
+	function buildTransferControls( pop ) {
+		var section = el( 'section', 'maestro-transfer' );
+		section.appendChild( el( 'h3', '', I.transferTitle ) );
+		section.appendChild( el( 'p', 'description', I.transferIntro ) );
+		var exportBtn = el( 'button', 'button', I.transferExport );
+		exportBtn.type = 'button';
+		section.appendChild( exportBtn );
+		var label = el( 'label', 'maestro-transfer-file-label', I.transferFile );
+		label.htmlFor = 'maestro-transfer-file';
+		section.appendChild( label );
+		var file = el( 'input', 'maestro-transfer-file' );
+		file.id = label.htmlFor;
+		file.type = 'file';
+		file.accept = '.json,application/json';
+		section.appendChild( file );
+		var review = el( 'button', 'button', I.transferReview );
+		review.type = 'button';
+		section.appendChild( review );
+		var result = el( 'div', 'maestro-transfer-result' );
+		result.setAttribute( 'role', 'status' );
+		result.setAttribute( 'aria-live', 'polite' );
+		section.appendChild( result );
+		var confirmLabel = el( 'label', 'maestro-transfer-confirm' );
+		var confirm = el( 'input' );
+		confirm.type = 'checkbox';
+		confirmLabel.appendChild( confirm );
+		confirmLabel.appendChild( document.createTextNode( I.transferConfirmReset ) );
+		confirmLabel.hidden = true;
+		section.appendChild( confirmLabel );
+		var apply = el( 'button', 'button button-primary', I.transferApply );
+		apply.type = 'button';
+		apply.hidden = true;
+		section.appendChild( apply );
+		pop.appendChild( section );
+		var source = '', context = '', analysis = '', reviewedVersion = 0;
+		var storageKey = 'maestroTransferResult:' + D.restUrl;
+
+		function lock( busy ) {
+			transferBusy = busy;
+			// The dialog is a sibling of #adminmenu, so it remains operable.
+			[ document.getElementById( 'adminmenu' ), document.querySelector( '.maestro-toolbar' ), document.getElementById( 'wpadminbar' ) ].forEach( function ( n ) {
+				if ( n ) { n.inert = busy; }
+			} );
+			[ exportBtn, file, review, apply ].forEach( function ( b ) { b.disabled = busy; } );
+			pop.inert = busy;
+			pop.setAttribute( 'aria-busy', String( busy ) );
+		}
+		async function request( url, payload ) {
+			var r = await fetch( url, {
+				method: payload ? 'POST' : 'GET', credentials: 'same-origin',
+				headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': D.nonce },
+				body: payload ? JSON.stringify( payload ) : undefined
+			} );
+			var data = await r.json();
+			if ( ! r.ok ) {
+				var err = new Error( data.message || I.transferFailure );
+				// A JSON 4xx is the server refusing before it writes. Anything
+				// else (no reply, unreadable reply, 5xx) leaves the outcome unknown.
+				err.maestroRefused = r.status < 500;
+				throw err;
+			}
+			return data;
+		}
+		async function saved() {
+			if ( saveTimer || saveInFlight || savePending ) { await flushAutosave(); }
+			if ( ! lastSaveOk ) { throw new Error( I.transferSaveFailed ); }
+		}
+		function downloadJson( data, filename ) {
+			var url = URL.createObjectURL( new Blob( [ JSON.stringify( data, null, 2 ) + '\n' ], { type: 'application/json' } ) );
+			var a = el( 'a' ); a.href = url; a.download = filename;
+			// A synthetic download is not an outside click dismissing Settings.
+			a.addEventListener( 'click', function ( e ) { e.stopPropagation(); } );
+			document.body.appendChild( a ); a.click(); a.remove();
+			setTimeout( function () { URL.revokeObjectURL( url ); }, 1000 );
+		}
+		function show( message, report ) {
+			result.textContent = message;
+			if ( report && report.length ) {
+				result.appendChild( el( 'p', '', I.transferDrops ) );
+				var list = el( 'ul' );
+				report.slice( 0, 50 ).forEach( function ( row ) { list.appendChild( el( 'li', '', row.reference ) ); } );
+				result.appendChild( list );
+				var download = el( 'button', 'button', I.transferReport );
+				download.type = 'button';
+				download.addEventListener( 'click', function () { downloadJson( report, 'maestro-import-report.json' ); } );
+				result.appendChild( download );
+			}
+			speak( message );
+		}
+		async function work( run ) {
+			if ( transferBusy ) { return; }
+			// Locking disables and inerts the pressed button, which drops focus
+			// to <body>. Hand it back, or keyboard and screen-reader users are
+			// left outside the dialog with the result they just asked for.
+			var returnTo = document.activeElement;
+			lock( true );
+			show( I.transferWaiting );
+			try { await run(); } catch ( e ) {
+				analysis = '';
+				apply.hidden = true;
+				show( e.message || I.transferFailure );
+			} finally {
+				if ( ! transferReloadRequired ) {
+					lock( false );
+					if ( returnTo && pop.contains( returnTo ) && ! returnTo.disabled && ! returnTo.hidden && ! pop.contains( document.activeElement ) ) {
+						returnTo.focus();
+					}
+				}
+			}
+		}
+		file.addEventListener( 'change', function () {
+			analysis = ''; apply.hidden = true; confirmLabel.hidden = true; confirm.checked = false;
+			result.textContent = '';
+		} );
+		exportBtn.addEventListener( 'click', function () {
+			work( async function () {
+				await saved();
+				var data = await request( D.restUrl + '/export' );
+				downloadJson( data, 'maestro-menu-config.json' );
+				result.textContent = '';
+			} );
+		} );
+		review.addEventListener( 'click', function () {
+			work( async function () {
+				analysis = ''; apply.hidden = true;
+				if ( ! file.files.length ) { throw new Error( I.transferFileRequired ); }
+				if ( file.files[ 0 ].size > D.transferMaxBytes ) { throw new Error( I.transferTooLarge ); }
+				await saved();
+				source = await file.files[ 0 ].text();
+				// This authenticated request really builds the menu before snapshotting.
+				context = ( await request( D.transferContextUrl ) ).context;
+				var data = await request( D.restUrl + '/import', { file: source, context: context, mode: 'analyze' } );
+				analysis = data.analysis;
+				reviewedVersion = transferEditVersion;
+				confirm.checked = false; confirmLabel.hidden = ! data.empty;
+				show( data.empty ? I.transferReset : I.transferReady, data.report );
+				apply.hidden = false;
+			} );
+		} );
+		apply.addEventListener( 'click', function () {
+			if ( ! confirmLabel.hidden && ! confirm.checked ) { confirm.focus(); return; }
+			work( async function () {
+				// Applying must never POST the old full-replace model first.
+				if ( transferEditVersion !== reviewedVersion || saveTimer || saveInFlight || savePending || ! lastSaveOk ) {
+					throw new Error( I.transferChanged );
+				}
+				var data;
+				try {
+					data = await request( D.restUrl + '/import', { file: source, context: context, mode: 'apply', analysis: analysis, confirm_empty: confirm.checked } );
+				} catch ( e ) {
+					if ( e.maestroRefused ) { throw e; }
+					// The server may have committed the import before the reply was
+					// lost. Resuming would autosave the old model over it.
+					requireReload( I.transferUncertain );
+					return;
+				}
+				try { sessionStorage.setItem( storageKey, I.transferSuccess ); } catch ( e ) { /* Optional reload feedback. */ }
+				requireReload( I.transferSuccess, data.report );
+				window.location.reload();
+			} );
+		} );
+
+		// Never resume editing the old full-replace model, even when the browser
+		// cancels navigation. Only recovery/report controls stay live.
+		function requireReload( message, report ) {
+			transferReloadRequired = true;
+			show( message, report );
+			pop.querySelectorAll( 'input, button' ).forEach( function ( control ) {
+				control.disabled = ! result.contains( control );
+			} );
+			var reload = el( 'a', 'button button-primary', I.transferReload );
+			reload.href = window.location.href;
+			result.appendChild( reload );
+			pop.inert = false;
+			pop.setAttribute( 'aria-busy', 'false' );
+			reload.focus();
+		}
+	}
+
+	(function transferNotice() {
+		try {
+			var key = 'maestroTransferResult:' + D.restUrl;
+			var text = sessionStorage.getItem( key );
+			if ( text ) {
+				sessionStorage.removeItem( key );
+				var notice = el( 'div', 'notice notice-success maestro-transfer-notice' );
+				notice.appendChild( el( 'p', '', I.transferSuccess ) );
+				document.querySelector( '#wpbody-content' ).prepend( notice );
+				// A notice already on the page at load is not announced; say it.
+				// wp.a11y creates its live regions on DOM ready, so wait for it.
+				if ( window.wp && window.wp.domReady ) {
+					window.wp.domReady( function () { setTimeout( function () { speak( I.transferSuccess ); }, 500 ); } );
+				} else {
+					setTimeout( function () { speak( I.transferSuccess ); }, 500 );
+				}
+			}
+		} catch ( e ) { /* Storage is optional; persisted settings are authoritative. */ }
+	})();
 
 	/*
 	 * The Hiding profiles dialog (Phase 27): create, rename and delete
@@ -3471,6 +3677,7 @@
 			pop.maestroCleanup = null;
 		}
 		function resize() {
+			if ( transferReloadRequired ) { position(); return; }
 			if ( window.innerWidth < 961 && pop.classList.contains( 'maestro-settings-popover' ) && ! pop.classList.contains( 'maestro-profiles-popover' ) && ! pop.classList.contains( 'maestro-preview-popover' ) ) {
 				removePopover( pop );
 				var help = document.querySelector( '.maestro-tour-help' );
@@ -3781,6 +3988,8 @@
 	}
 
 	function scheduleAutosave() {
+		if ( transferBusy ) { return; }
+		transferEditVersion++;
 		setStatus( 'saving' );
 		if ( saveTimer ) { clearTimeout( saveTimer ); }
 		saveTimer = setTimeout( doAutosave, 500 );
@@ -3802,6 +4011,7 @@
 	// resolves only after the whole chain (including the trailing save) is done,
 	// so bindAdminBarExit's click intercept can safely await it.
 	function doAutosave() {
+		if ( transferReloadRequired ) { return Promise.resolve(); }
 		saveTimer = null;
 
 		if ( saveInFlight ) {
@@ -4147,7 +4357,8 @@
 			{ text: I.tourStepSeparator, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.addSepBtn ); } },
 		] ).concat( [
 			// The edge handle and the Settings gear only render at 961px and
-			// wider (maestro.css): the width they set does not apply below it.
+			// wider (maestro.css): the width they set does not apply below it,
+			// and export/import is a desk task.
 			{ text: I.tourStepWidth, placement: 'right', byViewport: true, anchor: function () { return tourShown( widthHandle ); } },
 			{ text: I.tourStepProfiles, placement: 'top', anchor: function () { return tourShown( profilesBtn ); } },
 			// Role preview (Phase 30) sits between the groups and Settings.

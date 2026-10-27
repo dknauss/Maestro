@@ -22,8 +22,8 @@ test( 'group edits survive closing immediately and reopening after reload', asyn
 
 test( 'width saves on close, with one title and no Done action', async ( { page } ) => {
 	await page.locator( '.maestro-settings-btn' ).click();
-	const dialog = page.getByRole( 'dialog', { name: 'Menu width', exact: true } );
-	await expect( dialog.getByRole( 'heading' ) ).toHaveText( 'Menu width' );
+	const dialog = page.getByRole( 'dialog', { name: 'Settings', exact: true } );
+	await expect( dialog.getByRole( 'heading', { level: 2 } ) ).toHaveText( 'Settings' );
 	await expect( dialog.getByRole( 'button', { name: 'Done' } ) ).toHaveCount( 0 );
 	await dialog.getByLabel( 'Menu width in pixels' ).fill( '240' );
 	await dialog.getByRole( 'button', { name: 'Close dialog' } ).click();

@@ -216,22 +216,24 @@ class Assets {
 			'maestro',
 			'maestroData',
 			array(
-				'restUrl'         => esc_url_raw( rest_url( Rest::NS . '/config' ) ),
-				'nonce'           => wp_create_nonce( 'wp_rest' ),
-				'exitUrl'         => esc_url_raw( remove_query_arg( 'maestro_edit' ) ),
+				'transferContextUrl' => esc_url_raw( admin_url( 'index.php?maestro_edit=1&maestro_transfer_context=1' ) ),
+				'transferMaxBytes'   => Transfer::MAX_FILE_BYTES,
+				'restUrl'            => esc_url_raw( rest_url( Rest::NS . '/config' ) ),
+				'nonce'              => wp_create_nonce( 'wp_rest' ),
+				'exitUrl'            => esc_url_raw( remove_query_arg( 'maestro_edit' ) ),
 				// ROLE-02: the per-user picker searches CORE's users endpoint
 				// rather than a Maestro route — it is already capability-gated by
 				// `list_users`, so we inherit core's authorization instead of
 				// re-implementing it. The `nonce` above is a `wp_rest` nonce and
 				// authenticates this endpoint too; no second nonce is needed.
-				'usersUrl'        => esc_url_raw( rest_url( 'wp/v2/users' ) ),
+				'usersUrl'           => esc_url_raw( rest_url( 'wp/v2/users' ) ),
 				// Drives the self-target caution only. Never a permission check.
-				'userId'          => get_current_user_id(),
+				'userId'             => get_current_user_id(),
 				// Phase 29: the editing user's roles on this site, so "All other
 				// roles" never ticks one of them. Display only, never a permission
 				// check. Empty for a multisite super admin with no role here.
-				'userRoles'       => array_values( (array) wp_get_current_user()->roles ),
-				'maxHiddenRoles'  => Config::MAX_HIDDEN_ROLES,
+				'userRoles'          => array_values( (array) wp_get_current_user()->roles ),
+				'maxHiddenRoles'     => Config::MAX_HIDDEN_ROLES,
 				// ROLE-02: `maestro_capability` lets a site hand Maestro to a
 				// custom role that may NOT hold `list_users`. Core's users
 				// collection would then return only published authors — so the
@@ -241,49 +243,49 @@ class Assets {
 				// Maestro endpoint: widening who can enumerate site users would
 				// trade away exactly the "zero risk to access" property the
 				// plugin exists to protect. Role-based hiding still works.
-				'canPickUsers'    => current_user_can( 'list_users' ),
+				'canPickUsers'       => current_user_can( 'list_users' ),
 				// Mirrors Config::MAX_HIDDEN_USERS so the picker can stop AT the
 				// cap instead of letting the server silently truncate a save the
 				// editor reported as successful.
-				'maxHiddenUsers'  => Config::MAX_HIDDEN_USERS,
+				'maxHiddenUsers'     => Config::MAX_HIDDEN_USERS,
 				// Phase 27: hiding profiles. The registry is empty for a viewer
 				// without `list_users` (see Replay::get_editor_profiles()), and the
 				// caps mirror Config so the dialog stops AT them.
-				'profiles'        => $this->replay->get_editor_profiles(),
-				'profileCarry'    => $this->profile_carry(),
-				'profileLimits'   => array(
+				'profiles'           => $this->replay->get_editor_profiles(),
+				'profileCarry'       => $this->profile_carry(),
+				'profileLimits'      => array(
 					'profiles' => Config::MAX_PROFILES,
 					'members'  => Config::MAX_PROFILE_MEMBERS,
 					'name'     => Config::MAX_PROFILE_NAME_CHARS,
 				),
-				'roles'           => wp_roles()->get_names(),
+				'roles'              => wp_roles()->get_names(),
 				// Phase 30: role preview. The editor navigates to url with
 				// maestro_preview=<role> and this nonce once any pending save has
 				// landed. Super admins get the explanation instead of the picker.
-				'preview'         => array(
+				'preview'            => array(
 					'url'       => admin_url( 'index.php' ),
 					'nonce'     => wp_create_nonce( Preview::ACTION ),
 					'available' => Preview::available(),
 					'roles'     => Preview::previewable_roles(),
 				),
-				'iconSets'        => $this->icon_sets(),
-				'config'          => $this->editor_config(),
-				'menu'            => $this->with_icon_sets( $this->replay->get_menu_model() ),
+				'iconSets'           => $this->icon_sets(),
+				'config'             => $this->editor_config(),
+				'menu'               => $this->with_icon_sets( $this->replay->get_menu_model() ),
 				// Separator slugs in rendered order; the editor pairs them with
 				// core's id-less separator <li>s by position.
-				'separators'      => $this->replay->get_separators(),
+				'separators'         => $this->replay->get_separators(),
 				// Including rows core trimmed, so the editor keeps their stored place.
-				'knownSeparators' => $this->replay->get_known_separators(),
-				'separatorPrefix' => Config::SEPARATOR_PREFIX,
+				'knownSeparators'    => $this->replay->get_known_separators(),
+				'separatorPrefix'    => Config::SEPARATOR_PREFIX,
 				// Phase 28: the editor clamps exactly as Config::clean_menu_width() does.
-				'menuWidth'       => array(
+				'menuWidth'          => array(
 					'min'     => Config::MIN_MENU_WIDTH,
 					'max'     => Config::MAX_MENU_WIDTH,
 					'default' => Config::DEFAULT_MENU_WIDTH,
 					'value'   => $this->config->menu_width(),
 				),
-				'pristine'        => $this->pristine_with_icon_sets( $this->replay->get_pristine() ),
-				'i18n'            => array(
+				'pristine'           => $this->pristine_with_icon_sets( $this->replay->get_pristine() ),
+				'i18n'               => array(
 					'saving'               => __( 'Saving…', 'maestro-menu-editor' ),
 					'saved'                => __( 'Saved', 'maestro-menu-editor' ),
 					'saveError'            => __( 'Save failed. Retrying on next change.', 'maestro-menu-editor' ),
@@ -446,12 +448,32 @@ class Assets {
 					/* translators: Guided-tour step pointing at the Visibility groups toolbar button. */
 					'tourStepProfiles'     => __( 'Visibility groups let you hide a menu item from everyone in a group. Add people to the group, then select the group in the menu item\'s Visibility settings.', 'maestro-menu-editor' ),
 					'tourStepPreview'      => __( 'Preview as shows the menu a role would see, read-only. Pick a role and press Preview; your changes are saved first.', 'maestro-menu-editor' ),
-					'tourStepSettings'     => __( 'Menu width lets you type an exact width or go back to the default.', 'maestro-menu-editor' ),
+					'tourStepSettings'     => __( 'Settings holds the menu width and configuration export/import.', 'maestro-menu-editor' ),
 					'tourStepHelp'         => __( 'Want this tour again? Use the help button anytime.', 'maestro-menu-editor' ),
 					'tourStep4'            => __( 'Your changes save automatically. Reset all returns the whole menu to the WordPress defaults.', 'maestro-menu-editor' ),
 					'tourStep5'            => __( 'Click Exit when you are done. Your changes stay live for everyone.', 'maestro-menu-editor' ),
 					/* translators: Accessible label / tooltip for the toolbar button, and title of the dialog, holding menu-wide settings. */
-					'settings'             => __( 'Menu width', 'maestro-menu-editor' ),
+					'settings'             => __( 'Settings', 'maestro-menu-editor' ),
+					'transferTitle'        => __( 'Export/import', 'maestro-menu-editor' ),
+					'transferIntro'        => __( 'Import replaces names, icons, role rules, ordering, separators and menu width. People rules and visibility groups on this site are kept. Hiding does not change page access.', 'maestro-menu-editor' ),
+					'transferExport'       => __( 'Export configuration', 'maestro-menu-editor' ),
+					'transferFile'         => __( 'Configuration JSON file', 'maestro-menu-editor' ),
+					'transferReview'       => __( 'Review file', 'maestro-menu-editor' ),
+					'transferApply'        => __( 'Import configuration', 'maestro-menu-editor' ),
+					'transferChanged'      => __( 'Settings changed. Review the file again before importing.', 'maestro-menu-editor' ),
+					'transferSaveFailed'   => __( 'Save failed. Resolve the save error before transferring settings.', 'maestro-menu-editor' ),
+					'transferTooLarge'     => __( 'The configuration file is too large (maximum 2 MB).', 'maestro-menu-editor' ),
+					'transferReady'        => __( 'Ready to import. Changes are applied only when you press Import configuration.', 'maestro-menu-editor' ),
+					'transferReset'        => __( 'This file leaves no portable settings. Confirm that you want to reset portable settings; people rules and visibility groups are kept.', 'maestro-menu-editor' ),
+					'transferConfirmReset' => __( 'Reset portable settings', 'maestro-menu-editor' ),
+					'transferSuccess'      => __( 'Configuration imported. People rules and visibility groups were kept.', 'maestro-menu-editor' ),
+					'transferWaiting'      => __( 'Working…', 'maestro-menu-editor' ),
+					'transferFailure'      => __( 'Transfer failed. Please try again.', 'maestro-menu-editor' ),
+					'transferReload'       => __( 'Reload editor', 'maestro-menu-editor' ),
+					'transferUncertain'    => __( 'No reply arrived, so the import may or may not have been saved. Reload the editor before making more changes.', 'maestro-menu-editor' ),
+					'transferReport'       => __( 'Download full report', 'maestro-menu-editor' ),
+					'transferDrops'        => __( 'Not applied:', 'maestro-menu-editor' ),
+					'transferFileRequired' => __( 'Choose a configuration file first.', 'maestro-menu-editor' ),
 					'menuWidth'            => __( 'Menu width', 'maestro-menu-editor' ),
 					'menuWidthPx'          => __( 'Menu width in pixels', 'maestro-menu-editor' ),
 					'menuWidthHint'        => __( 'Widen the menu so longer labels fit on one line. Applies on every admin page, for everyone, on screens 961px and wider.', 'maestro-menu-editor' ),

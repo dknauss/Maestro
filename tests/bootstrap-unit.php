@@ -213,3 +213,10 @@ require_once $amm_inc . 'class-title.php';
 require_once $amm_inc . 'class-cascade.php';
 require_once $amm_inc . 'class-assets.php';
 require_once $amm_inc . 'class-preview.php';
+
+if ( ! function_exists( '__' ) ) {
+	function __( $text, $domain = '' ) { return $text; }
+}
+if ( ! function_exists( 'esc_html__' ) ) {
+	function esc_html__( $text, $domain = '' ) { return $text; }
+}
