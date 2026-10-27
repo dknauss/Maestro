@@ -8,6 +8,11 @@ files:
   - SPEC.md:199 (Roadmap item 6 — "Import/export config as JSON", already-deferred precursor)
 ---
 
+## Reconciled — 2026-10-26
+
+Export/import is implemented in open PR #263 for the release after v1.9.0, not yet shipped. Named and bundled presets remain unscheduled; historical version assumptions below are superseded.
+
+
 **Scheduled:** plain export/import is v1.7 Client-Site Workflow, Phase 31 (#216). Named and bundled presets are not scheduled.
 
 ## Problem

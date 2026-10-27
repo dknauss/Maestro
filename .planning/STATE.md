@@ -4,26 +4,28 @@ milestone: v1.9
 milestone_name: Client-Site Workflow
 status: in_progress
 stopped_at: "Phase 30 role preview merged through #251 (9802065), with post-merge CI green. Desktop UX refinement in progress; contextual row controls planned for a later pass. Real touch-device acceptance remains open."
-last_updated: "2026-10-24T00:00:00.000Z"
+last_updated: "2026-10-26T00:00:00.000Z"
 last_activity: "2026-10-24 — Desktop UX cleanup and preview-notice placement regression coverage; later contextual controls planned. Touch-device acceptance remains open."
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 4
   completed_plans: 4
-  percent: 0 # Fully accepted across devices: 0/3; Phase 31 remains unplanned.
+  percent: 0 # Fully accepted across devices: 0/3; Phase 31 is built in open PR #263.
 ---
 
 # Project State
 
-## Release prep — 1.9.0 (2026-10-24)
+## Current reconciliation — 2026-10-26
 
-Main after #260 (`d34a576`) is being cut as **1.9.0**. 1.8.0 was bumped in #242 but
-never tagged or released, so 1.9.0 carries visibility groups (Phase 27), the width
-follow-ups, "All other roles" (Phase 29), preview as a role (Phase 30) and the
-desktop and mobile polish (#256–#260). Phase 31 (export/import) follows in a later
-release, per the D5 recommendation; the release PR is Dan's confirmation of D5.
-The POT is regenerated. Real iPhone/iPad checks of #260 remain Dan's.
+v1.9.0 is released. Phone/dialog polish #265, RTL title clearance #268 and
+icon-picker/recolouring #266 are merged. Export/import #263 remains open for
+mandatory deep review and acceptance; #264 is closed with its recovery changes
+incorporated into #263. Selected-row prototype #261 remains a separate open
+experiment. Real-device and human screen-reader acceptance remain open.
+The five phone reports are in [iPhone issues](../docs/testing/iphone-issues.md).
+
+Historical progress notes below do not supersede this reconciliation.
 
 ## Desktop UX refinement — 2026-10-24
 
@@ -555,7 +557,7 @@ Recent decisions affecting current work:
   **This gates `configurable-admin-menu-width`**, which must "respect folded
   mode" while edit mode currently refuses it — design those together or the
   width work inherits an unstated conflict. Captured in
-  `todos/pending/2026-08-10-toolbar-height-and-collapse-menu-parity.md`
+  `todos/completed/2026-08-10-toolbar-height-and-collapse-menu-parity.md`
 
 - **Persistent saved-state indicator** — the save status is event feedback that
   self-erases after 2s (`maestro.js` ~L1748), so seconds after a rename commits
@@ -772,7 +774,7 @@ re-opening either question:**
   icon opening a modal (Profiles, Settings); per-item stays in the per-item
   panel; **no wp-admin settings page, ever**; two icons is the budget.
 - The fold story, recorded in
-  `todos/pending/2026-08-10-toolbar-height-and-collapse-menu-parity.md` — edit
+  `todos/completed/2026-08-10-toolbar-height-and-collapse-menu-parity.md` — edit
   mode keeps forcing unfold, but `#collapse-menu` stops pretending to work. The
   "fold versus width conflict" flagged on 2026-08-09 was mis-framed and is
   **withdrawn**: `160px` is just hardcoded in three places.

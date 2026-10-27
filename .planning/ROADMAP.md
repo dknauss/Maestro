@@ -599,7 +599,7 @@ should be made once.
   9. Zero regression across the same gates as Phase 29
 **Plans**: 30-01 server window ([#248](https://github.com/dknauss/Maestro/pull/248)) · 30-02 picker, banner, exit and parity e2e ([#251](https://github.com/dknauss/Maestro/pull/251)) — both merged; post-merge CI passed on `9802065`. Preview is restricted to the Dashboard and roles with `read`. Human acceptance remains open.
 **Out of this phase**: editing inside the preview (the scope selector's role and person scopes) and "View as: [person]". Both stay in the todo.
-**Notes**: [view-as-role todo](todos/pending/2026-10-07-view-menu-as-role-preview.md)
+**Notes**: [view-as-role todo](todos/completed/2026-10-07-view-menu-as-role-preview.md)
 **Review**: high-risk diff (touches capability resolution) — mandatory deep review before merge
 
 ### Phase 31: Config Export/Import
@@ -630,7 +630,7 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 **v1.5 is shipped** as the v1.5.x release line; v1.5.4 (PR #192, shipped 2026-09-21) is
 the final patch documented here for that line, adding compatibility fixes (#176, #179, #189) and E2E
 hardening. Release #232 (v1.7.0 menu width) has since merged; no deployment verification is claimed here.
-Current implementation state: Phases 27–29 desktop human checks passed 2026-10-23; touch-device acceptance remains open. Phase 27 (v1.8) has all five plans built; Phase 29 is merged in #243; Phase 30 implementation merged through #251; Phase 31 is unplanned. Phase numbers remain non-contiguous by design because 21, 22, and 25
+Current implementation state: Phases 27–29 desktop human checks passed 2026-10-23; touch-device acceptance remains open. Phase 27 (v1.8) has all five plans built; Phase 29 is merged in #243; Phase 30 implementation merged through #251; Phase 31 is built in open PR #263, awaiting deep review and acceptance. Phase numbers remain non-contiguous by design because 21, 22, and 25
 originated under the v1.4 roadmap and were not renumbered when they slipped.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -667,4 +667,4 @@ originated under the v1.4 roadmap and were not renumbered when they slipped.
 | 28. Configurable Admin Menu Width | v1.7.0 | 2/3 | Built; desktop rechecks passed 2026-10-23; touch outstanding | - |
 | 29. Select-All Role Control | v1.9 | 2/2 built | Merged #243; CI green; desktop checks passed 2026-10-23; touch outstanding | - |
 | 30. View-as-Role Preview (read-only) | v1.9 | 2/2 built | Merged through #251; human acceptance open | - |
-| 31. Config Export/Import | v1.9 | 0/TBD | Not started | - |
+| 31. Config Export/Import | After v1.9.0 | Built in #263 | Open PR; deep review and acceptance outstanding | - |

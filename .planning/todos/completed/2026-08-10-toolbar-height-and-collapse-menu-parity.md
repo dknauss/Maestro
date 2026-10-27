@@ -8,6 +8,11 @@ files:
   - assets/maestro.css (~L11-29 — the defensive folded-mode width:160px !important backstop)
 ---
 
+## Reconciled — 2026-10-26
+
+Implemented by #256/#260/#265: compact bounded phone rows and Collapse menu hidden during editing. Menu width is respected. Device acceptance remains open in docs/testing/iphone-issues.md. The investigation below is historical.
+
+
 ## Two things, and the second is the reason to do this
 
 ### 1. The toolbar is taller than it needs to be

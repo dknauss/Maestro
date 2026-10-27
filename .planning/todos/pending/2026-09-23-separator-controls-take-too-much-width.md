@@ -7,6 +7,11 @@ files:
   - assets/maestro.css (~line 268 — the list of icon-only panel buttons)
 ---
 
+## Reconciled — 2026-10-26
+
+Phone separator controls are icon-only in #265, retaining full accessible labels. Only desktop label-policy follow-up remains; phone device verification is tracked separately.
+
+
 ## Problem
 
 Raised by Dan after 1.6.0 shipped. "Add separator below" and "Remove
