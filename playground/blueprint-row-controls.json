@@ -1,0 +1,66 @@
+{
+	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
+	"meta": {
+		"title": "Maestro — selected-row controls prototype",
+		"author": "dknauss",
+		"description": "Draft prototype: rename, move and icon controls on the selected menu row. Installs the proto/selected-row-controls branch and lands in edit mode with ?maestro_rows=1."
+	},
+	"landingPage": "/wp-admin/index.php?maestro_edit=1&maestro_rows=1",
+	"preferredVersions": {
+		"php": "8.3",
+		"wp": "latest"
+	},
+	"login": true,
+	"plugins": [
+		"user-switching"
+	],
+	"steps": [
+		{
+			"step": "writeFile",
+			"path": "/wordpress/wp-content/mu-plugins/maestro-demo-user-switcher.php",
+			"data": "<?php\n/**\n * Plugin Name: Maestro demo user switcher\n * Description: Playground demo only. Adds a \"Switch user\" admin bar menu listing the demo users. Requires User Switching.\n */\n\nadd_action(\n\t'admin_bar_menu',\n\tstatic function ( WP_Admin_Bar $bar ) {\n\t\tif ( ! class_exists( 'user_switching' ) || ! is_user_logged_in() ) {\n\t\t\treturn;\n\t\t}\n\n\t\t$current = wp_get_current_user();\n\t\t$users   = get_users(\n\t\t\tarray(\n\t\t\t\t'login__in' => array( 'admin', 'editor', 'author', 'contributor', 'subscriber' ),\n\t\t\t\t'orderby'   => 'login__in',\n\t\t\t)\n\t\t);\n\n\t\t$items = array();\n\t\tforeach ( $users as $user ) {\n\t\t\tif ( $user->ID === $current->ID ) {\n\t\t\t\tcontinue;\n\t\t\t}\n\t\t\t$url = user_switching::maybe_switch_url( $user );\n\t\t\tif ( $url ) {\n\t\t\t\t$items[ $user->user_login ] = array( $user, $url );\n\t\t\t}\n\t\t}\n\n\t\tif ( ! $items ) {\n\t\t\treturn;\n\t\t}\n\n\t\t$bar->add_node(\n\t\t\tarray(\n\t\t\t\t'id'    => 'maestro-demo-switch',\n\t\t\t\t'title' => esc_html( sprintf( 'Viewing as %s', $current->display_name ) ),\n\t\t\t)\n\t\t);\n\n\t\tforeach ( $items as $login => $item ) {\n\t\t\tlist( $user, $url ) = $item;\n\t\t\t$role               = $user->roles ? translate_user_role( wp_roles()->role_names[ $user->roles[0] ] ) : '';\n\t\t\t$bar->add_node(\n\t\t\t\tarray(\n\t\t\t\t\t'parent' => 'maestro-demo-switch',\n\t\t\t\t\t'id'     => 'maestro-demo-switch-' . $login,\n\t\t\t\t\t'title'  => esc_html( 'admin' === $login && user_switching::get_old_user() ? sprintf( 'Switch back to %s', $user->display_name ) : sprintf( 'Switch to %s (%s)', $user->display_name, $role ) ),\n\t\t\t\t\t'href'   => $url,\n\t\t\t\t)\n\t\t\t);\n\t\t}\n\t},\n\t100\n);\n",
+			"progress": {
+				"caption": "Adding the demo user switcher"
+			}
+		},
+		{
+			"step": "writeFile",
+			"path": "/wordpress/wp-content/mu-plugins/maestro-demo-long-name.php",
+			"data": "<?php\n/**\n * Plugin Name: Maestro prototype: long menu name\n * Description: Playground demo only. A plugin-style menu with a long name, for checking the row controls at narrow widths.\n */\nadd_action( 'admin_menu', static function () {\n\tadd_menu_page( 'Analytics', 'WooCommerce Marketing & Analytics Insights', 'manage_options', 'lab-long-name', '__return_null', 'dashicons-chart-area', 58 );\n\tadd_submenu_page( 'lab-long-name', 'Reports', 'Customer Lifetime Value Reports', 'manage_options', 'lab-long-name-reports', '__return_null' );\n} );\n"
+		},
+		{
+			"step": "installPlugin",
+			"pluginData": {
+				"resource": "url",
+				"url": "https://wordpress-playground-cors-proxy.net/?https://github.com/dknauss/Maestro/archive/refs/heads/proto/selected-row-controls.zip"
+			},
+			"options": {
+				"activate": true,
+				"targetFolderName": "maestro-menu-editor"
+			},
+			"progress": {
+				"caption": "Installing Maestro"
+			}
+		},
+		{
+			"step": "wp-cli",
+			"command": "wp user update admin --first_name=Adam --last_name=Admin --display_name=\"Adam Admin\""
+		},
+		{
+			"step": "wp-cli",
+			"command": "wp user create editor editor@example.com --role=editor --user_pass=password --first_name=Emma --last_name=Editor --display_name=\"Emma Editor\""
+		},
+		{
+			"step": "wp-cli",
+			"command": "wp user create author author@example.com --role=author --user_pass=password --first_name=Andy --last_name=Author --display_name=\"Andy Author\""
+		},
+		{
+			"step": "wp-cli",
+			"command": "wp user create contributor contributor@example.com --role=contributor --user_pass=password --first_name=Carrie --last_name=Contributor --display_name=\"Carrie Contributor\""
+		},
+		{
+			"step": "wp-cli",
+			"command": "wp user create subscriber subscriber@example.com --role=subscriber --user_pass=password --first_name=Steven --last_name=Subscriber --display_name=\"Steven Subscriber\""
+		}
+	]
+}

@@ -72,6 +72,7 @@
 	// as this session's own copy: a delete drops its entry.
 	var profileCarry = window.maestroLogic.dropProfileCarry( D.profileCarry, '' );
 	var profilesBtn = null;     // the toolbar button that opens the dialog
+	var rowCtl = null;          // the selected row's own controls (buildRowControls)
 
 	/* ---------- helpers ---------------------------------------------------- */
 
@@ -107,6 +108,7 @@
 	}
 	function closePopovers() {
 		document.querySelectorAll( '.maestro-popover' ).forEach( removePopover );
+		closeRowMenu( false );
 	}
 	// The row marker means "this row has a hide rule of its own", on any axis.
 	function refreshHiddenMarker( key ) {
@@ -386,6 +388,7 @@
 			// width slider previews live). Re-read who owns the width so the
 			// handle and an open Menu settings dialog stop showing a stale one.
 			syncWidthControls();
+			placeRowControls( selectedKey );
 		}
 
 		apply();
@@ -592,6 +595,7 @@
 		delete model[ slug ];
 		selectedKey = null;
 		panel.root.hidden = true;
+		placeRowControls( null );
 
 		// Keep focus in the menu, on the row that took its place.
 		if ( prev ) {
@@ -613,8 +617,9 @@
 			var a = e.target.closest( 'a' );
 			if ( a ) { e.preventDefault(); }
 
-			// Popovers may be placed over the menu region — let them handle their own clicks.
-			if ( e.target.closest( '.maestro-popover' ) ) {
+			// Popovers may be placed over the menu region, and the selected row
+			// carries its own controls — let them handle their own clicks.
+			if ( e.target.closest( '.maestro-popover, .maestro-row-ctl' ) ) {
 				return;
 			}
 
@@ -627,16 +632,27 @@
 		}, true );
 
 		menu.addEventListener( 'keydown', function ( e ) {
-			if ( e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar' ) {
+			var renameKey = !! rowCtl && ( e.key === 'F2' || e.key === 'Enter' );
+			// Enter selects rows in both modes, including anchorless separators.
+			if ( ! renameKey && e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar' ) {
 				return;
 			}
-			if ( e.target.closest( '.maestro-popover' ) ) {
+			if ( e.target.closest( '.maestro-popover, .maestro-row-ctl' ) ) {
 				return;
 			}
 
 			var li = e.target.closest( 'li.maestro-item, li.maestro-subitem' );
 			if ( ! li ) { return; }
 			e.preventDefault();
+			// Enter on the row that is already selected renames it, as F2 does
+			// anywhere in the menu. F2 needs fn on most Mac keyboards, so Enter
+			// is the primary keyboard path and F2 the familiar extra.
+			if ( renameKey && ( e.key === 'F2' || li.classList.contains( 'maestro-selected' ) ) ) {
+				if ( ! li.classList.contains( 'maestro-selected' ) ) { selectItem( li ); }
+				startInlineRename();
+				return;
+			}
+			if ( e.key === 'F2' ) { return; }
 			selectItem( li, { focusPanel: true } );
 		}, true );
 
@@ -775,6 +791,10 @@
 		// links), so commit a pending rename while the old item is selected.
 		if ( panel.rename && document.activeElement === panel.rename ) { panel.rename.blur(); }
 
+		// Sortable can defer blur until click selection has already changed.
+		// Commit against the old selected key before moving the shared controls.
+		if ( rowCtl && rowCtl.editing ) { finishInlineRename( true, false ); }
+
 		document.querySelectorAll( '.maestro-selected' ).forEach( function ( n ) {
 			n.classList.remove( 'maestro-selected' );
 			n.removeAttribute( 'aria-keyshortcuts' );
@@ -786,7 +806,13 @@
 		populatePanel( key );
 		closePopovers();
 		// A separator has no rename field; its first real control is Remove.
-		var focusTarget = model[ key ].isSeparator ? panel.removeSepBtn : panel.rename;
+		// With row controls on, any other row carries its own controls, so
+		// focus stays on the row and Tab reaches them next: nothing jumps to
+		// the toolbar, and a tap on a phone does not raise the keyboard.
+		var focusTarget = rowCtl ? ( li.querySelector( 'a' ) || li ) : ( model[ key ].isSeparator ? panel.removeSepBtn : panel.rename );
+		if ( opts.focusPanel && rowCtl && ! model[ key ].isSeparator ) {
+			speak( I.rowSelected.replace( '%s', function () { return model[ key ].title; } ) );
+		}
 		if ( opts.focusPanel && focusTarget ) {
 			try {
 				focusTarget.focus( { preventScroll: true } );
@@ -796,6 +822,452 @@
 		} else if ( opts.focusRow ) {
 			var rowLink = li.querySelector( 'a' );
 			if ( rowLink ) { rowLink.focus( { preventScroll: true } ); }
+		}
+	}
+
+	/* ---------- selected-row controls (prototype) ------------------------- */
+
+	/*
+	 * DESKTOP-UX-NEXT-PASS prototype: rename, move and icon controls on the
+	 * selected row itself rather than in the bottom toolbar. One set of nodes
+	 * is re-parented into whichever row is selected:
+	 *
+	 *   - the icon button covers the row's own icon column (top level only),
+	 *     so an icon becomes "Change icon" only once its row is selected; the
+	 *     first click on any row always just selects it;
+	 *   - a strip under the row holds Rename (pencil), Move up and Move down;
+	 *   - Rename swaps the label for a field over it until Enter, Escape or
+	 *     blur.
+	 *
+	 * They are children of the <li>, never of its <a>, so they neither
+	 * navigate nor nest interactive content, and a press on a <button> or
+	 * <input> never starts a sortable drag (`cancel`). Inside #adminmenu they
+	 * are also inside #adminmenuwrap, so on phones core never counts a tap on
+	 * them as a click outside the open menu.
+	 *
+	 * Visibility, Reset item and Add separator sit in a More (⋯) menu on the
+	 * row where four buttons fit (rowHasMore()); on touch screens they stay in
+	 * the toolbar. A selected separator gets Up, Down and Remove.
+	 */
+	// Opt-in while it is a prototype, so the shipped toolbar flow (and every
+	// spec written against it) is unchanged: ?maestro_rows=1 turns it on and
+	// remembers that in this browser, ?maestro_rows=0 turns it back off.
+	function rowControlsEnabled() {
+		var flag = new window.URLSearchParams( window.location.search ).get( 'maestro_rows' );
+		try {
+			if ( flag === '1' || flag === '0' ) { window.localStorage.setItem( 'maestroRowControls', flag ); }
+			return window.localStorage.getItem( 'maestroRowControls' ) === '1';
+		} catch ( err ) {
+			return flag === '1';
+		}
+	}
+
+
+	// Menu labels are content, never credentials. Keep native autocomplete off
+	// and offer extension-specific ignore hints without changing field semantics
+	// or blocking focus/paste. Browsers and extensions may override these hints.
+	function discourageCredentialAutofill( input ) {
+		input.setAttribute( 'autocomplete', 'off' );
+		[ 'data-1p-ignore', 'data-lpignore', 'data-bwignore', 'data-protonpass-ignore' ].forEach( function ( attr ) {
+			input.setAttribute( attr, 'true' );
+		} );
+	}
+
+	function buildRowControls() {
+		if ( ! rowControlsEnabled() ) { return; }
+		document.body.classList.add( 'maestro-row-controls' );
+		var strip = el( 'div', 'maestro-row-strip maestro-row-ctl' );
+		strip.setAttribute( 'role', 'group' );
+
+		function stripButton( cls, glyph, label, onClick ) {
+			var b = el( 'button', 'maestro-row-btn maestro-row-ctl ' + cls );
+			b.type = 'button';
+			iconButton( b, glyph, label );
+			b.addEventListener( 'click', function ( e ) {
+				e.preventDefault();
+				onClick( b );
+			} );
+			strip.appendChild( b );
+			return b;
+		}
+
+		// A move re-inserts the row, which detaches the focused button inside
+		// it; put focus back so repeated presses chain.
+		function moveAndKeepFocus( dir ) {
+			return function ( b ) {
+				moveSelected( dir );
+				b.focus( { preventScroll: true } );
+			};
+		}
+
+		var renameBtn = stripButton( 'maestro-row-rename', 'dashicons-edit', I.renamePlaceholder, startInlineRename );
+		var moveUp    = stripButton( 'maestro-row-up', 'dashicons-arrow-up-alt2', I.moveUp, moveAndKeepFocus( 'up' ) );
+		var moveDown  = stripButton( 'maestro-row-down', 'dashicons-arrow-down-alt2', I.moveDown, moveAndKeepFocus( 'down' ) );
+		var removeSep = stripButton( 'maestro-row-remove-sep', 'dashicons-trash', I.removeSeparator, removeSelectedSeparator );
+		var moreBtn   = stripButton( 'maestro-row-more', 'dashicons-ellipsis', I.visibility, function () { toggleRowMenu(); } );
+		moreBtn.setAttribute( 'aria-haspopup', 'menu' );
+		moreBtn.setAttribute( 'aria-expanded', 'false' );
+
+		// The overflow menu: per-item actions that do not fit beside the arrows
+		// at 160px. Each item runs the same function as its toolbar twin, so
+		// disabled states and saves cannot drift apart.
+		var menuEl = el( 'div', 'maestro-row-menu maestro-row-ctl' );
+		menuEl.setAttribute( 'role', 'menu' );
+		menuEl.hidden = true;
+		function menuItem( cls, glyph, label, run ) {
+			var b = el( 'button', 'maestro-row-menuitem ' + cls );
+			b.type = 'button';
+			b.setAttribute( 'role', 'menuitem' );
+			var g = el( 'span', 'dashicons ' + glyph );
+			g.setAttribute( 'aria-hidden', 'true' );
+			b.appendChild( g );
+			b.appendChild( el( 'span', '', label ) );
+			b.addEventListener( 'click', function ( e ) {
+				e.preventDefault();
+				if ( b.disabled ) { return; }
+				closeRowMenu( false );
+				run();
+			} );
+			menuEl.appendChild( b );
+			return b;
+		}
+		var menuVis   = menuItem( 'maestro-row-menu-vis', 'dashicons-visibility', I.visibility, function () { openVisibilityPicker( moreBtn ); } );
+		var menuReset = menuItem( 'maestro-row-menu-reset', 'dashicons-undo', I.resetItem, function () {
+			resetSelected();
+			if ( moreBtn.parentNode ) { moreBtn.focus( { preventScroll: true } ); }
+		} );
+		var menuSep   = menuItem( 'maestro-row-menu-sep', 'dashicons-minus', I.addSeparator, addSeparatorBelow );
+		strip.appendChild( menuEl );
+
+		menuEl.addEventListener( 'keydown', function ( e ) {
+			var items = Array.prototype.filter.call( menuEl.children, function ( n ) { return ! n.hidden && ! n.disabled; } );
+			var idx = items.indexOf( document.activeElement );
+			if ( e.key === 'ArrowDown' || e.key === 'ArrowUp' ) {
+				e.preventDefault();
+				var step = e.key === 'ArrowDown' ? 1 : -1;
+				if ( items.length ) { items[ ( idx + step + items.length ) % items.length ].focus(); }
+			} else if ( e.key === 'Home' || e.key === 'End' ) {
+				e.preventDefault();
+				if ( items.length ) { items[ e.key === 'Home' ? 0 : items.length - 1 ].focus(); }
+			} else if ( e.key === 'Escape' ) {
+				e.preventDefault();
+				e.stopPropagation();
+				closeRowMenu( true );
+			} else if ( e.key === 'Tab' ) {
+				closeRowMenu( false );
+			}
+		} );
+		moreBtn.addEventListener( 'keydown', function ( e ) {
+			if ( e.key === 'ArrowDown' || e.key === 'ArrowUp' ) {
+				e.preventDefault();
+				openRowMenu( e.key === 'ArrowUp' ? 'last' : 'first' );
+			}
+		} );
+		document.addEventListener( 'click', function ( e ) {
+			if ( ! menuEl.hidden && ! menuEl.contains( e.target ) && ! moreBtn.contains( e.target ) ) { closeRowMenu( false ); }
+		}, true );
+
+		// The icon button draws nothing of its own: the row's real icon shows
+		// through it, framed while the row is selected (maestro.css).
+		var iconBtn = el( 'button', 'maestro-row-icon maestro-row-ctl' );
+		iconBtn.type = 'button';
+		iconBtn.setAttribute( 'aria-haspopup', 'dialog' );
+		iconBtn.addEventListener( 'click', function ( e ) {
+			e.preventDefault();
+			openIconPicker( iconBtn );
+		} );
+
+		var input = el( 'input', 'maestro-row-rename-input maestro-row-ctl' );
+		input.type = 'text';
+		discourageCredentialAutofill( input );
+		input.dir = 'auto';
+		// Same accessible name as the toolbar field it stands in for (WCAG
+		// 2.5.3: the placeholder is the only visible label).
+		input.placeholder = I.renamePlaceholder;
+		input.setAttribute( 'aria-label', I.renamePlaceholder );
+
+		// The strip sits on the menu's own background, so take its colour from
+		// an ordinary (not current, not selected) label in the active scheme.
+		var menu = document.getElementById( 'adminmenu' );
+		var plain = menu && menu.querySelector( 'li.menu-top:not(.current):not(.wp-has-current-submenu) .wp-menu-name' );
+		if ( plain ) { menu.style.setProperty( '--maestro-row-fg', window.getComputedStyle( plain ).color ); }
+		window.addEventListener( 'resize', function () { placeRowControls( selectedKey ); } );
+
+		rowCtl = {
+			strip: strip, renameBtn: renameBtn, moveUp: moveUp, moveDown: moveDown, iconBtn: iconBtn,
+			removeSep: removeSep, moreBtn: moreBtn, menu: menuEl, menuVis: menuVis, menuReset: menuReset, menuSep: menuSep,
+			input: input, editing: null, composing: false
+		};
+
+		input.addEventListener( 'compositionstart', function () { rowCtl.composing = true; } );
+		input.addEventListener( 'compositionend', function () { rowCtl.composing = false; } );
+		input.addEventListener( 'keydown', function ( e ) {
+			// IME confirmation/cancellation belongs to the composition, not the edit.
+			// WebKit can clear isComposing on the final key but still report 229.
+			if ( e.isComposing || rowCtl.composing || e.keyCode === 229 ) { return; }
+			if ( e.key === 'Enter' ) {
+				e.preventDefault();
+				finishInlineRename( true, true );
+			} else if ( e.key === 'Escape' ) {
+				e.preventDefault();
+				e.stopPropagation();
+				finishInlineRename( false, true );
+			}
+		} );
+		input.addEventListener( 'blur', function () { finishInlineRename( true, false ); } );
+	}
+
+	// More (⋯) only where four buttons fit in the 160px menu: 32px targets
+	// with a fine pointer. Touch screens and phones need 44px targets, so
+	// there Visibility, Reset item and Add separator stay in the toolbar.
+	function rowHasMore() {
+		return ! isPhoneViewport() && ! window.matchMedia( '(pointer: coarse)' ).matches;
+	}
+
+	function openRowMenu( focusWhich ) {
+		if ( ! rowCtl || ! selectedKey ) { return; }
+		closePopovers();
+		var m = model[ selectedKey ];
+		// Mirror the toolbar twins, which populatePanel() keeps current.
+		rowCtl.menuReset.disabled = panel.resetBtn.disabled;
+		rowCtl.menuSep.hidden     = m.isSub;
+		rowCtl.menuSep.disabled   = panel.addSepBtn.disabled;
+		rowCtl.menu.hidden = false;
+		rowCtl.moreBtn.setAttribute( 'aria-expanded', 'true' );
+		// Open from the More button toward the page, whichever side that is.
+		var b = rowCtl.moreBtn;
+		var rtl = window.getComputedStyle( rowCtl.strip ).direction === 'rtl';
+		rowCtl.menu.style.top = ( b.offsetTop + b.offsetHeight + 4 ) + 'px';
+		rowCtl.menu.style.left  = rtl ? '' : b.offsetLeft + 'px';
+		rowCtl.menu.style.right = rtl ? ( rowCtl.strip.clientWidth - b.offsetLeft - b.offsetWidth ) + 'px' : '';
+		// Below the button unless that runs under the fixed bottom toolbar or
+		// off the screen; then above it.
+		var bar = document.querySelector( '.maestro-toolbar' );
+		var floor = bar && bar.getClientRects().length ? bar.getBoundingClientRect().top : window.innerHeight;
+		if ( rowCtl.menu.getBoundingClientRect().bottom > Math.min( floor, window.innerHeight ) - 4 ) {
+			rowCtl.menu.style.top = ( b.offsetTop - rowCtl.menu.offsetHeight - 4 ) + 'px';
+			// The toolbar starts at the menu's edge, so a row just above it can
+			// still put the menu's outer half under it: lift it clear.
+			var over = rowCtl.menu.getBoundingClientRect().bottom - ( Math.min( floor, window.innerHeight ) - 4 );
+			if ( over > 0 ) { rowCtl.menu.style.top = ( parseFloat( rowCtl.menu.style.top ) - over ) + 'px'; }
+		}
+		var items = Array.prototype.filter.call( rowCtl.menu.children, function ( n ) { return ! n.hidden && ! n.disabled; } );
+		if ( items.length ) { items[ focusWhich === 'last' ? items.length - 1 : 0 ].focus( { preventScroll: true } ); }
+	}
+
+	function closeRowMenu( refocus ) {
+		if ( ! rowCtl || rowCtl.menu.hidden ) { return; }
+		rowCtl.menu.hidden = true;
+		rowCtl.moreBtn.setAttribute( 'aria-expanded', 'false' );
+		if ( refocus && rowCtl.moreBtn.parentNode ) { rowCtl.moreBtn.focus( { preventScroll: true } ); }
+	}
+
+	function toggleRowMenu() {
+		if ( rowCtl.menu.hidden ) { openRowMenu( 'first' ); } else { closeRowMenu( true ); }
+	}
+
+	// Put the row controls into the selected row, or take them out (key null).
+	// Called from populatePanel(), so it also follows a move or a drag.
+	function placeRowControls( key ) {
+		if ( ! rowCtl ) { return; }
+		closeRowMenu( false );
+		var m  = key ? model[ key ] : null;
+		var li = m ? liForKey( key ) : null;
+		var a  = li ? li.querySelector( 'a' ) : null;
+		if ( li && m.isSeparator ) {
+			// A separator has nothing to rename and no icon: Up, Down, Remove.
+			if ( rowCtl.iconBtn.parentNode ) { rowCtl.iconBtn.parentNode.removeChild( rowCtl.iconBtn ); }
+			if ( rowCtl.strip.parentNode !== li ) { li.appendChild( rowCtl.strip ); }
+			rowCtl.renameBtn.hidden = true;
+			rowCtl.moreBtn.hidden   = true;
+			rowCtl.removeSep.hidden = false;
+			rowCtl.strip.setAttribute( 'aria-label', I.removeSeparator );
+			return;
+		}
+		if ( ! a ) {
+			[ rowCtl.iconBtn, rowCtl.strip ].forEach( function ( n ) { if ( n.parentNode ) { n.parentNode.removeChild( n ); } } );
+			return;
+		}
+		rowCtl.renameBtn.hidden = false;
+		rowCtl.removeSep.hidden = true;
+		rowCtl.moreBtn.hidden   = ! rowHasMore();
+		var moreLabel = I.moreActionsFor.replace( '%s', function () { return m.title; } );
+		rowCtl.moreBtn.setAttribute( 'aria-label', moreLabel );
+		rowCtl.menu.setAttribute( 'aria-label', moreLabel );
+		rowCtl.moreBtn.title = moreLabel;
+		// Row first, then Change icon, then the strip: the Tab order follows the
+		// row's reading order, and the submenu (if any) comes after them all.
+		// Keep the focused editor directly after the link while repositioning.
+		var leading = rowCtl.editing === key && rowCtl.input.parentNode === li ? rowCtl.input : a;
+		var hasIcon = ! m.isSub && li.querySelector( '.wp-menu-image' );
+		if ( hasIcon ) {
+			if ( rowCtl.iconBtn.previousSibling !== leading ) { li.insertBefore( rowCtl.iconBtn, leading.nextSibling ); }
+			// Cover the icon column; coarse pointers get a real 44px target inside
+			// the row. CSS reserves label space and chooses the inline side for RTL.
+			var ir = hasIcon.getBoundingClientRect();
+			var lr = li.getBoundingClientRect();
+			var touchTarget = window.matchMedia( '(pointer: coarse)' ).matches;
+			rowCtl.iconBtn.style.top    = ( touchTarget ? 0 : ir.top - lr.top ) + 'px';
+			rowCtl.iconBtn.style.width  = Math.max( touchTarget ? 44 : 0, ir.width ) + 'px';
+			rowCtl.iconBtn.style.height = Math.max( touchTarget ? 44 : 0, ir.height ) + 'px';
+			var label = I.changeIconOf.replace( '%s', function () { return m.title; } );
+			rowCtl.iconBtn.setAttribute( 'aria-label', label );
+			rowCtl.iconBtn.title = label;
+		} else if ( rowCtl.iconBtn.parentNode ) {
+			rowCtl.iconBtn.parentNode.removeChild( rowCtl.iconBtn );
+		}
+		var after = hasIcon ? rowCtl.iconBtn : leading;
+		if ( rowCtl.strip.previousSibling !== after ) { li.insertBefore( rowCtl.strip, after.nextSibling ); }
+		rowCtl.strip.setAttribute( 'aria-label', m.title );
+		var renameLabel = I.renameItem.replace( '%s', function () { return m.title; } );
+		rowCtl.renameBtn.setAttribute( 'aria-label', renameLabel );
+		rowCtl.renameBtn.title = renameLabel;
+		if ( rowCtl.editing === key ) { positionInlineRename(); }
+	}
+
+	function startInlineRename() {
+		if ( ! rowCtl || ! selectedKey || ! model[ selectedKey ] || model[ selectedKey ].isSeparator ) { return; }
+		var m  = model[ selectedKey ];
+		var li = liForKey( selectedKey );
+		var a  = li && li.querySelector( 'a' );
+		if ( ! a ) { return; }
+		closePopovers();
+
+		var input = rowCtl.input;
+		input.value = m.title;
+
+		rowCtl.editing = selectedKey;
+		li.classList.add( 'maestro-renaming' );
+		if ( renameInSheet() ) {
+			openRenameSheet( m );
+		} else {
+			li.insertBefore( input, a.nextSibling );
+			positionInlineRename();
+		}
+		// On touch screens let the browser scroll the field clear of the
+		// keyboard and its floating bars, which it does natively for a focused
+		// field; preventScroll left the keyboard over it on an upright iPhone.
+		// Mouse and keyboard keep the menu where it is.
+		var touch = window.matchMedia( '(pointer: coarse)' ).matches;
+		input.focus( { preventScroll: ! touch || renameInSheet() } );
+		// Keyboard and mouse select the whole name, as F2 does elsewhere, so
+		// typing replaces it. On touch that selection is hard to undo (a tap
+		// keeps it) and typing wipes the old name, so put the caret at the end
+		// for editing instead.
+		if ( touch ) {
+			input.setSelectionRange( input.value.length, input.value.length );
+		} else {
+			input.select();
+		}
+	}
+
+	// A phone on its side keeps about one line of page above the keyboard,
+	// and iOS floats its form bar over part of that, so a field in the row is
+	// half hidden wherever it scrolls to. There the field moves into a strip
+	// pinned to the bottom of what is visible, just above the keyboard, with
+	// the item's name and Done. Upright phones, tablets and desktops keep the
+	// in-place field.
+	function renameInSheet() {
+		return window.matchMedia( '(pointer: coarse) and (orientation: landscape) and (max-height: 500px)' ).matches;
+	}
+
+	function openRenameSheet( m ) {
+		if ( ! rowCtl.sheet ) {
+			var sheet = el( 'div', 'maestro-rename-sheet maestro-row-ctl' );
+			sheet.setAttribute( 'role', 'group' );
+			var label = el( 'span', 'maestro-rename-sheet-label' );
+			label.setAttribute( 'aria-hidden', 'true' );
+			var done = el( 'button', 'button button-primary maestro-rename-sheet-done', I.tourDone );
+			done.type = 'button';
+			// The field's blur has usually committed by the time Done is
+			// clicked; this covers a click that keeps focus in the field.
+			done.addEventListener( 'pointerdown', function ( e ) { e.preventDefault(); } );
+			done.addEventListener( 'click', function () { finishInlineRename( true, true ); } );
+			sheet.appendChild( label );
+			sheet.appendChild( done );
+			// Core closes the responsive menu on a click outside it, and the
+			// sheet lives on <body> to sit above the admin bar.
+			sheet.addEventListener( 'click', function ( e ) { e.stopPropagation(); } );
+			rowCtl.sheet = sheet;
+			rowCtl.sheetLabel = label;
+		}
+		setText( rowCtl.sheetLabel, m.title );
+		rowCtl.sheet.setAttribute( 'aria-label', I.renameItem.replace( '%s', function () { return m.title; } ) );
+		rowCtl.sheet.insertBefore( rowCtl.input, rowCtl.sheet.lastChild );
+		rowCtl.input.removeAttribute( 'style' );
+		document.body.appendChild( rowCtl.sheet );
+		pinRenameSheet();
+		if ( window.visualViewport ) {
+			window.visualViewport.addEventListener( 'resize', pinRenameSheet );
+			window.visualViewport.addEventListener( 'scroll', pinRenameSheet );
+		}
+	}
+
+	// Follow the visual viewport as the keyboard opens and the page pans.
+	function pinRenameSheet() {
+		var sheet = rowCtl && rowCtl.sheet;
+		if ( ! sheet || ! sheet.parentNode ) { return; }
+		var vv = window.visualViewport;
+		var top = vv ? vv.offsetTop : 0;
+		var height = vv ? vv.height : window.innerHeight;
+		sheet.style.left  = ( vv ? vv.offsetLeft : 0 ) + 'px';
+		sheet.style.width = ( vv ? vv.width : window.innerWidth ) + 'px';
+		sheet.style.top   = Math.max( top, top + height - sheet.offsetHeight ) + 'px';
+	}
+
+	function closeRenameSheet() {
+		if ( ! rowCtl.sheet || ! rowCtl.sheet.parentNode ) { return; }
+		rowCtl.sheet.parentNode.removeChild( rowCtl.sheet );
+		if ( window.visualViewport ) {
+			window.visualViewport.removeEventListener( 'resize', pinRenameSheet );
+			window.visualViewport.removeEventListener( 'scroll', pinRenameSheet );
+		}
+	}
+
+	// Width owners can resize without a window resize. Re-measure only geometry:
+	// never replace the field or reset its value, focus, or selection.
+	function positionInlineRename() {
+		var key = rowCtl && rowCtl.editing;
+		var m = key && model[ key ];
+		var li = m && liForKey( key );
+		var a = li && li.querySelector( 'a' );
+		if ( ! a || rowCtl.input.parentNode !== li ) { return; }
+		// Cover the label, not the icon column. Measured, so RTL, a widened
+		// menu and a wrapped long label all line up without per-case CSS.
+		var target = ( ! m.isSub && a.querySelector( '.wp-menu-name' ) ) || a;
+		var lr = li.getBoundingClientRect();
+		var tr = target.getBoundingClientRect();
+		var ar = a.getBoundingClientRect();
+		var input = rowCtl.input;
+		input.style.top    = ( ar.top - lr.top ) + 'px';
+		input.style.height = ar.height + 'px';
+		var ts = window.getComputedStyle( target );
+		var padStart = parseFloat( ts.paddingLeft ) || 0;   // core pads the label past the icon
+		var padEnd   = parseFloat( ts.paddingRight ) || 0;
+		input.style.left   = ( tr.left + padStart - lr.left ) + 'px';
+		input.style.width  = Math.max( 60, tr.width - padStart - padEnd ) + 'px';
+	}
+
+	// Enter and blur commit, Escape cancels. Only the keyboard paths move
+	// focus (back to the pencil); a blur has already put it where the user
+	// wanted it.
+	function finishInlineRename( commit, refocus ) {
+		var key = rowCtl && rowCtl.editing;
+		if ( ! key ) { return; }
+		rowCtl.editing = null; // first, so the blur from removing the field is a no-op
+		rowCtl.composing = false;
+
+		var input = rowCtl.input;
+		var li = liForKey( key );
+		if ( li ) { li.classList.remove( 'maestro-renaming' ); }
+		if ( input.parentNode ) { input.parentNode.removeChild( input ); }
+		closeRenameSheet();
+		if ( commit && key === selectedKey ) {
+			panel.rename.value = input.value;
+			commitRename();
+		}
+		if ( refocus && key === selectedKey && rowCtl.renameBtn.parentNode ) {
+			rowCtl.renameBtn.focus( { preventScroll: true } );
 		}
 	}
 
@@ -890,6 +1362,7 @@
 		setText( renameLabel, I.renamePlaceholder );
 		var rename = el( 'input', 'maestro-rename-input' );
 		rename.type = 'text';
+		discourageCredentialAutofill( rename );
 		rename.id = 'maestro-rename-field';
 		rename.placeholder = I.renamePlaceholder;
 		rename.dir = 'auto'; // a typed or translated title sets its own direction
@@ -980,6 +1453,7 @@
 		p.appendChild( addSepBtn );
 		p.appendChild( removeSepBtn );
 		bar.appendChild( p );
+		buildRowControls();
 
 		panel = {
 			root:         p,
@@ -1134,6 +1608,9 @@
 		// A separator can only be moved or removed; an item can gain one below
 		// it (top level only, and not where core would drop it as a duplicate).
 		var isSep = !! m.isSeparator;
+		placeRowControls( key );
+		panel.root.classList.toggle( 'maestro-panel-row-owned', !! rowCtl );
+		panel.root.classList.toggle( 'maestro-panel-row-more', !! rowCtl && ! isSep && rowHasMore() );
 		panel.rename.style.display       = isSep ? 'none' : '';
 		panel.visBtn.style.display       = isSep ? 'none' : '';
 		panel.resetBtn.style.display     = isSep ? 'none' : '';
@@ -3107,24 +3584,62 @@
 			var scrollY = responsiveParent ? 0 : window.scrollY;
 			var scrollX = responsiveParent ? 0 : window.scrollX;
 			var r = anchorBtn.getBoundingClientRect();
-			var roomAbove = Math.floor( r.top - 14 );
-			if ( pop.offsetHeight > roomAbove && roomAbove > window.innerHeight - r.bottom ) {
-				pop.style.boxSizing = 'border-box';
-				pop.style.maxHeight = roomAbove + 'px';
-				pop.style.overflowY = 'auto';
+			// The fixed bottom toolbar is the floor, not the viewport: a dialog
+			// opened from a menu row (the row controls' More) dropped down
+			// behind it. Toolbar anchors sit below the floor and never open
+			// downward, so they are unaffected.
+			var bar = document.querySelector( '.maestro-toolbar' );
+			var floor = window.innerHeight;
+			if ( bar && ! bar.contains( anchorBtn ) && bar.getClientRects().length ) {
+				floor = Math.min( floor, bar.getBoundingClientRect().top );
 			}
-			// Toolbar lives at the bottom — prefer placing the popover above the
-			// anchor so it doesn't overflow off-screen.
-			var top = scrollY + r.top - pop.offsetHeight - 6;
-			if ( top < scrollY + 8 ) {
-				top = scrollY + r.bottom + 4;
+			// The admin bar is the ceiling: a dialog placed above a row near the
+			// top slid under it.
+			var adminBar = document.getElementById( 'wpadminbar' );
+			var ceiling = adminBar && adminBar.getClientRects().length ? Math.max( 0, adminBar.getBoundingClientRect().bottom ) : 0;
+			var roomAbove = Math.floor( r.top - ceiling - 14 );
+			var roomBelow = Math.floor( floor - r.bottom - 12 );
+			pop.classList.remove( 'maestro-popover-fill' );
+			pop.style.position = responsiveParent ? 'fixed' : '';
+			pop.style.maxHeight = '';
+			pop.style.overflowY = '';
+			var height = pop.offsetHeight;
+			var width = pop.offsetWidth;
+			var clientW = document.documentElement.clientWidth;
+			var left;
+			if ( height <= roomAbove || height <= roomBelow ) {
+				// Above the anchor if it fits there, else below.
+				var below = height > roomAbove;
+				pop.style.top = ( below ? scrollY + r.bottom + 4 : scrollY + r.top - height - 6 ) + 'px';
+				// Anchored at its left edge, but never past the viewport's right
+				// edge: a control in the toolbar's right zone would otherwise push
+				// the dialog off-screen and scroll the whole page sideways.
+				left = Math.min( r.left, clientW - width - 8 );
+				pop.style.left = ( scrollX + Math.max( 8, left ) ) + 'px';
+				return;
 			}
-			pop.style.top  = top + 'px';
-			// Anchored at its left edge, but never past the viewport's right edge:
-			// a control in the toolbar's right zone would otherwise push the dialog
-			// off-screen and scroll the whole page sideways.
-			var left = Math.min( r.left, document.documentElement.clientWidth - pop.offsetWidth - 8 );
-			pop.style.left = ( scrollX + Math.max( 8, left ) ) + 'px';
+			// Neither side fits: fill the space between the admin bar and the
+			// toolbar on the top layer, as the other dialogs do, beside the
+			// anchor so its row stays in view. Only content taller than all of
+			// that scrolls.
+			pop.classList.add( 'maestro-popover-fill' );
+			pop.style.position = 'fixed';
+			// #adminmenuwrap is its own stacking context below the admin bar,
+			// so the top layer needs <body>. Outside the responsive layout core
+			// does not dismiss anything on clicks outside the menu.
+			if ( pop.parentNode !== document.body && ! isPhoneViewport() ) {
+				var held = pop.contains( document.activeElement ) ? document.activeElement : null;
+				document.body.appendChild( pop );
+				if ( held ) { held.focus( { preventScroll: true } ); }
+			}
+			pop.style.boxSizing = 'border-box';
+			pop.style.top = ( ceiling + 8 ) + 'px';
+			pop.style.maxHeight = Math.max( 0, floor - ceiling - 16 ) + 'px';
+			pop.style.overflowY = 'auto';
+			var rtl = window.getComputedStyle( anchorBtn ).direction === 'rtl';
+			left = rtl ? r.left - width - 8 : r.right + 8;
+			left = Math.min( Math.max( 8, left ), clientW - width - 8 );
+			pop.style.left = Math.max( 8, left ) + 'px';
 		}
 		position();
 
@@ -3825,12 +4340,22 @@
 		// item first. A step whose control is not on screen is skipped.
 		return [
 			{ text: I.tourStep1, placement: 'right', anchor: firstMenuItem },
+		].concat( rowCtl ? [
+			// With row controls on, rename, move and icon live on the selected row.
+			{ text: I.tourRowRename, placement: 'right', before: tourSelectFirst, anchor: function () { return tourShown( rowCtl.renameBtn ); } },
+			{ text: I.tourRowMove, placement: 'right', before: tourSelectFirst, anchor: function () { return tourShown( rowCtl.moveUp ); } },
+			{ text: I.tourRowIcon, placement: 'right', before: tourSelectFirst, anchor: function () { return tourShown( rowCtl.iconBtn ); } },
+		] : [
 			{ text: I.tourStep2, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.rename ); } },
 			{ text: I.tourStep3, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.moveUp ); } },
 			{ text: I.tourStepIcon, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.iconBtn ); } },
+		] ).concat( rowCtl && rowHasMore() ? [
+			{ text: I.tourRowMore, placement: 'right', before: tourSelectFirst, anchor: function () { return tourShown( rowCtl.moreBtn ); } },
+		] : [
 			{ text: I.tourStepVisibility, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.visBtn ); } },
 			{ text: I.tourStepResetItem, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.resetBtn ); } },
 			{ text: I.tourStepSeparator, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.addSepBtn ); } },
+		] ).concat( [
 			// The edge handle and the Settings gear only render at 961px and
 			// wider (maestro.css): the width they set does not apply below it,
 			// and export/import is a desk task.
@@ -3847,7 +4372,7 @@
 			// to below the anchor when there's no room above, which is always
 			// the case this near the top of the viewport.
 			{ text: I.tourStep5, placement: 'top', anchor: function () { return document.getElementById( 'wp-admin-bar-maestro-toggle' ); } },
-		];
+		] );
 	}
 
 	function startTour() {

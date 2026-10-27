@@ -38,27 +38,45 @@ function saved( page: Page ) {
 
 test.describe( 'Menu separators', () => {
 
-	test( 'separators are visible, selectable rows with only move and remove controls', async ( { page } ) => {
-		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+	for ( const rows of [ 0, 1 ] ) {
+		for ( const key of [ 'Enter', 'Space' ] ) {
+			test( `separators support ${ key } with row controls ${ rows } and only move and remove controls`, async ( { page } ) => {
+				await page.goto( `/wp-admin/index.php?maestro_edit=1&maestro_rows=${ rows }` );
 
-		const sep = sepLi( page, 'separator1' );
-		await expect( sep ).toBeVisible();
-		expect( ( await sep.boundingBox() )!.height ).toBeGreaterThan( 4 );
-		await expect( sep ).not.toHaveAttribute( 'aria-hidden', 'true' );
+				const sep = sepLi( page, 'separator1' );
+				await expect( sep ).toBeVisible();
+				expect( ( await sep.boundingBox() )!.height ).toBeGreaterThan( 4 );
+				await expect( sep ).not.toHaveAttribute( 'aria-hidden', 'true' );
 
-		// Keyboard-selectable like any row.
-		await sep.focus();
-		await page.keyboard.press( 'Enter' );
-		await expect( sep ).toHaveClass( /maestro-selected/ );
+				// Keyboard-selectable like any row.
+				await sep.focus();
+				await page.keyboard.press( key );
+				await expect( sep ).toHaveClass( /maestro-selected/ );
+				// A selected separator still selects on Enter; it cannot be renamed.
+				await sep.press( 'Enter' );
+				await expect( sep ).toHaveClass( /maestro-selected/ );
+				await expect( page.locator( '.maestro-row-rename-input' ) ).toHaveCount( 0 );
 
-		const panel = page.locator( '.maestro-toolbar .maestro-panel' );
-		await expect( panel.locator( '.maestro-remove-separator' ) ).toBeVisible();
-		await expect( panel.locator( '.maestro-move-up' ) ).toBeVisible();
-		await expect( panel.locator( '.maestro-rename-input' ) ).toBeHidden();
-		await expect( panel.locator( '.maestro-icon-btn' ) ).toBeHidden();
-		await expect( panel.locator( '.maestro-vis-btn' ) ).toBeHidden();
-		await expect( panel.locator( '.maestro-add-separator' ) ).toBeHidden();
-	} );
+				const panel = page.locator( '.maestro-toolbar .maestro-panel' );
+				if ( rows ) {
+					// Row controls: Up, Down and Remove sit on the separator's own row.
+					const strip = sep.locator( '> .maestro-row-strip' );
+					await expect( strip.locator( '> button:visible' ) ).toHaveCount( 3 );
+					await expect( strip.getByRole( 'button', { name: 'Remove separator' } ) ).toBeVisible();
+					await expect( strip.getByRole( 'button', { name: 'Move up' } ) ).toBeVisible();
+					await expect( panel.locator( '.maestro-remove-separator' ) ).toBeHidden();
+					await expect( panel.locator( '.maestro-move-up' ) ).toBeHidden();
+				} else {
+					await expect( panel.locator( '.maestro-remove-separator' ) ).toBeVisible();
+					await expect( panel.locator( '.maestro-move-up' ) ).toBeVisible();
+				}
+				await expect( panel.locator( '.maestro-rename-input' ) ).toBeHidden();
+				await expect( panel.locator( '.maestro-icon-btn' ) ).toBeHidden();
+				await expect( panel.locator( '.maestro-vis-btn' ) ).toBeHidden();
+				await expect( panel.locator( '.maestro-add-separator' ) ).toBeHidden();
+			} );
+		}
+	}
 
 	test( 'moving an item keeps every core separator, and a separator can be moved too', async ( { page } ) => {
 		await page.goto( '/wp-admin/index.php' );
