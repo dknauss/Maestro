@@ -276,7 +276,7 @@ test.describe( 'selected-row controls, desktop', () => {
 		// Short enough that the dialog fits neither above nor below in full.
 		await page.setViewportSize( { width: 1280, height: 640 } );
 		await openEditor( page );
-		for ( const id of [ 'menu-posts', 'menu-comments' ] ) {
+		for ( const id of [ 'menu-dashboard', 'menu-posts', 'menu-comments' ] ) {
 			const row = page.locator( `#adminmenu > li#${ id }` );
 			await row.locator( '> a' ).click();
 			await strip( page ).getByRole( 'button', { name: /More actions for/ } ).click();
@@ -285,8 +285,15 @@ test.describe( 'selected-row controls, desktop', () => {
 			await expect( pop ).toBeVisible();
 			const box = ( await pop.boundingBox() )!;
 			const bar = ( await page.locator( '.maestro-toolbar' ).boundingBox() )!;
-			expect( box.y ).toBeGreaterThanOrEqual( 0 );
+			const adminBar = ( await page.locator( '#wpadminbar' ).boundingBox() )!;
+			// Between the admin bar and the toolbar, and on top of both.
+			expect( box.y ).toBeGreaterThanOrEqual( adminBar.y + adminBar.height );
 			expect( box.y + box.height ).toBeLessThanOrEqual( bar.y );
+			const hit = await page.evaluate( p => document.elementFromPoint( p.x, p.y )?.closest( '.maestro-vis-popover' ) !== null, { x: box.x + 20, y: box.y + 10 } );
+			expect( hit ).toBe( true );
+			// Beside the menu, so the selected row stays in view.
+			const menu = ( await page.locator( '#adminmenu' ).boundingBox() )!;
+			expect( box.x ).toBeGreaterThanOrEqual( menu.x + menu.width - 60 );
 			await page.keyboard.press( 'Escape' );
 		}
 	} );

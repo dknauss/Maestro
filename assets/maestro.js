@@ -3251,27 +3251,53 @@
 			if ( bar && ! bar.contains( anchorBtn ) && bar.getClientRects().length ) {
 				floor = Math.min( floor, bar.getBoundingClientRect().top );
 			}
-			var roomAbove = Math.floor( r.top - 14 );
+			// The admin bar is the ceiling: a dialog placed above a row near the
+			// top slid under it.
+			var adminBar = document.getElementById( 'wpadminbar' );
+			var ceiling = adminBar && adminBar.getClientRects().length ? Math.max( 0, adminBar.getBoundingClientRect().bottom ) : 0;
+			var roomAbove = Math.floor( r.top - ceiling - 14 );
 			var roomBelow = Math.floor( floor - r.bottom - 12 );
+			pop.classList.remove( 'maestro-popover-fill' );
+			pop.style.position = responsiveParent ? 'fixed' : '';
 			pop.style.maxHeight = '';
+			pop.style.overflowY = '';
 			var height = pop.offsetHeight;
-			// Above the anchor if it fits there, else below if it fits there,
-			// else on the roomier side, scrolling inside.
-			var below = height > roomAbove && ( height <= roomBelow || roomBelow > roomAbove );
-			var room = below ? roomBelow : roomAbove;
-			if ( height > room ) {
-				pop.style.boxSizing = 'border-box';
-				pop.style.maxHeight = room + 'px';
-				pop.style.overflowY = 'auto';
-				height = pop.offsetHeight;
+			var width = pop.offsetWidth;
+			var clientW = document.documentElement.clientWidth;
+			var left;
+			if ( height <= roomAbove || height <= roomBelow ) {
+				// Above the anchor if it fits there, else below.
+				var below = height > roomAbove;
+				pop.style.top = ( below ? scrollY + r.bottom + 4 : scrollY + r.top - height - 6 ) + 'px';
+				// Anchored at its left edge, but never past the viewport's right
+				// edge: a control in the toolbar's right zone would otherwise push
+				// the dialog off-screen and scroll the whole page sideways.
+				left = Math.min( r.left, clientW - width - 8 );
+				pop.style.left = ( scrollX + Math.max( 8, left ) ) + 'px';
+				return;
 			}
-			var top = below ? scrollY + r.bottom + 4 : scrollY + r.top - height - 6;
-			pop.style.top  = top + 'px';
-			// Anchored at its left edge, but never past the viewport's right edge:
-			// a control in the toolbar's right zone would otherwise push the dialog
-			// off-screen and scroll the whole page sideways.
-			var left = Math.min( r.left, document.documentElement.clientWidth - pop.offsetWidth - 8 );
-			pop.style.left = ( scrollX + Math.max( 8, left ) ) + 'px';
+			// Neither side fits: fill the space between the admin bar and the
+			// toolbar on the top layer, as the other dialogs do, beside the
+			// anchor so its row stays in view. Only content taller than all of
+			// that scrolls.
+			pop.classList.add( 'maestro-popover-fill' );
+			pop.style.position = 'fixed';
+			// #adminmenuwrap is its own stacking context below the admin bar,
+			// so the top layer needs <body>. Outside the responsive layout core
+			// does not dismiss anything on clicks outside the menu.
+			if ( pop.parentNode !== document.body && ! isPhoneViewport() ) {
+				var held = pop.contains( document.activeElement ) ? document.activeElement : null;
+				document.body.appendChild( pop );
+				if ( held ) { held.focus( { preventScroll: true } ); }
+			}
+			pop.style.boxSizing = 'border-box';
+			pop.style.top = ( ceiling + 8 ) + 'px';
+			pop.style.maxHeight = Math.max( 0, floor - ceiling - 16 ) + 'px';
+			pop.style.overflowY = 'auto';
+			var rtl = window.getComputedStyle( anchorBtn ).direction === 'rtl';
+			left = rtl ? r.left - width - 8 : r.right + 8;
+			left = Math.min( Math.max( 8, left ), clientW - width - 8 );
+			pop.style.left = Math.max( 8, left ) + 'px';
 		}
 		position();
 

@@ -1322,6 +1322,9 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 
 /* Phone dialogs fit their content up to the visual viewport limit. The header
  * and close control stay outside the scrolling body, above the keyboard. */
+.maestro-popover.maestro-popover-fill {
+	z-index: 100100; /* above the admin bar (99999), like the phone sheets */
+}
 .maestro-popover.maestro-mobile-sheet {
 	position: fixed;
 	z-index: 100100;
