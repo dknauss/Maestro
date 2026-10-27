@@ -35,6 +35,13 @@ class Assets {
 	private $replay;
 
 	/**
+	 * Bootstrap catalog data-URIs as keys, read once on first need.
+	 *
+	 * @var array<string, bool>|null
+	 */
+	private $bootstrap_srcs = null;
+
+	/**
 	 * Store dependencies and register the enqueue hook.
 	 *
 	 * @param Config $config Shared config.
@@ -108,6 +115,13 @@ class Assets {
 		$menu_width = $this->config->menu_width();
 		if ( null !== $menu_width ) {
 			wp_add_inline_style( 'maestro-admin-bar', self::menu_width_css( $menu_width ) );
+		}
+
+		// #172: rows whose stored icon is an SVG data-URI get that SVG as a mask
+		// in the glyph colour. Replay already ran on admin_menu and knows which.
+		$mask_css = $this->replay->mask_icon_css();
+		if ( '' !== $mask_css ) {
+			wp_add_inline_style( 'maestro-admin-bar', $mask_css );
 		}
 
 		/*
@@ -254,7 +268,7 @@ class Assets {
 				),
 				'iconSets'        => $this->icon_sets(),
 				'config'          => $this->editor_config(),
-				'menu'            => $this->replay->get_menu_model(),
+				'menu'            => $this->with_icon_sets( $this->replay->get_menu_model() ),
 				// Separator slugs in rendered order; the editor pairs them with
 				// core's id-less separator <li>s by position.
 				'separators'      => $this->replay->get_separators(),
@@ -268,7 +282,7 @@ class Assets {
 					'default' => Config::DEFAULT_MENU_WIDTH,
 					'value'   => $this->config->menu_width(),
 				),
-				'pristine'        => $this->replay->get_pristine(),
+				'pristine'        => $this->pristine_with_icon_sets( $this->replay->get_pristine() ),
 				'i18n'            => array(
 					'saving'               => __( 'Saving…', 'maestro-menu-editor' ),
 					'saved'                => __( 'Saved', 'maestro-menu-editor' ),
@@ -281,6 +295,10 @@ class Assets {
 					'iconSearch'           => __( 'Search icons', 'maestro-menu-editor' ),
 					'iconNone'             => __( 'No icon', 'maestro-menu-editor' ),
 					'iconNoneHint'         => __( 'Remove the icon (uses the menu default).', 'maestro-menu-editor' ),
+					/* translators: Shown in the icon picker while the Bootstrap icon set downloads. */
+					'iconLoading'          => __( 'Loading icons…', 'maestro-menu-editor' ),
+					/* translators: Shown in the icon picker when the Bootstrap icon set fails to download. */
+					'iconLoadError'        => __( 'Could not load these icons. Switch tabs to try again.', 'maestro-menu-editor' ),
 					'visibility'           => __( 'Visibility', 'maestro-menu-editor' ),
 					'resetItem'            => __( 'Reset item', 'maestro-menu-editor' ),
 					'separator'            => __( 'Separator', 'maestro-menu-editor' ),
@@ -540,26 +558,77 @@ class Assets {
 	}
 
 	/**
+	 * Add each top-level item's `iconSet` to the editor's menu model.
+	 *
+	 * The picker opens on the tab the current icon comes from. Only the server
+	 * can tell a bundled Bootstrap icon from a plugin's own SVG data-URI
+	 * without shipping the catalog, so it matches the icon against the real
+	 * catalog here and the Bootstrap file still loads only when its tab opens.
+	 *
+	 * @param array $model Replay::get_menu_model() output.
+	 * @return array
+	 */
+	private function with_icon_sets( $model ) {
+		foreach ( $model as $i => $node ) {
+			$model[ $i ]['iconSet'] = $this->icon_set_of( isset( $node['icon'] ) ? $node['icon'] : '' );
+		}
+		return $model;
+	}
+
+	/**
+	 * Add `iconSet` to the pristine top-level entries, so Reset Item restores
+	 * it along with the icon.
+	 *
+	 * @param array $pristine Replay::get_pristine() output.
+	 * @return array
+	 */
+	private function pristine_with_icon_sets( $pristine ) {
+		if ( ! empty( $pristine['top'] ) ) {
+			foreach ( $pristine['top'] as $slug => $entry ) {
+				$pristine['top'][ $slug ]['iconSet'] = $this->icon_set_of( isset( $entry['icon'] ) ? $entry['icon'] : '' );
+			}
+		}
+		return $pristine;
+	}
+
+	/**
+	 * The picker set an icon value belongs to: 'dashicons', 'bootstrap', or ''
+	 * for no icon and for anything a plugin supplied itself.
+	 *
+	 * @param string $icon Icon value from $menu[6].
+	 * @return string
+	 */
+	private function icon_set_of( $icon ) {
+		$icon = (string) $icon;
+		if ( 'dashicon' === Config::icon_form( $icon ) ) {
+			return 'dashicons';
+		}
+		if ( 0 !== strpos( $icon, 'data:image/svg+xml;base64,' ) ) {
+			return '';
+		}
+		if ( null === $this->bootstrap_srcs ) {
+			$file                 = json_decode( (string) file_get_contents( MAESTRO_DIR . 'assets/icons-bootstrap.json' ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Local plugin file, not a remote request.
+			$srcs                 = isset( $file['icons'] ) && is_array( $file['icons'] ) ? array_column( $file['icons'], 'src' ) : array();
+			$this->bootstrap_srcs = array_fill_keys( $srcs, true );
+		}
+		return isset( $this->bootstrap_srcs[ $icon ] ) ? 'bootstrap' : '';
+	}
+
+	/**
 	 * Icon sets for the picker. Each set declares how its cells render:
 	 *   - 'class' : the icon id IS a CSS class (dashicons), rendered as a glyph.
-	 *   - 'data'  : the icon id maps to a base64 data-URI image src.
+	 *   - 'data'  : the icon id is a base64 SVG data-URI, painted as a mask.
 	 * The stored value is the icon id for a class set, or the data-URI for a data
 	 * set — both pass Config::sanitize_icon(). The picker is presentational; the
 	 * validator (not this list) is the authority on what may be saved.
 	 *
+	 * The Bootstrap set is a `url` instead of a list: the picker fetches it the
+	 * first time its tab opens, so ~350 KB of data-URIs never ride in the
+	 * edit-mode payload, and the versioned URL lets the browser cache it.
+	 *
 	 * @return array
 	 */
 	private function icon_sets() {
-		$bootstrap = require MAESTRO_DIR . 'includes/icons-bootstrap.php';
-		$bi        = array();
-		foreach ( $bootstrap as $id => $src ) {
-			$bi[] = array(
-				'id'    => $src,  // Stored value is the data-URI.
-				'src'   => $src,  // Preview source.
-				'label' => ucwords( str_replace( array( 'bi-', '-' ), array( '', ' ' ), $id ) ),
-			);
-		}
-
 		return array(
 			array(
 				'id'    => 'dashicons',
@@ -580,7 +649,7 @@ class Assets {
 				'id'    => 'bootstrap',
 				'label' => __( 'Bootstrap', 'maestro-menu-editor' ),
 				'type'  => 'data',
-				'icons' => $bi,
+				'url'   => add_query_arg( 'ver', MAESTRO_VERSION, MAESTRO_URL . 'assets/icons-bootstrap.json' ),
 			),
 		);
 	}

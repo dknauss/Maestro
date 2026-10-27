@@ -105,6 +105,48 @@ class ReplayTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'menu-icon-post', $menu[5][4], 'Dashicon swaps must not strip menu-icon-*.' );
 	}
 
+	public function test_svg_data_uri_icon_is_masked_in_the_glyph_colour() {
+		global $menu;
+		$menu[5][4] = 'menu-top menu-icon-post';
+
+		// #172: the row is marked for the mask rule and the SVG rides in a
+		// custom property, while $menu[6] keeps the data-URI for core and the
+		// editor's model.
+		$data_uri = 'data:image/svg+xml;base64,PHN2Zy8+';
+		( new Config() )->save(
+			array( 'items' => array( 'edit.php' => array( 'icon' => $data_uri ) ) )
+		);
+
+		$replay = new Replay( new Config() );
+		$replay->replay();
+
+		$this->assertSame( $data_uri, $menu[5][6] );
+		$this->assertMatchesRegularExpression( '/\bmaestro-mask-icon maestro-icon-[0-9a-f]{10}\b/', $menu[5][4] );
+		preg_match( '/maestro-icon-[0-9a-f]{10}/', $menu[5][4], $class );
+		$this->assertSame( '#adminmenu .' . $class[0] . '{--maestro-icon:url("' . $data_uri . '")}', $replay->mask_icon_css() );
+	}
+
+	public function test_dashicon_and_raster_icons_are_not_masked() {
+		global $menu;
+		$menu[10][4] = 'menu-top';
+
+		( new Config() )->save(
+			array(
+				'items' => array(
+					'edit.php'   => array( 'icon' => 'dashicons-book' ),
+					'upload.php' => array( 'icon' => 'data:image/png;base64,iVBORw0KGgo=' ),
+				),
+			)
+		);
+
+		$replay = new Replay( new Config() );
+		$replay->replay();
+
+		$this->assertStringNotContainsString( 'maestro-mask-icon', $menu[5][4] );
+		$this->assertStringNotContainsString( 'maestro-mask-icon', $menu[10][4] );
+		$this->assertSame( '', $replay->mask_icon_css() );
+	}
+
 	public function test_rename_submenu_item() {
 		( new Config() )->save(
 			array( 'items' => array( 'post-new.php' => array( 'title' => 'Write' ) ) )

@@ -64,6 +64,14 @@ class Replay {
 	private $profile_ids_by_user = array();
 
 	/**
+	 * Stored SVG data-URI icons replay() applied, keyed by the class it put on
+	 * their rows. See mask_icon_css().
+	 *
+	 * @var array<string, string>
+	 */
+	private $mask_icons = array();
+
+	/**
 	 * Store config and register admin_menu / menu_order hooks.
 	 *
 	 * @param Config $config Shared config instance.
@@ -180,6 +188,20 @@ class Replay {
 					if ( isset( $menu[ $pos ][4] ) && in_array( Config::icon_form( $ovr['icon'] ), array( 'data', 'url' ), true ) ) {
 						$stripped        = preg_replace( '/\bmenu-icon-[\w-]+/', '', (string) $menu[ $pos ][4] );
 						$menu[ $pos ][4] = trim( preg_replace( '/\s+/', ' ', $stripped ) ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: see above.
+					}
+
+					// #172: core paints an SVG data-URI as a background-image, which
+					// cannot take the text colour, so it stays grey on hover and on
+					// the current item. Mark the row so maestro-admin-bar.css paints
+					// the same SVG as a mask in the glyph colour instead (the URI
+					// rides in a custom property from mask_icon_css()). $menu[6]
+					// keeps the data-URI, so the editor's model and a browser
+					// without masks see exactly what they did before.
+					if ( isset( $menu[ $pos ][4] ) && 0 === strpos( $ovr['icon'], 'data:image/svg+xml;base64,' ) ) {
+						$mask_class                      = 'maestro-icon-' . substr( md5( $ovr['icon'] ), 0, 10 );
+						$this->mask_icons[ $mask_class ] = $ovr['icon'];
+
+						$menu[ $pos ][4] .= ' maestro-mask-icon ' . $mask_class; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional: see above.
 					}
 				}
 				// Only ever cosmetically remove a row the current user could ALREADY
@@ -728,6 +750,23 @@ class Replay {
 	 */
 	private function is_exempt_from_user_axis( $user ) {
 		return is_multisite() && is_super_admin( $user->ID );
+	}
+
+	/**
+	 * CSS that hands each masked row its icon (#172), or '' when there is none.
+	 *
+	 * Each class replay() added gets `--maestro-icon: url(<data-URI>)`, which
+	 * the generic mask rule in maestro-admin-bar.css reads. The URI is safe
+	 * inside url("..."): Config::icon_form() only admits base64 characters.
+	 *
+	 * @return string
+	 */
+	public function mask_icon_css() {
+		$css = '';
+		foreach ( $this->mask_icons as $class => $uri ) {
+			$css .= '#adminmenu .' . $class . '{--maestro-icon:url("' . $uri . '")}';
+		}
+		return $css;
 	}
 
 	/**

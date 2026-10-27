@@ -24,6 +24,16 @@ for ( const rtl of [ false, true ] ) {
 					top: box.top - card.top,
 					end: getComputedStyle( dialog ).direction === 'rtl' ? box.left - card.left : card.right - box.right,
 					overlap: box.left < content.right && box.right > content.left && box.top < content.bottom && box.bottom > content.top,
+					// The title's own text, not its box: an untranslated title is
+					// LTR in an RTL admin and must still clear Close.
+					titleOverlap: ( () => {
+						const title = dialog.querySelector( '.maestro-settings-title' );
+						if ( ! title ) { return false; }
+						const range = document.createRange();
+						range.selectNodeContents( title );
+						const text = range.getBoundingClientRect();
+						return box.left < text.right && box.right > text.left && box.top < text.bottom && box.bottom > text.top;
+					} )(),
 				};
 			} );
 			expect( geometry.x ).toBeLessThan( 1 );
@@ -34,6 +44,7 @@ for ( const rtl of [ false, true ] ) {
 			expect( geometry.end ).toBeGreaterThanOrEqual( 4 );
 			expect( geometry.end ).toBeLessThan( 7 );
 			expect( geometry.overlap ).toBe( false );
+			expect( geometry.titleOverlap ).toBe( false );
 			await close.click();
 			await expect( dialog ).toHaveCount( 0 );
 			await expect( page.locator( trigger ) ).toBeFocused();

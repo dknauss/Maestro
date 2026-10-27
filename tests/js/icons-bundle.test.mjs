@@ -11,7 +11,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
@@ -96,22 +96,29 @@ test( 'every SYNONYM_FILL target exists on disk', () => {
 } );
 
 // ---------------------------------------------------------------------------
-// 5. No-silent-drop invariant: resolving ALL 87 CURATED names -> 87 results,
-//    every resolved file existsSync true
+// 5. No-silent-drop invariant: every CURATED name resolves to a file, once
 // ---------------------------------------------------------------------------
-test( 'resolving all CURATED names yields exactly 87 entries, all files exist', () => {
+test( 'every CURATED name resolves to an existing file, with no duplicates', () => {
 	assert.ok( Array.isArray( CURATED ), 'CURATED must be an exported array' );
-	assert.equal( CURATED.length, 87, `CURATED must have 87 names; got ${ CURATED.length }` );
+	assert.ok( CURATED.length >= 300, `CURATED should be near Dashicons parity (342); got ${ CURATED.length }` );
+	assert.equal( new Set( CURATED ).size, CURATED.length, 'CURATED must not list a name twice' );
 
 	const results = CURATED.map( ( name ) => ( { name, ...resolveIcon( name ) } ) );
-	assert.equal( results.length, 87, 'resolved array must have 87 entries — no silent drops' );
-
 	const missing = results.filter( ( r ) => ! existsSync( r.file ) );
 	assert.equal(
 		missing.length,
 		0,
 		`${ missing.length } resolved file(s) do not exist: ${ missing.map( ( r ) => r.name + ' -> ' + r.file ).join( ', ' ) }`
 	);
+} );
+
+// ---------------------------------------------------------------------------
+// 5b. The committed JSON is what the generator builds now
+// ---------------------------------------------------------------------------
+test( 'assets/icons-bootstrap.json is up to date with the generator', () => {
+	const file = resolve( __dirname, '../../assets/icons-bootstrap.json' );
+	const committed = JSON.parse( readFileSync( file, 'utf8' ) ).icons;
+	assert.deepEqual( committed, mod.buildIcons(), 'Run `node bin/generate-bootstrap-icons.mjs` and commit the result.' );
 } );
 
 // ---------------------------------------------------------------------------

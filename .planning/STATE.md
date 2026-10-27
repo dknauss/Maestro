@@ -111,7 +111,7 @@ Dan approved all three recommendations, recorded in the
   banner and Exit preview, and restore the menu without configuration changes.
 
 D4 decided 2026-10-23 (Dan): imported rules for menu
-items missing on the target are dropped and reported. D5 remains open.
+items missing on the target are dropped and reported. D5 decided 2026-10-25: v1.9.0 shipped Phases 29–30; Phase 31 follows.
 **Update, later 2026-10-23:** 30-01 (server window, #248, merged 2026-10-24)
 and 30-02 (picker, banner, exit, parity e2e, #251) are built and merged; post-merge
 CI passed on `9802065`. Preview was narrowed to the Dashboard and to roles with `read`
