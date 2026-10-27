@@ -4,7 +4,7 @@ Donate link: https://github.com/sponsors/dknauss
 Tags: admin menu, menu editor, hide menu items, rename menu items, menu icons
 Requires at least: 6.4
 Tested up to: 7.1
-Stable tag: 1.8.0
+Stable tag: 1.9.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -85,11 +85,11 @@ named individuals, so what each person sees can differ. The rename/reorder/icon 
 
 = Can I see the menu the way an Editor would? =
 
-Yes. In the editor toolbar, pick a role under **Preview as** and press
-**Preview**. The Dashboard shows that role's menu, with your rules for the role
+Yes. Press **Preview as** (the screen button in the editor toolbar), choose a
+role and press **Preview**. The Dashboard shows that role's menu, with your rules for the role
 applied, under a read-only banner with **Exit preview**. You stay signed in as
 yourself and nothing is saved. It is an approximation: rules for specific
-people or Visibility groups, capabilities given to individual users, people with several
+people or visibility groups, capabilities given to individual users, people with several
 roles, and plugins that check the user directly can differ. Network super
 admins on multisite cannot preview.
 
@@ -216,16 +216,30 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 
 == Changelog ==
 
-= 1.8.0 =
-* **New: hiding profiles.** A hiding profile is a named group of people, such as "Reduced view" for a client's staff. Open **Hiding profiles** (the people button in the editing toolbar), give the profile a name and add people to it. Then tick it in any item's Visibility popover under "Hide this item for profiles:" or, on an item with children, "Hide its sub-items for profiles:". If you add or remove someone later, every item the profile hides follows right away. Deleting a profile tells you how many items and people it affects first.
-* A profile is not a role. WordPress never sees it, and it grants or removes nothing. Like every hide in Maestro it is cosmetic, so a hidden page still opens by URL for anyone allowed to see it. Up to 20 profiles, with up to 50 people each.
-* Only people who can list users (administrators, by default) see or edit profiles. Anyone else editing the menu keeps the stored profiles as they are. On a multisite network, network super admins are exempt from profile hides, as they already are from hides that name a person.
+= Unreleased =
+* **New: copy a menu configuration to another site.** In Edit Menu, open **Settings** and use **Export/import**. Export downloads a JSON file of names, icons, role rules, ordering, separators and menu width. Rules for individual people and visibility groups are never exported. On the destination, **Review file** lists anything that cannot be applied before **Import configuration** changes anything; the destination's own people rules and visibility groups are kept. Long reports can be downloaded in full. Settings, and so export/import, is available on screens 961px and wider. Hiding stays cosmetic.
+
+= 1.9.0 =
+1.8.0 was never released on its own, so this release carries its changes too.
+
+* **New: preview the menu as a role.** Press **Preview as** (the screen button in the editing toolbar), choose a role and press **Preview**. The Dashboard then shows that role's menu with your rules applied, under a read-only banner with **Exit preview**. You stay signed in as yourself, nothing is saved, and anything still pending is saved before the preview opens. It is an approximation: rules for specific people or visibility groups, capabilities given to individual users, people with several roles, and plugins that check the user directly can differ. Previews run on the Dashboard only, for roles that can reach the admin. Network super admins on multisite cannot preview.
+* **New: "All other roles" in every role list.** One checkbox at the top ticks or clears every role except your own. It shows a mixed state when only some are ticked. If ticking it would go past the 50-role limit for a list, nothing changes and Maestro tells you why, rather than saving part of the list.
+* **New: visibility groups.** A visibility group is a named group of people, such as "Reduced view" for a client's staff. Open **Visibility groups** (the people button in the editing toolbar), give the group a name and add people to it. Then tick it in any item's Visibility popover under "Hide this item for visibility groups:" or, on an item with children, "Hide its sub-items for visibility groups:". If you add or remove someone later, every item the group hides follows right away. Deleting a group tells you how many items and people it affects first. The dialog and the help tour explain what a saved group does.
+* A visibility group is not a role. WordPress never sees it, and it grants or removes nothing. Like every hide in Maestro it is cosmetic, so a hidden page still opens by URL for anyone allowed to see it. Up to 20 groups, with up to 50 people each.
+* Only people who can list users (administrators, by default) see or edit visibility groups. Anyone else editing the menu keeps the stored groups as they are. On a multisite network, network super admins are exempt from group hides, as they already are from hides that name a person.
 * **Fixed: people who can edit the menu but not list users were sent the user IDs named in per-user hides.** This only matters when a site gives Maestro editing to a role without the `list_users` capability. Those editors now get the menu without that data, and saving keeps the hides they cannot see.
+* **Improved: phones and tablets.** Tapping a menu item to select it no longer opens the on-screen keyboard. While you rename an item, the editing toolbar rises above the keyboard, and a typed name is kept when you tap another item or turn the device. Dialogs on a phone get a header with a close button. Tablets and other touch screens wider than a phone get the same touch handling.
 * **Improved: the help tour gives every editing control its own tip,** and on a narrow screen it skips controls that are not shown.
-* **Improved: the Visibility popover and the Hiding profiles dialog scroll inside themselves** on a short screen instead of running off it.
+* **Improved: dialogs look and behave alike.** Every editor dialog and the help tour share the same button shapes. A focus outline appears when you use the keyboard, not after a tap, and labels name controls the way the toolbar does.
+* **Fixed: deleting an empty visibility group said its people would see items again.** The confirmation now gives the real counts, such as "It hides 0 items from 0 people", and no longer promises that items reappear when another rule still hides them.
+* **Fixed: on a phone, choosing another toolbar tool left the first dialog open.** The new tool's dialog now replaces it, and only the open tool is highlighted.
+* **Changed: Preview as has its own icon,** a screen with an eye, so it no longer looks like the Visibility button.
+* **Improved: dialogs that save as you go** (Visibility groups, Menu settings and the help tour) have a close button in their header, and save messages float above the editing toolbar instead of covering it. Toolbar hover colours follow your admin colour scheme.
+* **Improved: a save error that stays on screen can be dismissed** with the × beside it. That only hides the message: the save still counts as failed, Preview still waits for a good save, and the message comes back with the next save attempt.
+* **Improved: the Visibility popover and the Visibility groups dialog scroll inside themselves** on a short screen instead of running off it.
 * **Fixed: on a phone, the help tour jumped from its second tip to its last.** Tapping Next closed WordPress's phone menu, which took the editing toolbar with it, so the tour had nothing left to point at. Every tip now shows, and the count leaves out only the width handle and Menu settings, which phones do not have.
 * **Fixed: on a phone, a tap inside the icon picker or the Visibility popover closed the editor.** The same cause as the tour. On a phone on its side, the icon picker also opened below the bottom of the screen; it now fits above the toolbar and scrolls.
-* **Improved: the editing toolbar is smaller on phones.** Upright, it takes two rows instead of three or four: the name field with the move buttons, then every other control. On its side it takes one. The add and remove separator buttons and, on a phone held upright, Reset All show only their icons there, and keep their names for screen readers and as tooltips.
+* **Improved: the editing toolbar is smaller on phones.** Upright, it takes at most two rows, even with an item selected, and on its side it takes one. A row that does not fit scrolls sideways instead of wrapping, so every button keeps a full-size touch target. The help tour button is left out on phones. The add and remove separator buttons and, on a phone held upright, Reset All show only their icons there, and keep their names for screen readers and as tooltips.
 * **Changed: Menu settings (the gear) shows only on screens 961px and wider.** Its one setting, the menu width, applies only there, so on phones and small tablets it opened a control that changed nothing you could see. A width saved on a wider screen still applies there.
 * **Fixed: on a phone on its side, edit mode let the page scroll sideways** under the open menu, so phone browsers zoomed the whole screen out.
 
@@ -337,8 +351,8 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 
 == Upgrade Notice ==
 
-= 1.8.0 =
-Adds hiding profiles: name a group of people, then hide items from the whole group in one tick. Profiles are not roles and grant nothing. Fixes per-user hide data reaching menu editors who cannot list users. Cosmetic only: no access changed.
+= 1.9.0 =
+Adds preview as a role, an "All other roles" checkbox in every role list, and visibility groups for hiding items from a named group of people. Improves editing on phones and tablets. Fixes per-user hide data reaching menu editors who cannot list users. Cosmetic only: no access changed.
 
 = 1.7.0 =
 Adds a menu width setting: 160 to 320px, set from Menu settings or by dragging the menu edge, applied on every admin page. Stands aside when another plugin sets the width. Fixes the first menu row hiding under the admin bar on phones. Cosmetic only.

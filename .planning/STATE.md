@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: Client-Site Workflow
 status: in_progress
-stopped_at: "Phase 31 export/import implemented on feat/config-export-import against d34a576; verification and PR review in progress. Real-device acceptance remains open."
-last_updated: "2026-10-24T00:00:00.000Z"
-last_activity: "2026-10-24 — Phase 31 export/import implementation and regression verification; touch-device acceptance remains open."
+stopped_at: "1.9.0 released without Phase 31. Phase 31 export/import is in #263, merged up with 1.9.0, for the next release; deep review and real-device acceptance remain open."
+last_updated: "2026-10-26T00:00:00.000Z"
+last_activity: "2026-10-26 — #263 merged up with the 1.9.0 release; touch-device acceptance remains open."
 progress:
   total_phases: 3
   completed_phases: 0
@@ -16,16 +16,25 @@ progress:
 
 # Project State
 
-## Phase 31 implementation — 2026-10-24
+## Phase 31 implementation — 2026-10-26
 
-Export/import is implemented on `feat/config-export-import` against main
-`d34a576`, including private-rule preservation, fresh server-owned menu
-inventory, explicit analyze/apply and versioned JSON. Settings stays desktop-only.
+1.9.0 shipped without export/import (tag `v1.9.0`, 2026-10-25). Phase 31 is in
+[#263](https://github.com/dknauss/Maestro/pull/263), now merged up with 1.9.0 and #265, for the next release. It includes
+private-rule preservation, fresh server-owned menu inventory, explicit
+analyze/apply, versioned JSON, canceled-reload recovery and full report
+downloads. Settings, and with it export/import, stays desktop-only (961px and up).
 See the [implementation plan](phases/31-config-export-import/31-IMPLEMENTATION-PLAN.md)
 and [verification record](phases/31-config-export-import/31-VERIFICATION.md).
-Review, CI and real-device/human acceptance remain open. Historical snapshots
-below predate this branch; no release or D5 decision is implied.
+The mandatory deep review and real-device/human acceptance remain open.
 
+## Release prep — 1.9.0 (2026-10-24)
+
+Main after #260 (`d34a576`) is being cut as **1.9.0**. 1.8.0 was bumped in #242 but
+never tagged or released, so 1.9.0 carries visibility groups (Phase 27), the width
+follow-ups, "All other roles" (Phase 29), preview as a role (Phase 30) and the
+desktop and mobile polish (#256–#260). Phase 31 (export/import) follows in a later
+release, per the D5 recommendation; the release PR is Dan's confirmation of D5.
+The POT is regenerated. Real iPhone/iPad checks of #260 remain Dan's.
 
 ## Desktop UX refinement — 2026-10-24
 

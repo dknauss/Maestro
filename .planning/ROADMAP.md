@@ -544,7 +544,7 @@ should be made once.
 | D2 | Whether a request-scoped, viewer-only, subtract-only capability filter fits SPEC's "never changes a capability", or the wording gets a carve-out | Phase 30 | **Decided 2026-10-23 (Dan):** approve the narrow viewer-only, subtract-only menu-construction exception; see [decisions](phases/30-view-as-role-preview/30-CONTEXT.md) |
 | D3 | Label and form of the select-all control ("All other roles"; tri-state checkbox or a pair of links) | Phase 29 | **Decided 2026-10-23 (Dan):** a tri-state checkbox labelled "All other roles", as built in Phase 29 |
 | D4 | Import behaviour for rules whose menu item is missing on the target site: keep dormant, or drop and report | Phase 31 | **Decided 2026-10-23 (Dan): drop and report.** Rules naming a menu item the target site does not have are not stored; the import result lists them so the user knows what was not applied |
-| D5 | Release shape: one v1.9.0 after all three, or cut after Phases 29–30 and let Phase 31 follow | Before the cut | Open — recommended 2026-10-23: cut v1.9.0 after Phases 29–30 once #248/#251 pass Dan's deep review; Phase 31 ships as a follow-up release. Awaiting Dan's confirmation |
+| D5 | Release shape: one v1.9.0 after all three, or cut after Phases 29–30 and let Phase 31 follow | Before the cut | Recommended 2026-10-23: cut after Phases 29–30, Phase 31 follows. 2026-10-24: release PR cuts **v1.9.0** from main after #260 (1.8.0 was never tagged, so its changes ship in 1.9.0). Decided when Dan approves that PR |
 | D6 | Milestone version | Before the cut | **Decided 2026-10-22:** width v1.7.0, profiles v1.8, Client-Site Workflow v1.9 |
 
 ### Shared seams (build once, reuse)
@@ -603,7 +603,7 @@ should be made once.
   4. Rules for menu items absent on the target are dropped, not stored (D4, decided 2026-10-23), and the user is told what was not applied
   5. An importing user without `list_users` cannot use import to destroy or write per-person rules (the boundary `sanitize()` and `reset()` already hold)
   6. Zero regression across the same gates as Phase 29
-**Plans**: [31 implementation plan](phases/31-config-export-import/31-IMPLEMENTATION-PLAN.md) — contract/inventory, REST/persistence, Settings workflow, verification/docs. Implementation is on `feat/config-export-import`; review and human acceptance remain open.
+**Plans**: [31 implementation plan](phases/31-config-export-import/31-IMPLEMENTATION-PLAN.md) — contract/inventory, REST/persistence, Settings workflow, verification/docs. Implementation is in [#263](https://github.com/dknauss/Maestro/pull/263), for the release after 1.9.0; deep review and human acceptance remain open.
 **Out of this phase**: named presets, a preset manager, bundled starter presets. They stay in the todo.
 **Notes**: [presets and export/import todo](todos/pending/2026-07-03-config-presets-export-import.md)
 **Review**: high-risk diff (new REST endpoint, deserialization) — mandatory deep review before merge
