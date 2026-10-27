@@ -27,6 +27,25 @@ class IconSetsTest extends WP_UnitTestCase {
 		}
 	}
 
+	public function test_bootstrap_set_points_at_a_versioned_file() {
+		$set = $this->set( 'bootstrap' );
+
+		$this->assertArrayNotHasKey( 'icons', $set, 'The Bootstrap list loads on demand, not inline.' );
+		$this->assertSame( MAESTRO_URL . 'assets/icons-bootstrap.json?ver=' . MAESTRO_VERSION, $set['url'] );
+		$this->assertFileExists( MAESTRO_DIR . 'assets/icons-bootstrap.json' );
+	}
+
+	public function test_every_bootstrap_icon_is_a_saveable_svg_data_uri() {
+		$file  = json_decode( file_get_contents( MAESTRO_DIR . 'assets/icons-bootstrap.json' ), true );
+		$icons = $file['icons'];
+
+		$this->assertGreaterThanOrEqual( 300, count( $icons ), 'The set should be near Dashicons parity.' );
+		foreach ( $icons as $icon ) {
+			$this->assertStringStartsWith( 'data:image/svg+xml;base64,', $icon['src'], $icon['label'] );
+			$this->assertSame( $icon['src'], Config::sanitize_icon( $icon['src'] ), $icon['label'] );
+		}
+	}
+
 	/**
 	 * One class per distinct glyph, in core's stylesheet order. Core keeps a
 	 * few aliases (share1, exerpt-view, ...) on the same code point; offering

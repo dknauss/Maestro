@@ -407,6 +407,7 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 	border: 1px solid transparent;
 	border-radius: 3px;
 	min-height: 40px; /* matches min-size so solid glyphs sit on a consistent 20px grid */
+	aspect-ratio: 1; /* square at any track width, in both tabs */
 	padding: 9px; /* (40px - 20px img - 2px border) / 2 = 9px; centers glyph precisely */
 	cursor: pointer;
 	color: #1d2327;
@@ -415,10 +416,28 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 	justify-content: center;
 	box-sizing: border-box;
 }
-.maestro-icon-cell img {
+.maestro-icon-cell .dashicons,
+.maestro-icon-mask {
+	display: block;
 	width: 20px;
 	height: 20px;
-	display: block;
+}
+/* A Bootstrap icon's SVG as a mask in the cell's text colour, so it matches
+ * the Dashicons beside it; without mask support, its own baked grey shows. */
+.maestro-icon-mask {
+	background: var( --maestro-icon ) no-repeat center / 20px 20px;
+}
+@supports ( ( -webkit-mask-image: none ) or ( mask-image: none ) ) {
+	.maestro-icon-mask {
+		background: currentColor;
+		-webkit-mask: var( --maestro-icon ) no-repeat center / 20px 20px;
+		mask: var( --maestro-icon ) no-repeat center / 20px 20px;
+	}
+}
+.maestro-icon-status {
+	grid-column: 1 / -1;
+	margin: 8px 0;
+	color: #50575e;
 }
 .maestro-icon-cell:hover { background: #e0e7ec; }
 .maestro-icon-cell:focus-visible {

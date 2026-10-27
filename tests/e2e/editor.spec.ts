@@ -191,7 +191,7 @@ test.describe( 'Admin Menu Maestro — editor', () => {
 		const saveResp = page.waitForResponse(
 			r => POST_SAVE( r.url() ) && r.request().method() === 'POST' && r.ok()
 		);
-		await picker.locator( '.maestro-icon-cell.dashicons-book' ).click();
+		await picker.locator( '.maestro-icon-cell[data-maestro-icon="dashicons-book"]' ).click();
 		const payload = ( await saveResp ).request().postDataJSON();
 		expect( payload?.config?.items?.[ 'edit.php' ]?.icon ).toBe( 'dashicons-book' );
 
@@ -227,6 +227,10 @@ test.describe( 'Admin Menu Maestro — editor', () => {
 
 		// The search filter narrows the visible cells (regression guard: a CSS
 		// display rule once outranked [hidden] and the filter silently no-op'd).
+		// The set loads on first open; wait for it before measuring the filter.
+		await expect
+			.poll( () => btPanel.locator( '.maestro-icon-cell:visible' ).count() )
+			.toBeGreaterThan( 300 );
 		const allCells = await btPanel.locator( '.maestro-icon-cell:visible' ).count();
 		await picker.locator( '.maestro-icon-search' ).fill( 'gear' );
 		await expect
@@ -246,28 +250,39 @@ test.describe( 'Admin Menu Maestro — editor', () => {
 		const icon = payload?.config?.items?.[ 'edit.php' ]?.icon as string;
 		expect( icon ).toMatch( /^data:image\/svg\+xml;base64,/ );
 
-		// Preview repaints via background-image + core's .svg sizing class.
-		await expect( page.locator( '#menu-posts .wp-menu-image' ) ).toHaveClass( /\bsvg\b/ );
-
-		// Regression: the icon must actually PAINT, not merely carry the class.
-		// Core's `menu-icon-* div.wp-menu-image { background-image:none !important }`
-		// used to win over the inline data-URI, leaving the icon invisible. The fix
-		// strips the menu-icon-* class; assert the computed background resolves and
-		// the class is gone — both live and after reload.
-		await expect
-			.poll( () => page.locator( '#menu-posts .wp-menu-image' ).evaluate( el => getComputedStyle( el ).backgroundImage ) )
-			.toMatch( /^url\("?data:image\/svg\+xml;base64,/ );
-		await expect( page.locator( '#menu-posts' ) ).not.toHaveClass( /menu-icon-/ );
-
-		// Persistence: core re-renders the data-URI icon after reload.
-		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		// Preview keeps core's .svg sizing class and paints the SVG as a mask on
+		// the glyph slot (#172), so it takes the menu's icon colour.
 		const img = page.locator( '#menu-posts .wp-menu-image' );
 		await expect( img ).toHaveClass( /\bsvg\b/ );
-		await expect( img ).toHaveAttribute( 'style', /data:image\/svg\+xml;base64,/ );
-		await expect
-			.poll( () => img.evaluate( el => getComputedStyle( el ).backgroundImage ) )
-			.toMatch( /^url\("?data:image\/svg\+xml;base64,/ );
+
+		// Regression: the icon must actually PAINT, not merely carry the class.
+		// Core's `menu-icon-* div.wp-menu-image:before { content: ... }` used to
+		// keep the stock glyph; the menu-icon-* class is stripped, and the mask
+		// resolves both live and after reload.
+		const maskOf = () => img.evaluate( el => {
+			const before = getComputedStyle( el, '::before' );
+			return before.maskImage || before.webkitMaskImage;
+		} );
+		await expect.poll( maskOf ).toMatch( /^url\("?data:image\/svg\+xml;base64,/ );
 		await expect( page.locator( '#menu-posts' ) ).not.toHaveClass( /menu-icon-/ );
+		await expect( page.locator( '#menu-posts' ) ).toHaveClass( /\bmaestro-mask-icon\b/ );
+
+		// Persistence: core re-renders the data-URI icon after reload, and
+		// Replay marks the row so the mask, not the grey background, shows.
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		await expect( img ).toHaveClass( /\bsvg\b/ );
+		await expect( img ).toHaveAttribute( 'style', /data:image\/svg\+xml;base64,/ );
+		await expect( page.locator( '#menu-posts' ) ).toHaveClass( /\bmaestro-mask-icon\b/ );
+		await expect.poll( maskOf ).toMatch( /^url\("?data:image\/svg\+xml;base64,/ );
+		expect( await img.evaluate( el => getComputedStyle( el ).backgroundImage ) ).toBe( 'none' );
+		await expect( page.locator( '#menu-posts' ) ).not.toHaveClass( /menu-icon-/ );
+
+		// The glyph colour is core's own, so it changes on hover like a dashicon.
+		const glyphColour = () => img.evaluate( el => getComputedStyle( el, '::before' ).backgroundColor );
+		const idle = await glyphColour();
+		await page.locator( '#menu-posts > a.menu-top' ).hover();
+		await expect.poll( glyphColour ).not.toBe( idle );
+		await page.locator( '#wpbody-content' ).hover( { position: { x: 400, y: 300 } } );
 
 		// Clean up.
 		page.once( 'dialog', d => d.accept() );
@@ -532,16 +547,31 @@ test.describe( 'Phase 7 — ICON-01 solid grid scanability and side-by-side scre
 		const btPanel = picker.locator( '#maestro-panel-bootstrap' );
 		await expect( btPanel ).toBeVisible();
 
-		// Assert: > 50 visible cells (87-icon solid bundle).
-		const visibleCells = await btPanel.locator( '.maestro-icon-cell:visible' ).count();
-		expect( visibleCells ).toBeGreaterThan( 50 );
+		// Assert: the set loads on first open, near Dashicons parity (342).
+		await expect
+			.poll( () => btPanel.locator( '.maestro-icon-cell:visible' ).count() )
+			.toBeGreaterThan( 300 );
+		await expect( btPanel ).not.toHaveAttribute( 'aria-busy', 'true' );
 
-		// Assert: each cell's img has natural dimensions — the src (base64 data-URI)
-		// is set correctly. Spot-check the first img.
-		const firstImg = btPanel.locator( '.maestro-icon-cell img' ).first();
-		await expect( firstImg ).toBeVisible();
-		const imgSrc = await firstImg.getAttribute( 'src' );
-		expect( imgSrc ).toMatch( /^data:image\/svg\+xml;base64,/ );
+		// Both tabs draw the same square cells in the same icon colour.
+		const cellBox = async ( panelId: string ) => picker.locator( `#${ panelId } .maestro-icon-cell` ).first().evaluate( el => {
+			const r = el.getBoundingClientRect();
+			const glyph = el.firstElementChild as Element;
+			const style = getComputedStyle( glyph );
+			return {
+				w: Math.round( r.width ),
+				h: Math.round( r.height ),
+				colour: glyph.classList.contains( 'dashicons' ) ? style.color : style.backgroundColor,
+			};
+		} );
+		const bootstrapCell = await cellBox( 'maestro-panel-bootstrap' );
+		expect( bootstrapCell.w ).toBe( bootstrapCell.h );
+
+		// Assert: each cell paints its base64 data-URI as a mask. Spot-check the
+		// first one.
+		const firstGlyph = btPanel.locator( '.maestro-icon-cell .maestro-icon-mask' ).first();
+		await expect( firstGlyph ).toBeVisible();
+		expect( await firstGlyph.getAttribute( 'style' ) ).toMatch( /data:image\/svg\+xml;base64,/ );
 
 		// Search regression: 'gear' must narrow the visible set (same guard as the
 		// Phase 6 filter regression that caught CSS display overriding [hidden]).
@@ -568,6 +598,8 @@ test.describe( 'Phase 7 — ICON-01 solid grid scanability and side-by-side scre
 		await picker.getByRole( 'tab', { name: 'Dashicons' } ).click();
 		await expect( picker.locator( '#maestro-panel-bootstrap' ) ).toBeHidden();
 		await expect( picker.locator( '#maestro-panel-dashicons' ) ).toBeVisible();
+		const dashiconCell = await cellBox( 'maestro-panel-dashicons' );
+		expect( dashiconCell ).toEqual( bootstrapCell );
 
 		if ( CAPTURE_07 ) {
 			await page.screenshot( {

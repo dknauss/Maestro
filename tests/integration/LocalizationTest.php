@@ -67,6 +67,8 @@ class LocalizationTest extends WP_UnitTestCase {
 			'iconSearch',
 			'iconNone',
 			'iconNoneHint',
+			'iconLoading',
+			'iconLoadError',
 			'visibility',
 			'resetItem',
 			'resetAll',

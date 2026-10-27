@@ -110,6 +110,13 @@ class Assets {
 			wp_add_inline_style( 'maestro-admin-bar', self::menu_width_css( $menu_width ) );
 		}
 
+		// #172: rows whose stored icon is an SVG data-URI get that SVG as a mask
+		// in the glyph colour. Replay already ran on admin_menu and knows which.
+		$mask_css = $this->replay->mask_icon_css();
+		if ( '' !== $mask_css ) {
+			wp_add_inline_style( 'maestro-admin-bar', $mask_css );
+		}
+
 		/*
 		 * UX-13: the toggle navigates away from content that may be unsaved,
 		 * raising the browser's generic "Leave site?" prompt. The shared guard
@@ -281,6 +288,10 @@ class Assets {
 					'iconSearch'           => __( 'Search icons', 'maestro-menu-editor' ),
 					'iconNone'             => __( 'No icon', 'maestro-menu-editor' ),
 					'iconNoneHint'         => __( 'Remove the icon (uses the menu default).', 'maestro-menu-editor' ),
+					/* translators: Shown in the icon picker while the Bootstrap icon set downloads. */
+					'iconLoading'          => __( 'Loading icons…', 'maestro-menu-editor' ),
+					/* translators: Shown in the icon picker when the Bootstrap icon set fails to download. */
+					'iconLoadError'        => __( 'Could not load these icons. Switch tabs to try again.', 'maestro-menu-editor' ),
 					'visibility'           => __( 'Visibility', 'maestro-menu-editor' ),
 					'resetItem'            => __( 'Reset item', 'maestro-menu-editor' ),
 					'separator'            => __( 'Separator', 'maestro-menu-editor' ),
@@ -530,24 +541,18 @@ class Assets {
 	/**
 	 * Icon sets for the picker. Each set declares how its cells render:
 	 *   - 'class' : the icon id IS a CSS class (dashicons), rendered as a glyph.
-	 *   - 'data'  : the icon id maps to a base64 data-URI image src.
+	 *   - 'data'  : the icon id is a base64 SVG data-URI, painted as a mask.
 	 * The stored value is the icon id for a class set, or the data-URI for a data
 	 * set — both pass Config::sanitize_icon(). The picker is presentational; the
 	 * validator (not this list) is the authority on what may be saved.
 	 *
+	 * The Bootstrap set is a `url` instead of a list: the picker fetches it the
+	 * first time its tab opens, so ~350 KB of data-URIs never ride in the
+	 * edit-mode payload, and the versioned URL lets the browser cache it.
+	 *
 	 * @return array
 	 */
 	private function icon_sets() {
-		$bootstrap = require MAESTRO_DIR . 'includes/icons-bootstrap.php';
-		$bi        = array();
-		foreach ( $bootstrap as $id => $src ) {
-			$bi[] = array(
-				'id'    => $src,  // Stored value is the data-URI.
-				'src'   => $src,  // Preview source.
-				'label' => ucwords( str_replace( array( 'bi-', '-' ), array( '', ' ' ), $id ) ),
-			);
-		}
-
 		return array(
 			array(
 				'id'    => 'dashicons',
@@ -568,7 +573,7 @@ class Assets {
 				'id'    => 'bootstrap',
 				'label' => __( 'Bootstrap', 'maestro-menu-editor' ),
 				'type'  => 'data',
-				'icons' => $bi,
+				'url'   => add_query_arg( 'ver', MAESTRO_VERSION, MAESTRO_URL . 'assets/icons-bootstrap.json' ),
 			),
 		);
 	}

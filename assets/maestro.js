@@ -1281,26 +1281,7 @@
 			panel.setAttribute( 'aria-labelledby', tabId );
 			panel.hidden = si !== 0;
 
-			set.icons.forEach( function ( ic ) {
-				var b = el( 'button', 'maestro-icon-cell' + ( set.type === 'class' ? ' dashicons ' + ic.class : ' maestro-icon-img' ) );
-				b.type = 'button';
-				b.title = ic.label;
-				b.setAttribute( 'aria-label', ic.label );
-				b.dataset.maestroName = ( ic.label || '' ).toLowerCase();
-				b.tabIndex = -1;
-				if ( model[ slug ].icon === ic.id ) {
-					b.classList.add( 'is-current' );
-					b.setAttribute( 'aria-pressed', 'true' );
-				}
-				if ( set.type === 'data' ) {
-					var im = el( 'img' );
-					im.src = ic.src;
-					im.alt = '';
-					b.appendChild( im );
-				}
-				b.addEventListener( 'click', function ( e ) { e.preventDefault(); choose( ic.id ); } );
-				panel.appendChild( b );
-			} );
+			if ( set.icons ) { addCells( set, panel, set.icons ); }
 
 			pop.appendChild( panel );
 			panels.push( panel );
@@ -1308,13 +1289,73 @@
 			tab.addEventListener( 'click', function () { activateTab( si ); } );
 		} );
 
-		function activateTab( idx ) {
+		// One button per icon. The glyph sits in a child, never on the button:
+		// core's `.dashicons` rule pins its element to 20px wide, which held a
+		// Dashicons cell to a narrow, tall strip, and a Bootstrap cell paints
+		// its SVG as a mask in the cell's text colour so both tabs match.
+		function addCells( set, panel, icons ) {
+			icons.forEach( function ( ic ) {
+				var id = ic.id || ic.src; // A data set stores the data-URI itself.
+				var b  = el( 'button', 'maestro-icon-cell' );
+				b.type = 'button';
+				b.title = ic.label;
+				b.setAttribute( 'aria-label', ic.label );
+				b.dataset.maestroName = ( ( ic.label || '' ) + ' ' + ( ic.terms || '' ) ).toLowerCase();
+				b.tabIndex = -1;
+				if ( model[ slug ].icon === id ) {
+					b.classList.add( 'is-current' );
+					b.setAttribute( 'aria-pressed', 'true' );
+				}
+				var glyph = el( 'span', set.type === 'class' ? 'dashicons ' + ic.class : 'maestro-icon-mask' );
+				glyph.setAttribute( 'aria-hidden', 'true' );
+				if ( set.type === 'class' ) {
+					b.dataset.maestroIcon = ic.class;
+				} else {
+					glyph.style.setProperty( '--maestro-icon', 'url("' + id + '")' );
+				}
+				b.appendChild( glyph );
+				b.addEventListener( 'click', function ( e ) { e.preventDefault(); choose( id ); } );
+				panel.appendChild( b );
+			} );
+		}
+
+		// A set with a `url` (Bootstrap) is fetched the first time its tab opens,
+		// so its few hundred KB of data-URIs stay out of every edit-mode page.
+		// The promise is kept on the set, so reopening the picker reuses it.
+		function loadSet( set, panel ) {
+			if ( ! set.url || panel.dataset.maestroLoaded ) { return; }
+			panel.dataset.maestroLoaded = '1';
+			panel.setAttribute( 'aria-busy', 'true' );
+			var status = el( 'p', 'maestro-icon-status', I.iconLoading );
+			panel.appendChild( status );
+			if ( ! set.request ) {
+				set.request = window.fetch( set.url, { credentials: 'same-origin' } ).then( function ( r ) {
+					if ( ! r.ok ) { throw new Error( r.status ); }
+					return r.json();
+				} );
+				// Let a later open try again after a failure.
+				set.request.catch( function () { set.request = null; } );
+			}
+			set.request.then( function ( data ) {
+				panel.removeChild( status );
+				addCells( set, panel, data.icons || [] );
+				panel.removeAttribute( 'aria-busy' );
+				applyFilter();
+			} ).catch( function () {
+				status.textContent = I.iconLoadError;
+				panel.removeAttribute( 'aria-busy' );
+				delete panel.dataset.maestroLoaded;
+			} );
+		}
+
+		function activateTab( idx, keepFocus ) {
 			tabs.forEach( function ( t, i ) {
 				t.setAttribute( 'aria-selected', i === idx ? 'true' : 'false' );
 				t.tabIndex = i === idx ? 0 : -1;
 				panels[ i ].hidden = i !== idx;
 			} );
-			tabs[ idx ].focus();
+			loadSet( sets[ idx ], panels[ idx ] );
+			if ( ! keepFocus ) { tabs[ idx ].focus(); }
 			applyFilter();
 		}
 
@@ -1329,7 +1370,7 @@
 		function visibleCells() {
 			var panel = panels.find( function ( p ) { return ! p.hidden; } );
 			if ( ! panel ) { return []; }
-			return Array.prototype.filter.call( panel.children, function ( c ) { return ! c.hidden; } );
+			return Array.prototype.filter.call( panel.querySelectorAll( '.maestro-icon-cell' ), function ( c ) { return ! c.hidden; } );
 		}
 		pop.addEventListener( 'keydown', function ( e ) {
 			if ( ! /^Arrow/.test( e.key ) ) { return; }
@@ -1357,7 +1398,7 @@
 			var panel = panels.find( function ( p ) { return ! p.hidden; } );
 			if ( ! panel ) { return; }
 			var firstShown = null;
-			Array.prototype.forEach.call( panel.children, function ( c ) {
+			Array.prototype.forEach.call( panel.querySelectorAll( '.maestro-icon-cell' ), function ( c ) {
 				var hit = ! q || ( c.dataset.maestroName || '' ).indexOf( q ) !== -1;
 				c.hidden = ! hit;
 				c.tabIndex = -1;
@@ -1393,6 +1434,14 @@
 				first.focus();
 			}
 		} );
+
+		// Open on the tab that holds the current icon: a stored data-URI is a
+		// Bootstrap icon, so its cell is shown (and loaded) straight away.
+		var current  = model[ slug ].icon || '';
+		var startTab = sets.findIndex( function ( set ) {
+			return set.type === 'data' && /^data:image\/svg\+xml/.test( current );
+		} );
+		activateTab( startTab > 0 ? startTab : 0, true );
 
 		var reposition = placePopover( pop, anchorBtn );
 		applyFilter();
@@ -2012,6 +2061,17 @@
 	function applyIconPreview( li, icon ) {
 		var img = li.querySelector( '.wp-menu-image' );
 		if ( ! img ) { return; }
+
+		// #172: an SVG data-URI is painted as a mask in the glyph colour
+		// (maestro-admin-bar.css), the way Replay marks a stored one. Every
+		// other icon form clears the mark, including one Replay put there.
+		var masked = /^data:image\/svg\+xml/.test( icon );
+		li.classList.toggle( 'maestro-mask-icon', masked );
+		if ( masked ) {
+			li.style.setProperty( '--maestro-icon', 'url("' + icon.replace( /"/g, '%22' ) + '")' );
+		} else {
+			li.style.removeProperty( '--maestro-icon' );
+		}
 
 		// A URL icon (UpdraftPlus, miniOrange SAML, ...) is printed by core as an
 		// <img> inside the menu image, which would sit on top of any new icon.
