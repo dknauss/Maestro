@@ -42,6 +42,27 @@ test( 'review reports absent menus and applies only after explicit import, then 
 	await expect( page.locator( '#menu-posts .wp-menu-name' ) ).toContainText( 'Imported articles' );
 } );
 
+test( 'a reviewed file grows Settings upward, clear of the toolbar', async ( { page } ) => {
+	await page.setViewportSize( { width: 1440, height: 900 } );
+	await openSettings( page );
+	await page.locator( '.maestro-transfer-file' ).setInputFiles( { name: 'menu.json', mimeType: 'application/json', buffer: Buffer.from( file( { 'edit.php': { title: 'Imported articles' }, 'missing-source.php': { title: 'Missing' } } ) ) } );
+	await page.getByRole( 'button', { name: 'Review file', exact: true } ).click();
+	const importBtn = page.getByRole( 'button', { name: 'Import configuration', exact: true } );
+	await expect( importBtn ).toBeVisible();
+	// The report and Import used to run down over the toolbar and past the
+	// screen. Re-anchored, the dialog ends above the gear that opened it.
+	const dialog = page.getByRole( 'dialog', { name: 'Settings', exact: true } );
+	const gearTop = ( await page.locator( '.maestro-settings-btn' ).boundingBox() )!.y;
+	await expect.poll( async () => {
+		const b = ( await dialog.boundingBox() )!;
+		return b.y >= 0 && b.y + b.height <= gearTop;
+	} ).toBe( true );
+	await importBtn.scrollIntoViewIfNeeded();
+	const btn = ( await importBtn.boundingBox() )!;
+	expect( btn.y + btn.height ).toBeLessThanOrEqual( gearTop );
+	expect( await page.evaluate( () => window.scrollY ) ).toBe( 0 );
+} );
+
 test( 'malformed files cannot reset configuration', async ( { page } ) => {
 	await openSettings( page );
 	await page.locator( '.maestro-transfer-file' ).setInputFiles( { name: 'bad.json', mimeType: 'application/json', buffer: Buffer.from( '{}' ) } );

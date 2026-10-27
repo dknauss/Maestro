@@ -3133,10 +3133,12 @@
 		// its top, a dialog above the toolbar grew DOWN past the viewport, and
 		// focusing a control in the overflow then scrolled the page (Phase 27,
 		// measured at 1280x720). Re-anchor on resize so it grows upward instead.
+		// Settings grows the same way when Review file adds its report and
+		// Import button, which then ran under the toolbar and off the screen.
 		// Other popovers keep a fixed place, so filtering icons does not move
 		// the grid under the pointer.
 		var ro;
-		var grows = pop.classList.contains( 'maestro-vis-popover' ) || pop.classList.contains( 'maestro-profiles-popover' );
+		var grows = pop.classList.contains( 'maestro-vis-popover' ) || pop.classList.contains( 'maestro-profiles-popover' ) || pop.classList.contains( 'maestro-settings-popover' );
 		if ( grows && window.ResizeObserver ) {
 			ro = new window.ResizeObserver( function () {
 				if ( ! document.contains( pop ) ) { ro.disconnect(); return; }

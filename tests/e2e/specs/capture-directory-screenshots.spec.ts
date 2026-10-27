@@ -275,9 +275,6 @@ test.describe( 'Directory screenshots — v1.2 editor UI (MAESTRO_CAPTURE-gated)
 		await page.getByRole( 'button', { name: 'Review file', exact: true } ).click();
 		await expect( page.locator( '.maestro-transfer-result' ) ).toContainText( 'client-reports' );
 		await expect( page.getByRole( 'button', { name: 'Import configuration', exact: true } ) ).toBeVisible();
-		// The dialog keeps the place it opened at while the report grows it, so
-		// re-anchor it above the toolbar the way a window resize does.
-		await page.evaluate( () => window.dispatchEvent( new Event( 'resize' ) ) );
 		await dualShot( page, 7 );
 	} );
 
