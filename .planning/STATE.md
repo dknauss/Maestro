@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: Client-Site Workflow
 status: in_progress
-stopped_at: "Phase 31 export/import merged in #263 (ebd1143); 1.10.0 release prepared, awaiting Dan's tag. Real VoiceOver and iPad acceptance remain open; browser simulations passed."
+stopped_at: "1.10.0 release merged in #271 (Phase 31 export/import #263, icon picker #266, RTL fix #268), awaiting Dan's v1.10.0 tag. Real VoiceOver and iPad acceptance remain open; browser simulations passed."
 last_updated: "2026-10-27T00:00:00.000Z"
-last_activity: "2026-10-27 — #263 merged; 1.10.0 release PR carries Phase 31, the #266 icon picker and the #268 RTL fix."
+last_activity: "2026-10-27 — 1.10.0 release PR #271 merged; issues #216 and #162 closed; planning reconciled (#269)."
 progress:
   total_phases: 3
   completed_phases: 0
@@ -15,6 +15,20 @@ progress:
 ---
 
 # Project State
+
+## Current reconciliation — 2026-10-27
+
+v1.10.0 is cut: release PR #271 merged 2026-10-27 and awaits Dan's `v1.10.0`
+tag. It carries Phase 31 export/import (#263, which absorbed #264's recovery
+changes), the unified icon picker and SVG menu-icon colouring (#266, #172) and
+the RTL dialog-close fix (#268). Issue #216 is closed as shipped; #162 is closed
+as answered by #266. Selected-row prototype #261 remains a separate opt-in
+experiment (draft, own Playground link). Dan verified all five phone fixes on
+iPhone in portrait and landscape on 2026-10-26; see
+[iPhone issues](../docs/testing/iphone-issues.md). iPad and human screen-reader
+acceptance remain open.
+
+Historical progress notes below do not supersede this reconciliation.
 
 ## Release prep — 1.10.0 (2026-10-27)
 
@@ -34,15 +48,6 @@ downloads. Settings, and with it export/import, stays desktop-only (961px and up
 See the [implementation plan](phases/31-config-export-import/31-IMPLEMENTATION-PLAN.md)
 and [verification record](phases/31-config-export-import/31-VERIFICATION.md).
 Codex's deep review found two issues, both fixed at `e2633c1` and re-reviewed clean. Real-device and screen-reader acceptance remain open.
-
-## Release prep — 1.9.0 (2026-10-24)
-
-Main after #260 (`d34a576`) is being cut as **1.9.0**. 1.8.0 was bumped in #242 but
-never tagged or released, so 1.9.0 carries visibility groups (Phase 27), the width
-follow-ups, "All other roles" (Phase 29), preview as a role (Phase 30) and the
-desktop and mobile polish (#256–#260). Phase 31 (export/import) follows in a later
-release, per the D5 recommendation; the release PR is Dan's confirmation of D5.
-The POT is regenerated. Real iPhone/iPad checks of #260 remain Dan's.
 
 ## Desktop UX refinement — 2026-10-24
 
@@ -574,7 +579,7 @@ Recent decisions affecting current work:
   **This gates `configurable-admin-menu-width`**, which must "respect folded
   mode" while edit mode currently refuses it — design those together or the
   width work inherits an unstated conflict. Captured in
-  `todos/pending/2026-08-10-toolbar-height-and-collapse-menu-parity.md`
+  `todos/completed/2026-08-10-toolbar-height-and-collapse-menu-parity.md`
 
 - **Persistent saved-state indicator** — the save status is event feedback that
   self-erases after 2s (`maestro.js` ~L1748), so seconds after a rename commits
@@ -791,7 +796,7 @@ re-opening either question:**
   icon opening a modal (Profiles, Settings); per-item stays in the per-item
   panel; **no wp-admin settings page, ever**; two icons is the budget.
 - The fold story, recorded in
-  `todos/pending/2026-08-10-toolbar-height-and-collapse-menu-parity.md` — edit
+  `todos/completed/2026-08-10-toolbar-height-and-collapse-menu-parity.md` — edit
   mode keeps forcing unfold, but `#collapse-menu` stops pretending to work. The
   "fold versus width conflict" flagged on 2026-08-09 was mis-framed and is
   **withdrawn**: `160px` is just hardcoded in three places.

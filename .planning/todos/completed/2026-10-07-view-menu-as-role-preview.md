@@ -11,6 +11,12 @@ files:
   - SPEC.md (Principle 3 and the "never changes a capability" wording)
 ---
 
+## Reconciled — 2026-10-26
+
+Implemented by #248/#251 and shipped in v1.9.0. Issue #215 is reconciled with the shipped read-only role preview. Real-device acceptance remains tracked separately; person-specific preview and editing within preview remain deferred.
+
+The original investigation below is retained as historical context.
+
 **Approved decisions — 2026-10-23:** Dan approved D2’s narrow capability-filter
 exception, disabling super-admin preview in the first release, and a labelled
 toolbar picker with an explicit Preview button. The [Phase 30 decision record](../../phases/30-view-as-role-preview/30-CONTEXT.md)

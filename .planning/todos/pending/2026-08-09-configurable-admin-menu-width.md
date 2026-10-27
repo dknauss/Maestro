@@ -8,6 +8,11 @@ files:
   - assets/maestro-admin-bar.css (the only always-loaded stylesheet today — the natural home or the model for a new one)
 ---
 
+## Reconciled — 2026-10-26
+
+Implementation shipped in v1.9.0. Keep pending only for core-scheme/width and real-device acceptance, not implementation.
+
+
 ## Current status — 2026-10-22
 
 Implementation built (#227, #228, #231, #235), but acceptance remains open after
@@ -57,7 +62,7 @@ Three interactions to get right, none optional:
   silently dead, and the three hardcoded `160px` values become the configured
   width. Not a fold-versus-width conflict after all — a hardcoded constant that
   needs to become a variable. Decision recorded in
-  `todos/pending/2026-08-10-toolbar-height-and-collapse-menu-parity.md`.
+  `todos/completed/2026-08-10-toolbar-height-and-collapse-menu-parity.md`.
 - **The `<782px` responsive breakpoint**, where the menu becomes an overlay
 - **`#wpcontent`'s matching offset** — set one without the other and the content
   column overlaps or leaves a gap

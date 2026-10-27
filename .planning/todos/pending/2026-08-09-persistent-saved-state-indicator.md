@@ -10,6 +10,11 @@ files:
   - assets/maestro.css (.maestro-status, min-width:24px slot reserved in Phase 25)
 ---
 
+## Reconciled — 2026-10-26
+
+Shipped design uses transient floating feedback and persistent errors (#257/#265). A persistent saved indicator is a deferred alternative, not a missing release requirement. Human screen-reader announcement testing remains open.
+
+
 ## Problem
 
 The save indicator is **event feedback that erases itself**. `maestro.js` ~L1748

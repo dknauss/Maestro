@@ -8,6 +8,10 @@ files:
   - SPEC.md:199 (Roadmap item 6 — "Import/export config as JSON", already-deferred precursor)
 ---
 
+## Reconciled — 2026-10-27
+
+Plain export/import shipped in v1.10.0 (#263, released via #271); #216 is closed. Named and bundled presets remain unscheduled; historical version assumptions below are superseded.
+
 **Scheduled:** plain export/import is v1.9 Client-Site Workflow, Phase 31 (#216). Named and bundled presets are not scheduled.
 
 ## Phase 31 update — 2026-10-24

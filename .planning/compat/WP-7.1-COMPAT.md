@@ -285,7 +285,7 @@ was exercised by the probe, so "likely" is still not "checked".
 "Mouse cursor interaction inconsistencies when the admin menu is collapsed have
 been fixed" is in the same code path Phase 28-01 is about to rewrite: `forceUnfold()`
 neutering `#collapse-menu`, and the fold-honesty decision recorded in
-`todos/pending/2026-08-10-toolbar-height-and-collapse-menu-parity.md`.
+`todos/completed/2026-08-10-toolbar-height-and-collapse-menu-parity.md`.
 
 Phase 28 was designed against 7.0 collapse behaviour. Reading the #65250 patch
 first is cheap insurance against designing around a bug core has already fixed.
