@@ -234,6 +234,24 @@ Targets the wp-env **tests** instance at `http://localhost:8889`
 Playwright setup project that every spec depends on — it authenticates once and
 stores the session.
 
+### Directory screenshots
+
+The WordPress.org screenshots in `.wordpress-org/screenshot-*.png` (also used
+in the GitHub README) come from
+[`capture-directory-screenshots.spec.ts`](tests/e2e/specs/capture-directory-screenshots.spec.ts).
+It is skipped in normal runs and CI, so the committed PNGs never change by
+accident. To regenerate them from the current build:
+
+```bash
+npm run screenshots        # MAESTRO_CAPTURE=1; also runs the review captures
+```
+
+Start from a fresh tests site: a leftover `maestro_config` option, custom role
+or extra plugin shows up in the pictures. The spec writes each PNG to both
+`.wordpress-org/` and `tests/e2e/screenshots/directory/` for review, and cleans
+up its own fixture user and visibility group. Keep each numbered capture in
+step with the `== Screenshots ==` captions in `readme.txt` and the README table.
+
 ### Test isolation and why the suite runs serially
 
 The plugin keeps its entire state in **one** WordPress option (`maestro_config`)

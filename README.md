@@ -10,9 +10,23 @@
 
 ![Maestro banner](.wordpress-org/banner-1544x500.png)
 
-In-place editing of the WordPress admin menu — rename items, reorder them, swap top-level icons, and hide items per role. Global configuration, no separate settings screen: the editor is toggled from the admin bar and operates on the menu itself.
+In-place editing of the WordPress admin menu — rename items, reorder them, swap top-level icons, and hide items per role, per person or per visibility group. Preview the menu as a role, widen it, and copy a finished configuration to another site with export/import. Global configuration, no separate settings screen: the editor is toggled from the admin bar and operates on the menu itself.
 
 **▶ [Try it live in WordPress Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/main/playground/blueprint-stable.json)** — boots a throwaway site with the plugin active in edit mode, User Switching with a "Viewing as" admin-bar user switcher, and named test users (Adam Admin, Emma Editor, Andy Author, Carrie Contributor, Steven Subscriber; logins `editor` / `author` / `contributor` / `subscriber`, password `password`) so you can try per-role visibility by switching users. This demo installs the **latest released version**. ([Development build (main)](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/main/playground/blueprint-hosted.json) also available.)
+
+## Try the new selected-row controls (prototype)
+
+We are testing a different way to edit: when you pick a menu item, its
+controls (rename, move up, move down and a **More** menu for visibility, reset
+and separators) appear on the menu item itself instead of in the toolbar along
+the bottom of the screen, and the item's icon becomes the button for choosing a
+new one. It is a prototype on its own branch
+([#261](https://github.com/dknauss/Maestro/pull/261)) and is not in a release
+yet, so the released plugin and the demos above still use the bottom toolbar.
+
+- **▶ [Open the prototype in WordPress Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/proto/selected-row-controls/playground/blueprint-row-controls.json)** — a throwaway site in your browser, already in edit mode.
+- **[Tester guide](https://github.com/dknauss/Maestro/blob/proto/selected-row-controls/docs/testing-row-controls-prototype.md)** — what changed, and five to ten minutes of things to try on a desktop, a phone or the keyboard.
+- **[Send feedback](https://github.com/dknauss/Maestro/issues/new?template=03-prototype-feedback.yml)** — a short form; every field but the first is optional, and screenshots are welcome.
 
 ## Screenshots
 
@@ -20,18 +34,21 @@ Click any screenshot to open the full-size image.
 
 | Edit mode | Icon picker |
 | --- | --- |
-| [![Edit mode with the Posts menu item selected and the shared controls panel open](.wordpress-org/screenshot-1.png)](.wordpress-org/screenshot-1.png) | [![Icon picker with searchable Dashicons and Bootstrap Icons tabs](.wordpress-org/screenshot-2.png)](.wordpress-org/screenshot-2.png) |
-| Posts selected, with the shared controls panel open. | Searchable icon picker with Dashicons and Bootstrap Icons tabs. |
+| [![Edit mode with the Dashboard menu item selected and the editing toolbar open](.wordpress-org/screenshot-1.png)](.wordpress-org/screenshot-1.png) | [![Icon picker with searchable Dashicons and Bootstrap Icons tabs](.wordpress-org/screenshot-2.png)](.wordpress-org/screenshot-2.png) |
+| Dashboard selected, with the editing toolbar along the bottom. | Searchable icon picker with Dashicons and Bootstrap Icons tabs. |
 
 | Role visibility | Autosave |
 | --- | --- |
-| [![Per-role visibility picker for hiding a menu item from selected roles](.wordpress-org/screenshot-3.png)](.wordpress-org/screenshot-3.png) | [![Renamed menu item saved through debounced autosave](.wordpress-org/screenshot-4.png)](.wordpress-org/screenshot-4.png) |
-| Per-role visibility picker for hiding a menu item from selected roles. | Renamed menu item saved through debounced autosave. |
+| [![Visibility popover with role, person and visibility group lists](.wordpress-org/screenshot-3.png)](.wordpress-org/screenshot-3.png) | [![Renamed menu item saved through debounced autosave](.wordpress-org/screenshot-4.png)](.wordpress-org/screenshot-4.png) |
+| Visibility popover: hide from roles, named people or visibility groups. | Renamed menu item saved through debounced autosave. |
 
-Export/import in **Settings** carries portable menu rules between sites as a
-versioned JSON file. Review missing menus and roles before applying. Destination
-people rules and visibility groups are preserved; those private settings are
-not included in exports. See the [user guide](docs/user-guide.md#export-and-import-a-menu-configuration).
+| Settings and export/import | Preview as a role |
+| --- | --- |
+| [![Settings dialog with the menu width and export/import, after reviewing a file that names a menu this site lacks](.wordpress-org/screenshot-7.png)](.wordpress-org/screenshot-7.png) | [![The Dashboard previewed as an Editor under the read-only preview banner](.wordpress-org/screenshot-8.png)](.wordpress-org/screenshot-8.png) |
+| Settings: menu width, and export/import with a reviewed file. | The menu as an Editor sees it, under the read-only preview banner. |
+
+Screenshots 5 and 6 (dragging a menu group, and the ▲/▼ move controls) are in
+[`.wordpress-org/`](.wordpress-org/).
 
 ## Important: visibility is cosmetic, not access control
 
@@ -49,7 +66,9 @@ Hiding a menu item only declutters the menu — the underlying page still loads 
    too: select one to move or remove it, or select a top-level item and choose
    **Add separator below** to start a new group.
 5. Change a top-level icon from the icon picker. Use Dashicons, bundled
-   Bootstrap Icons, "No icon", or a valid WordPress icon value.
+   Bootstrap Icons (about 440, grouped and searchable by admin topic), "No
+   icon", or a valid WordPress icon value. SVG icons follow the menu's colours
+   in every admin colour scheme.
 6. Hide an item from selected roles with the visibility control. This only
    changes what those roles see in the menu; it does not block the page URL.
    **All other roles**, at the top of each role list, ticks every role you do
@@ -72,23 +91,36 @@ Hiding a menu item only declutters the menu — the underlying page still loads 
    applies on every admin page for everyone, from 961px wide (the handle and
    the gear only appear there), and stands aside
    when another plugin already sets the width.
-10. Use **Reset this item** to discard one item's customizations, or **Reset
-   all** to delete the saved configuration and return to WordPress defaults.
-11. Choose **Exit Menu Editing** when finished. Pending autosaves are flushed
-   before the page reloads.
+10. Check the result with **Preview as** (the screen button in the toolbar):
+    choose a role and press **Preview** to see the Dashboard with that role's
+    menu, under a read-only banner. You stay signed in as yourself and nothing
+    is saved.
+11. Copy a finished menu to another site with export/import under
+    **Settings**. Export downloads a versioned JSON file of names, icons, role
+    rules, ordering, separators and menu width. On the destination, **Review
+    file** lists anything that can't be applied before **Import configuration**
+    changes anything. Rules for named people and visibility groups are never
+    exported, and the destination keeps its own. See the
+    [user guide](docs/user-guide.md#export-and-import-a-menu-configuration).
+12. Use **Reset this item** to discard one item's customizations, or **Reset
+    all** to delete the saved configuration and return to WordPress defaults.
+13. Choose **Exit Menu Editor** in the admin bar when finished. Pending
+    autosaves are flushed before the page reloads.
 
 For the longer walkthrough, see [`docs/user-guide.md`](docs/user-guide.md).
 
 ## Status
 
-**v1.3.1 is live on the WordPress.org plugin directory** ([maestro-menu-editor](https://wordpress.org/plugins/maestro-menu-editor/)) — it includes the v1.1 through v1.3 polish and fix releases over the 1.0.0 base (roadmap in [`.planning/ROADMAP.md`](.planning/ROADMAP.md)). The server core (replay engine, REST API, sanitization) and the editor are done, and all test layers are expected to stay green (unit 90, integration 47, E2E coverage, JavaScript unit tests, phpcs, PHPStan, and Plugin Check on the runtime build). The editor uses the click-to-select model with debounced autosave:
+**v1.10.0 is live on the WordPress.org plugin directory** ([maestro-menu-editor](https://wordpress.org/plugins/maestro-menu-editor/)). It adds export/import, a larger icon picker and SVG icons that follow the menu colours to 1.9.0's role preview, visibility groups and phone work (full history in the [changelog](readme.txt), roadmap in [`.planning/ROADMAP.md`](.planning/ROADMAP.md)). Every test layer is expected to stay green: PHP unit and integration tests, Playwright E2E, JavaScript unit tests, phpcs, PHPStan, and Plugin Check on the runtime build. The editor uses the click-to-select model with debounced autosave:
 
 - **Debounced autosave (~500 ms)** on reorder, rename, icon pick, visibility toggle, and per-item reset — no manual Save button; a "Saving… / Saved" status indicator (dashicon + text) instead. Saves are serialized (single-flight) so a slow request can't overwrite newer edits. Reload only on Exit (which flushes any pending save) and on Reset all.
-- **Click-to-select with one shared controls panel.** No edit chrome until an item is selected: each row shows only a hover/focus-revealed drag handle. Selecting an item opens the shared panel (rename, icon picker for top-level items, per-role and per-person visibility, reset-this-item).
+- **Click-to-select with one shared editing toolbar.** No edit chrome on the rows until an item is selected: each shows only a hover/focus-revealed drag handle. Selecting an item fills the toolbar along the bottom (rename, ▲/▼ move, icon picker for top-level items, visibility, reset-this-item, add separator), and its right side holds the menu-wide tools (visibility groups, Preview as, Settings, help tour, Reset all).
 
 - **Visibility on six independent axes.** The popover carries hide-by-role, hide-by-person and hide-by-group, each in a "this item" and an "its sub-items" variant, so a parent can stay visible while its children vanish for exactly the roles or people you choose. The person picker searches core's `wp/v2/users` endpoint (already gated by `list_users`), so it scales past a few hundred users instead of dumping the whole user base into the page. A visibility group is a named, reusable list of people: the items it hides are compiled onto each item when saved, and who is in it is resolved live on every request, so membership changes need no re-save. Groups are authored only by users with `list_users`, and are withheld from everyone else server-side. Every axis is cosmetic: a hidden page still loads by URL, and `current_user_can()` is provably unchanged — asserted by a dedicated guardrail test that snapshots the target role's entire capability map before, during, and after a rule.
 - **Stable expanded menu while editing.** Folded/auto-fold mode is neutralized on entry and re-stripped if `common.js` reapplies it, so editing always happens against the expanded menu.
-- **Icons: all four native WordPress forms** (dashicon, `none`, base64 image data-URI, image URL), validated server-side. The picker bundles two sets — all 342 dashicons and ~440 curated [Bootstrap Icons](https://icons.getbootstrap.com/), loaded the first time their tab opens — with a search filter and a "No icon" option, and is keyboard-accessible (dialog/tablist roles, arrow-key navigation, focus trap) and mobile-sized. Icon changes persist via autosave (covered by E2E: pick → POST carries the icon → survives reload).
+- **Icons: all four native WordPress forms** (dashicon, `none`, base64 image data-URI, image URL), validated server-side. The picker bundles two sets in square, single-colour cells — all 342 dashicons and 437 curated [Bootstrap Icons](https://icons.getbootstrap.com/), grouped by admin topic and loaded the first time their tab opens — with a search filter and a "No icon" option. It opens on the tab of the item's current icon, and is keyboard-accessible (dialog/tablist roles, arrow-key navigation, focus trap) and mobile-sized. A stored SVG icon is painted as a CSS mask, so it takes the menu's idle, hover and current colours in every admin colour scheme. Icon changes persist via autosave (covered by E2E: pick → POST carries the icon → survives reload).
+- **Preview as a role.** A read-only Dashboard preview narrows your own capabilities to the chosen role for that request only, applies Maestro's rules for the role, and saves nothing. It is an approximation: person and group rules, per-user grants and multi-role users can differ.
+- **Export/import.** A versioned, portable JSON file (format separate from the stored schema) carries names, icons, role rules, ordering, separators and width. Import is two-step: a read-only review reports what can't be applied, then an explicit import replaces only the portable settings. Person rules and visibility groups never leave the site and are preserved on the destination.
 
 See [`SPEC.md`](SPEC.md) for the durable design and [`docs/archive/FIXES.md`](docs/archive/FIXES.md) for the historical fix log.
 
@@ -99,21 +131,21 @@ The plugin uses the `maestro-menu-editor` text domain and ships a translation te
 ## Repository layout
 
 - **Runtime plugin** — [`maestro-menu-editor.php`](maestro-menu-editor.php), `includes/`, `assets/`, `languages/`, `readme.txt`. This is all that ships to a site.
-- **WordPress.org listing assets** — `.wordpress-org/` contains the directory icon ([`icon.svg`](.wordpress-org/icon.svg), `icon-128x128.png`, `icon-256x256.png`), banners (`banner-772x250.png`, `banner-1544x500.png`), and screenshots (`screenshot-1.png` through `screenshot-4.png`).
+- **WordPress.org listing assets** — `.wordpress-org/` contains the directory icon ([`icon.svg`](.wordpress-org/icon.svg), `icon-128x128.png`, `icon-256x256.png`), banners (`banner-772x250.png`, `banner-1544x500.png`), and screenshots (`screenshot-1.png` through `screenshot-8.png`, regenerated with `npm run screenshots`; see [`TESTING.md`](TESTING.md#directory-screenshots)).
 - **Dev & tooling** — `tests/`, [`composer.json`](composer.json), [`package.json`](package.json), [`.wp-env.json`](.wp-env.json), [`playwright.config.ts`](playwright.config.ts), `phpunit-*.xml.dist`, [`bin/build.sh`](bin/build.sh).
-- **Docs** — [`docs/user-guide.md`](docs/user-guide.md) (user walkthrough), [`SPEC.md`](SPEC.md) (durable specification), [`TESTING.md`](TESTING.md) (how to run each test layer), and [`docs/archive/FIXES.md`](docs/archive/FIXES.md) (historical fix log).
+- **Docs** — [`docs/user-guide.md`](docs/user-guide.md) (user walkthrough), [`SPEC.md`](SPEC.md) (durable specification), [`TESTING.md`](TESTING.md) (how to run each test layer), [`docs/design/ui-standard.md`](docs/design/ui-standard.md) (editor UI standard), [`docs/performance/config-size-and-page-load.md`](docs/performance/config-size-and-page-load.md) (page-load measurements), and [`docs/archive/FIXES.md`](docs/archive/FIXES.md) (historical fix log).
 
 ## Footprint & performance
 
-Maestro is deliberately lightweight. *Figures are a v1.3.1 snapshot from a static sweep; run [`bin/build.sh`](bin/build.sh) to re-measure the package.*
+Maestro is deliberately lightweight. *Figures are a v1.10.0 snapshot from a static sweep; run [`bin/build.sh`](bin/build.sh) to re-measure the package.*
 
-**Deployed package** ([`bin/build.sh`](bin/build.sh), with dev/test/tooling excluded): ~90 KB zip, ~330 KB installed (of which ~80 KB is bundled translations).
+**Deployed package** ([`bin/build.sh`](bin/build.sh), with dev/test/tooling excluded): ~290 KB zip, ~1 MB installed. Of that, ~345 KB is the Bootstrap Icons set (a JSON file fetched only when its picker tab first opens) and ~100 KB is bundled translations.
 
 | Runtime code | Approx. |
 |---|---|
-| PHP | ~1,760 LOC — 8 classes + bootstrap + uninstall |
-| JavaScript | ~1,700 LOC — 2 files, unminified |
-| CSS | ~760 LOC — 2 files |
+| PHP | ~5,600 LOC — 13 classes + bootstrap + uninstall (plus the generated dashicon list) |
+| JavaScript | ~5,000 LOC — 4 files, unminified |
+| CSS | ~1,650 LOC — 2 files |
 
 **Storage** — one *non-autoloaded* `wp_options` row (`maestro_config`), created only on first save (a fresh install stores nothing). No custom tables, post/user meta, transients, or cron events. [`uninstall.php`](uninstall.php) deletes that single row — zero residue.
 
