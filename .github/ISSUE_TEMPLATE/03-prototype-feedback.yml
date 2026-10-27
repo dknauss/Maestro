@@ -1,0 +1,57 @@
+name: Prototype feedback
+description: Tell us how the new menu editing controls felt to use
+title: "[Row controls prototype]: "
+labels: ["prototype-feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for trying the selected-row controls prototype. Short notes are fine, and every field except the first is optional. The tester guide is in [docs/testing-row-controls-prototype.md](https://github.com/dknauss/Maestro/blob/proto/selected-row-controls/docs/testing-row-controls-prototype.md).
+  - type: textarea
+    id: impression
+    attributes:
+      label: Better or worse than the bottom toolbar?
+      description: How did editing on the menu item itself compare with the toolbar along the bottom of the screen? What felt better, and what felt worse?
+    validations:
+      required: true
+  - type: textarea
+    id: unclear
+    attributes:
+      label: Anything unclear or surprising?
+      description: A button you weren't sure about, something that covered something else, or something that didn't do what you expected.
+  - type: textarea
+    id: bugs
+    attributes:
+      label: Bugs
+      description: What happened, and what were you doing just before? A screenshot helps a lot.
+  - type: dropdown
+    id: device
+    attributes:
+      label: What did you test on?
+      multiple: true
+      options:
+        - Desktop or laptop
+        - Tablet
+        - Phone
+  - type: dropdown
+    id: orientation
+    attributes:
+      label: Phone or tablet orientation
+      multiple: true
+      options:
+        - Upright (portrait)
+        - Sideways (landscape)
+        - Didn't use a phone or tablet
+  - type: input
+    id: browser
+    attributes:
+      label: Device and browser
+      placeholder: "e.g. iPhone 15, Safari; Windows laptop, Chrome"
+  - type: checkboxes
+    id: extras
+    attributes:
+      label: Did you also try
+      options:
+        - label: Keyboard only
+        - label: A screen reader (VoiceOver, NVDA, TalkBack)
+        - label: A right-to-left language such as Arabic
