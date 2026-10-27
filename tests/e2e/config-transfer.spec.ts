@@ -171,6 +171,35 @@ test( 'a canceled reload leaves a safe recovery link instead of resuming stale a
 	expect( staleSaves ).toEqual( [] );
 } );
 
+test( 'a lost reply after a committed import keeps editing locked until reload', async ( { page } ) => {
+	await openSettings( page );
+	await page.locator( '.maestro-transfer-file' ).setInputFiles( { name: 'menu.json', mimeType: 'application/json', buffer: Buffer.from( file() ) } );
+	await page.getByRole( 'button', { name: 'Review file', exact: true } ).click();
+	await expect( page.getByRole( 'button', { name: 'Import configuration', exact: true } ) ).toBeVisible();
+	// The server commits the import, then the reply never reaches the browser.
+	await page.route( '**/maestro/v1/config/import', async route => {
+		if ( route.request().postDataJSON()?.mode !== 'apply' ) { return route.continue(); }
+		await route.fetch();
+		await route.abort( 'connectionreset' );
+	} );
+	const staleSaves: string[] = [];
+	page.on( 'request', request => {
+		if ( request.method() === 'POST' && new URL( request.url() ).pathname.endsWith( '/maestro/v1/config' ) ) { staleSaves.push( request.url() ); }
+	} );
+	await page.getByRole( 'button', { name: 'Import configuration', exact: true } ).click();
+	await expect( page.locator( '.maestro-transfer-result' ) ).toContainText( 'may or may not have been saved' );
+	const reload = page.getByRole( 'link', { name: 'Reload editor', exact: true } );
+	await expect( reload ).toBeFocused();
+	expect( await page.locator( '#adminmenu' ).evaluate( node => ( node as HTMLElement ).inert ) ).toBe( true );
+	await expect( page.getByRole( 'button', { name: 'Import configuration', exact: true } ) ).toBeDisabled();
+	await page.keyboard.press( 'Escape' );
+	await expect( reload ).toBeVisible();
+	await page.unroute( '**/maestro/v1/config/import' );
+	await reload.click();
+	await expect( page.locator( '#menu-posts .wp-menu-name' ) ).toContainText( 'Imported articles' );
+	expect( staleSaves ).toEqual( [] );
+} );
+
 test( 'large drop reports can be downloaded in full', async ( { page } ) => {
 	await openSettings( page );
 	const missing = Object.fromEntries( Array.from( { length: 60 }, ( _, n ) => [ `source-only-${ n }`, { title: 'Missing' } ] ) );

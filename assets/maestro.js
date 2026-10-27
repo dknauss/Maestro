@@ -1695,7 +1695,13 @@
 				body: payload ? JSON.stringify( payload ) : undefined
 			} );
 			var data = await r.json();
-			if ( ! r.ok ) { throw new Error( data.message || I.transferFailure ); }
+			if ( ! r.ok ) {
+				var err = new Error( data.message || I.transferFailure );
+				// A JSON 4xx is the server refusing before it writes. Anything
+				// else (no reply, unreadable reply, 5xx) leaves the outcome unknown.
+				err.maestroRefused = r.status < 500;
+				throw err;
+			}
 			return data;
 		}
 		async function saved() {
@@ -1770,24 +1776,37 @@
 				if ( transferEditVersion !== reviewedVersion || saveTimer || saveInFlight || savePending || ! lastSaveOk ) {
 					throw new Error( I.transferChanged );
 				}
-				var data = await request( D.restUrl + '/import', { file: source, context: context, mode: 'apply', analysis: analysis, confirm_empty: confirm.checked } );
+				var data;
+				try {
+					data = await request( D.restUrl + '/import', { file: source, context: context, mode: 'apply', analysis: analysis, confirm_empty: confirm.checked } );
+				} catch ( e ) {
+					if ( e.maestroRefused ) { throw e; }
+					// The server may have committed the import before the reply was
+					// lost. Resuming would autosave the old model over it.
+					requireReload( I.transferUncertain );
+					return;
+				}
 				try { sessionStorage.setItem( storageKey, I.transferSuccess ); } catch ( e ) { /* Optional reload feedback. */ }
-				// Never resume editing the old full-replace model, even when the
-				// browser cancels navigation. Only recovery/report controls stay live.
-				transferReloadRequired = true;
-				show( I.transferSuccess, data.report );
-				pop.querySelectorAll( 'input, button' ).forEach( function ( control ) {
-					control.disabled = ! result.contains( control );
-				} );
-				var reload = el( 'a', 'button button-primary', I.transferReload );
-				reload.href = window.location.href;
-				result.appendChild( reload );
-				pop.inert = false;
-				pop.setAttribute( 'aria-busy', 'false' );
-				reload.focus();
+				requireReload( I.transferSuccess, data.report );
 				window.location.reload();
 			} );
 		} );
+
+		// Never resume editing the old full-replace model, even when the browser
+		// cancels navigation. Only recovery/report controls stay live.
+		function requireReload( message, report ) {
+			transferReloadRequired = true;
+			show( message, report );
+			pop.querySelectorAll( 'input, button' ).forEach( function ( control ) {
+				control.disabled = ! result.contains( control );
+			} );
+			var reload = el( 'a', 'button button-primary', I.transferReload );
+			reload.href = window.location.href;
+			result.appendChild( reload );
+			pop.inert = false;
+			pop.setAttribute( 'aria-busy', 'false' );
+			reload.focus();
+		}
 	}
 
 	(function transferNotice() {

@@ -236,6 +236,39 @@ class Transfer {
 
 
 	/**
+	 * Strings and structural punctuation of valid JSON, in order. A linear scan
+	 * rather than a regex: a long string value (an inline SVG icon) can exhaust
+	 * PCRE's backtracking or JIT stack, and a silently failed match would let
+	 * duplicate members through.
+	 *
+	 * @param string $json Valid JSON text.
+	 * @return string[]
+	 */
+	private static function json_tokens( $json ) {
+		$tokens = array();
+		$len    = strlen( $json );
+		$i      = strcspn( $json, '"{}[],:' );
+		while ( $i < $len ) {
+			if ( '"' !== $json[ $i ] ) {
+				$tokens[] = $json[ $i ];
+				$i       += 1 + strcspn( $json, '"{}[],:', $i + 1 );
+				continue;
+			}
+			$j = $i + 1;
+			while ( $j < $len ) {
+				$j += strcspn( $json, '"\\', $j );
+				if ( $j >= $len || '"' === $json[ $j ] ) {
+					break;
+				}
+				$j += 2; // Skip the escaped character.
+			}
+			$tokens[] = substr( $json, $i, $j - $i + 1 );
+			$i        = $j + 1 + strcspn( $json, '"{}[],:', $j + 1 );
+		}
+		return $tokens;
+	}
+
+	/**
 	 * Reject duplicate decoded object members; json_decode otherwise overwrites.
 	 * Input is already valid, depth-bounded JSON. String tokens include escapes,
 	 * so punctuation inside values cannot affect the container stack.
@@ -244,9 +277,8 @@ class Transfer {
 	 * @throws \InvalidArgumentException Duplicate object member.
 	 */
 	private static function unique_members( $json ) {
-		preg_match_all( '/"(?:[^"\\\\]|\\\\.)*"|[{}\[\],:]/s', $json, $matches );
 		$stack = array();
-		foreach ( $matches[0] as $token ) {
+		foreach ( self::json_tokens( $json ) as $token ) {
 			if ( '{' === $token || '[' === $token ) {
 				$stack[] = array(
 					'object' => '{' === $token,

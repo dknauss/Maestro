@@ -90,6 +90,24 @@ class TransferTest extends TestCase {
 			}
 		}
 	}
+	public function test_duplicate_members_after_a_long_string_are_refused() {
+		// An allowed-size inline SVG once exhausted the tokenizer regex's stack,
+		// and the failed match let the duplicate through.
+		$c = $this->config();
+		$c['items'] = array( 'edit.php' => array( 'icon' => 'data:image/svg+xml;base64,' . str_repeat( 'QUJD', 32000 ) ) );
+		$file      = $this->file( $c );
+		$this->assertArrayHasKey( 'edit.php', Transfer::parse( $file )['items'] );
+		$duplicate = str_replace( '"top_order":[]', '"top_order":[],"top_order":["edit.php"]', $file );
+		$this->assertLessThan( 2 * 1024 * 1024, strlen( $duplicate ) );
+		$this->expectException( \InvalidArgumentException::class );
+		$this->expectExceptionMessage( 'duplicate JSON fields' );
+		Transfer::parse( $duplicate );
+	}
+	public function test_escaped_quotes_and_punctuation_in_values_do_not_split_tokens() {
+		$c = $this->config();
+		$c['items'] = array( 'edit.php' => array( 'title' => 'A "quoted", {braced} [x]: \\ title' ) );
+		$this->assertSame( 'A "quoted", {braced} [x]: \\ title', Transfer::parse( $this->file( $c ) )['items']['edit.php']['title'] );
+	}
 	public function test_normalized_submenu_order_parent_aliases_are_refused() {
 		$i = Transfer::inventory( array( array( '', '', 'tools.php' ) ), array( 'tools.php' => array( array( '', '', 'a' ), array( '', '', 'b' ) ) ) );
 		$c = $this->config();

@@ -440,6 +440,7 @@ class Assets {
 					'transferWaiting'      => __( 'Working…', 'maestro-menu-editor' ),
 					'transferFailure'      => __( 'Transfer failed. Please try again.', 'maestro-menu-editor' ),
 					'transferReload'       => __( 'Reload editor', 'maestro-menu-editor' ),
+					'transferUncertain'    => __( 'No reply arrived, so the import may or may not have been saved. Reload the editor before making more changes.', 'maestro-menu-editor' ),
 					'transferReport'       => __( 'Download full report', 'maestro-menu-editor' ),
 					'transferDrops'        => __( 'Not applied:', 'maestro-menu-editor' ),
 					'transferFileRequired' => __( 'Choose a configuration file first.', 'maestro-menu-editor' ),
