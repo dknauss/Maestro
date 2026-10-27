@@ -387,6 +387,8 @@ class Assets {
 					'moveDown'             => __( 'Move down', 'maestro-menu-editor' ),
 					/* translators: Accessible label for the pencil button on the selected menu row. %s: the item's name. */
 					'renameItem'           => esc_html__( 'Rename %s', 'maestro-menu-editor' ),
+					/* translators: Accessible label for the selected menu row's overflow button. %s: the item's name. */
+					'moreActionsFor'       => esc_html__( 'More actions for %s', 'maestro-menu-editor' ),
 					/* translators: Accessible label for the selected menu row's icon, which opens the icon picker. %s: the item's name. */
 					'changeIconOf'         => esc_html__( 'Change icon of %s', 'maestro-menu-editor' ),
 					/* translators: Announced when a menu row is selected. %s: the item's name. */
@@ -417,6 +419,7 @@ class Assets {
 					'tourRowRename'        => __( 'Rename the selected item in place: use the pencil, press Enter on the selected row, or press F2.', 'maestro-menu-editor' ),
 					'tourRowMove'          => __( 'Reorder items by dragging, or move the selected item with these arrows.', 'maestro-menu-editor' ),
 					'tourRowIcon'          => __( 'Click the selected item\'s icon to change it. Pick one from Dashicons or Bootstrap, or choose no icon.', 'maestro-menu-editor' ),
+					'tourRowMore'          => __( 'More holds Visibility, Reset item and Add separator below for the selected item.', 'maestro-menu-editor' ),
 					'tourStepVisibility'   => __( 'Hide the item from chosen roles or people. Everyone else still sees it.', 'maestro-menu-editor' ),
 					'tourStepResetItem'    => __( 'Undo every change to just this item.', 'maestro-menu-editor' ),
 					'tourStepSeparator'    => __( 'Add a separator line below this item. To remove one, select the separator and use the trash button.', 'maestro-menu-editor' ),

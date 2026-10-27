@@ -6,8 +6,9 @@ import { execFileSync } from 'child_process';
  * Selected-row controls prototype (.planning/DESKTOP-UX-NEXT-PASS.md).
  *
  * Opt-in with ?maestro_rows=1 while it is a prototype: rename, move and icon
- * controls sit on the selected menu row, and the toolbar keeps Visibility,
- * Reset item, the separator actions and the global controls.
+ * controls sit on the selected menu row. With a fine pointer a More (⋯)
+ * menu on the row holds Visibility, Reset item and Add separator; on touch
+ * screens those stay in the toolbar. Separators get Up, Down and Remove.
  */
 
 const POST_SAVE = ( url: string ) => url.includes( '/maestro/v1/config' );
@@ -93,15 +94,15 @@ test.describe( 'selected-row controls, desktop', () => {
 		await expect( posts( page ).locator( '> .maestro-row-icon' ) ).toBeVisible();
 		await expect( page.locator( '.maestro-toolbar .maestro-rename-input' ) ).toBeHidden();
 		await expect( page.locator( '.maestro-toolbar .maestro-move-up' ) ).toBeHidden();
-		// What stays in the toolbar for now.
-		await expect( page.locator( '.maestro-toolbar .maestro-vis-btn' ) ).toBeVisible();
-		await expect( page.locator( '.maestro-vis-btn .dashicons-visibility' ) ).toBeVisible();
+		// Visibility, Reset item and Add separator moved into More on the row.
+		await expect( page.locator( '.maestro-toolbar .maestro-vis-btn' ) ).toBeHidden();
+		await expect( page.locator( '.maestro-toolbar .maestro-reset-item' ) ).toBeHidden();
+		await expect( page.locator( '.maestro-toolbar .maestro-add-separator' ) ).toBeHidden();
 		await expect( page.locator( '.maestro-preview-toggle .dashicons-welcome-view-site' ) ).toBeVisible();
-		await expect( page.locator( '.maestro-toolbar .maestro-reset-item' ) ).toBeVisible();
 
-		// Row, then Change icon, Rename, Move up, Move down.
+		// Row, then Change icon, Rename, Move up, Move down, More.
 		await expect( posts( page ).locator( '> a' ) ).toBeFocused();
-		for ( const name of [ /Change icon of Posts/, /Rename Posts/, 'Move up', 'Move down' ] ) {
+		for ( const name of [ /Change icon of Posts/, /Rename Posts/, 'Move up', 'Move down', /More actions for Posts/ ] ) {
 			await page.keyboard.press( 'Tab' );
 			await expect( page.locator( ':focus' ) ).toHaveAccessibleName( name );
 		}
@@ -234,11 +235,72 @@ test.describe( 'selected-row controls, desktop', () => {
 		await expect( posts( page ).locator( '> .maestro-row-icon' ) ).toBeFocused();
 	} );
 
+	test( 'More opens a menu of the item actions, by mouse and keyboard', async ( { page } ) => {
+		await openEditor( page );
+		await posts( page ).locator( '> a' ).click();
+		const more = strip( page ).getByRole( 'button', { name: /More actions for Posts/ } );
+		const menu = strip( page ).getByRole( 'menu' );
+		await expect( more ).toHaveAttribute( 'aria-expanded', 'false' );
+
+		await more.click();
+		await expect( menu ).toBeVisible();
+		await expect( more ).toHaveAttribute( 'aria-expanded', 'true' );
+		const items = menu.getByRole( 'menuitem' );
+		await expect( items ).toHaveText( [ 'Visibility', 'Reset item', 'Add separator below' ] );
+		// Nothing changed yet, so Reset item is unavailable and focus skips it.
+		await expect( menu.getByRole( 'menuitem', { name: 'Reset item' } ) ).toBeDisabled();
+		await expect( menu.getByRole( 'menuitem', { name: 'Visibility' } ) ).toBeFocused();
+		await page.keyboard.press( 'ArrowDown' );
+		await expect( menu.getByRole( 'menuitem', { name: 'Add separator below' } ) ).toBeFocused();
+		await page.keyboard.press( 'Escape' );
+		await expect( menu ).toBeHidden();
+		await expect( more ).toBeFocused();
+
+		// Keyboard: ArrowDown on More opens it; Visibility opens its dialog
+		// and closing that returns to More.
+		await page.keyboard.press( 'ArrowDown' );
+		await expect( menu.getByRole( 'menuitem', { name: 'Visibility' } ) ).toBeFocused();
+		await page.keyboard.press( 'Enter' );
+		await expect( menu ).toBeHidden();
+		await expect( page.locator( '.maestro-vis-popover' ) ).toBeVisible();
+		await page.keyboard.press( 'Escape' );
+		await expect( more ).toBeFocused();
+
+		// A click elsewhere closes it.
+		await more.click();
+		await page.locator( '#wpbody-content' ).click( { position: { x: 400, y: 200 } } );
+		await expect( menu ).toBeHidden();
+	} );
+
+	test( 'More adds a separator, and a selected separator has Up, Down and Remove on its row', async ( { page } ) => {
+		await openEditor( page );
+		await page.locator( '#adminmenu > li#menu-media > a' ).click();
+		await strip( page ).getByRole( 'button', { name: /More actions for Media/ } ).click();
+		const save = saved( page );
+		await strip( page ).getByRole( 'menuitem', { name: 'Add separator below' } ).click();
+		await save;
+
+		const sep = page.locator( '#adminmenu > li#menu-media + li.maestro-separator' );
+		await expect( sep ).toHaveClass( /maestro-selected/ );
+		await expect( sep ).toBeFocused();
+		const sepStrip = sep.locator( '> .maestro-row-strip' );
+		await expect( sepStrip.locator( '> button:visible' ) ).toHaveCount( 3 );
+		await expect( sepStrip.getByRole( 'button', { name: 'Move up' } ) ).toBeVisible();
+		await expect( sepStrip.getByRole( 'button', { name: 'Move down' } ) ).toBeVisible();
+		await expect( page.locator( '.maestro-toolbar .maestro-remove-separator' ) ).toBeHidden();
+
+		const removed = saved( page );
+		await sepStrip.getByRole( 'button', { name: 'Remove separator' } ).click();
+		await removed;
+		await expect( page.locator( '#adminmenu > li#menu-media + li.maestro-separator' ) ).toHaveCount( 0 );
+		await expect( page.locator( '#menu-media' ) ).toHaveClass( /maestro-selected/ );
+	} );
+
 	test( 'at the 160px default every control fits inside the menu', async ( { page } ) => {
 		await openEditor( page );
 		await posts( page ).locator( '> a' ).click();
 		const menu = ( await page.locator( '#adminmenu' ).boundingBox() )!;
-		for ( const b of await strip( page ).locator( 'button' ).all() ) {
+		for ( const b of await strip( page ).locator( '> button:visible' ).all() ) {
 			const box = ( await b.boundingBox() )!;
 			expect( box.x ).toBeGreaterThanOrEqual( menu.x );
 			expect( box.x + box.width ).toBeLessThanOrEqual( menu.x + menu.width );
@@ -349,10 +411,13 @@ test.describe( 'selected-row controls, phone', () => {
 		await expect( strip( page ) ).toBeVisible();
 		expect( await strip( page ).evaluate( n => !! n.closest( '#adminmenuwrap' ) ) ).toBe( true );
 		await expect( page.locator( '.maestro-toolbar .maestro-rename-input' ) ).toBeHidden();
+		// Four 44px buttons do not fit, so More stays in the phone toolbar.
+		await expect( strip( page ).locator( '.maestro-row-more' ) ).toBeHidden();
+		await expect( page.locator( '.maestro-toolbar .maestro-vis-btn' ) ).toBeVisible();
 		// Selecting does not raise the on-screen keyboard.
 		expect( await page.evaluate( () => document.activeElement?.tagName ) ).not.toBe( 'INPUT' );
 
-		for ( const b of await strip( page ).locator( 'button' ).all() ) {
+		for ( const b of await strip( page ).locator( '> button:visible' ).all() ) {
 			const box = ( await b.boundingBox() )!;
 			expect( box.width ).toBeGreaterThanOrEqual( 44 );
 			expect( box.height ).toBeGreaterThanOrEqual( 44 );

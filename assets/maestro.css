@@ -1500,7 +1500,11 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 .maestro-toolbar .maestro-panel-row-owned .maestro-rename-input,
 .maestro-toolbar .maestro-panel-row-owned .maestro-move-up,
 .maestro-toolbar .maestro-panel-row-owned .maestro-move-down,
-.maestro-toolbar .maestro-panel-row-owned .maestro-icon-btn {
+.maestro-toolbar .maestro-panel-row-owned .maestro-icon-btn,
+.maestro-toolbar .maestro-panel-row-owned .maestro-remove-separator,
+.maestro-toolbar .maestro-panel-row-more .maestro-vis-btn,
+.maestro-toolbar .maestro-panel-row-more .maestro-reset-item,
+.maestro-toolbar .maestro-panel-row-more .maestro-add-separator {
 	display: none !important;
 }
 .maestro-editing #adminmenu li.maestro-selected {
@@ -1511,12 +1515,73 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 	flex-wrap: wrap;
 	gap: 4px;
 	margin: 0;
-	padding: 2px 8px 6px;
-	padding-inline-start: 36px; /* under the label, past the icon column */
+	position: relative;
+	padding: 2px 8px 6px; /* four 32px buttons need all but 16px of 160px */
 	color: var( --maestro-row-fg, #f0f0f1 );
+}
+.maestro-editing #adminmenu .maestro-row-btn[hidden],
+.maestro-editing #adminmenu .maestro-row-menuitem[hidden] {
+	display: none;
+}
+/* A selected separator grows to hold its strip; its dashed rule stays where
+ * the slim row drew it. */
+.maestro-editing #adminmenu li.maestro-separator.maestro-selected {
+	height: auto !important;
+	padding-top: 14px !important;
+}
+.maestro-editing #adminmenu li.maestro-separator.maestro-selected .separator {
+	top: 7px;
+}
+/* The More menu opens over the page beside the menu (openRowMenu() picks the
+ * side), so it never needs the menu to be wider. */
+.maestro-editing #adminmenu .maestro-row-menu {
+	position: absolute;
+	z-index: 10003;
+	min-width: 200px;
+	margin: 0;
+	padding: 4px 0;
+	border: 1px solid #c3c4c7;
+	border-radius: 2px;
+	background: #fff;
+	box-shadow: 0 2px 6px rgba( 0, 0, 0, 0.2 );
+}
+.maestro-editing #adminmenu .maestro-row-menu[hidden] {
+	display: none;
+}
+.maestro-editing #adminmenu .maestro-row-menuitem {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	box-sizing: border-box;
+	width: 100%;
+	min-height: 32px;
+	margin: 0;
+	padding: 4px 12px;
+	border: 0;
+	background: transparent;
+	color: #1d2327;
+	font: inherit;
+	font-size: 13px;
+	text-align: start;
+	cursor: pointer;
+}
+.maestro-editing #adminmenu .maestro-row-menuitem:hover,
+.maestro-editing #adminmenu .maestro-row-menuitem:focus {
+	background: #f0f0f1;
+	color: #2271b1;
+}
+.maestro-editing #adminmenu .maestro-row-menuitem:focus-visible {
+	outline: 2px solid #2271b1;
+	outline-offset: -2px;
+}
+.maestro-editing #adminmenu .maestro-row-menuitem:disabled {
+	color: #a7aaad;
+	background: transparent;
+	cursor: default;
 }
 .maestro-editing #adminmenu li.maestro-subitem .maestro-row-strip {
 	padding-inline-start: 12px; /* the open submenu's link inset */
+	padding-inline-end: 8px;
 }
 .maestro-editing #adminmenu .maestro-row-btn {
 	display: inline-flex;
@@ -1601,6 +1666,7 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 @media ( pointer: coarse ) {
 	.maestro-editing #adminmenu .maestro-row-strip {
 		padding-inline-start: 8px; /* three 44px targets need the full 160px */
+		padding-inline-end: 8px;
 	}
 	.maestro-editing #adminmenu .maestro-row-btn {
 		width: 44px;

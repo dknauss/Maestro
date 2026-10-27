@@ -25,11 +25,15 @@ checklist; automated viewport tests do not close touch acceptance.
 
 ## Prototype (draft, opt-in)
 
-A first working prototype covers rename, move and icon only. Turn it on with
-`?maestro_rows=1` on any edit-mode URL (remembered in that browser) and off
-again with `?maestro_rows=0`. Without the flag the shipped toolbar flow is
-unchanged. Visibility, Reset item and the separator actions stay in the
-toolbar; separators keep all their toolbar controls.
+The working prototype puts every per-item control on the selected row. Turn
+it on with `?maestro_rows=1` on any edit-mode URL (remembered in that browser)
+and off again with `?maestro_rows=0`. Without the flag the shipped toolbar
+flow is unchanged. Global controls stay in the toolbar.
+
+Decision (Dan, 2026-10-26): Visibility, Reset item and Add separator go into
+an overflow menu on the row, not beside the arrows. Six buttons cannot share
+one row at 160px; they would wrap to two rows and make the menu jump by about
+36px (desktop) or 60px (phones) on every selection.
 
 - **Rename** uses a pencil in a strip under the selected row, Enter on the
   already-selected row, or F2. A field covers the label in place; Enter and
@@ -52,10 +56,23 @@ toolbar; separators keep all their toolbar controls.
   (`forceUnfold()`), so there is no folded state to design for while editing.
 - **Phones**: the controls live inside `#adminmenu`, hence inside
   `#adminmenuwrap`, so core never treats a tap on them as an outside click.
+- **More (⋯)** is the fourth strip button with a fine pointer: Rename, Up,
+  Down, More fit in 160px once the strip starts at the menu edge. It is a menu
+  button (`aria-haspopup="menu"`, `aria-expanded`); ArrowDown or Enter opens
+  it, arrows, Home and End move between items, Escape returns to More, Tab
+  and outside clicks close it. Items run the same functions as their toolbar
+  twins, so Reset item is disabled when there is nothing to reset and Add
+  separator follows the same rules. Visibility opens its dialog from More and
+  returns focus there. The menu opens over the page on the side away from the
+  menu (left in RTL), and above the button when the bottom toolbar is in the
+  way.
+- **Touch screens and phones** keep Visibility, Reset item and Add separator
+  in the toolbar, because four 44px buttons do not fit in 160px.
+- **Separators** get Up, Down and Remove on their own row, at every size; the
+  selected separator grows to hold the strip and focus stays on it.
 - **Tour**: with the flag on, the rename, move and icon tips point at the row
-  controls instead of the toolbar, without changing the step count.
+  controls, and one More tip replaces the three toolbar tips it covers.
 
-Still open: whether Visibility, Reset item and separator actions follow onto
-the row or into an overflow; real screen-reader passes (VoiceOver, NVDA); a
+Still open: real screen-reader passes (VoiceOver, NVDA); a
 real touch-device pass; and whether the toolbar should keep a fallback rename
 field for very long labels.

@@ -104,6 +104,7 @@
 	}
 	function closePopovers() {
 		document.querySelectorAll( '.maestro-popover' ).forEach( removePopover );
+		closeRowMenu( false );
 	}
 	// The row marker means "this row has a hide rule of its own", on any axis.
 	function refreshHiddenMarker( key ) {
@@ -801,7 +802,7 @@
 		// With row controls on, any other row carries its own controls, so
 		// focus stays on the row and Tab reaches them next: nothing jumps to
 		// the toolbar, and a tap on a phone does not raise the keyboard.
-		var focusTarget = model[ key ].isSeparator ? panel.removeSepBtn : ( rowCtl ? ( li.querySelector( 'a' ) || li ) : panel.rename );
+		var focusTarget = rowCtl ? ( li.querySelector( 'a' ) || li ) : ( model[ key ].isSeparator ? panel.removeSepBtn : panel.rename );
 		if ( opts.focusPanel && rowCtl && ! model[ key ].isSeparator ) {
 			speak( I.rowSelected.replace( '%s', function () { return model[ key ].title; } ) );
 		}
@@ -837,8 +838,9 @@
 	 * are also inside #adminmenuwrap, so on phones core never counts a tap on
 	 * them as a click outside the open menu.
 	 *
-	 * Separators keep their toolbar controls for now, as do Visibility, Reset
-	 * item and Add separator for every row.
+	 * Visibility, Reset item and Add separator sit in a More (⋯) menu on the
+	 * row where four buttons fit (rowHasMore()); on touch screens they stay in
+	 * the toolbar. A selected separator gets Up, Down and Remove.
 	 */
 	// Opt-in while it is a prototype, so the shipped toolbar flow (and every
 	// spec written against it) is unchanged: ?maestro_rows=1 turns it on and
@@ -894,6 +896,69 @@
 		var renameBtn = stripButton( 'maestro-row-rename', 'dashicons-edit', I.renamePlaceholder, startInlineRename );
 		var moveUp    = stripButton( 'maestro-row-up', 'dashicons-arrow-up-alt2', I.moveUp, moveAndKeepFocus( 'up' ) );
 		var moveDown  = stripButton( 'maestro-row-down', 'dashicons-arrow-down-alt2', I.moveDown, moveAndKeepFocus( 'down' ) );
+		var removeSep = stripButton( 'maestro-row-remove-sep', 'dashicons-trash', I.removeSeparator, removeSelectedSeparator );
+		var moreBtn   = stripButton( 'maestro-row-more', 'dashicons-ellipsis', I.visibility, function () { toggleRowMenu(); } );
+		moreBtn.setAttribute( 'aria-haspopup', 'menu' );
+		moreBtn.setAttribute( 'aria-expanded', 'false' );
+
+		// The overflow menu: per-item actions that do not fit beside the arrows
+		// at 160px. Each item runs the same function as its toolbar twin, so
+		// disabled states and saves cannot drift apart.
+		var menuEl = el( 'div', 'maestro-row-menu maestro-row-ctl' );
+		menuEl.setAttribute( 'role', 'menu' );
+		menuEl.hidden = true;
+		function menuItem( cls, glyph, label, run ) {
+			var b = el( 'button', 'maestro-row-menuitem ' + cls );
+			b.type = 'button';
+			b.setAttribute( 'role', 'menuitem' );
+			var g = el( 'span', 'dashicons ' + glyph );
+			g.setAttribute( 'aria-hidden', 'true' );
+			b.appendChild( g );
+			b.appendChild( el( 'span', '', label ) );
+			b.addEventListener( 'click', function ( e ) {
+				e.preventDefault();
+				if ( b.disabled ) { return; }
+				closeRowMenu( false );
+				run();
+			} );
+			menuEl.appendChild( b );
+			return b;
+		}
+		var menuVis   = menuItem( 'maestro-row-menu-vis', 'dashicons-visibility', I.visibility, function () { openVisibilityPicker( moreBtn ); } );
+		var menuReset = menuItem( 'maestro-row-menu-reset', 'dashicons-undo', I.resetItem, function () {
+			resetSelected();
+			if ( moreBtn.parentNode ) { moreBtn.focus( { preventScroll: true } ); }
+		} );
+		var menuSep   = menuItem( 'maestro-row-menu-sep', 'dashicons-minus', I.addSeparator, addSeparatorBelow );
+		strip.appendChild( menuEl );
+
+		menuEl.addEventListener( 'keydown', function ( e ) {
+			var items = Array.prototype.filter.call( menuEl.children, function ( n ) { return ! n.hidden && ! n.disabled; } );
+			var idx = items.indexOf( document.activeElement );
+			if ( e.key === 'ArrowDown' || e.key === 'ArrowUp' ) {
+				e.preventDefault();
+				var step = e.key === 'ArrowDown' ? 1 : -1;
+				if ( items.length ) { items[ ( idx + step + items.length ) % items.length ].focus(); }
+			} else if ( e.key === 'Home' || e.key === 'End' ) {
+				e.preventDefault();
+				if ( items.length ) { items[ e.key === 'Home' ? 0 : items.length - 1 ].focus(); }
+			} else if ( e.key === 'Escape' ) {
+				e.preventDefault();
+				e.stopPropagation();
+				closeRowMenu( true );
+			} else if ( e.key === 'Tab' ) {
+				closeRowMenu( false );
+			}
+		} );
+		moreBtn.addEventListener( 'keydown', function ( e ) {
+			if ( e.key === 'ArrowDown' || e.key === 'ArrowUp' ) {
+				e.preventDefault();
+				openRowMenu( e.key === 'ArrowUp' ? 'last' : 'first' );
+			}
+		} );
+		document.addEventListener( 'click', function ( e ) {
+			if ( ! menuEl.hidden && ! menuEl.contains( e.target ) && ! moreBtn.contains( e.target ) ) { closeRowMenu( false ); }
+		}, true );
 
 		// The icon button draws nothing of its own: the row's real icon shows
 		// through it, framed while the row is selected (maestro.css).
@@ -921,7 +986,11 @@
 		if ( plain ) { menu.style.setProperty( '--maestro-row-fg', window.getComputedStyle( plain ).color ); }
 		window.addEventListener( 'resize', function () { placeRowControls( selectedKey ); } );
 
-		rowCtl = { strip: strip, renameBtn: renameBtn, moveUp: moveUp, moveDown: moveDown, iconBtn: iconBtn, input: input, editing: null, composing: false };
+		rowCtl = {
+			strip: strip, renameBtn: renameBtn, moveUp: moveUp, moveDown: moveDown, iconBtn: iconBtn,
+			removeSep: removeSep, moreBtn: moreBtn, menu: menuEl, menuVis: menuVis, menuReset: menuReset, menuSep: menuSep,
+			input: input, editing: null, composing: false
+		};
 
 		input.addEventListener( 'compositionstart', function () { rowCtl.composing = true; } );
 		input.addEventListener( 'compositionend', function () { rowCtl.composing = false; } );
@@ -941,18 +1010,83 @@
 		input.addEventListener( 'blur', function () { finishInlineRename( true, false ); } );
 	}
 
-	// Put the row controls into the selected row, or take them out (key null,
-	// or a separator). Called from populatePanel(), so it also follows a move
-	// or a drag.
+	// More (⋯) only where four buttons fit in the 160px menu: 32px targets
+	// with a fine pointer. Touch screens and phones need 44px targets, so
+	// there Visibility, Reset item and Add separator stay in the toolbar.
+	function rowHasMore() {
+		return ! isPhoneViewport() && ! window.matchMedia( '(pointer: coarse)' ).matches;
+	}
+
+	function openRowMenu( focusWhich ) {
+		if ( ! rowCtl || ! selectedKey ) { return; }
+		closePopovers();
+		var m = model[ selectedKey ];
+		// Mirror the toolbar twins, which populatePanel() keeps current.
+		rowCtl.menuReset.disabled = panel.resetBtn.disabled;
+		rowCtl.menuSep.hidden     = m.isSub;
+		rowCtl.menuSep.disabled   = panel.addSepBtn.disabled;
+		rowCtl.menu.hidden = false;
+		rowCtl.moreBtn.setAttribute( 'aria-expanded', 'true' );
+		// Open from the More button toward the page, whichever side that is.
+		var b = rowCtl.moreBtn;
+		var rtl = window.getComputedStyle( rowCtl.strip ).direction === 'rtl';
+		rowCtl.menu.style.top = ( b.offsetTop + b.offsetHeight + 4 ) + 'px';
+		rowCtl.menu.style.left  = rtl ? '' : b.offsetLeft + 'px';
+		rowCtl.menu.style.right = rtl ? ( rowCtl.strip.clientWidth - b.offsetLeft - b.offsetWidth ) + 'px' : '';
+		// Below the button unless that runs under the fixed bottom toolbar or
+		// off the screen; then above it.
+		var bar = document.querySelector( '.maestro-toolbar' );
+		var floor = bar && bar.getClientRects().length ? bar.getBoundingClientRect().top : window.innerHeight;
+		if ( rowCtl.menu.getBoundingClientRect().bottom > Math.min( floor, window.innerHeight ) - 4 ) {
+			rowCtl.menu.style.top = ( b.offsetTop - rowCtl.menu.offsetHeight - 4 ) + 'px';
+			// The toolbar starts at the menu's edge, so a row just above it can
+			// still put the menu's outer half under it: lift it clear.
+			var over = rowCtl.menu.getBoundingClientRect().bottom - ( Math.min( floor, window.innerHeight ) - 4 );
+			if ( over > 0 ) { rowCtl.menu.style.top = ( parseFloat( rowCtl.menu.style.top ) - over ) + 'px'; }
+		}
+		var items = Array.prototype.filter.call( rowCtl.menu.children, function ( n ) { return ! n.hidden && ! n.disabled; } );
+		if ( items.length ) { items[ focusWhich === 'last' ? items.length - 1 : 0 ].focus( { preventScroll: true } ); }
+	}
+
+	function closeRowMenu( refocus ) {
+		if ( ! rowCtl || rowCtl.menu.hidden ) { return; }
+		rowCtl.menu.hidden = true;
+		rowCtl.moreBtn.setAttribute( 'aria-expanded', 'false' );
+		if ( refocus && rowCtl.moreBtn.parentNode ) { rowCtl.moreBtn.focus( { preventScroll: true } ); }
+	}
+
+	function toggleRowMenu() {
+		if ( rowCtl.menu.hidden ) { openRowMenu( 'first' ); } else { closeRowMenu( true ); }
+	}
+
+	// Put the row controls into the selected row, or take them out (key null).
+	// Called from populatePanel(), so it also follows a move or a drag.
 	function placeRowControls( key ) {
 		if ( ! rowCtl ) { return; }
+		closeRowMenu( false );
 		var m  = key ? model[ key ] : null;
-		var li = m && ! m.isSeparator ? liForKey( key ) : null;
+		var li = m ? liForKey( key ) : null;
 		var a  = li ? li.querySelector( 'a' ) : null;
+		if ( li && m.isSeparator ) {
+			// A separator has nothing to rename and no icon: Up, Down, Remove.
+			if ( rowCtl.iconBtn.parentNode ) { rowCtl.iconBtn.parentNode.removeChild( rowCtl.iconBtn ); }
+			if ( rowCtl.strip.parentNode !== li ) { li.appendChild( rowCtl.strip ); }
+			rowCtl.renameBtn.hidden = true;
+			rowCtl.moreBtn.hidden   = true;
+			rowCtl.removeSep.hidden = false;
+			rowCtl.strip.setAttribute( 'aria-label', I.removeSeparator );
+			return;
+		}
 		if ( ! a ) {
 			[ rowCtl.iconBtn, rowCtl.strip ].forEach( function ( n ) { if ( n.parentNode ) { n.parentNode.removeChild( n ); } } );
 			return;
 		}
+		rowCtl.renameBtn.hidden = false;
+		rowCtl.removeSep.hidden = true;
+		rowCtl.moreBtn.hidden   = ! rowHasMore();
+		var moreLabel = I.moreActionsFor.replace( '%s', function () { return m.title; } );
+		rowCtl.moreBtn.setAttribute( 'aria-label', moreLabel );
+		rowCtl.moreBtn.title = moreLabel;
 		// Row first, then Change icon, then the strip: the Tab order follows the
 		// row's reading order, and the submenu (if any) comes after them all.
 		// Keep the focused editor directly after the link while repositioning.
@@ -1385,7 +1519,8 @@
 		// it (top level only, and not where core would drop it as a duplicate).
 		var isSep = !! m.isSeparator;
 		placeRowControls( key );
-		panel.root.classList.toggle( 'maestro-panel-row-owned', !! rowCtl && ! isSep );
+		panel.root.classList.toggle( 'maestro-panel-row-owned', !! rowCtl );
+		panel.root.classList.toggle( 'maestro-panel-row-more', !! rowCtl && ! isSep && rowHasMore() );
 		panel.rename.style.display       = isSep ? 'none' : '';
 		panel.visBtn.style.display       = isSep ? 'none' : '';
 		panel.resetBtn.style.display     = isSep ? 'none' : '';
@@ -3814,10 +3949,13 @@
 			{ text: I.tourStep2, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.rename ); } },
 			{ text: I.tourStep3, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.moveUp ); } },
 			{ text: I.tourStepIcon, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.iconBtn ); } },
-		] ).concat( [
+		] ).concat( rowCtl && rowHasMore() ? [
+			{ text: I.tourRowMore, placement: 'right', before: tourSelectFirst, anchor: function () { return tourShown( rowCtl.moreBtn ); } },
+		] : [
 			{ text: I.tourStepVisibility, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.visBtn ); } },
 			{ text: I.tourStepResetItem, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.resetBtn ); } },
 			{ text: I.tourStepSeparator, placement: 'top', before: tourSelectFirst, anchor: function () { return tourShown( panel.addSepBtn ); } },
+		] ).concat( [
 			// The edge handle and the Settings gear only render at 961px and
 			// wider (maestro.css): the width they set does not apply below it.
 			{ text: I.tourStepWidth, placement: 'right', byViewport: true, anchor: function () { return tourShown( widthHandle ); } },
