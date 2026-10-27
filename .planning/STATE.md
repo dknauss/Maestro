@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: Client-Site Workflow
 status: in_progress
-stopped_at: "1.9.0 released without Phase 31. Phase 31 export/import (#263) passed Codex deep review and is merged up with #266-#268 for the next release; real-device and screen-reader acceptance remain open."
-last_updated: "2026-10-26T00:00:00.000Z"
-last_activity: "2026-10-27 — #263 review fixes landed and main (#266-#268) merged in; device and screen-reader acceptance remain open."
+stopped_at: "Phase 31 export/import merged in #263 (ebd1143); 1.10.0 release prepared, awaiting Dan's tag. Real VoiceOver and iPad acceptance remain open; browser simulations passed."
+last_updated: "2026-10-27T00:00:00.000Z"
+last_activity: "2026-10-27 — #263 merged; 1.10.0 release PR carries Phase 31, the #266 icon picker and the #268 RTL fix."
 progress:
   total_phases: 3
   completed_phases: 0
@@ -15,6 +15,14 @@ progress:
 ---
 
 # Project State
+
+## Release prep — 1.10.0 (2026-10-27)
+
+Main after #263 (`ebd1143`) is being cut as **1.10.0**: Phase 31 export/import
+(#263), the unified icon picker and SVG menu-icon colouring (#266, #172) and the
+RTL dialog-close fix (#268). The POT is regenerated. Browser simulations in
+WebKit (Mac Safari, iPad landscape) and phone emulation passed after two
+screen-reader fixes in #263; a real VoiceOver and iPad pass remains Dan's.
 
 ## Phase 31 implementation — 2026-10-26
 

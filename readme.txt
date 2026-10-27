@@ -4,7 +4,7 @@ Donate link: https://github.com/sponsors/dknauss
 Tags: admin menu, menu editor, hide menu items, rename menu items, menu icons
 Requires at least: 6.4
 Tested up to: 7.1
-Stable tag: 1.9.0
+Stable tag: 1.10.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -216,8 +216,11 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 
 == Changelog ==
 
-= Unreleased =
+= 1.10.0 =
 * **New: copy a menu configuration to another site.** In Edit Menu, open **Settings** and use **Export/import**. Export downloads a JSON file of names, icons, role rules, ordering, separators and menu width. Rules for individual people and visibility groups are never exported. On the destination, **Review file** lists anything that cannot be applied before **Import configuration** changes anything; the destination's own people rules and visibility groups are kept. Long reports can be downloaded in full. Settings, and so export/import, is available on screens 961px and wider. Hiding stays cosmetic.
+* **Improved: the icon picker.** Dashicons and Bootstrap Icons now show in square cells in one colour. The Bootstrap set grows from 87 to 437 icons, grouped and searchable by admin topic, and loads the first time you open its tab. The picker opens on the tab of the item's current icon. Icons you already chose are unchanged.
+* **Fixed: SVG menu icons now follow the menu colour.** A Bootstrap or other SVG icon set from Maestro takes the menu's idle, hover and current colours in every admin colour scheme, like a Dashicon (#172).
+* **Fixed: in right-to-left languages, a dialog's close button no longer covers its title.**
 
 = 1.9.0 =
 1.8.0 was never released on its own, so this release carries its changes too.
@@ -350,6 +353,9 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 * Editor: click-to-select with a shared panel, debounced single-flight autosave, and folded-mode neutralization.
 
 == Upgrade Notice ==
+
+= 1.10.0 =
+Adds export/import, to copy a menu configuration to another site from Settings on desktop. Expands the Bootstrap icon set to 437 icons and makes SVG menu icons follow the admin colour scheme. Hiding stays cosmetic.
 
 = 1.9.0 =
 Adds preview as a role, an "All other roles" checkbox in every role list, and visibility groups for hiding items from a named group of people. Improves editing on phones and tablets. Fixes per-user hide data reaching menu editors who cannot list users. Cosmetic only: no access changed.
