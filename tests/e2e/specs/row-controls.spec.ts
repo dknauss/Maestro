@@ -454,6 +454,8 @@ test.describe( 'selected-row controls, phone', () => {
 		await expect( field ).toBeFocused();
 		await expect( field ).toHaveValue( 'Media' );
 		await expect( sheet ).toContainText( 'Media' );
+		// Touch edits the name rather than replacing it: caret at the end.
+		expect( await field.evaluate( ( i: HTMLInputElement ) => [ i.selectionStart, i.selectionEnd ] ) ).toEqual( [ 5, 5 ] );
 		const box = ( await sheet.boundingBox() )!;
 		expect( box.width ).toBeGreaterThanOrEqual( 660 );
 		expect( Math.round( box.y + box.height ) ).toBe( 300 );
@@ -473,6 +475,7 @@ test.describe( 'selected-row controls, phone', () => {
 		await strip( page ).getByRole( 'button', { name: /Rename Media/ } ).tap();
 		await expect( row.locator( '.maestro-row-rename-input' ) ).toBeFocused();
 		await expect( page.locator( '.maestro-rename-sheet' ) ).toHaveCount( 0 );
+		expect( await row.locator( '.maestro-row-rename-input' ).evaluate( ( i: HTMLInputElement ) => [ i.selectionStart, i.selectionEnd ] ) ).toEqual( [ 5, 5 ] );
 		expect( await page.evaluate( () => window.scrollY ) ).toBe( before );
 	} );
 

@@ -1143,7 +1143,15 @@
 		// Mouse and keyboard keep the menu where it is.
 		var touch = window.matchMedia( '(pointer: coarse)' ).matches;
 		input.focus( { preventScroll: ! touch || renameInSheet() } );
-		input.select();
+		// Keyboard and mouse select the whole name, as F2 does elsewhere, so
+		// typing replaces it. On touch that selection is hard to undo (a tap
+		// keeps it) and typing wipes the old name, so put the caret at the end
+		// for editing instead.
+		if ( touch ) {
+			input.setSelectionRange( input.value.length, input.value.length );
+		} else {
+			input.select();
+		}
 	}
 
 	// A phone on its side keeps about one line of page above the keyboard,
