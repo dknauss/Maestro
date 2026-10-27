@@ -25,6 +25,16 @@ defined( 'ABSPATH' ) || exit;
  * @package Maestro
  */
 class Replay {
+	/**
+	 * Typed menu identities before replay.
+	 *
+	 * @var array
+	 */
+	private $transfer_inventory = array();
+
+	/** Return the natural menu inventory for configuration transfer. */
+	public function get_transfer_inventory() {
+		return $this->transfer_inventory; }
 
 	/**
 	 * Shared config instance.
@@ -104,6 +114,7 @@ class Replay {
 
 		// Snapshot the natural state BEFORE we touch anything (edit mode only).
 		if ( is_edit_mode() ) {
+			$this->transfer_inventory = Transfer::inventory( (array) $menu, (array) $submenu );
 			$this->capture_pristine( $menu, $submenu );
 		}
 

@@ -31,6 +31,8 @@ require_once MAESTRO_DIR . 'includes/class-slug.php';
 require_once MAESTRO_DIR . 'includes/class-ordering.php';
 require_once MAESTRO_DIR . 'includes/class-title.php';
 require_once MAESTRO_DIR . 'includes/class-cascade.php';
+require_once MAESTRO_DIR . 'includes/class-transfer.php';
+require_once MAESTRO_DIR . 'includes/class-transfer-rest.php';
 require_once MAESTRO_DIR . 'includes/class-replay.php';
 require_once MAESTRO_DIR . 'includes/class-preview.php';
 require_once MAESTRO_DIR . 'includes/class-rest.php';
@@ -174,6 +176,7 @@ function boot() {
 	new Preview();
 
 	new Rest( $config );
+	new Transfer_Rest( $config, $replay );
 	new Admin_Bar();
 	new Conflict_Notice();
 	new Assets( $config, $replay );

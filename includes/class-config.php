@@ -375,6 +375,58 @@ class Config {
 		return $clean;
 	}
 
+
+	/**
+	 * Import portable settings, retaining destination people rules for every viewer.
+	 * Compare-and-swap makes stale review refusal atomic with the option write.
+	 *
+	 * @param array  $raw Portable settings.
+	 * @param string $revision Reviewed destination revision.
+	 * @return array|\WP_Error
+	 */
+	public function save_import( array $raw, $revision ) {
+		global $wpdb;
+		$this->cache = null;
+		$stored      = $this->get();
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- Internal revision.
+		if ( ! hash_equals( hash( 'sha256', serialize( $stored ) ), $revision ) ) {
+			return new \WP_Error( 'maestro_transfer_conflict', __( 'Settings changed. Review the import again.', 'maestro-menu-editor' ), array( 'status' => 409 ) );
+		}
+		$clean = $this->sanitize( $raw, true );
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- Matches actual option storage size.
+		if ( strlen( serialize( $clean ) ) > self::MAX_CONFIG_BYTES ) {
+			return new \WP_Error( 'maestro_transfer_size', __( 'The imported settings exceed the storage limit.', 'maestro-menu-editor' ), array( 'status' => 400 ) );
+		}
+		$created = false === get_option( MAESTRO_OPTION, false );
+		if ( $created ) {
+			$written = add_option( MAESTRO_OPTION, $clean, '', false );
+		} else {
+			// The row already carries the autoload value save() gave it, so only
+			// option_value changes.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Atomic revision check cannot be expressed by update_option(). Cache invalidated and update hooks fired below.
+			$written = $wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND BINARY option_value = BINARY %s", maybe_serialize( $clean ), MAESTRO_OPTION, maybe_serialize( $stored ) ) );
+		}
+		wp_cache_delete( MAESTRO_OPTION, 'options' );
+		wp_cache_delete( 'alloptions', 'options' );
+		wp_cache_delete( 'notoptions', 'options' );
+		$this->cache = null;
+		if ( false === $written || ( 0 === $written && $this->get() !== $clean ) ) {
+			return new \WP_Error( 'maestro_transfer_write', __( 'The import could not be saved. Review the file again.', 'maestro-menu-editor' ), array( 'status' => 409 ) );
+		}
+		// The raw UPDATE skips update_option(), so announce the change the way
+		// it would: audit-log, sync and cache plugins listen for these. add_option()
+		// fires its own. The pre_update_option filters are not applied: a filter
+		// could rewrite the value after the revision check approved it.
+		if ( ! $created && $written ) {
+			// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Core's own hooks.
+			do_action( 'update_option_' . MAESTRO_OPTION, $stored, $clean, MAESTRO_OPTION );
+			do_action( 'updated_option', MAESTRO_OPTION, $stored, $clean );
+			// phpcs:enable WordPress.NamingConventions.PrefixAllGlobals
+		}
+		$this->cache = $clean;
+		return $clean;
+	}
+
 	/**
 	 * Wipe all customizations. The natural menu returns on the next load.
 	 *
@@ -520,9 +572,10 @@ class Config {
 	 * stale slug degrades silently rather than erroring.
 	 *
 	 * @param array $raw Raw payload.
+	 * @param bool  $preserve_people Retain destination people data during transfer.
 	 * @return array
 	 */
-	public function sanitize( array $raw ) {
+	public function sanitize( array $raw, $preserve_people = false ) {
 		$out = array(
 			// Stamped, never read from the incoming payload: the schema of what we
 			// are about to WRITE is decided here, not by the client. See
@@ -557,7 +610,7 @@ class Config {
 		// reserved capacity below, has no seams for the next path to slip
 		// between.
 		$base             = function_exists( 'admin_url' ) ? admin_url( '' ) : '';
-		$can_target_users = current_user_can( 'list_users' );
+		$can_target_users = ! $preserve_people && current_user_can( 'list_users' );
 		$protected        = $can_target_users ? array() : $this->protected_user_axes( $base );
 
 		// Validate the incoming IDs with ONE bounded query rather than loading
@@ -576,7 +629,6 @@ class Config {
 		// POST. Reserving keeps the stored total bounded by MAX_ITEMS exactly as
 		// before, and simply means abusive filler is what gets dropped rather
 		// than an administrator's rules.
-		$item_budget = self::MAX_ITEMS - count( $protected );
 
 		// Normalized keys already written to $out['items'] this pass. See the
 		// dedupe guard in the loop — this is what makes the sanitized output
@@ -638,6 +690,14 @@ class Config {
 					continue;
 				}
 
+				// Count reserved and emitted identities BEFORE inserting a new rule.
+				// Protected matches reuse their reserved slot, even at the cap.
+				if ( count( $out['items'] ) + count( $protected ) >= self::MAX_ITEMS && ! isset( $protected[ $nk ] ) ) {
+					if ( ! $protected ) {
+						break;
+					}
+					continue;
+				}
 				$entry = array();
 
 				if ( isset( $item['title'] ) && '' !== trim( (string) $item['title'] ) ) {
@@ -732,9 +792,6 @@ class Config {
 					$out['items'][ $slug ] = $entry;
 					if ( '' !== $nk ) {
 						$emitted_norm[ $nk ] = true;
-					}
-					if ( count( $out['items'] ) >= $item_budget ) {
-						break; // Deterministic: first N slugs in incoming object order win.
 					}
 				}
 			}

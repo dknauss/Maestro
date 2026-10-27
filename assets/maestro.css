@@ -1018,11 +1018,12 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 	}
 }
 
-/* Settings holds only the menu width, which applies from 961px (above). Below
- * that the dialog opened a control that could change nothing on screen, and
- * on a phone it cost the cramped toolbar a slot, so the gear goes with the
- * edge handle. A width saved on a wider screen still applies there. The
- * tour's Settings step is dropped with it (tourSteps(), byViewport). */
+/* Settings holds the menu width, which applies from 961px (above), and
+ * configuration export/import, a desk task. Below 961px the gear would cost
+ * the cramped phone toolbar a slot it does not have (#252: two rows upright,
+ * one on its side), so it goes with the edge handle. A width saved on a wider
+ * screen still applies there. The tour's Settings step is dropped with it
+ * (tourSteps(), byViewport). */
 @media screen and ( max-width: 960px ) {
 	.maestro-toolbar .maestro-settings-btn {
 		display: none;
@@ -1513,6 +1514,15 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 		background: var( --maestro-menu-accent, #2271b1 );
 	}
 }
+
+/* Configuration transfer shares Settings without adding a toolbar icon. */
+.maestro-transfer { margin-block-start: 16px; border-top: 1px solid #c3c4c7; }
+.maestro-transfer-file-label { display: block; margin-block: 12px 4px; }
+.maestro-transfer-file { display: block; width: 100%; margin-block-end: 12px; }
+.maestro-transfer-result { margin-block: 12px; overflow-wrap: anywhere; }
+.maestro-transfer-result ul { list-style: disc; padding-inline-start: 20px; max-height: 160px; overflow: auto; }
+.maestro-transfer-confirm { display: block; margin-block: 12px; }
+.maestro-transfer [hidden] { display: none !important; }
 
 /* Dialog standard: shared geometry and one focus treatment, including controls
  * supplied by WordPress. Native checkboxes/radios keep their familiar shapes. */

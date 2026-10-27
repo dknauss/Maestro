@@ -81,8 +81,8 @@ sees, hide it in one step, carry the setup to the next site. Planned
 
 ### Portability
 
-- [ ] **PORT-01**: An admin can export the current configuration as a JSON file with a schema version. Per-person rules are not exported.
-- [ ] **PORT-02**: An admin can import such a file. Import is capability- and nonce-gated and writes only through `Config::sanitize()`; unknown roles are dropped, an unsupported schema version is refused, and the user is told what was not applied.
+- [x] **PORT-01**: An admin can export the current configuration as a JSON file with a schema version. Per-person rules are not exported.
+- [x] **PORT-02**: An admin can import such a file. Import is capability- and nonce-gated and writes only through `Config::sanitize()`; unknown roles are dropped, an unsupported schema version is refused, and the user is told what was not applied.
 
 ### Cross-cutting
 
@@ -130,8 +130,8 @@ Which phases cover which requirements. Populated during roadmap creation.
 | REL-11 | Phase 26 (v1.5) | ✅ Complete 2026-08-09 (tag v1.5.0 on 694b1bf; SVN verified) |
 | UX-14 | Phase 29 (v1.9) | Built, awaiting verification |
 | ROLE-03 | Phase 30 (v1.7) | Built 2026-10-23 (30-01 #248, 30-02); awaiting deep review |
-| PORT-01 | Phase 31 (v1.7) | Pending |
-| PORT-02 | Phase 31 (v1.7) | Pending |
+| PORT-01 | Phase 31 (v1.9) | Built on feature branch; review/human acceptance open |
+| PORT-02 | Phase 31 (v1.9) | Built on feature branch; review/human acceptance open |
 
 **Coverage:**
 - v1.4 requirements: 11 total

@@ -3,18 +3,29 @@ gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: Client-Site Workflow
 status: in_progress
-stopped_at: "Phase 30 role preview merged through #251 (9802065), with post-merge CI green. Desktop UX refinement in progress; contextual row controls planned for a later pass. Real touch-device acceptance remains open."
-last_updated: "2026-10-24T00:00:00.000Z"
-last_activity: "2026-10-24 — Desktop UX cleanup and preview-notice placement regression coverage; later contextual controls planned. Touch-device acceptance remains open."
+stopped_at: "1.9.0 released without Phase 31. Phase 31 export/import (#263) passed Codex deep review and is merged up with #266-#268 for the next release; real-device and screen-reader acceptance remain open."
+last_updated: "2026-10-26T00:00:00.000Z"
+last_activity: "2026-10-27 — #263 review fixes landed and main (#266-#268) merged in; device and screen-reader acceptance remain open."
 progress:
   total_phases: 3
   completed_phases: 0
-  total_plans: 4
-  completed_plans: 4
-  percent: 0 # Fully accepted across devices: 0/3; Phase 31 remains unplanned.
+  total_plans: 8
+  completed_plans: 8
+  percent: 0 # Fully accepted across devices: 0/3; implementation is separate from acceptance.
 ---
 
 # Project State
+
+## Phase 31 implementation — 2026-10-26
+
+1.9.0 shipped without export/import (tag `v1.9.0`, 2026-10-25). Phase 31 is in
+[#263](https://github.com/dknauss/Maestro/pull/263), now merged up with 1.9.0, #265 and #266-#268, for the next release. It includes
+private-rule preservation, fresh server-owned menu inventory, explicit
+analyze/apply, versioned JSON, canceled-reload recovery and full report
+downloads. Settings, and with it export/import, stays desktop-only (961px and up).
+See the [implementation plan](phases/31-config-export-import/31-IMPLEMENTATION-PLAN.md)
+and [verification record](phases/31-config-export-import/31-VERIFICATION.md).
+Codex's deep review found two issues, both fixed at `e2633c1` and re-reviewed clean. Real-device and screen-reader acceptance remain open.
 
 ## Release prep — 1.9.0 (2026-10-24)
 

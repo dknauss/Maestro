@@ -63,6 +63,15 @@ Maestro uses the `maestro-menu-editor` text domain and ships a translation templ
 
 == Frequently Asked Questions ==
 
+= Can I copy a configuration to another site? =
+
+Yes. In Edit Menu, open Settings, export the JSON file, then review and import
+it on the destination. Import replaces portable menu settings and reports
+missing roles and menu items. People rules and visibility groups are excluded
+from exports; those already on the destination are preserved. Hiding remains
+cosmetic and does not change page access.
+
+
 = Does hiding a menu item block access to that page or disable its features? =
 
 No — and this is important. Hiding an item is **cosmetic**: it removes the link from the admin menu but does not stop anyone from reaching the page by typing or
@@ -206,6 +215,9 @@ menu grey and stored as data-URIs in `assets/icons-bootstrap.json`; see `bin/gen
 If Maestro saves you time or brings you or your clients the joy of a tidy admin menu, you can support its ongoing maintenance through [GitHub Sponsors](https://github.com/sponsors/dknauss).
 
 == Changelog ==
+
+= Unreleased =
+* **New: copy a menu configuration to another site.** In Edit Menu, open **Settings** and use **Export/import**. Export downloads a JSON file of names, icons, role rules, ordering, separators and menu width. Rules for individual people and visibility groups are never exported. On the destination, **Review file** lists anything that cannot be applied before **Import configuration** changes anything; the destination's own people rules and visibility groups are kept. Long reports can be downloaded in full. Settings, and so export/import, is available on screens 961px and wider. Hiding stays cosmetic.
 
 = 1.9.0 =
 1.8.0 was never released on its own, so this release carries its changes too.
