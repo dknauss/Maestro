@@ -420,6 +420,19 @@ test.describe( 'selected-row controls, phone', () => {
 		} );
 	}
 
+	test( 'on a short landscape screen the rename field opens in the middle of what is visible', async ( { page } ) => {
+		await page.setViewportSize( { width: 667, height: 300 } );
+		await openEditor( page );
+		const row = page.locator( '#adminmenu > li#menu-media' );
+		await row.locator( '> a' ).tap();
+		await strip( page ).getByRole( 'button', { name: /Rename Media/ } ).tap();
+		const field = row.locator( '.maestro-row-rename-input' );
+		await expect( field ).toBeFocused();
+		const box = ( await field.boundingBox() )!;
+		const middle = box.y + box.height / 2;
+		expect( Math.abs( middle - 150 ) ).toBeLessThan( 12 );
+	} );
+
 	test( 'LTR icon has a usable 44px touch target', async ( { page } ) => {
 		await checkIconTouchTarget( page );
 	} );

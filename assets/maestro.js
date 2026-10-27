@@ -1134,6 +1134,21 @@
 		positionInlineRename();
 		input.focus( { preventScroll: true } );
 		input.select();
+		keepRenameInView();
+		if ( window.visualViewport ) { window.visualViewport.addEventListener( 'resize', keepRenameInView ); }
+	}
+
+	// A phone on its side leaves one line of page above the keyboard, and
+	// iOS floats its form bar over part of it, so the field could open half
+	// hidden. On a short visual viewport, scroll the field to the middle of
+	// what is visible, once now and again as the keyboard settles. Taller
+	// screens keep the field where it is.
+	function keepRenameInView() {
+		var vv = window.visualViewport;
+		if ( ! vv || ! rowCtl || ! rowCtl.editing || vv.height > 360 ) { return; }
+		var r = rowCtl.input.getBoundingClientRect();
+		var want = vv.offsetTop + Math.max( 0, ( vv.height - r.height ) / 2 );
+		if ( Math.abs( r.top - want ) > 4 ) { window.scrollBy( 0, r.top - want ); }
 	}
 
 	// Width owners can resize without a window resize. Re-measure only geometry:
@@ -1168,6 +1183,7 @@
 		if ( ! key ) { return; }
 		rowCtl.editing = null; // first, so the blur from removing the field is a no-op
 		rowCtl.composing = false;
+		if ( window.visualViewport ) { window.visualViewport.removeEventListener( 'resize', keepRenameInView ); }
 		var input = rowCtl.input;
 		var li = liForKey( key );
 		if ( li ) { li.classList.remove( 'maestro-renaming' ); }
