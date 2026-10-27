@@ -616,7 +616,7 @@ should be made once.
 **Plans**: TBD
 **Out of this phase**: named presets, a preset manager, bundled starter presets. They stay in the todo.
 **Notes**: [presets and export/import todo](todos/pending/2026-07-03-config-presets-export-import.md)
-**Review**: high-risk diff (new REST endpoint, deserialization) — mandatory deep review before merge
+**Review**: reviewed with findings and regression fixes recorded in Phase 31 verification and #264; final combined-diff/fix verification is still required after integration with current main. Do not restart the original review as unperformed.
 
 ---
 
@@ -630,7 +630,7 @@ v1.0 complete (Phases 1–5, archived). v1.1 complete (Phases 6–8, archived). 
 **v1.5 is shipped** as the v1.5.x release line; v1.5.4 (PR #192, shipped 2026-09-21) is
 the final patch documented here for that line, adding compatibility fixes (#176, #179, #189) and E2E
 hardening. Release #232 (v1.7.0 menu width) has since merged; no deployment verification is claimed here.
-Current implementation state: Phases 27–29 desktop human checks passed 2026-10-23; touch-device acceptance remains open. Phase 27 (v1.8) has all five plans built; Phase 29 is merged in #243; Phase 30 implementation merged through #251; Phase 31 is built in open PR #263, awaiting deep review and acceptance. Phase numbers remain non-contiguous by design because 21, 22, and 25
+Current implementation state: Phases 27–29 desktop human checks passed 2026-10-23; touch-device acceptance remains open. Phase 27 (v1.8) has all five plans built; Phase 29 is merged in #243; Phase 30 implementation merged through #251; Phase 31 is built in open PR #263, reviewed with fixes implemented; awaiting final verification and acceptance. Phase numbers remain non-contiguous by design because 21, 22, and 25
 originated under the v1.4 roadmap and were not renumbered when they slipped.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -667,4 +667,4 @@ originated under the v1.4 roadmap and were not renumbered when they slipped.
 | 28. Configurable Admin Menu Width | v1.7.0 | 2/3 | Built; desktop rechecks passed 2026-10-23; touch outstanding | - |
 | 29. Select-All Role Control | v1.9 | 2/2 built | Merged #243; CI green; desktop checks passed 2026-10-23; touch outstanding | - |
 | 30. View-as-Role Preview (read-only) | v1.9 | 2/2 built | Merged through #251; human acceptance open | - |
-| 31. Config Export/Import | After v1.9.0 | Built in #263 | Open PR; deep review and acceptance outstanding | - |
+| 31. Config Export/Import | After v1.9.0 | Built in #263 | Reviewed; final verification and acceptance outstanding | - |

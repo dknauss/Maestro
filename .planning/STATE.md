@@ -20,7 +20,7 @@ progress:
 
 v1.9.0 is released. Phone/dialog polish #265, RTL title clearance #268 and
 icon-picker/recolouring #266 are merged. Export/import #263 remains open for
-mandatory deep review and acceptance; #264 is closed with its recovery changes
+final verification of the reviewed fixes and acceptance; #264 is closed with its recovery changes
 incorporated into #263. Selected-row prototype #261 remains a separate open
 experiment. Real-device and human screen-reader acceptance remain open.
 Dan verified all five phone fixes on iPhone in portrait and landscape on
