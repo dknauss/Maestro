@@ -402,6 +402,9 @@
 			model[ node.slug ] = {
 				title: node.title,
 				icon: node.icon,
+				// Which picker set the icon belongs to ('' for none or a
+				// plugin's own icon), matched server-side by Assets.
+				iconSet: node.iconSet || '',
 				hiddenRoles: node.hiddenRoles.slice(),
 				isSub: false,
 				// COMPAT-10 (REVISED): child_hidden_roles is a parent-only,
@@ -1226,8 +1229,9 @@
 		pop.setAttribute( 'aria-label', I.iconDialog );
 
 		// --- choose an icon, persist, close ---
-		function choose( iconId ) {
-			model[ slug ].icon = iconId;
+		function choose( iconId, setId ) {
+			model[ slug ].icon    = iconId;
+			model[ slug ].iconSet = setId || '';
 			var li = liForKey( slug );
 			if ( li ) { applyIconPreview( li, iconId || 'none' ); }
 			closePopovers();
@@ -1314,7 +1318,7 @@
 					glyph.style.setProperty( '--maestro-icon', 'url("' + id + '")' );
 				}
 				b.appendChild( glyph );
-				b.addEventListener( 'click', function ( e ) { e.preventDefault(); choose( id ); } );
+				b.addEventListener( 'click', function ( e ) { e.preventDefault(); choose( id, set.id ); } );
 				panel.appendChild( b );
 			} );
 		}
@@ -1326,8 +1330,14 @@
 			if ( ! set.url || panel.dataset.maestroLoaded ) { return; }
 			panel.dataset.maestroLoaded = '1';
 			panel.setAttribute( 'aria-busy', 'true' );
-			var status = el( 'p', 'maestro-icon-status', I.iconLoading );
-			panel.appendChild( status );
+			// Reuse a failed attempt's status line, so a retry that succeeds
+			// leaves no stale error behind.
+			var status = panel.querySelector( '.maestro-icon-status' );
+			if ( ! status ) {
+				status = el( 'p', 'maestro-icon-status' );
+				panel.appendChild( status );
+			}
+			status.textContent = I.iconLoading;
 			if ( ! set.request ) {
 				set.request = window.fetch( set.url, { credentials: 'same-origin' } ).then( function ( r ) {
 					if ( ! r.ok ) { throw new Error( r.status ); }
@@ -1348,14 +1358,14 @@
 			} );
 		}
 
-		function activateTab( idx ) {
+		function activateTab( idx, keepFocus ) {
 			tabs.forEach( function ( t, i ) {
 				t.setAttribute( 'aria-selected', i === idx ? 'true' : 'false' );
 				t.tabIndex = i === idx ? 0 : -1;
 				panels[ i ].hidden = i !== idx;
 			} );
 			loadSet( sets[ idx ], panels[ idx ] );
-			tabs[ idx ].focus();
+			if ( ! keepFocus ) { tabs[ idx ].focus(); }
 			applyFilter();
 		}
 
@@ -1434,6 +1444,12 @@
 				first.focus();
 			}
 		} );
+
+		// Open on the set the current icon comes from. The server matched it
+		// against the real catalogs (iconSet), so a plugin's own SVG icon stays
+		// on Dashicons, and the Bootstrap file is fetched only when needed.
+		var startTab = sets.findIndex( function ( set ) { return set.id === model[ slug ].iconSet; } );
+		activateTab( startTab > 0 ? startTab : 0, true );
 
 		var reposition = placePopover( pop, anchorBtn );
 		applyFilter();
@@ -2850,7 +2866,8 @@
 		if ( li ) { li.classList.remove( 'maestro-has-hidden' ); }
 
 		if ( ! m.isSub ) {
-			m.icon = def.icon || '';
+			m.icon    = def.icon || '';
+			m.iconSet = def.iconSet || '';
 			// Always refresh — when the pristine icon is empty this clears any
 			// stale dashicon preview rather than leaving it until reload.
 			if ( li ) { applyIconPreview( li, m.icon ); }

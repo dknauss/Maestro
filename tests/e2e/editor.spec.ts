@@ -284,10 +284,46 @@ test.describe( 'Admin Menu Maestro — editor', () => {
 		await expect.poll( glyphColour ).not.toBe( idle );
 		await page.locator( '#wpbody-content' ).hover( { position: { x: 400, y: 300 } } );
 
+		// After reload the picker opens on the Bootstrap tab, with the stored
+		// icon marked current: the server matched it against the catalog.
+		await page.locator( '#menu-posts > a.menu-top' ).click();
+		await page.locator( '.maestro-toolbar .maestro-panel .maestro-icon-btn' ).click();
+		const reopened = page.locator( '.maestro-icon-popover' );
+		await expect( reopened.getByRole( 'tab', { name: 'Bootstrap' } ) ).toHaveAttribute( 'aria-selected', 'true' );
+		await expect( reopened.locator( '#maestro-panel-bootstrap .maestro-icon-cell.is-current' ) ).toHaveCount( 1 );
+		await page.keyboard.press( 'Escape' );
+
 		// Clean up.
 		page.once( 'dialog', d => d.accept() );
 		await page.locator( '.maestro-reset-all' ).click();
 		await expect( page.locator( '#menu-posts .wp-menu-image' ) ).not.toHaveClass( /\bsvg\b/ );
+	} );
+
+	test( 'a failed Bootstrap download can be retried without a stale error', async ( { page } ) => {
+		// The first request for the catalog fails; later ones go through.
+		let failed = false;
+		await page.route( '**/assets/icons-bootstrap.json*', route => {
+			if ( failed ) { return route.continue(); }
+			failed = true;
+			return route.abort();
+		} );
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		await page.locator( '#menu-posts > a.menu-top' ).click();
+		await page.locator( '.maestro-toolbar .maestro-panel .maestro-icon-btn' ).click();
+		const picker = page.locator( '.maestro-icon-popover' );
+		const btPanel = picker.locator( '#maestro-panel-bootstrap' );
+
+		await picker.getByRole( 'tab', { name: 'Bootstrap' } ).click();
+		await expect( btPanel.locator( '.maestro-icon-status' ) ).toHaveText( /Could not load/ );
+
+		// Switching tabs retries; success leaves only the icons.
+		await picker.getByRole( 'tab', { name: 'Dashicons' } ).click();
+		await picker.getByRole( 'tab', { name: 'Bootstrap' } ).click();
+		await expect
+			.poll( () => btPanel.locator( '.maestro-icon-cell' ).count() )
+			.toBeGreaterThan( 300 );
+		await expect( btPanel.locator( '.maestro-icon-status' ) ).toHaveCount( 0 );
+		await page.keyboard.press( 'Escape' );
 	} );
 
 	test( 'per-role visibility hides an item from that role only', async ( { page, browser } ) => {

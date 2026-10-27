@@ -46,6 +46,20 @@ class IconSetsTest extends WP_UnitTestCase {
 		}
 	}
 
+	public function test_icon_set_of_matches_the_real_catalogs() {
+		$method = new ReflectionMethod( Assets::class, 'icon_set_of' );
+		$method->setAccessible( true );
+		$assets = new Assets( new Config(), new Replay( new Config() ) );
+		$file   = json_decode( file_get_contents( MAESTRO_DIR . 'assets/icons-bootstrap.json' ), true );
+
+		$this->assertSame( 'dashicons', $method->invoke( $assets, 'dashicons-book' ) );
+		$this->assertSame( 'bootstrap', $method->invoke( $assets, $file['icons'][0]['src'] ) );
+		// A plugin's own SVG (Yoast, Smush, ...) is not a Bootstrap icon.
+		$this->assertSame( '', $method->invoke( $assets, 'data:image/svg+xml;base64,PHN2Zy8+' ) );
+		$this->assertSame( '', $method->invoke( $assets, 'none' ) );
+		$this->assertSame( '', $method->invoke( $assets, '' ) );
+	}
+
 	/**
 	 * One class per distinct glyph, in core's stylesheet order. Core keeps a
 	 * few aliases (share1, exerpt-view, ...) on the same code point; offering
