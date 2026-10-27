@@ -69,7 +69,7 @@ test.describe( 'Re-icon preview on image-icon items', () => {
 		const img = image( page, 'maestro-e2e-url-icon' );
 		await expect( img.locator( 'img' ) ).toHaveCount( 1 ); // Core's URL-icon markup.
 
-		await pickIcon( page, 'maestro-e2e-url-icon', p => p.locator( '.maestro-icon-cell.dashicons-book' ).click() );
+		await pickIcon( page, 'maestro-e2e-url-icon', p => p.locator( '.maestro-icon-cell[data-maestro-icon="dashicons-book"]' ).click() );
 
 		await expect( img ).toHaveClass( /dashicons-book/ );
 		await expect( img.locator( 'img' ) ).toHaveCount( 0 );
@@ -81,7 +81,7 @@ test.describe( 'Re-icon preview on image-icon items', () => {
 		const img  = image( page, slug );
 		await expect( img ).toHaveClass( /\bsvg\b/ ); // Core's data-URI markup.
 
-		await pickIcon( page, slug, p => p.locator( '.maestro-icon-cell.dashicons-book' ).click() );
+		await pickIcon( page, slug, p => p.locator( '.maestro-icon-cell[data-maestro-icon="dashicons-book"]' ).click() );
 		await hoverAndLeave( page, slug );
 
 		await expect( img ).toHaveClass( /dashicons-book/ );
@@ -101,8 +101,14 @@ test.describe( 'Re-icon preview on image-icon items', () => {
 		} );
 		await hoverAndLeave( page, slug );
 
-		const painted = await img.evaluate( el => getComputedStyle( el ).backgroundImage );
-		expect( painted ).toContain( 'data:image/svg+xml;base64' );
-		expect( painted ).not.toBe( natural );
+		// The new icon paints as a mask on the glyph slot (#172); the plugin's
+		// logo, which svg-painter repaints as a background, stays hidden.
+		const mask = await img.evaluate( el => {
+			const before = getComputedStyle( el, '::before' );
+			return before.maskImage || before.webkitMaskImage;
+		} );
+		expect( mask ).toContain( 'data:image/svg+xml;base64' );
+		expect( mask ).not.toBe( natural );
+		expect( await img.evaluate( el => getComputedStyle( el ).backgroundImage ) ).toBe( 'none' );
 	} );
 } );

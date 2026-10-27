@@ -81,7 +81,9 @@ class PerformanceTest extends WP_UnitTestCase {
 			: '';
 		$bytes = strlen( $data );
 
-		$this->assertGreaterThan( 70 * 1024, $bytes, 'The measurement should include the bundled icon data, not an empty payload.' );
+		$this->assertGreaterThan( 20 * 1024, $bytes, 'The measurement should include the menu model and Dashicons list, not an empty payload.' );
+		$this->assertStringNotContainsString( 'data:image', $data, 'The Bootstrap icons load on demand from a file, not in the localized payload.' );
+		$this->assertStringContainsString( 'icons-bootstrap.json', $data, 'The payload should point the picker at the Bootstrap icon file.' );
 		$this->assertLessThan( 256 * 1024, $bytes, 'The edit-mode localized payload should stay below 256 KiB for a large synthetic menu.' );
 	}
 

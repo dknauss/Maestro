@@ -58,6 +58,16 @@ where something else already sets the width.
 
 ### Bootstrap icon colour — [#172](https://github.com/dknauss/Maestro/issues/172)
 
+**Status (2026-10-27): built, a variant of (5) below.** Dan asked for it along
+with the icon picker grid/colour todo. It differs from (5) in two ways. `$menu[6]`
+keeps the data-URI rather than becoming `'none'`, so the editor's model, the
+stored value and a browser without masks are unchanged; Replay only adds
+`maestro-mask-icon` plus a per-icon class whose `--maestro-icon` it prints, and
+`maestro-admin-bar.css` hides the background (`!important`, which also keeps
+svg-painter.js off the row). And the mask sits on `div.wp-menu-image::before`,
+the slot core colours for dashicons, so no `opacity` guess is needed: it takes
+core's exact idle, hover and current colour in every scheme.
+
 All 87 icons in the Bootstrap set sit at a fixed `#a7aaad`. Dashicons lighten on
 hover, go white on the current item, and follow the admin colour scheme; the
 Bootstrap ones do none of it, so a mixed menu looks inconsistent exactly where
