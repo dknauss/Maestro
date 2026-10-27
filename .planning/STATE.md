@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: Client-Site Workflow
 status: in_progress
-stopped_at: "1.9.0 released without Phase 31. Phase 31 export/import is in #263, merged up with 1.9.0, for the next release; deep review and real-device acceptance remain open."
+stopped_at: "1.9.0 released without Phase 31. Phase 31 export/import (#263) passed Codex deep review and is merged up with #266-#268 for the next release; real-device and screen-reader acceptance remain open."
 last_updated: "2026-10-26T00:00:00.000Z"
-last_activity: "2026-10-26 — #263 merged up with the 1.9.0 release; touch-device acceptance remains open."
+last_activity: "2026-10-27 — #263 review fixes landed and main (#266-#268) merged in; device and screen-reader acceptance remain open."
 progress:
   total_phases: 3
   completed_phases: 0
@@ -19,13 +19,13 @@ progress:
 ## Phase 31 implementation — 2026-10-26
 
 1.9.0 shipped without export/import (tag `v1.9.0`, 2026-10-25). Phase 31 is in
-[#263](https://github.com/dknauss/Maestro/pull/263), now merged up with 1.9.0 and #265, for the next release. It includes
+[#263](https://github.com/dknauss/Maestro/pull/263), now merged up with 1.9.0, #265 and #266-#268, for the next release. It includes
 private-rule preservation, fresh server-owned menu inventory, explicit
 analyze/apply, versioned JSON, canceled-reload recovery and full report
 downloads. Settings, and with it export/import, stays desktop-only (961px and up).
 See the [implementation plan](phases/31-config-export-import/31-IMPLEMENTATION-PLAN.md)
 and [verification record](phases/31-config-export-import/31-VERIFICATION.md).
-The mandatory deep review and real-device/human acceptance remain open.
+Codex's deep review found two issues, both fixed at `e2633c1` and re-reviewed clean. Real-device and screen-reader acceptance remain open.
 
 ## Release prep — 1.9.0 (2026-10-24)
 
@@ -122,7 +122,7 @@ Dan approved all three recommendations, recorded in the
   banner and Exit preview, and restore the menu without configuration changes.
 
 D4 decided 2026-10-23 (Dan): imported rules for menu
-items missing on the target are dropped and reported. D5 remains open.
+items missing on the target are dropped and reported. D5 decided 2026-10-25: v1.9.0 shipped Phases 29–30; Phase 31 follows.
 **Update, later 2026-10-23:** 30-01 (server window, #248, merged 2026-10-24)
 and 30-02 (picker, banner, exit, parity e2e, #251) are built and merged; post-merge
 CI passed on `9802065`. Preview was narrowed to the Dashboard and to roles with `read`

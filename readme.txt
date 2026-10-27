@@ -208,7 +208,7 @@ Maestro is built to stay out of the way:
 == Credits ==
 
 Bundled [Bootstrap Icons](https://icons.getbootstrap.com/) are © The Bootstrap Authors, licensed under the MIT License. They are recoloured to WordPress
-menu grey and embedded as data-URIs; see `bin/generate-bootstrap-icons.mjs`.
+menu grey and stored as data-URIs in `assets/icons-bootstrap.json`; see `bin/generate-bootstrap-icons.mjs`.
 
 == Support This Plugin ==
 

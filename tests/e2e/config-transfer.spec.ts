@@ -1,5 +1,6 @@
 import { test, expect } from './fixtures';
 import { execFileSync } from 'child_process';
+import AxeBuilder from '@axe-core/playwright';
 
 const file = ( items: object = { 'edit.php': { title: 'Imported articles' } } ) => JSON.stringify( {
 	format: 'maestro-menu-config', schema_version: 1,
@@ -217,4 +218,35 @@ test( 'large drop reports can be downloaded in full', async ( { page } ) => {
 	expect( report.map( row => row.reference ) ).toEqual( Object.keys( missing ) );
 	expect( report.every( row => typeof row.code === 'string' ) ).toBe( true );
 	await expect( page.locator( '.maestro-transfer-result li' ) ).toHaveCount( 50 );
+} );
+
+test( 'transfer is keyboard operable and has no axe violations', async ( { page } ) => {
+	const axe = async ( label: string ) => {
+		const r = await new AxeBuilder( { page } ).include( '.maestro-settings-popover' ).withTags( [ 'wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa' ] ).analyze();
+		expect( r.violations.map( v => `${ v.id }: ${ v.help }` ), label ).toEqual( [] );
+	};
+	await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+	await page.locator( '.maestro-settings-btn' ).focus();
+	await page.keyboard.press( 'Enter' );
+	const dialog = page.getByRole( 'dialog', { name: 'Settings', exact: true } );
+	await expect( dialog ).toBeVisible();
+	await axe( 'Settings with transfer, before review' );
+	await expect( page.locator( '.maestro-transfer-result' ) ).toHaveAttribute( 'role', 'status' );
+	await page.locator( '.maestro-transfer-file' ).setInputFiles( { name: 'menu.json', mimeType: 'application/json', buffer: Buffer.from( file( { 'edit.php': { title: 'Imported articles' }, 'gone.php': { title: 'Gone' } } ) ) } );
+	// Reach Review from the file field by keyboard alone, inside the dialog.
+	const review = dialog.getByRole( 'button', { name: 'Review file', exact: true } );
+	await page.locator( '.maestro-transfer-file' ).focus();
+	for ( let i = 0; i < 5 && ! await review.evaluate( n => n === document.activeElement ); i++ ) {
+		await page.keyboard.press( 'Tab' );
+	}
+	await expect( review ).toBeFocused();
+	await page.keyboard.press( 'Enter' );
+	const apply = dialog.getByRole( 'button', { name: 'Import configuration', exact: true } );
+	await expect( apply ).toBeVisible();
+	await expect( page.locator( '.maestro-transfer-result' ) ).toContainText( 'gone.php' );
+	await axe( 'Settings after review, with a drop report' );
+	await apply.focus();
+	await page.keyboard.press( 'Enter' );
+	await expect( page.locator( '#menu-posts .wp-menu-name' ) ).toContainText( 'Imported articles' );
+	await expect( page.locator( '.maestro-transfer-notice' ) ).toBeVisible();
 } );

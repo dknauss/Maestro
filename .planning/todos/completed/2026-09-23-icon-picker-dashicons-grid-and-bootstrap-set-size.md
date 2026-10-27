@@ -85,3 +85,20 @@ Dashicons (~340), picked for admin-menu use rather than taken wholesale:
   Bootstrap data is not in the localized payload if it moves to a file.
 - `icons-bundle.test.mjs` still covers every curated name resolving.
 - Recapture screenshot 2 (the icon picker).
+
+## Done (2026-10-27)
+
+Dan said go, and asked for the menu colour (#172) and the bigger set in the
+same change.
+
+- Dashicons cells render the glyph in a child span; every cell has
+  `aspect-ratio: 1`, so both tabs draw identical square cells.
+- One colour: a Bootstrap cell paints its SVG as a mask in the cell's text
+  colour (`#1d2327`), the same as the Dashicons glyphs.
+- Option 1: `assets/icons-bootstrap.json` (437 icons, ~350 KB, ~85 KB gzipped)
+  is fetched the first time the Bootstrap tab opens. The original 87 data-URIs are
+  byte-identical, so stored icons still find their cell.
+- Usage survey not done: the set is picked by hand from the concept list above,
+  with each group's words as search terms (the npm package ships no tags).
+  194 names have no `-fill` form and stay outline.
+- #172: see the status note in ROADMAP.md.

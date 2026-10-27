@@ -21,3 +21,34 @@
  * UX-11's .maestro-toggle-offsite survives as a marker on the Site Editor
  * variant, but it no longer exempts anything from a rule here.
  */
+
+/*
+ * #172 — a stored SVG data-URI icon takes the menu's own icon colour.
+ *
+ * Core paints a data-URI icon as an inline background-image, which cannot use
+ * the text colour, so it sat at one grey on hover, on the current item and
+ * under every colour scheme. Replay marks those rows `.maestro-mask-icon` and
+ * hands each its SVG as --maestro-icon (Replay::mask_icon_css()). The SVG then
+ * becomes a mask over the glyph slot core already colours for dashicons, so it
+ * follows every state and scheme without per-scheme rules.
+ *
+ * The !important beats core's inline background-image, and with it hidden,
+ * svg-painter.js finds no SVG background and leaves the row alone. A browser
+ * without CSS masks skips the block and keeps core's grey background.
+ */
+@supports ( ( -webkit-mask-image: none ) or ( mask-image: none ) ) {
+	#adminmenu li.maestro-mask-icon div.wp-menu-image {
+		background-image: none !important;
+	}
+	#adminmenu li.maestro-mask-icon div.wp-menu-image::before {
+		content: "";
+		display: inline-block;
+		box-sizing: content-box;
+		width: 20px;
+		height: 20px;
+		vertical-align: top;
+		background-color: currentColor;
+		-webkit-mask: var( --maestro-icon ) no-repeat center / 20px 20px;
+		mask: var( --maestro-icon ) no-repeat center / 20px 20px;
+	}
+}
