@@ -23,7 +23,9 @@ icon-picker/recolouring #266 are merged. Export/import #263 remains open for
 mandatory deep review and acceptance; #264 is closed with its recovery changes
 incorporated into #263. Selected-row prototype #261 remains a separate open
 experiment. Real-device and human screen-reader acceptance remain open.
-The five phone reports are in [iPhone issues](../docs/testing/iphone-issues.md).
+Dan verified all five phone fixes on iPhone in portrait and landscape on
+2026-10-26; see [iPhone issues](../docs/testing/iphone-issues.md). iPad and
+human screen-reader acceptance remain separate and open.
 
 Historical progress notes below do not supersede this reconciliation.
 
