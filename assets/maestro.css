@@ -1422,9 +1422,18 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 }
 .maestro-dialog-close .dashicons { width: 20px; height: 20px; font-size: 20px; line-height: 1; }
 .maestro-settings-title {
-	padding-inline-end: 40px;
+	padding-right: 40px;
 	min-height: 32px;
 	box-sizing: border-box;
+}
+/* The title sets its own direction (setText(): an untranslated title stays
+ * English, LTR), while Close follows the page. So clear Close on the page's
+ * side, not the title's: logical padding put the room on the wrong side and
+ * Close covered the start of "Menu width" in Arabic. */
+.rtl .maestro-settings-title {
+	padding-right: 0;
+	padding-left: 40px;
+	text-align: right; /* with the page, not the English text */
 }
 .maestro-tour-content { padding-inline-end: 48px; }
 .maestro-tour .maestro-tour-skip { margin: 0; text-decoration: none; }
