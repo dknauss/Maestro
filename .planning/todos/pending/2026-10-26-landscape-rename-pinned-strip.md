@@ -1,28 +1,28 @@
 ---
 created: 2026-10-26T00:00:00.000Z
-title: Landscape phone rename — pinned strip fallback
+title: Landscape phone rename — pinned strip (needs a real-device pass)
 area: ux
 files:
-  - assets/maestro.js (startInlineRename, keepRenameInView)
+  - assets/maestro.js (renameInSheet, openRenameSheet, pinRenameSheet)
   - .planning/DESKTOP-UX-NEXT-PASS.md (selected-row controls prototype)
 ---
 
 ## Problem
 
 On a small phone held sideways, the keyboard and Safari's form bar leave
-about one line of page visible, so renaming a menu row in place is workable
-but cramped (Dan, 2026-10-26, iPhone, PR #261).
+about one line of page visible, so renaming a menu row in place was
+workable but cramped (Dan, 2026-10-26, iPhone, PR #261).
 
-## Shipped first
+## Tried and dropped
 
-`keepRenameInView()` scrolls the in-place field to the middle of the visible
-area on short visual viewports (360px or less), once on focus and again as the
-keyboard settles.
+Scrolling the in-place field to the middle of the visible area felt bad on a
+real phone, and it also ran upright. Removed.
 
-## Fallback, only if that still feels bad on a real phone
+## Now in #261
 
-On short touch screens, open rename in a strip pinned to the top of the
-visual viewport: one full-width field plus Done, committing and cancelling
-like the in-place field (Enter/Done/blur commit, Escape cancels). More reliable,
-but a different pattern from the rest of the editor, so try it only after a
-real-device pass on the scroll fix.
+On coarse-pointer landscape screens 500px tall or less, rename moves into a
+strip pinned to the bottom of the visual viewport (just above the keyboard
+and below a floating form bar): the item's name, a full-width field and
+Done. Enter, Done and blur commit; Escape cancels. Upright phones keep the
+in-place field. Needs Dan's real-phone check; if the form bar still covers
+it, try pinning to the top of the visual viewport instead.

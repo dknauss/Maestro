@@ -1130,25 +1130,77 @@
 
 		rowCtl.editing = selectedKey;
 		li.classList.add( 'maestro-renaming' );
-		li.insertBefore( input, a.nextSibling );
-		positionInlineRename();
+		if ( renameInSheet() ) {
+			openRenameSheet( m );
+		} else {
+			li.insertBefore( input, a.nextSibling );
+			positionInlineRename();
+		}
 		input.focus( { preventScroll: true } );
 		input.select();
-		keepRenameInView();
-		if ( window.visualViewport ) { window.visualViewport.addEventListener( 'resize', keepRenameInView ); }
 	}
 
-	// A phone on its side leaves one line of page above the keyboard, and
-	// iOS floats its form bar over part of it, so the field could open half
-	// hidden. On a short visual viewport, scroll the field to the middle of
-	// what is visible, once now and again as the keyboard settles. Taller
-	// screens keep the field where it is.
-	function keepRenameInView() {
+	// A phone on its side keeps about one line of page above the keyboard,
+	// and iOS floats its form bar over part of that, so a field in the row is
+	// half hidden wherever it scrolls to. There the field moves into a strip
+	// pinned to the bottom of what is visible, just above the keyboard, with
+	// the item's name and Done. Upright phones, tablets and desktops keep the
+	// in-place field.
+	function renameInSheet() {
+		return window.matchMedia( '(pointer: coarse) and (orientation: landscape) and (max-height: 500px)' ).matches;
+	}
+
+	function openRenameSheet( m ) {
+		if ( ! rowCtl.sheet ) {
+			var sheet = el( 'div', 'maestro-rename-sheet maestro-row-ctl' );
+			sheet.setAttribute( 'role', 'group' );
+			var label = el( 'span', 'maestro-rename-sheet-label' );
+			label.setAttribute( 'aria-hidden', 'true' );
+			var done = el( 'button', 'button button-primary maestro-rename-sheet-done', I.tourDone );
+			done.type = 'button';
+			// The field's blur has usually committed by the time Done is
+			// clicked; this covers a click that keeps focus in the field.
+			done.addEventListener( 'pointerdown', function ( e ) { e.preventDefault(); } );
+			done.addEventListener( 'click', function () { finishInlineRename( true, true ); } );
+			sheet.appendChild( label );
+			sheet.appendChild( done );
+			// Core closes the responsive menu on a click outside it, and the
+			// sheet lives on <body> to sit above the admin bar.
+			sheet.addEventListener( 'click', function ( e ) { e.stopPropagation(); } );
+			rowCtl.sheet = sheet;
+			rowCtl.sheetLabel = label;
+		}
+		setText( rowCtl.sheetLabel, m.title );
+		rowCtl.sheet.setAttribute( 'aria-label', I.renameItem.replace( '%s', function () { return m.title; } ) );
+		rowCtl.sheet.insertBefore( rowCtl.input, rowCtl.sheet.lastChild );
+		rowCtl.input.removeAttribute( 'style' );
+		document.body.appendChild( rowCtl.sheet );
+		pinRenameSheet();
+		if ( window.visualViewport ) {
+			window.visualViewport.addEventListener( 'resize', pinRenameSheet );
+			window.visualViewport.addEventListener( 'scroll', pinRenameSheet );
+		}
+	}
+
+	// Follow the visual viewport as the keyboard opens and the page pans.
+	function pinRenameSheet() {
+		var sheet = rowCtl && rowCtl.sheet;
+		if ( ! sheet || ! sheet.parentNode ) { return; }
 		var vv = window.visualViewport;
-		if ( ! vv || ! rowCtl || ! rowCtl.editing || vv.height > 360 ) { return; }
-		var r = rowCtl.input.getBoundingClientRect();
-		var want = vv.offsetTop + Math.max( 0, ( vv.height - r.height ) / 2 );
-		if ( Math.abs( r.top - want ) > 4 ) { window.scrollBy( 0, r.top - want ); }
+		var top = vv ? vv.offsetTop : 0;
+		var height = vv ? vv.height : window.innerHeight;
+		sheet.style.left  = ( vv ? vv.offsetLeft : 0 ) + 'px';
+		sheet.style.width = ( vv ? vv.width : window.innerWidth ) + 'px';
+		sheet.style.top   = Math.max( top, top + height - sheet.offsetHeight ) + 'px';
+	}
+
+	function closeRenameSheet() {
+		if ( ! rowCtl.sheet || ! rowCtl.sheet.parentNode ) { return; }
+		rowCtl.sheet.parentNode.removeChild( rowCtl.sheet );
+		if ( window.visualViewport ) {
+			window.visualViewport.removeEventListener( 'resize', pinRenameSheet );
+			window.visualViewport.removeEventListener( 'scroll', pinRenameSheet );
+		}
 	}
 
 	// Width owners can resize without a window resize. Re-measure only geometry:
@@ -1158,7 +1210,7 @@
 		var m = key && model[ key ];
 		var li = m && liForKey( key );
 		var a = li && li.querySelector( 'a' );
-		if ( ! a ) { return; }
+		if ( ! a || rowCtl.input.parentNode !== li ) { return; }
 		// Cover the label, not the icon column. Measured, so RTL, a widened
 		// menu and a wrapped long label all line up without per-case CSS.
 		var target = ( ! m.isSub && a.querySelector( '.wp-menu-name' ) ) || a;
@@ -1183,11 +1235,12 @@
 		if ( ! key ) { return; }
 		rowCtl.editing = null; // first, so the blur from removing the field is a no-op
 		rowCtl.composing = false;
-		if ( window.visualViewport ) { window.visualViewport.removeEventListener( 'resize', keepRenameInView ); }
+
 		var input = rowCtl.input;
 		var li = liForKey( key );
 		if ( li ) { li.classList.remove( 'maestro-renaming' ); }
 		if ( input.parentNode ) { input.parentNode.removeChild( input ); }
+		closeRenameSheet();
 		if ( commit && key === selectedKey ) {
 			panel.rename.value = input.value;
 			commitRename();

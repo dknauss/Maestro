@@ -427,17 +427,37 @@ test.describe( 'selected-row controls, phone', () => {
 		} );
 	}
 
-	test( 'on a short landscape screen the rename field opens in the middle of what is visible', async ( { page } ) => {
+	test( 'a landscape phone renames in a strip pinned above the keyboard', async ( { page } ) => {
 		await page.setViewportSize( { width: 667, height: 300 } );
 		await openEditor( page );
 		const row = page.locator( '#adminmenu > li#menu-media' );
 		await row.locator( '> a' ).tap();
 		await strip( page ).getByRole( 'button', { name: /Rename Media/ } ).tap();
-		const field = row.locator( '.maestro-row-rename-input' );
+		const sheet = page.locator( 'body > .maestro-rename-sheet' );
+		const field = sheet.locator( '.maestro-row-rename-input' );
 		await expect( field ).toBeFocused();
-		const box = ( await field.boundingBox() )!;
-		const middle = box.y + box.height / 2;
-		expect( Math.abs( middle - 150 ) ).toBeLessThan( 12 );
+		await expect( field ).toHaveValue( 'Media' );
+		await expect( sheet ).toContainText( 'Media' );
+		const box = ( await sheet.boundingBox() )!;
+		expect( box.width ).toBeGreaterThanOrEqual( 660 );
+		expect( Math.round( box.y + box.height ) ).toBe( 300 );
+		await field.fill( 'Library' );
+		const save = saved( page );
+		await sheet.getByRole( 'button', { name: 'Done' } ).tap();
+		await save;
+		await expect( sheet ).toHaveCount( 0 );
+		await expect( row.locator( '.wp-menu-name' ) ).toHaveText( /^Library/ );
+	} );
+
+	test( 'an upright phone keeps renaming in place', async ( { page } ) => {
+		await openEditor( page );
+		const row = page.locator( '#adminmenu > li#menu-media' );
+		await row.locator( '> a' ).tap();
+		const before = await page.evaluate( () => window.scrollY );
+		await strip( page ).getByRole( 'button', { name: /Rename Media/ } ).tap();
+		await expect( row.locator( '.maestro-row-rename-input' ) ).toBeFocused();
+		await expect( page.locator( '.maestro-rename-sheet' ) ).toHaveCount( 0 );
+		expect( await page.evaluate( () => window.scrollY ) ).toBe( before );
 	} );
 
 	test( 'LTR icon has a usable 44px touch target', async ( { page } ) => {

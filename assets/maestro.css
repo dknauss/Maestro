@@ -1775,3 +1775,46 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 @media screen and (max-width: 782px), screen and (max-width: 960px) and (max-height: 500px) {
 	.maestro-toolbar .maestro-tour-help { display: none; }
 }
+
+/* Landscape phones rename in a strip pinned just above the keyboard
+ * (openRenameSheet() in maestro.js); the field in the row would be half
+ * hidden by the keyboard and the browser's form bar. Above the admin bar. */
+.maestro-rename-sheet {
+	position: fixed;
+	z-index: 100100;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	box-sizing: border-box;
+	padding: 6px 8px;
+	border-top: 1px solid #c3c4c7;
+	background: #fff;
+	box-shadow: 0 -2px 6px rgba( 0, 0, 0, 0.2 );
+}
+.maestro-rename-sheet-label {
+	flex: 0 1 auto;
+	max-width: 30%;
+	overflow: hidden;
+	color: #50575e;
+	font-size: 13px;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.maestro-rename-sheet .maestro-row-rename-input {
+	flex: 1 1 auto;
+	min-width: 0;
+	box-sizing: border-box;
+	height: 44px;
+	margin: 0;
+	padding: 0 8px;
+	border: 1px solid #2271b1;
+	border-radius: 2px;
+	background: #fff;
+	color: #1d2327;
+	font-size: 16px; /* below 16px iOS zooms the page on focus */
+}
+.maestro-rename-sheet .maestro-rename-sheet-done {
+	flex: none;
+	min-width: 44px;
+	min-height: 44px;
+}
