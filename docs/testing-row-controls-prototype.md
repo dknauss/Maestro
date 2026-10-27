@@ -60,5 +60,5 @@ them all.
 
 ## Where to send it
 
-[Open a feedback issue on GitHub](https://github.com/dknauss/Maestro/issues/new?template=02-feature-request.yml&title=%5BRow%20controls%20prototype%5D%3A%20)
+[Open a feedback issue on GitHub](https://github.com/dknauss/Maestro/issues/new?template=03-prototype-feedback.yml)
 (a free GitHub account is needed). Fill in what you can; short notes are fine.
