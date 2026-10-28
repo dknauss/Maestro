@@ -9,6 +9,17 @@ files:
   - .github/workflows/release.yml (tag/version check)
 ---
 
+## Done — v1.11 Phase 34 (2026-10-28)
+
+Built as proposed, plus `maestro-logic.js` (it is cached the same way):
+`assets/maestro-build-check.js` is printed inline after `maestro.js` and
+compares `window.maestroBuild`, `window.maestroLogicBuild` and
+`--maestro-build` with `MAESTRO_VERSION`. `bin/prep-release.sh` bumps the
+stamps, `release.yml` refuses a tag whose stamps differ, and
+`tests/js/build-stamps.test.mjs` catches drift on every CI run. E2E:
+`tests/e2e/stale-assets.spec.ts`. The changelog note about `?ver=` stripping
+goes in the 1.11.0 release PR.
+
 ## What happened
 
 Found on a live PX site (TripSpark, Kinsta + Cloudflare) the day after 1.6.0

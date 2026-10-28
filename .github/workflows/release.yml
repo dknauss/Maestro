@@ -28,6 +28,11 @@ jobs:
           STABLE_TAG="$(grep -m1 -E '^Stable tag:' readme.txt | sed -E 's/^Stable tag:[[:space:]]*//')"
           test "$VERSION" = "$HEADER_VERSION"
           test "$VERSION" = "$STABLE_TAG"
+          # The editor files' build stamps (maestro-build-check.js) must match,
+          # or every editor would see the stale-files notice after updating.
+          grep -qF "window.maestroBuild = '$VERSION';" assets/maestro.js
+          grep -qF "window.maestroLogicBuild = '$VERSION';" assets/maestro-logic.js
+          grep -qF -- "--maestro-build: \"$VERSION\";" assets/maestro.css
 
       - name: Build release zip
         run: bash bin/build.sh

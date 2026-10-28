@@ -826,4 +826,6 @@ if ( typeof module !== 'undefined' && module.exports ) {
 
 if ( typeof window !== 'undefined' ) {
 	window.maestroLogic = api;
+	// This file's release; see maestro-build-check.js. Kept in sync by bin/prep-release.sh.
+	window.maestroLogicBuild = '1.10.0';
 }

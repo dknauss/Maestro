@@ -493,6 +493,24 @@ class Assets {
 				),
 			)
 		);
+
+		// Phase 34: catch editor files a browser cached from an older release.
+		// Inline, so it arrives with the page and cannot itself be stale; it
+		// runs after maestro.js, even if a stale maestro.js throws.
+		$check = (string) file_get_contents( MAESTRO_DIR . 'assets/maestro-build-check.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Local plugin file, not a remote request.
+		wp_add_inline_script(
+			'maestro',
+			'window.maestroBuildCheck = ' . wp_json_encode(
+				array(
+					'version'   => MAESTRO_VERSION,
+					'title'     => __( 'The menu editor\'s files in this browser are from an older version of Maestro. Reload to update them.', 'maestro-menu-editor' ),
+					/* translators: Button that refetches the menu editor's cached files and reloads the page. */
+					'reload'    => __( 'Reload', 'maestro-menu-editor' ),
+					'reloading' => __( 'Reloading…', 'maestro-menu-editor' ),
+				)
+			) . ";\n" . $check,
+			'after'
+		);
 	}
 
 	/**

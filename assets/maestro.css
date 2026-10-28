@@ -8,6 +8,12 @@
  * panel, not on each item.
  */
 
+/* This file's release. bin/prep-release.sh keeps it equal to MAESTRO_VERSION;
+ * maestro-build-check.js compares them to catch a stale cached copy. */
+:root {
+	--maestro-build: "1.10.0";
+}
+
 /* ---------- folded-mode override -----------------------------------------
  * The JS strips body.folded, and body.auto-fold from 783px up, on init and
  * re-strips them if common.js writes them back. These rules are defensive: if
