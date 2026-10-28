@@ -909,13 +909,12 @@ window.maestroBuild = '1.10.0';
 			menuEl.style.setProperty( '--maestro-menu-text', window.getComputedStyle( idleLink ).color );
 		}
 
-		// Transient save-status — aria-live, empty at idle so no announcement fires.
-		// Floats above the toolbar: visible state text and a shape cue, announced
-		// through the live region without reserving an empty toolbar column.
+		// Transient save-status. Floats above the toolbar: visible state text and
+		// a shape cue, without reserving an empty toolbar column. It is not a
+		// live region: setStatus() announces Saved and Save failed through
+		// speak(), and a live region here as well made each save heard twice
+		// (v1.11 Phase 35). "Saving…" stays visual only.
 		statusEl = el( 'span', 'maestro-status maestro-status-idle' );
-		statusEl.setAttribute( 'role', 'status' );
-		statusEl.setAttribute( 'aria-live', 'polite' );
-		statusEl.setAttribute( 'aria-atomic', 'true' );
 		statusEl.appendChild( el( 'span', 'maestro-status-text' ) );
 		bar.appendChild( statusEl );
 
@@ -923,7 +922,7 @@ window.maestroBuild = '1.10.0';
 		// the page corner for a long time. The × hides the bubble only: the
 		// error state and lastSaveOk stand, so Preview still refuses, and the
 		// next setStatus() (another edit, or another failure) shows it again.
-		// A sibling, not a child, so the live region never announces it.
+		// A sibling, not a child, so it never reads as part of the status text.
 		statusDismiss = el( 'button', 'button-link maestro-status-dismiss', '\u00d7' );
 		statusDismiss.type = 'button';
 		statusDismiss.hidden = true;
@@ -3537,8 +3536,8 @@ window.maestroBuild = '1.10.0';
 
 	function setStatus( state ) {
 		if ( ! statusEl ) { return; }
-		// Preserve the visible text child and its live-region announcements while
-		// the state class supplies the spinner, success or error glyph.
+		// Preserve the visible text child while the state class supplies the
+		// spinner, success or error glyph. Announcements go through speak() only.
 		// Rebuilding className also clears maestro-status-dismissed.
 		statusEl.className = 'maestro-status maestro-status-' + state;
 		if ( statusDismiss ) { statusDismiss.hidden = state !== 'error'; }

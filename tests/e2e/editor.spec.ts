@@ -872,6 +872,23 @@ test.describe( 'UX-03/UX-09 — mode named by the admin-bar toggle; transient sa
 		expect( idleContent ).toBe( 'none' );
 	} );
 
+	test( 'a save is announced once, through wp.a11y, not also by a live region', async ( { page } ) => {
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		const status = page.locator( '.maestro-toolbar .maestro-status' );
+		// Two channels made VoiceOver say "Saved" twice (v1.11 Phase 35).
+		await expect( status ).not.toHaveAttribute( 'role', /./ );
+		await expect( status ).not.toHaveAttribute( 'aria-live', /./ );
+
+		await page.locator( '#menu-posts > a.menu-top' ).click();
+		const saved = page.waitForResponse( r => POST_SAVE( r.url() ) && r.request().method() === 'POST' && r.ok() );
+		await page.locator( '.maestro-panel .maestro-move-down' ).click();
+		await saved;
+		await expect( page.locator( '#a11y-speak-polite' ) ).toContainText( 'Saved' );
+
+		page.once( 'dialog', d => d.accept() );
+		await page.locator( '.maestro-reset-all' ).click();
+	} );
+
 } );
 
 test.describe( 'UX-05 — selected-item name is screen-reader-only (no visible breadcrumb)', () => {
