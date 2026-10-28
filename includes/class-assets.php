@@ -614,7 +614,7 @@ class Assets {
 
 	/**
 	 * The picker set an icon value belongs to: 'dashicons', 'bootstrap',
-	 * 'wordpress' (the icon registry, 7.1+), or '' for no icon and for anything
+	 * 'registry' (WordPress's icon registry, 7.1+), or '' for no icon and for anything
 	 * a plugin supplied itself.
 	 *
 	 * @param string $icon Icon value from $menu[6].
@@ -636,7 +636,7 @@ class Assets {
 		if ( isset( $this->bootstrap_srcs[ $icon ] ) ) {
 			return 'bootstrap';
 		}
-		return $this->registry_icons->has( $icon ) ? 'wordpress' : '';
+		return $this->registry_icons->has( $icon ) ? 'registry' : '';
 	}
 
 	/**
@@ -683,7 +683,7 @@ class Assets {
 		);
 		if ( Registry_Icons::available() ) {
 			$sets[] = array(
-				'id'    => 'wordpress',
+				'id'    => 'registry',
 				'label' => __( 'WordPress', 'maestro-menu-editor' ),
 				'type'  => 'data',
 				'url'   => esc_url_raw( rest_url( Rest::NS . '/icons' ) ),

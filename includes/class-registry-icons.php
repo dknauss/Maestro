@@ -131,8 +131,10 @@ class Registry_Icons {
 		}
 
 		$collections = array();
-		foreach ( \WP_Icon_Collections_Registry::get_instance()->get_all_registered() as $slug => $collection ) {
-			$collections[ $slug ] = isset( $collection['label'] ) ? (string) $collection['label'] : (string) $slug;
+		foreach ( \WP_Icon_Collections_Registry::get_instance()->get_all_registered() as $collection ) {
+			if ( isset( $collection['slug'] ) ) {
+				$collections[ (string) $collection['slug'] ] = isset( $collection['label'] ) ? (string) $collection['label'] : (string) $collection['slug'];
+			}
 		}
 
 		foreach ( \WP_Icons_Registry::get_instance()->get_registered_icons() as $icon ) {
@@ -146,13 +148,14 @@ class Registry_Icons {
 			}
 
 			$parts      = explode( '/', $name, 2 );
-			$collection = isset( $collections[ $parts[0] ] ) ? $collections[ $parts[0] ] : $parts[0];
+			$slug       = isset( $icon['collection'] ) ? (string) $icon['collection'] : $parts[0];
+			$collection = isset( $collections[ $slug ] ) ? $collections[ $slug ] : $slug;
 			$label      = isset( $icon['label'] ) && '' !== (string) $icon['label'] ? (string) $icon['label'] : $name;
 			$words      = str_replace( array( '/', '-' ), ' ', $name );
 
 			$this->icons[] = array(
 				// A plugin's collection is named in the tooltip; core's is the tab itself.
-				'label' => 'core' === $parts[0]
+				'label' => 'core' === $slug
 					/* translators: 1: icon name, 2: icon collection name. */
 					? $label : sprintf( __( '%1$s (%2$s)', 'maestro-menu-editor' ), $label, $collection ),
 				'terms' => strtolower( $words . ' ' . $collection ),

@@ -10,3 +10,4 @@ parameters:
 	bootstrapFiles:
 		- vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
 		- tests/phpstan-bootstrap.php
+		- tests/phpstan-wp71-icons.php

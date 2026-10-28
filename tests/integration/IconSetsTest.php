@@ -63,7 +63,7 @@ class IconSetsTest extends WP_UnitTestCase {
 
 	public function test_wordpress_set_points_at_the_icons_route() {
 		$this->require_registry();
-		$set = $this->set( 'wordpress' );
+		$set = $this->set( 'registry' );
 
 		$this->assertArrayNotHasKey( 'icons', $set, 'The registry list loads on demand, not inline.' );
 		$this->assertSame( 'data', $set['type'] );
@@ -128,7 +128,7 @@ class IconSetsTest extends WP_UnitTestCase {
 		$assets = new Assets( new Config(), new Replay( new Config() ) );
 		$icons  = ( new Registry_Icons() )->icons();
 
-		$this->assertSame( 'wordpress', $method->invoke( $assets, $icons[0]['src'] ) );
+		$this->assertSame( 'registry', $method->invoke( $assets, $icons[0]['src'] ) );
 		$this->assertSame( '', $method->invoke( $assets, 'data:image/svg+xml;base64,PHN2Zy8+' ) );
 	}
 

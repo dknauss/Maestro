@@ -305,7 +305,7 @@ test.describe( 'Admin Menu Maestro — editor', () => {
 		await page.locator( '.maestro-toolbar .maestro-panel .maestro-icon-btn' ).click();
 
 		const picker = page.locator( '.maestro-icon-popover' );
-		const wpPanel = picker.locator( '#maestro-panel-wordpress' );
+		const wpPanel = picker.locator( '#maestro-panel-registry' );
 
 		// The list comes from Maestro's /icons route, which needs the REST nonce.
 		const listResp = page.waitForResponse( r => r.url().includes( 'maestro/v1/icons' ) || r.url().includes( 'maestro%2Fv1%2Ficons' ) );
@@ -343,7 +343,7 @@ test.describe( 'Admin Menu Maestro — editor', () => {
 		await page.locator( '.maestro-toolbar .maestro-panel .maestro-icon-btn' ).click();
 		const reopened = page.locator( '.maestro-icon-popover' );
 		await expect( reopened.getByRole( 'tab', { name: 'WordPress' } ) ).toHaveAttribute( 'aria-selected', 'true' );
-		await expect( reopened.locator( '#maestro-panel-wordpress .maestro-icon-cell.is-current' ) ).toHaveCount( 1 );
+		await expect( reopened.locator( '#maestro-panel-registry .maestro-icon-cell.is-current' ) ).toHaveCount( 1 );
 		await page.keyboard.press( 'Escape' );
 
 		page.once( 'dialog', d => d.accept() );
