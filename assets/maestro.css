@@ -101,9 +101,16 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 	margin: 0 !important;
 	padding: 0 !important;
 	border-top: 1px dashed rgba( 240, 246, 252, 0.35 );
+	/* The menu's text colour (set from a menu link in buildToolbar), so the
+	 * rule shows on light schemes as well as dark ones. */
+	border-top-color: color-mix( in srgb, var( --maestro-menu-text, #f0f0f1 ) 45%, transparent );
+}
+.maestro-editing #adminmenu li.maestro-separator {
+	color: var( --maestro-menu-text, inherit ); /* the selected-state inset uses currentColor */
 }
 .maestro-editing #adminmenu li.maestro-separator:hover {
 	background: rgba( 240, 246, 252, 0.06 );
+	background: color-mix( in srgb, var( --maestro-menu-text, #f0f0f1 ) 8%, transparent );
 }
 .maestro-editing #adminmenu li.maestro-separator.maestro-selected {
 	box-shadow: inset 3px 0 0 currentColor;
@@ -258,7 +265,7 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 }
 
 /* Reset All keeps its visible text label (Label mix preserved, CONTEXT
- * §WP-native styling) — only the five icon-only panel buttons hide their
+ * §WP-native styling) — only the icon-only panel buttons hide their
  * .maestro-btn-label text span. aria-label + title supply the accessible
  * name and hover hint for those. (Exit no longer lives in the bottom toolbar
  * — the WP Toolbar admin-bar toggle is the single entry/exit, UX-09.) */
@@ -267,6 +274,8 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 .maestro-toolbar .maestro-icon-btn .maestro-btn-label,
 .maestro-toolbar .maestro-vis-btn .maestro-btn-label,
 .maestro-toolbar .maestro-reset-item .maestro-btn-label,
+.maestro-toolbar .maestro-add-separator .maestro-btn-label,
+.maestro-toolbar .maestro-remove-separator .maestro-btn-label,
 .maestro-toolbar .maestro-settings-btn .maestro-btn-label,
 .maestro-toolbar .maestro-profiles-btn .maestro-btn-label,
 .maestro-toolbar .maestro-tour-help .maestro-btn-label {
@@ -1254,10 +1263,6 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 	}
 	.maestro-toolbar .maestro-rename-input {
 		width: 128px;
-	}
-	.maestro-toolbar .maestro-add-separator .maestro-btn-label,
-	.maestro-toolbar .maestro-remove-separator .maestro-btn-label {
-		display: none;
 	}
 }
 

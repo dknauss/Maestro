@@ -1,5 +1,11 @@
 # Separator editing: four edge cases found in the v1.6.0 release review
 
+**Done — v1.11 Phase 33 (2026-10-28).** (1) Selecting a separator focuses ▲,
+not Remove. (2) Removing a separator also removes stored separators core trimmed
+in the same place (`separatorsHiddenWith`). (3) Move, Alt+Arrow and drag refuse
+an order where core would drop a separator (`separatorsCoreDrops`), with a
+spoken reason. (4) The edit-mode rule and hover take the menu's text colour.
+
 **Raised:** 2026-09-22, by the pre-release correctness review of `v1.5.4..main`
 (separators shipped in #197). None loses data and none blocked the release;
 each was confirmed by reading or by running `carrySeparators` in node.

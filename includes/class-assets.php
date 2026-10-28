@@ -316,6 +316,8 @@ class Assets {
 					'addSeparator'         => __( 'Add separator below', 'maestro-menu-editor' ),
 					'removeSeparator'      => __( 'Remove separator', 'maestro-menu-editor' ),
 					'separatorAdded'       => __( 'Separator added', 'maestro-menu-editor' ),
+					/* translators: Spoken when a move is refused because WordPress would hide a separator there. */
+					'separatorWouldHide'   => __( 'Not moved. WordPress hides a separator next to another separator or at the end of the menu.', 'maestro-menu-editor' ),
 					'separatorRemoved'     => __( 'Separator removed', 'maestro-menu-editor' ),
 					'resetAll'             => __( 'Reset all', 'maestro-menu-editor' ),
 					/* translators: Heading for the role-checkbox group that hides THIS menu item (parent or submenu row). */

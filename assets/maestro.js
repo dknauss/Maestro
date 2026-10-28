@@ -553,6 +553,42 @@
 		return !! ( next && ! next.classList.contains( 'maestro-separator' ) );
 	}
 
+	// The top-level order a save stores: the rendered rows, plus the stored
+	// separators core trimmed (carrySeparators).
+	function carriedTopOrder( domOrder, added ) {
+		return window.maestroLogic.carrySeparators( {
+			domOrder:    domOrder,
+			domAdded:    added,
+			storedOrder: ( D.config && D.config.top_order ) || [],
+			storedAdded: ( D.config && D.config.separators ) || [],
+			known:       D.knownSeparators || [],
+			removed:     removedSeparators.concat( droppedSeparators ),
+			prefix:      D.separatorPrefix
+		} );
+	}
+
+	// Which of these top-level slugs are separators, rendered or not.
+	function separatorSet( slugs ) {
+		var known = Object.create( null );
+		( D.knownSeparators || [] ).forEach( function ( k ) { known[ k ] = true; } );
+		var set = Object.create( null );
+		slugs.forEach( function ( slug ) {
+			var li = liForKey( slug );
+			if ( isAddedSeparator( slug ) || known[ slug ] || ( li && li.classList.contains( 'maestro-separator' ) ) ) {
+				set[ slug ] = true;
+			}
+		} );
+		return set;
+	}
+
+	// Would this top-level order make core hide a separator that shows now?
+	// Such a separator stays in the config but can be neither seen nor removed.
+	function hidesASeparator( before, after ) {
+		var isSep = separatorSet( after );
+		return window.maestroLogic.separatorsCoreDrops( after, isSep ).length >
+			window.maestroLogic.separatorsCoreDrops( before, isSep ).length;
+	}
+
 	function addSeparatorBelow() {
 		var m = selectedKey && model[ selectedKey ];
 		if ( ! m || m.isSub || m.isSeparator || ! canAddSeparatorBelow( selectedKey ) ) { return; }
@@ -581,13 +617,26 @@
 		var rows = topRows();
 		var prev = li ? rows[ rows.indexOf( li ) - 1 ] || rows[ rows.indexOf( li ) + 1 ] : null;
 
+		// A stored separator core trimmed in this same place would take this
+		// one's spot on the next load, so Remove would look like it did nothing.
+		// It goes too.
+		var domOrder = rows.map( function ( r ) { return r.dataset.maestroSlug; } );
+		var rendered = Object.create( null );
+		domOrder.forEach( function ( k ) { rendered[ k ] = true; } );
+		var order = carriedTopOrder( domOrder, domOrder.filter( isAddedSeparator ) ).order;
+		var gone  = [ slug ].concat(
+			window.maestroLogic.separatorsHiddenWith( slug, order, rendered, separatorSet( order ) )
+		);
+
 		// One Maestro added simply stops being listed; an existing row has to be
 		// named so replay drops it on later loads.
-		if ( isAddedSeparator( slug ) ) {
-			droppedSeparators.push( slug );
-		} else if ( removedSeparators.indexOf( slug ) === -1 ) {
-			removedSeparators.push( slug );
-		}
+		gone.forEach( function ( id ) {
+			if ( isAddedSeparator( id ) ) {
+				if ( droppedSeparators.indexOf( id ) === -1 ) { droppedSeparators.push( id ); }
+			} else if ( removedSeparators.indexOf( id ) === -1 ) {
+				removedSeparators.push( id );
+			}
+		} );
 		if ( li ) { li.remove(); }
 		delete model[ slug ];
 		selectedKey = null;
@@ -714,6 +763,12 @@
 			return;
 		}
 
+		// Same rule as Add separator: never leave a separator where core hides it.
+		if ( ! m.isSub && hidesASeparator( currentKeys, newOrder ) ) {
+			speak( I.separatorWouldHide, 'assertive' );
+			return;
+		}
+
 		// Physically move ONLY the selected node by one position. All other nodes —
 		// including li.wp-menu-separator and any non-maestro-item children — stay put.
 		var selectedNode = liForKey( selectedKey );
@@ -785,8 +840,10 @@
 		// Tab-reachable). No aria-keyshortcuts advertised — Alt+Arrow was macOS-broken.
 		populatePanel( key );
 		closePopovers();
-		// A separator has no rename field; its first real control is Remove.
-		var focusTarget = model[ key ].isSeparator ? panel.removeSepBtn : panel.rename;
+		// A separator has no rename field. Focus goes to ▲, never Remove: a
+		// second Enter would otherwise delete it, and a removed core separator
+		// only comes back with Reset All.
+		var focusTarget = model[ key ].isSeparator ? panel.moveUp : panel.rename;
 		if ( opts.focusPanel && focusTarget ) {
 			try {
 				focusTarget.focus( { preventScroll: true } );
@@ -839,6 +896,13 @@
 		if ( current ) {
 			var scheme = window.getComputedStyle( current );
 			bar.style.setProperty( '--maestro-menu-accent', scheme.backgroundColor );
+		}
+		// The menu's own text colour, for the edit-mode separator rule: a fixed
+		// near-white vanished on light schemes (Light's menu is #e5e5e5).
+		var idleLink = document.querySelector( '#adminmenu > li.menu-top:not(.current):not(.wp-has-current-submenu) > a' );
+		var menuEl   = document.getElementById( 'adminmenu' );
+		if ( idleLink && menuEl ) {
+			menuEl.style.setProperty( '--maestro-menu-text', window.getComputedStyle( idleLink ).color );
 		}
 
 		// Transient save-status — aria-live, empty at idle so no announcement fires.
@@ -950,7 +1014,7 @@
 
 		var addSepBtn = el( 'button', 'button maestro-add-separator' );
 		addSepBtn.type = 'button';
-		iconButton( addSepBtn, 'dashicons-minus', I.addSeparator );
+		iconButton( addSepBtn, 'dashicons-editor-insertmore', I.addSeparator );
 		addSepBtn.addEventListener( 'click', function ( e ) {
 			e.preventDefault();
 			addSeparatorBelow();
@@ -3313,13 +3377,27 @@
 		// movement. `cancel` keeps a mousedown inside a submenu (or on a form
 		// control) from starting a top-level drag, so child reordering is handled
 		// solely by the per-submenu sortable below.
+		var dragFrom = null;
+		var slugsOf  = function () {
+			return topRows().map( function ( r ) { return r.dataset.maestroSlug; } );
+		};
 		$( '#adminmenu' ).sortable( {
 			items:     '> li.maestro-item',
 			cancel:    '.wp-submenu, input, button',
 			distance:  6,
 			axis:      'y',
 			tolerance: 'pointer',
+			start:     function () { dragFrom = slugsOf(); },
 			stop:      function () {
+				// A drop that leaves a separator where core hides it goes back,
+				// as Move and Add separator refuse the same place.
+				if ( dragFrom && hidesASeparator( dragFrom, slugsOf() ) ) {
+					$( '#adminmenu' ).sortable( 'cancel' );
+					dragFrom = null;
+					speak( I.separatorWouldHide, 'assertive' );
+					return;
+				}
+				dragFrom = null;
 				if ( selectedKey && model[ selectedKey ] ) { populatePanel( selectedKey ); }
 				scheduleAutosave();
 			}
@@ -3417,15 +3495,7 @@
 		// The save replaces the whole config, so a separator that is stored but
 		// not rendered (core trimmed it, or the editor could not pair it) must be
 		// carried forward, or it would be erased by an unrelated edit.
-		var carried = window.maestroLogic.carrySeparators( {
-			domOrder:    cfg.top_order,
-			domAdded:    added,
-			storedOrder: ( D.config && D.config.top_order ) || [],
-			storedAdded: ( D.config && D.config.separators ) || [],
-			known:       D.knownSeparators || [],
-			removed:     removedSeparators.concat( droppedSeparators ),
-			prefix:      D.separatorPrefix
-		} );
+		var carried = carriedTopOrder( cfg.top_order, added );
 		cfg.top_order = carried.order;
 
 		// Sparse, like items: the keys appear only when there is something to say.

@@ -600,6 +600,69 @@ function carrySeparators( o ) {
 	return { order: order, added: added };
 }
 
+/**
+ * The separators core would drop from this top-level order on render.
+ *
+ * Mirrors wp-admin/includes/menu.php: a separator straight after another
+ * separator is removed, then a separator left at the very end. A separator
+ * dropped this way stays in the saved config but never shows, so the editor
+ * refuses a move that would create one (it could not be seen or removed).
+ *
+ * @param {string[]} order    Top-level slugs in order.
+ * @param {Object}   isSep    Set of separator slugs ({ slug: true }).
+ * @return {string[]} The slugs core would drop, in order.
+ */
+function separatorsCoreDrops( order, isSep ) {
+	var dropped = [];
+	var kept    = [];
+	var prevSep = false;
+	order.forEach( function ( slug ) {
+		if ( ! isSep[ slug ] ) {
+			prevSep = false;
+			kept.push( slug );
+			return;
+		}
+		if ( prevSep ) {
+			dropped.push( slug );
+			return;
+		}
+		prevSep = true;
+		kept.push( slug );
+	} );
+	if ( kept.length && isSep[ kept[ kept.length - 1 ] ] ) {
+		dropped.push( kept[ kept.length - 1 ] );
+	}
+	return dropped;
+}
+
+/**
+ * The unrendered separators that sit in the same place as this one.
+ *
+ * carrySeparators() keeps a stored separator core trimmed, so a save does
+ * not erase it. When the visible separator beside it is removed, that kept
+ * one would take its place on the next load, and Remove would look like it
+ * did nothing. Removing a separator therefore also removes these: every
+ * separator reached from it, either way, before a rendered row.
+ *
+ * @param {string}   slug     The separator being removed.
+ * @param {string[]} order    The order a save would store (carrySeparators()' order).
+ * @param {Object}   rendered Set of rendered top-level slugs.
+ * @param {Object}   isSep    Set of separator slugs.
+ * @return {string[]} Unrendered separator slugs to remove with it.
+ */
+function separatorsHiddenWith( slug, order, rendered, isSep ) {
+	var at  = order.indexOf( slug );
+	var out = [];
+	if ( at === -1 ) { return out; }
+	[ -1, 1 ].forEach( function ( step ) {
+		for ( var i = at + step; i >= 0 && i < order.length; i += step ) {
+			if ( rendered[ order[ i ] ] ) { break; }
+			if ( isSep[ order[ i ] ] ) { out.push( order[ i ] ); }
+		}
+	} );
+	return out;
+}
+
 /* ---------- admin menu width (Phase 28) -------------------------------- */
 
 /**
@@ -747,6 +810,8 @@ var api = {
 	buildProfilesPayload:      buildProfilesPayload,
 	carryProfileHides:         carryProfileHides,
 	carrySeparators:           carrySeparators,
+	separatorsCoreDrops:       separatorsCoreDrops,
+	separatorsHiddenWith:      separatorsHiddenWith,
 	clampMenuWidth:            clampMenuWidth,
 	menuWidthCss:              menuWidthCss,
 	menuWidthFromPointer:      menuWidthFromPointer,
