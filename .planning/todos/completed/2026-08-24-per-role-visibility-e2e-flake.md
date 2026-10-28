@@ -1,5 +1,14 @@
 # `per-role visibility hides an item from that role only` fails in full runs, passes alone
 
+**Closed — v1.11 Phase 36 (2026-10-28).** The mechanism this todo suspected is
+gone: since #182 the editor session is restored from `storageState`, so the
+test no longer logs in mid-test. The failure has not been seen since. The
+main-branch CI run for `46bce57` (run 40599163789, 2026-10-27) reported 234
+passed and 30 skipped, with nothing flaky or retried. That is a sample, not a
+census, so `test.slow()` stays as the spec's own comment describes, and the
+test can come off it once more clean runs are on record. If the failure comes
+back, reopen this todo with the retained trace and follow step 2 or 3 below.
+
 **Status as of 2026-08-25:** Investigation remains open. PR #182 changed the
 secondary-login path and changed Playwright tracing to retain failed attempts;
 the latest full CI run is green, but that does not prove the underlying race is

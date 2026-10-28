@@ -9,6 +9,8 @@
 #   - maestro-menu-editor.php   * Version: header + MAESTRO_VERSION constant
 #   - readme.txt                Stable tag:
 #   - package.json + lock       root "version" (dev-harness; kept in sync via npm)
+#   - assets/maestro.js, assets/maestro-logic.js, assets/maestro.css
+#                               the build stamps maestro-build-check.js compares
 #
 # The Playground demos need no per-release edit: the stable demo installs from
 # /releases/latest/download/ (refreshed by the release workflow) and the main
@@ -35,6 +37,14 @@ README_TXT="$ROOT/readme.txt"
 # ---------------------------------------------------------------------------
 perl -pi -e "s/( \* Version:\s+)[0-9]+\.[0-9]+\.[0-9]+/\${1}$VERSION/" "$PLUGIN_FILE"
 perl -pi -e "s/(define\( 'MAESTRO_VERSION', ')[0-9]+\.[0-9]+\.[0-9]+(')/\${1}$VERSION\${2}/" "$PLUGIN_FILE"
+
+# ---------------------------------------------------------------------------
+# Editor build stamps — each cached file states its own release, so the page
+# can tell a browser running an older copy (see assets/maestro-build-check.js).
+# ---------------------------------------------------------------------------
+perl -pi -e "s/(window\.maestroBuild = ')[0-9]+\.[0-9]+\.[0-9]+(')/\${1}$VERSION\${2}/" "$ROOT/assets/maestro.js"
+perl -pi -e "s/(window\.maestroLogicBuild = ')[0-9]+\.[0-9]+\.[0-9]+(')/\${1}$VERSION\${2}/" "$ROOT/assets/maestro-logic.js"
+perl -pi -e "s/(--maestro-build: \")[0-9]+\.[0-9]+\.[0-9]+(\")/\${1}$VERSION\${2}/" "$ROOT/assets/maestro.css"
 
 # ---------------------------------------------------------------------------
 # readme.txt — Stable tag:
@@ -71,6 +81,7 @@ echo "Version bumped to v$VERSION in:"
 echo "  $PLUGIN_FILE"
 echo "  $README_TXT"
 echo "  $ROOT/package.json (+ package-lock.json)"
+echo "  $ROOT/assets/maestro.js, maestro-logic.js, maestro.css (build stamps)"
 echo ""
 echo "Next steps:"
 echo "  1. Update readme.txt changelog + Upgrade Notice for v$VERSION."

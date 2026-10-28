@@ -113,6 +113,15 @@ class TitleTest extends TestCase {
 		);
 	}
 
+	// Documented rule (todo 2026-08-02, closed in v1.11): a digit-only label is
+	// read as a count badge, on both the markup and markup-free paths, so a
+	// menu literally named "2024" falls back to a wholesale rename. Pinned so
+	// a change to the rule is deliberate.
+	public function test_digit_only_label_is_treated_as_a_badge_on_both_paths() {
+		$this->assertNull( Title::replace_label( '2024', 'Archive' ) );
+		$this->assertNull( Title::replace_label( '<span class="wrap">2024</span>', 'Archive' ) );
+	}
+
 	public function test_empty_title_returns_null() {
 		$this->assertNull( Title::replace_label( '', 'Anything' ) );
 		$this->assertNull( Title::replace_label( '   ', 'Anything' ) );

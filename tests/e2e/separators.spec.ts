@@ -54,6 +54,8 @@ test.describe( 'Menu separators', () => {
 		const panel = page.locator( '.maestro-toolbar .maestro-panel' );
 		await expect( panel.locator( '.maestro-remove-separator' ) ).toBeVisible();
 		await expect( panel.locator( '.maestro-move-up' ) ).toBeVisible();
+		// Focus lands on ▲, not Remove: a second Enter must not delete it.
+		await expect( panel.locator( '.maestro-move-up' ) ).toBeFocused();
 		await expect( panel.locator( '.maestro-rename-input' ) ).toBeHidden();
 		await expect( panel.locator( '.maestro-icon-btn' ) ).toBeHidden();
 		await expect( panel.locator( '.maestro-vis-btn' ) ).toBeHidden();
@@ -157,6 +159,90 @@ test.describe( 'Menu separators', () => {
 		expect( payload.config.separators ).toEqual( [ id ] );
 		const order: string[] = payload.config.top_order;
 		expect( order.slice( 0, 3 ) ).toEqual( [ 'index.php', 'separator1', id ] );
+	} );
+
+	test( 'separator buttons are icon-only, with full accessible names', async ( { page } ) => {
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		const panel = page.locator( '.maestro-toolbar .maestro-panel' );
+
+		await page.locator( '#menu-posts > a.menu-top' ).click();
+		const add = panel.locator( '.maestro-add-separator' );
+		await expect( add ).toHaveAccessibleName( 'Add separator below' );
+		await expect( add ).toHaveAttribute( 'title', 'Add separator below' );
+		await expect( add.locator( '.dashicons-editor-insertmore' ) ).toHaveCount( 1 );
+		await expect( add.locator( '.maestro-btn-label' ) ).toBeHidden();
+
+		await sepLi( page, 'separator1' ).click();
+		const remove = panel.locator( '.maestro-remove-separator' );
+		await expect( remove ).toHaveAccessibleName( 'Remove separator' );
+		await expect( remove.locator( '.maestro-btn-label' ) ).toBeHidden();
+	} );
+
+	test( 'a move that would put two separators together is refused', async ( { page } ) => {
+		// separator1 sits straight after the Dashboard; Posts follows it.
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		const before = await topOrder( page );
+		expect( before.slice( 0, 3 ) ).toEqual( [ 'index.php', 'separator1', 'edit.php' ] );
+
+		// Add a separator under Posts, then try to move Posts up past separator1:
+		// that would leave separator1 and the new one together.
+		await page.locator( '#menu-posts > a.menu-top' ).click();
+		const added = saved( page );
+		await page.locator( '.maestro-panel .maestro-add-separator' ).click();
+		await added;
+		const withNew = await topOrder( page );
+
+		await page.locator( '#menu-posts > a.menu-top' ).click();
+		await page.locator( '.maestro-panel .maestro-move-up' ).click();
+		expect( await topOrder( page ) ).toEqual( withNew );
+		await expect( page.locator( '#a11y-speak-assertive' ) ).toContainText( 'WordPress hides a separator' );
+
+		// A separator cannot be moved to the very end either.
+		const lastSep = page.locator( '#adminmenu > li.maestro-separator' ).last();
+		const lastSlug = await lastSep.getAttribute( 'data-maestro-slug' );
+		await lastSep.click();
+		let prev: string[] = [];
+		for ( let i = 0; i < 30; i++ ) {
+			const now = await topOrder( page );
+			if ( now.join() === prev.join() ) { break; }
+			prev = now;
+			await page.locator( '.maestro-panel .maestro-move-down' ).click();
+		}
+		const order = await topOrder( page );
+		expect( order[ order.length - 1 ] ).not.toBe( lastSlug );
+		expect( order[ order.length - 2 ] ).toBe( lastSlug );
+
+		page.once( 'dialog', d => d.accept() );
+		await page.locator( '.maestro-reset-all' ).click();
+	} );
+
+	test( 'removing a separator also removes a trimmed one in the same place', async ( { page } ) => {
+		// The stored separator sits right after separator1, so core drops it.
+		// Removing separator1 must not let it take separator1's place.
+		const id = 'separator-maestro-twin1';
+		storeConfig( {
+			schema_version: 2,
+			top_order: [ 'index.php', 'separator1', id, 'edit.php', 'upload.php' ],
+			separators: [ id ],
+		} );
+
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		await expect( sepLi( page, id ) ).toHaveCount( 0 );
+
+		await sepLi( page, 'separator1' ).click();
+		const save = saved( page );
+		await page.locator( '.maestro-panel .maestro-remove-separator' ).click();
+		const payload = ( await save ).request().postDataJSON();
+		expect( payload.config.separators ?? [] ).toEqual( [] );
+		expect( payload.config.removed_separators ).toEqual( [ 'separator1' ] );
+		expect( payload.config.top_order ).not.toContain( id );
+
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		const order = await topOrder( page );
+		expect( order.slice( 0, 2 ) ).toEqual( [ 'index.php', 'edit.php' ] );
+
+		page.once( 'dialog', d => d.accept() );
+		await page.locator( '.maestro-reset-all' ).click();
 	} );
 
 	test( 'no separator can be added below the last item, where core would trim it', async ( { page } ) => {

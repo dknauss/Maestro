@@ -297,6 +297,8 @@ class Assets {
 				'i18n'               => array(
 					'saving'               => __( 'Saving…', 'maestro-menu-editor' ),
 					'saved'                => __( 'Saved', 'maestro-menu-editor' ),
+					/* translators: Tooltip and accessible name of the check that stays in the editor toolbar after a save. */
+					'allSaved'             => __( 'All changes saved', 'maestro-menu-editor' ),
 					'saveError'            => __( 'Save failed. Retrying on next change.', 'maestro-menu-editor' ),
 					'dismissSaveError'     => __( 'Dismiss save error', 'maestro-menu-editor' ),
 					'modeLabel'            => __( 'Edit mode', 'maestro-menu-editor' ),
@@ -316,6 +318,8 @@ class Assets {
 					'addSeparator'         => __( 'Add separator below', 'maestro-menu-editor' ),
 					'removeSeparator'      => __( 'Remove separator', 'maestro-menu-editor' ),
 					'separatorAdded'       => __( 'Separator added', 'maestro-menu-editor' ),
+					/* translators: Spoken when a move is refused because WordPress would hide a separator there. */
+					'separatorWouldHide'   => __( 'Not moved. WordPress hides a separator next to another separator or at the end of the menu.', 'maestro-menu-editor' ),
 					'separatorRemoved'     => __( 'Separator removed', 'maestro-menu-editor' ),
 					'resetAll'             => __( 'Reset all', 'maestro-menu-editor' ),
 					/* translators: Heading for the role-checkbox group that hides THIS menu item (parent or submenu row). */
@@ -490,6 +494,24 @@ class Assets {
 					'menuWidthValue'       => __( '%d pixels', 'maestro-menu-editor' ),
 				),
 			)
+		);
+
+		// Phase 34: catch editor files a browser cached from an older release.
+		// Inline, so it arrives with the page and cannot itself be stale; it
+		// runs after maestro.js, even if a stale maestro.js throws.
+		$check = (string) file_get_contents( MAESTRO_DIR . 'assets/maestro-build-check.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Local plugin file, not a remote request.
+		wp_add_inline_script(
+			'maestro',
+			'window.maestroBuildCheck = ' . wp_json_encode(
+				array(
+					'version'   => MAESTRO_VERSION,
+					'title'     => __( 'The menu editor\'s files in this browser are from an older version of Maestro. Reload to update them.', 'maestro-menu-editor' ),
+					/* translators: Button that refetches the menu editor's cached files and reloads the page. */
+					'reload'    => __( 'Reload', 'maestro-menu-editor' ),
+					'reloading' => __( 'Reloading…', 'maestro-menu-editor' ),
+				)
+			) . ";\n" . $check,
+			'after'
 		);
 	}
 

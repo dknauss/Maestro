@@ -872,6 +872,47 @@ test.describe( 'UX-03/UX-09 — mode named by the admin-bar toggle; transient sa
 		expect( idleContent ).toBe( 'none' );
 	} );
 
+	test( 'a check stays in the toolbar after the Saved bubble fades, and only after a save', async ( { page } ) => {
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		const mark = page.locator( '.maestro-toolbar .maestro-saved-mark' );
+		await expect( mark ).toBeHidden(); // nothing has been saved yet
+
+		await page.locator( '#menu-posts > a.menu-top' ).click();
+		const saved = page.waitForResponse( r => POST_SAVE( r.url() ) && r.request().method() === 'POST' && r.ok() );
+		await page.locator( '.maestro-panel .maestro-move-down' ).click();
+		await saved;
+		await expect( page.locator( '.maestro-toolbar .maestro-status-saved' ) ).toBeVisible();
+		// The bubble fades after 2s; the check takes over and stays.
+		await expect( page.locator( '.maestro-toolbar .maestro-status-idle' ) ).toHaveCount( 1, { timeout: 5000 } );
+		await expect( mark ).toBeVisible();
+		await expect( mark ).toHaveAttribute( 'title', 'All changes saved' );
+		await expect( mark ).toHaveAccessibleName( 'All changes saved' );
+
+		// The next change hides it until that save lands.
+		await page.locator( '.maestro-panel .maestro-move-up' ).click();
+		await expect( mark ).toBeHidden();
+
+		page.once( 'dialog', d => d.accept() );
+		await page.locator( '.maestro-reset-all' ).click();
+	} );
+
+	test( 'a save is announced once, through wp.a11y, not also by a live region', async ( { page } ) => {
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		const status = page.locator( '.maestro-toolbar .maestro-status' );
+		// Two channels made VoiceOver say "Saved" twice (v1.11 Phase 35).
+		await expect( status ).not.toHaveAttribute( 'role', /./ );
+		await expect( status ).not.toHaveAttribute( 'aria-live', /./ );
+
+		await page.locator( '#menu-posts > a.menu-top' ).click();
+		const saved = page.waitForResponse( r => POST_SAVE( r.url() ) && r.request().method() === 'POST' && r.ok() );
+		await page.locator( '.maestro-panel .maestro-move-down' ).click();
+		await saved;
+		await expect( page.locator( '#a11y-speak-polite' ) ).toContainText( 'Saved' );
+
+		page.once( 'dialog', d => d.accept() );
+		await page.locator( '.maestro-reset-all' ).click();
+	} );
+
 } );
 
 test.describe( 'UX-05 — selected-item name is screen-reader-only (no visible breadcrumb)', () => {
