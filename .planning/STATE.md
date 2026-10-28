@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.9
-milestone_name: Client-Site Workflow
+milestone: v1.11
+milestone_name: Acceptance & Polish
 status: in_progress
-stopped_at: "1.10.0 release merged in #271 (Phase 31 export/import #263, icon picker #266, RTL fix #268), awaiting Dan's v1.10.0 tag. Real VoiceOver and iPad acceptance remain open; browser simulations passed."
-last_updated: "2026-10-27T00:00:00.000Z"
-last_activity: "2026-10-27 — 1.10.0 release PR #271 merged; issues #216 and #162 closed; planning reconciled (#269)."
+stopped_at: "v1.10.0 shipped to WordPress.org 2026-10-27. v1.11 planned 2026-10-28 (milestones/v1.11-ROADMAP.md); Phase 32 registry icon set in progress."
+last_updated: "2026-10-28T00:00:00.000Z"
+last_activity: "2026-10-28 — v1.11 Acceptance & Polish planned (Phases 32–37)."
 progress:
   total_phases: 3
   completed_phases: 0
@@ -15,6 +15,14 @@ progress:
 ---
 
 # Project State
+
+## v1.11 — 2026-10-28
+
+v1.10.0 shipped to WordPress.org on 2026-10-27 (tag on `46bce57`). Dan chose
+1.11's scope on 2026-10-28: the WordPress 7.1 registry icon set, four polish
+phases and prep for his iPad, touch and VoiceOver passes. Plan:
+[milestones/v1.11-ROADMAP.md](milestones/v1.11-ROADMAP.md). #261 stays a
+separate prototype; #167/#168 stay watch-only.
 
 ## Current reconciliation — 2026-10-27
 

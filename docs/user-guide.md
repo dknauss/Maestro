@@ -66,6 +66,12 @@ Bootstrap set is grouped by admin topic, so a search for a word like "shop" or
 "users" finds related icons. The Bootstrap set loads the first time you open
 its tab. The picker opens on the tab of the item's current icon.
 
+On WordPress 7.1 and later, a third **WordPress** tab lists the icons registered
+with WordPress's icon library: core's own set, plus any icons other plugins
+register. Plugin icons show their collection's name in the tooltip. A chosen
+icon is saved with the menu, so it keeps showing if the plugin that registered
+it is removed.
+
 A Bootstrap or other SVG icon takes the menu's colours, like a Dashicon: grey
 at rest, the hover colour under the pointer and the current-item colour, in
 every admin colour scheme.

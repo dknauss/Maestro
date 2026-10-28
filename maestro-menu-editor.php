@@ -36,6 +36,7 @@ require_once MAESTRO_DIR . 'includes/class-transfer-rest.php';
 require_once MAESTRO_DIR . 'includes/class-replay.php';
 require_once MAESTRO_DIR . 'includes/class-preview.php';
 require_once MAESTRO_DIR . 'includes/class-rest.php';
+require_once MAESTRO_DIR . 'includes/class-registry-icons.php';
 require_once MAESTRO_DIR . 'includes/class-admin-bar.php';
 require_once MAESTRO_DIR . 'includes/class-assets.php';
 require_once MAESTRO_DIR . 'includes/class-conflict-notice.php';
@@ -179,6 +180,9 @@ function boot() {
 	new Transfer_Rest( $config, $replay );
 	new Admin_Bar();
 	new Conflict_Notice();
-	new Assets( $config, $replay );
+
+	$registry_icons = new Registry_Icons();
+	$registry_icons->hooks();
+	new Assets( $config, $replay, $registry_icons );
 }
 add_action( 'plugins_loaded', __NAMESPACE__ . '\\boot' );

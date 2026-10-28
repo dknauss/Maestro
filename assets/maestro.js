@@ -1327,9 +1327,10 @@
 			} );
 		}
 
-		// A set with a `url` (Bootstrap) is fetched the first time its tab opens,
-		// so its few hundred KB of data-URIs stay out of every edit-mode page.
-		// The promise is kept on the set, so reopening the picker reuses it.
+		// A set with a `url` (Bootstrap, WordPress) is fetched the first time its
+		// tab opens, so its data-URIs stay out of every edit-mode page. The
+		// promise is kept on the set, so reopening the picker reuses it. A
+		// `rest` set is Maestro's own route, which needs the REST nonce.
 		function loadSet( set, panel ) {
 			if ( ! set.url || panel.dataset.maestroLoaded ) { return; }
 			panel.dataset.maestroLoaded = '1';
@@ -1343,7 +1344,9 @@
 			}
 			status.textContent = I.iconLoading;
 			if ( ! set.request ) {
-				set.request = window.fetch( set.url, { credentials: 'same-origin' } ).then( function ( r ) {
+				var opts = { credentials: 'same-origin' };
+				if ( set.rest ) { opts.headers = { 'X-WP-Nonce': D.nonce }; }
+				set.request = window.fetch( set.url, opts ).then( function ( r ) {
 					if ( ! r.ok ) { throw new Error( r.status ); }
 					return r.json();
 				} );

@@ -42,14 +42,23 @@ class Assets {
 	private $bootstrap_srcs = null;
 
 	/**
+	 * The WordPress icon set, read from core's icon registry on 7.1+.
+	 *
+	 * @var Registry_Icons
+	 */
+	private $registry_icons;
+
+	/**
 	 * Store dependencies and register the enqueue hook.
 	 *
-	 * @param Config $config Shared config.
-	 * @param Replay $replay Shared replay engine (for pristine + model).
+	 * @param Config              $config         Shared config.
+	 * @param Replay              $replay         Shared replay engine (for pristine + model).
+	 * @param Registry_Icons|null $registry_icons The registry icon set; one is made when omitted.
 	 */
-	public function __construct( Config $config, Replay $replay ) {
-		$this->config = $config;
-		$this->replay = $replay;
+	public function __construct( Config $config, Replay $replay, $registry_icons = null ) {
+		$this->config         = $config;
+		$this->replay         = $replay;
+		$this->registry_icons = $registry_icons instanceof Registry_Icons ? $registry_icons : new Registry_Icons();
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ) );
 	}
 
@@ -427,7 +436,9 @@ class Assets {
 					'tourStep1'            => __( 'Click any menu item to edit it right here on the menu.', 'maestro-menu-editor' ),
 					'tourStep2'            => __( 'Type a new name for the selected item here.', 'maestro-menu-editor' ),
 					'tourStep3'            => __( 'Reorder items by dragging — or use the up and down arrows.', 'maestro-menu-editor' ),
-					'tourStepIcon'         => __( 'Change the item\'s icon. Pick one from Dashicons or Bootstrap, or choose no icon.', 'maestro-menu-editor' ),
+					'tourStepIcon'         => Registry_Icons::available()
+						? __( 'Change the item\'s icon. Pick one from Dashicons, Bootstrap or WordPress, or choose no icon.', 'maestro-menu-editor' )
+						: __( 'Change the item\'s icon. Pick one from Dashicons or Bootstrap, or choose no icon.', 'maestro-menu-editor' ),
 					'tourStepVisibility'   => __( 'Hide the item from chosen roles or people. Everyone else still sees it.', 'maestro-menu-editor' ),
 					'tourStepResetItem'    => __( 'Undo every change to just this item.', 'maestro-menu-editor' ),
 					'tourStepSeparator'    => __( 'Add a separator line below this item. To remove one, select the separator and use the trash button.', 'maestro-menu-editor' ),
@@ -602,8 +613,9 @@ class Assets {
 	}
 
 	/**
-	 * The picker set an icon value belongs to: 'dashicons', 'bootstrap', or ''
-	 * for no icon and for anything a plugin supplied itself.
+	 * The picker set an icon value belongs to: 'dashicons', 'bootstrap',
+	 * 'registry' (WordPress's icon registry, 7.1+), or '' for no icon and for anything
+	 * a plugin supplied itself.
 	 *
 	 * @param string $icon Icon value from $menu[6].
 	 * @return string
@@ -621,7 +633,10 @@ class Assets {
 			$srcs                 = isset( $file['icons'] ) && is_array( $file['icons'] ) ? array_column( $file['icons'], 'src' ) : array();
 			$this->bootstrap_srcs = array_fill_keys( $srcs, true );
 		}
-		return isset( $this->bootstrap_srcs[ $icon ] ) ? 'bootstrap' : '';
+		if ( isset( $this->bootstrap_srcs[ $icon ] ) ) {
+			return 'bootstrap';
+		}
+		return $this->registry_icons->has( $icon ) ? 'registry' : '';
 	}
 
 	/**
@@ -636,10 +651,14 @@ class Assets {
 	 * first time its tab opens, so ~350 KB of data-URIs never ride in the
 	 * edit-mode payload, and the versioned URL lets the browser cache it.
 	 *
+	 * The WordPress set (7.1+) is also a `url`: Maestro's /icons route, which
+	 * reads core's icon registry, so it includes icons other plugins register.
+	 * `rest` tells the picker to send the REST nonce with that request.
+	 *
 	 * @return array
 	 */
 	private function icon_sets() {
-		return array(
+		$sets = array(
 			array(
 				'id'    => 'dashicons',
 				'label' => __( 'Dashicons', 'maestro-menu-editor' ),
@@ -662,5 +681,15 @@ class Assets {
 				'url'   => add_query_arg( 'ver', MAESTRO_VERSION, MAESTRO_URL . 'assets/icons-bootstrap.json' ),
 			),
 		);
+		if ( Registry_Icons::available() ) {
+			$sets[] = array(
+				'id'    => 'registry',
+				'label' => __( 'WordPress', 'maestro-menu-editor' ),
+				'type'  => 'data',
+				'url'   => esc_url_raw( rest_url( Rest::NS . '/icons' ) ),
+				'rest'  => true,
+			);
+		}
+		return $sets;
 	}
 }

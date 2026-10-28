@@ -17,7 +17,13 @@
 - [ ] **v1.8 Hiding profiles** — Phase 27 (all five plans built on main; #242 includes the 27-05 commits from superseded #241; desktop human checks passed 2026-10-23; touch-device acceptance remains open).
 - [ ] **v1.9 Client-Site Workflow** — Phases 29–31 (planned 2026-10-09; renumbered from the provisional v1.7 on 2026-10-22). Three requests from one WordPress.org support thread that together cover setting up a client site: see what a role sees, hide from every other role in one step, carry the result to the next site. GitHub milestone [v1.9 Client-site workflow](https://github.com/dknauss/Maestro/milestone/1).
 
+- [ ] **v1.11 Acceptance & Polish** — Phases 32–37 (planned 2026-10-28; Dan's pick "A, plus B's registry set"). WordPress 7.1 registry icon set as the headline, the separator, stale-files and save-state todos, and prep for Dan's iPad, touch and VoiceOver passes → [plan](milestones/v1.11-ROADMAP.md)
+
 ## Next up
+
+**v1.11 (2026-10-28):** 1.10.0 shipped to WordPress.org 2026-10-27. 1.11 is
+planned in [milestones/v1.11-ROADMAP.md](milestones/v1.11-ROADMAP.md); Phase 32
+(registry icon set) is first.
 
 Desktop refinement follow-up (2026-10-24): compact Preview picker on desktop,
 header close actions, one Menu width title, floating save status, admin-scheme
@@ -668,3 +674,9 @@ originated under the v1.4 roadmap and were not renumbered when they slipped.
 | 29. Select-All Role Control | v1.9 | 2/2 built | Merged #243; CI green; desktop checks passed 2026-10-23; touch outstanding | - |
 | 30. View-as-Role Preview (read-only) | v1.9 | 2/2 built | Merged through #251; human acceptance open | - |
 | 31. Config Export/Import | v1.10.0 | Built, merged #263 | Shipped in 1.10.0 (#271); human acceptance outstanding | - |
+| 32. WordPress Registry Icon Set | v1.11 | 0/1 | In progress | - |
+| 33. Separator Polish | v1.11 | 0/1 | Planned | - |
+| 34. Stale Editor Files Notice | v1.11 | 0/1 | Planned | - |
+| 35. Save-State Feedback | v1.11 | 0/1 | Planned | - |
+| 36. Acceptance Prep and Housekeeping | v1.11 | 0/1 | Planned | - |
+| 37. Release v1.11.0 | v1.11 | 0/1 | Planned | - |
