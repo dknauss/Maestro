@@ -19,7 +19,7 @@
  */
 // This file's release. bin/prep-release.sh keeps it equal to MAESTRO_VERSION;
 // maestro-build-check.js compares them to catch a stale cached copy.
-window.maestroBuild = '1.10.0';
+window.maestroBuild = '1.11.0';
 
 ( function ( $ ) {
 	'use strict';

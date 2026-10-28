@@ -4,7 +4,7 @@ Donate link: https://github.com/sponsors/dknauss
 Tags: admin menu, menu editor, hide menu items, rename menu items, menu icons
 Requires at least: 6.4
 Tested up to: 7.1
-Stable tag: 1.10.0
+Stable tag: 1.11.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -220,6 +220,12 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 
 == Changelog ==
 
+= 1.11.0 =
+* **New: WordPress icons.** On WordPress 7.1 and later, the icon picker has a third tab, **WordPress**, with every icon in WordPress's own icon library, plus any icons another plugin adds to it. Icons from another plugin name their source in the tooltip. A chosen icon follows the menu colours like the others, and keeps showing if the plugin that added it is removed. The tab loads the first time you open it. Below 7.1 the picker is unchanged.
+* **Improved: separators.** Selecting a separator now puts focus on its move-up button, not on **Remove separator**, so pressing Enter twice can no longer remove one by accident. A move that would put two separators together, or a separator at the end of the menu, is refused with the reason, because WordPress would hide the separator there. Removing a separator also removes any hidden twin in the same place, so nothing reappears. The separator line is now visible on light colour schemes, and the add and remove separator buttons show only their icons at every width, keeping their names for screen readers and as tooltips.
+* **New: a notice when the browser has old editor files.** If the browser is still running the menu editor's files from an earlier Maestro version, Edit Menu says so and offers **Reload**, which fetches the current files and reloads the page. This mostly happens on sites where something removes the `?ver=` from plugin files in the admin, which stops browsers noticing an update.
+* **Improved: save feedback.** After "Saved" fades, a small muted check stays in the editing toolbar, with the tooltip "All changes saved", until your next change. Screen readers now hear each save once instead of twice.
+
 = 1.10.0 =
 * **New: copy a menu configuration to another site.** In Edit Menu, open **Settings** and use **Export/import**. Export downloads a JSON file of names, icons, role rules, ordering, separators and menu width. Rules for individual people and visibility groups are never exported. On the destination, **Review file** lists anything that cannot be applied before **Import configuration** changes anything; the destination's own people rules and visibility groups are kept. Long reports can be downloaded in full. Settings, and so export/import, is available on screens 961px and wider. Hiding stays cosmetic.
 * **Improved: the icon picker.** Dashicons and Bootstrap Icons now show in square cells in one colour. The Bootstrap set grows from 87 to 437 icons, grouped and searchable by admin topic, and loads the first time you open its tab. The picker opens on the tab of the item's current icon. Icons you already chose are unchanged.
@@ -357,6 +363,9 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 * Editor: click-to-select with a shared panel, debounced single-flight autosave, and folded-mode neutralization.
 
 == Upgrade Notice ==
+
+= 1.11.0 =
+Adds a WordPress icon tab on WordPress 7.1 and later, safer separator editing, a notice when the browser runs old editor files, and a lasting saved check. Hiding stays cosmetic.
 
 = 1.10.0 =
 Adds export/import, to copy a menu configuration to another site from Settings on desktop. Expands the Bootstrap icon set to 437 icons and makes SVG menu icons follow the admin colour scheme. Hiding stays cosmetic.

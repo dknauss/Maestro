@@ -11,7 +11,7 @@
 /* This file's release. bin/prep-release.sh keeps it equal to MAESTRO_VERSION;
  * maestro-build-check.js compares them to catch a stale cached copy. */
 :root {
-	--maestro-build: "1.10.0";
+	--maestro-build: "1.11.0";
 }
 
 /* ---------- folded-mode override -----------------------------------------
