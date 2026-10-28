@@ -39,6 +39,8 @@ window.maestroBuild = '1.10.0';
 	var panel = {};        // references into the shared panel
 	var statusEl = null;   // status indicator span
 	var statusDismiss = null; // × that hides a stuck save error (the error itself stays)
+	var savedMark = null;     // muted ✓ that stays once the "Saved" bubble fades (Phase 35)
+	var hasSaved  = false;    // a save has succeeded this session; before that, no ✓
 	var saveTimer = null;
 	var saveInFlight = false;  // a full-replace POST is currently running
 	var savePending = false;   // another change arrived mid-flight; save again on land
@@ -1107,6 +1109,17 @@ window.maestroBuild = '1.10.0';
 		}
 		var preview = buildPreviewPicker();
 		if ( preview ) { right.appendChild( preview ); }
+
+		// Standing reassurance, as the block editor gives: once a save lands
+		// and its bubble fades, a muted ✓ stays until the next change. Never
+		// before the first save, which would claim something that did not
+		// happen. Saves are announced by speak(); this is for the eye.
+		savedMark = el( 'span', 'maestro-saved-mark dashicons dashicons-yes' );
+		savedMark.setAttribute( 'role', 'img' );
+		savedMark.setAttribute( 'aria-label', I.allSaved );
+		savedMark.title = I.allSaved;
+		savedMark.hidden = true;
+		right.appendChild( savedMark );
 		right.appendChild( settings );
 		right.appendChild( help );
 		right.appendChild( resetAll );
@@ -3541,6 +3554,7 @@ window.maestroBuild = '1.10.0';
 		// Rebuilding className also clears maestro-status-dismissed.
 		statusEl.className = 'maestro-status maestro-status-' + state;
 		if ( statusDismiss ) { statusDismiss.hidden = state !== 'error'; }
+		if ( savedMark ) { savedMark.hidden = ! ( state === 'idle' && hasSaved && lastSaveOk ); }
 		var label = window.maestroLogic.modeStatusLabel( state, I );
 		var textEl = statusEl.querySelector( '.maestro-status-text' );
 		if ( textEl ) { setText( textEl, label ); }
@@ -3611,6 +3625,7 @@ window.maestroBuild = '1.10.0';
 			return doAutosave(); // captures edits made while the last POST was in flight
 		}
 		lastSaveOk = ok;
+		if ( ok ) { hasSaved = true; }
 		setStatus( ok ? 'saved' : 'error' );
 		inFlight = null;
 		// The "Saved" tile is transient — fade it back to idle so the toolbar

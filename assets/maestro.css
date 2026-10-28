@@ -1469,6 +1469,21 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 .maestro-tour-content { padding-inline-end: 48px; }
 .maestro-tour .maestro-tour-skip { margin: 0; text-decoration: none; }
 
+/* The ✓ that stays after a save (Phase 35): muted, glyph-only, desktop only.
+ * The phone toolbar has no width to spare, and its own rows were verified on
+ * hardware; the floating bubble still reports each save there. */
+.maestro-toolbar .maestro-saved-mark {
+	align-self: center;
+	width: 20px;
+	height: 20px;
+	font-size: 20px;
+	color: #8c8f94; /* the "Saved" bubble's muted tone, >=3:1 on the dark toolbar */
+}
+.maestro-toolbar .maestro-saved-mark[hidden] { display: none; }
+@media screen and ( max-width: 782px ), screen and ( max-height: 500px ) {
+	.maestro-toolbar .maestro-saved-mark { display: none; }
+}
+
 /* Feedback floats above the toolbar, so idle and save transitions consume no
  * horizontal space and never move its controls. Errors persist until retry. */
 .maestro-toolbar .maestro-status {

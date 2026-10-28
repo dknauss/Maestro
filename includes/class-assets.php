@@ -297,6 +297,8 @@ class Assets {
 				'i18n'               => array(
 					'saving'               => __( 'Saving…', 'maestro-menu-editor' ),
 					'saved'                => __( 'Saved', 'maestro-menu-editor' ),
+					/* translators: Tooltip and accessible name of the check that stays in the editor toolbar after a save. */
+					'allSaved'             => __( 'All changes saved', 'maestro-menu-editor' ),
 					'saveError'            => __( 'Save failed. Retrying on next change.', 'maestro-menu-editor' ),
 					'dismissSaveError'     => __( 'Dismiss save error', 'maestro-menu-editor' ),
 					'modeLabel'            => __( 'Edit mode', 'maestro-menu-editor' ),
