@@ -299,6 +299,58 @@ test.describe( 'Admin Menu Maestro — editor', () => {
 		await expect( page.locator( '#menu-posts .wp-menu-image' ) ).not.toHaveClass( /\bsvg\b/ );
 	} );
 
+	test( 'a WordPress registry icon (7.1+) saves, masks and reopens on its tab', async ( { page } ) => {
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		await page.locator( '#menu-posts > a.menu-top' ).click();
+		await page.locator( '.maestro-toolbar .maestro-panel .maestro-icon-btn' ).click();
+
+		const picker = page.locator( '.maestro-icon-popover' );
+		const wpPanel = picker.locator( '#maestro-panel-wordpress' );
+
+		// The list comes from Maestro's /icons route, which needs the REST nonce.
+		const listResp = page.waitForResponse( r => r.url().includes( 'maestro/v1/icons' ) || r.url().includes( 'maestro%2Fv1%2Ficons' ) );
+		await picker.getByRole( 'tab', { name: 'WordPress' } ).click();
+		expect( ( await listResp ).status() ).toBe( 200 );
+		await expect
+			.poll( () => wpPanel.locator( '.maestro-icon-cell' ).count() )
+			.toBeGreaterThanOrEqual( 80 );
+
+		// Search reaches the registry's labels.
+		await picker.locator( '.maestro-icon-search' ).fill( 'store' );
+		await expect( wpPanel.locator( '.maestro-icon-cell:visible' ) ).toHaveCount( 1 );
+
+		const saveResp = page.waitForResponse(
+			r => POST_SAVE( r.url() ) && r.request().method() === 'POST' && r.ok()
+		);
+		await wpPanel.getByRole( 'button', { name: 'Store', exact: true } ).click();
+		const icon = ( await saveResp ).request().postDataJSON()?.config?.items?.[ 'edit.php' ]?.icon as string;
+		expect( icon ).toMatch( /^data:image\/svg\+xml;base64,/ );
+
+		// After reload it renders through the #172 mask path, like Bootstrap.
+		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
+		const img = page.locator( '#menu-posts .wp-menu-image' );
+		await expect( page.locator( '#menu-posts' ) ).toHaveClass( /\bmaestro-mask-icon\b/ );
+		await expect
+			.poll( () => img.evaluate( el => {
+				const before = getComputedStyle( el, '::before' );
+				return before.maskImage || before.webkitMaskImage;
+			} ) )
+			.toMatch( /^url\("?data:image\/svg\+xml;base64,/ );
+
+		// The server matched the stored icon to the registry: the picker reopens
+		// on the WordPress tab with it marked current.
+		await page.locator( '#menu-posts > a.menu-top' ).click();
+		await page.locator( '.maestro-toolbar .maestro-panel .maestro-icon-btn' ).click();
+		const reopened = page.locator( '.maestro-icon-popover' );
+		await expect( reopened.getByRole( 'tab', { name: 'WordPress' } ) ).toHaveAttribute( 'aria-selected', 'true' );
+		await expect( reopened.locator( '#maestro-panel-wordpress .maestro-icon-cell.is-current' ) ).toHaveCount( 1 );
+		await page.keyboard.press( 'Escape' );
+
+		page.once( 'dialog', d => d.accept() );
+		await page.locator( '.maestro-reset-all' ).click();
+		await expect( img ).not.toHaveClass( /\bsvg\b/ );
+	} );
+
 	test( 'a failed Bootstrap download can be retried without a stale error', async ( { page } ) => {
 		// The first request for the catalog fails; later ones go through.
 		let failed = false;
