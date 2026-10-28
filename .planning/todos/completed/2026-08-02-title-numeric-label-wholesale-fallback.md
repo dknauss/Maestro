@@ -7,6 +7,12 @@ files:
   - includes/class-title.php (replace_label() fast path — mirrors the same numeric guard for markup-free titles)
 ---
 
+## Closed — v1.11 Phase 36 (2026-10-28)
+
+Kept as documented behaviour, as this note recommended. Pinned by
+`TitleTest::test_digit_only_label_is_treated_as_a_badge_on_both_paths`, so a
+change to the rule has to be deliberate.
+
 ## Problem
 
 NOTE-ONLY. Extremely rare, documented behavior — not a bug to fix.
