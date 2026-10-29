@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.11
 milestone_name: Acceptance & Polish
-status: in_progress
-stopped_at: "v1.11.0 cut 2026-10-28: Phases 32–36 merged (#275, #276); release PR open, awaits Dan's v1.11.0 tag. Human acceptance per milestones/v1.11-ACCEPTANCE.md."
-last_updated: "2026-10-28T02:00:00.000Z"
-last_activity: "2026-10-28 — v1.11.0 release prep (Phase 37)."
+status: shipped
+stopped_at: "v1.11.0 shipped to WordPress.org 2026-10-29 (tag on 3296942). Human acceptance per milestones/v1.11-ACCEPTANCE.md remains open."
+last_updated: "2026-10-29T14:00:00.000Z"
+last_activity: "2026-10-29 — v1.11.0 released to WordPress.org."
 progress:
   total_phases: 3
   completed_phases: 0
@@ -23,6 +23,8 @@ v1.10.0 shipped to WordPress.org on 2026-10-27 (tag on `46bce57`). Dan chose
 phases and prep for his iPad, touch and VoiceOver passes. Plan:
 [milestones/v1.11-ROADMAP.md](milestones/v1.11-ROADMAP.md). #261 stays a
 separate prototype; #167/#168 stay watch-only.
+
+**Shipped — 1.11.0 (2026-10-29).** Dan tagged `v1.11.0` on `3296942`; release run 40880549320 built the GitHub Release and deployed to WordPress.org at 13:31Z. The follow-up docs PR recaptures screenshot 1 for the icon-only separator buttons.
 
 **Release prep — 1.11.0 (2026-10-28).** Phase 32 (registry icon set) merged in
 #275; Phases 33–36 (separators, stale-files notice, saved check, acceptance
