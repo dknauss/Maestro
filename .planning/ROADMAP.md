@@ -23,7 +23,7 @@
 
 **v1.11 (2026-10-28):** 1.10.0 shipped to WordPress.org 2026-10-27. 1.11 is
 planned in [milestones/v1.11-ROADMAP.md](milestones/v1.11-ROADMAP.md). Phases
-32–36 merged 2026-10-28 (#275, #276); Phase 37 (release 1.11.0) awaits Dan's tag.
+32–37 complete: 1.11.0 shipped to WordPress.org 2026-10-29. Human iPad, touch and VoiceOver acceptance is open.
 
 Desktop refinement follow-up (2026-10-24): compact Preview picker on desktop,
 header close actions, one Menu width title, floating save status, admin-scheme
@@ -679,4 +679,4 @@ originated under the v1.4 roadmap and were not renumbered when they slipped.
 | 34. Stale Editor Files Notice | v1.11 | 1/1 | Complete (#276) | 2026-10-28 |
 | 35. Save-State Feedback | v1.11 | 1/1 | Complete (#276) | 2026-10-28 |
 | 36. Acceptance Prep and Housekeeping | v1.11 | 1/1 | Complete (#276) | 2026-10-28 |
-| 37. Release v1.11.0 | v1.11 | 0/1 | Release PR open; awaits tag | - |
+| 37. Release v1.11.0 | v1.11 | 1/1 | Complete (#277; shipped to WordPress.org) | 2026-10-29 |
