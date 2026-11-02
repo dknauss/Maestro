@@ -23,6 +23,11 @@
  *   via @wordpress/env): closed 2026-09-21 by overriding adm-zip to 0.6.1,
  *   the first release outside its affected range. The same bump fixes
  *   GHSA-7q85-xj36-vmfc (adm-zip DoS via declared uncompressed size, < 0.6.1).
+ * - GHSA-3g3m-2fjr-6pw4 (glob 9.0.0-14.0.1) and GHSA-g3hv-75wg-m249
+ *   (minimatch < 11.0.1), via @wordpress/env > rimraf 5 > glob 10: closed
+ *   2026-11-02 by overriding glob to ^14.0.3, which brings minimatch 11.
+ *   rimraf 5 only imports glob() and globSync(), which glob 14 keeps. Drop
+ *   the override once @wordpress/env moves past rimraf 5.
  * - GHSA-hp3w-g68c-fv3c (sprintf-js, every release affected, via
  *   @wordpress/env > js-yaml 3.x > argparse 1.x): closed 2026-10-07 by
  *   overriding js-yaml's argparse to 2.x, which has no sprintf-js dependency.

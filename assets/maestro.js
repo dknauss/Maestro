@@ -2303,6 +2303,11 @@ window.maestroBuild = '1.11.0';
 			dragging = e.pointerId;
 			h.setPointerCapture( e.pointerId );
 			document.body.classList.add( 'maestro-resizing' );
+			// Where on the handle the drag started, measured from the menu's
+			// edge. On touch screens the handle reaches 20px past the edge, so
+			// without this the menu would jump to the finger on the first move.
+			var startRect = wrap.getBoundingClientRect();
+			var grab = e.clientX - ( rtl ? startRect.left : startRect.right );
 
 			function move( ev ) {
 				if ( ev.pointerId !== dragging ) { return; }
@@ -2313,7 +2318,7 @@ window.maestroBuild = '1.11.0';
 					return;
 				}
 				var r = wrap.getBoundingClientRect();
-				var w = window.maestroLogic.menuWidthFromPointer( ev.clientX, r, rtl, widthBounds );
+				var w = window.maestroLogic.menuWidthFromPointer( ev.clientX - grab, r, rtl, widthBounds );
 				setMenuWidth( w === null ? widthBounds.default : w );
 			}
 			function end( ev ) {
