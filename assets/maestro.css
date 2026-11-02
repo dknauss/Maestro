@@ -1009,6 +1009,27 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 		right: auto;
 		left: -4px;
 	}
+	/*
+	 * Touch screens (iPad landscape is the case that reaches 961px): 8px is
+	 * too thin for a finger. Widen the hit area to 24px, the WCAG 2.2 minimum,
+	 * by reaching out over the page rather than over the menu rows, and clip
+	 * the painted bar to the same 8px strip a mouse user sees.
+	 */
+	@media ( pointer: coarse ) {
+		.maestro-editing .maestro-width-handle {
+			right: -20px;
+			width: 24px;
+			box-sizing: border-box;
+			padding-right: 16px;
+			background-clip: content-box;
+		}
+		.rtl.maestro-editing .maestro-width-handle {
+			right: auto;
+			left: -20px;
+			padding-right: 0;
+			padding-left: 16px;
+		}
+	}
 	.maestro-editing .maestro-width-handle:hover,
 	.maestro-editing .maestro-width-handle:focus-visible,
 	.maestro-resizing .maestro-width-handle {
@@ -1626,4 +1647,30 @@ body.maestro-editing #adminmenu li.menu-top .wp-submenu {
 }
 @media screen and (max-width: 782px), screen and (max-width: 960px) and (max-height: 500px) {
 	.maestro-toolbar .maestro-tour-help { display: none; }
+}
+
+/*
+ * Touch screens at desktop widths (iPads from 783px up, touch laptops).
+ * The compact layout already does this below 782px; an iPad in landscape, or
+ * an iPad Air upright, gets the desktop toolbar and popovers, where controls
+ * were 36px tall and text fields 13-14px. iPadOS Safari zooms the whole page when
+ * a field under 16px takes focus, which pushes the toolbar and dialogs off
+ * screen just as the keyboard opens. Pointer type, not width, decides here.
+ */
+@media ( pointer: coarse ) {
+	/* Height to 44px; width stays 40px, since the gaps between buttons
+	 * already separate them and 44px wraps a 1024px-wide iPad's row. */
+	.maestro-editing .maestro-toolbar .button {
+		min-height: 44px;
+		box-sizing: border-box;
+	}
+	.maestro-toolbar .maestro-rename-input,
+	.maestro-toolbar select,
+	.maestro-preview-banner select,
+	.maestro-popover input[type='text'],
+	.maestro-popover input[type='search'],
+	.maestro-popover input[type='number'],
+	.maestro-popover select {
+		font-size: 16px; /* avoid iOS focus zoom */
+	}
 }
