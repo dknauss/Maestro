@@ -794,7 +794,7 @@ class Replay {
 					continue;
 				}
 				$this->pristine['top'][ $row[2] ] = array(
-					'title' => isset( $row[0] ) ? wp_strip_all_tags( $row[0] ) : '',
+					'title' => isset( $row[0] ) ? wp_strip_all_tags( Title::without_badges( $row[0] ) ) : '',
 					'icon'  => isset( $row[6] ) ? $row[6] : '',
 				);
 			}
@@ -806,7 +806,7 @@ class Replay {
 						continue;
 					}
 					$this->pristine['sub'][ $row[2] ] = array(
-						'title' => isset( $row[0] ) ? wp_strip_all_tags( $row[0] ) : '',
+						'title' => isset( $row[0] ) ? wp_strip_all_tags( Title::without_badges( $row[0] ) ) : '',
 					);
 				}
 			}
@@ -1018,7 +1018,7 @@ class Replay {
 			$node = array(
 				'slug'                => $slug,
 				'liId'                => $this->li_id( $row ),
-				'title'               => isset( $row[0] ) ? wp_strip_all_tags( $row[0] ) : '',
+				'title'               => isset( $row[0] ) ? wp_strip_all_tags( Title::without_badges( $row[0] ) ) : '',
 				'icon'                => isset( $row[6] ) ? $row[6] : '',
 				'hiddenRoles'         => $this->resolved_override_list( 'hidden_roles', $slug, $norm_items, $norm_skip, $base ),
 				// COMPAT-10 (REVISED): parent-only child_hidden_roles, resolved via
@@ -1058,7 +1058,7 @@ class Replay {
 					$node['submenu'][] = array(
 						'slug'           => $sub[2],
 						'qualifiedKey'   => $qualified_key,
-						'title'          => isset( $sub[0] ) ? wp_strip_all_tags( $sub[0] ) : '',
+						'title'          => isset( $sub[0] ) ? wp_strip_all_tags( Title::without_badges( $sub[0] ) ) : '',
 						'hiddenRoles'    => $this->resolved_override_list( 'hidden_roles', $sub[2], $norm_items, $norm_skip, $base, $slug, $top_rendered_keys ),
 						'hiddenUsers'    => $this->resolved_override_list( 'hidden_users', $sub[2], $norm_items, $norm_skip, $base, $slug, $top_rendered_keys ),
 						'hiddenProfiles' => $this->resolved_override_list( 'hidden_profiles', $sub[2], $norm_items, $norm_skip, $base, $slug, $top_rendered_keys ),

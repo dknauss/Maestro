@@ -128,6 +128,82 @@ class Title {
 	}
 
 	/**
+	 * Class tokens that mark an element as a count badge or as text only screen
+	 * readers hear, never part of the visible label: core's comment, plugin,
+	 * and update bubbles and Site Health's counter (the same classes
+	 * WooCommerce and most plugins borrow), plus `screen-reader-text`.
+	 */
+	const NON_LABEL_CLASSES = array( 'awaiting-mod', 'update-plugins', 'menu-counter', 'screen-reader-text' );
+
+	/**
+	 * Remove count badges and screen-reader-only text from a menu title, so
+	 * stripping its tags afterwards leaves only the visible label.
+	 *
+	 * Core's Comments title is `Comments <span class="awaiting-mod count-0">
+	 * <span class="pending-count">0</span><span class="screen-reader-text">0
+	 * Comments in moderation</span></span>`; stripped whole, that reads
+	 * "Comments 00 Comments in moderation". A title with no such element is
+	 * returned unchanged, byte for byte, so plain labels and labels that wrap
+	 * their text in markup (`My <em>Plugin</em>`) are unaffected.
+	 *
+	 * @param mixed $html Rendered menu title (may contain HTML).
+	 * @return string The title without badge and screen-reader elements.
+	 */
+	public static function without_badges( $html ) {
+		$html = is_string( $html ) ? $html : (string) $html;
+		if ( false === strpos( $html, '<' ) ) {
+			return $html;
+		}
+		$found = false;
+		foreach ( self::NON_LABEL_CLASSES as $token ) {
+			if ( false !== strpos( $html, $token ) ) {
+				$found = true;
+				break;
+			}
+		}
+		if ( ! $found ) {
+			return $html;
+		}
+
+		$dom             = new \DOMDocument();
+		$internal_errors = libxml_use_internal_errors( true );
+		$dom->loadHTML(
+			'<?xml encoding="UTF-8"?><div>' . $html . '</div>',
+			LIBXML_NOERROR | LIBXML_NOWARNING | LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+		);
+		libxml_clear_errors();
+		libxml_use_internal_errors( $internal_errors );
+
+		$wrapper = $dom->getElementsByTagName( 'div' )->item( 0 );
+		if ( null === $wrapper ) {
+			return $html;
+		}
+
+		// Collect first, then remove: removing while walking a live list skips nodes.
+		$remove = array();
+		foreach ( $wrapper->getElementsByTagName( '*' ) as $element ) {
+			$classes = preg_split( '/\s+/', (string) $element->getAttribute( 'class' ), -1, PREG_SPLIT_NO_EMPTY );
+			if ( array_intersect( $classes, self::NON_LABEL_CLASSES ) ) {
+				$remove[] = $element;
+			}
+		}
+		if ( ! $remove ) {
+			return $html; // The token was in an attribute value or text, not a class.
+		}
+		foreach ( $remove as $element ) {
+			if ( $element->parentNode ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- Native DOMNode property, not a WP API.
+				$element->parentNode->removeChild( $element ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- Native DOMNode property, not a WP API.
+			}
+		}
+
+		$out = '';
+		foreach ( $wrapper->childNodes as $child ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- Native DOMNode property, not a WP API.
+			$out .= $dom->saveHTML( $child );
+		}
+		return $out;
+	}
+
+	/**
 	 * Depth-first, document-order search for the first text node whose trimmed
 	 * value is non-empty and not purely numeric (a bare digit run is a
 	 * count/badge, never the human-readable label). Multiple text nodes:

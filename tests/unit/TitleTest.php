@@ -175,4 +175,69 @@ class TitleTest extends TestCase {
 		$this->assertNotSame( '', $dom );
 		$this->assertStringContainsString( '<span class="count-3">3</span>', (string) $dom, 'The badge must still be preserved.' );
 	}
+
+	// -------------------------------------------------------------------------
+	// without_badges(): the editor's plain label must not read the badge text.
+	// Replay strips tags from the result; strip_tags() + trim() stands in here.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public function badge_titles() {
+		return array(
+			// Core Comments, as rendered: count plus screen-reader text.
+			'core-comments'         => array(
+				'Comments <span class="awaiting-mod count-0"><span class="pending-count" aria-hidden="true">0</span><span class="comments-in-moderation-text screen-reader-text">0 Comments in moderation</span></span>',
+				'Comments',
+			),
+			'core-plugins-update'   => array(
+				'Plugins <span class="update-plugins count-2"><span class="plugin-count">2</span></span>',
+				'Plugins',
+			),
+			'woocommerce-orders'    => array(
+				'Orders <span class="awaiting-mod update-plugins count-3"><span class="processing-count">3</span></span>',
+				'Orders',
+			),
+			'site-health-counter'   => array(
+				'Site Health <span class="menu-counter site-health-counter count-1"><span class="count">1</span></span>',
+				'Site Health',
+			),
+			'wrapped-label-kept'    => array(
+				'My <em>Plugin</em> <span class="update-plugins count-1">1</span>',
+				'My Plugin',
+			),
+			'entity-kept-encoded'   => array(
+				'Q&amp;A <span class="awaiting-mod count-4">4</span>',
+				'Q&amp;A',
+			),
+			'multibyte-label'       => array(
+				'Commentaires <span class="awaiting-mod count-1">1</span> é',
+				'Commentaires  é',
+			),
+		);
+	}
+
+	/**
+	 * @dataProvider badge_titles
+	 *
+	 * @param string $html     Rendered title.
+	 * @param string $expected Plain label after tags are stripped.
+	 */
+	public function test_without_badges_leaves_only_the_visible_label( $html, $expected ) {
+		$this->assertSame( $expected, trim( strip_tags( Title::without_badges( $html ) ) ) );
+	}
+
+	public function test_without_badges_returns_titles_without_badges_unchanged() {
+		foreach ( array(
+			'Dashboard',
+			'Q&amp;A',
+			'<span style="color:#f18500">Addons</span>',
+			'My <em>Plugin</em>',
+			'Upgrade <span class="yoast-badge">Premium</span>',
+			'<span data-note="awaiting-mod">Inbox</span>',
+		) as $title ) {
+			$this->assertSame( $title, Title::without_badges( $title ) );
+		}
+	}
 }
