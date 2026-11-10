@@ -35,6 +35,7 @@
 		"adm-zip": "^0.6.1",
 		"express": "^4.22.3",
 		"glob": "^14.0.3",
+		"isomorphic-git": "^1.38.6",
 		"js-yaml": {
 			"argparse": "^2.0.1"
 		}

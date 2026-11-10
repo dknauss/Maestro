@@ -28,6 +28,12 @@
  *   2026-11-02 by overriding glob to ^14.0.3, which brings minimatch 11.
  *   rimraf 5 only imports glob() and globSync(), which glob 14 keeps. Drop
  *   the override once @wordpress/env moves past rimraf 5.
+ * - GHSA-cw2g-2vwq-88w6, GHSA-96wc-2m84-2cj7 and GHSA-9qw7-j9xw-fv9c
+ *   (isomorphic-git <= 1.38.5), via @wordpress/env > @wp-playground/cli >
+ *   @wp-playground/storage, which pins 1.37.6: closed 2026-11-09 by overriding
+ *   isomorphic-git to ^1.38.6. Behaviour is unchanged: storage's build bundles
+ *   its own copy of isomorphic-git's internals and never loads the installed
+ *   package. Drop the override once storage moves past 1.38.5.
  * - GHSA-hp3w-g68c-fv3c (sprintf-js, every release affected, via
  *   @wordpress/env > js-yaml 3.x > argparse 1.x): closed 2026-10-07 by
  *   overriding js-yaml's argparse to 2.x, which has no sprintf-js dependency.
