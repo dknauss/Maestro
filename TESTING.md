@@ -252,6 +252,32 @@ or extra plugin shows up in the pictures. The spec writes each PNG to both
 up its own fixture user and visibility group. Keep each numbered capture in
 step with the `== Screenshots ==` captions in `readme.txt` and the README table.
 
+### UX gallery
+
+[`tests/ux-gallery/gallery.spec.ts`](tests/ux-gallery/gallery.spec.ts)
+photographs every editor state at desktop (1440×900), tablet (820×1180), and
+phone (390×844) sizes, for people to review side by side. It is not a test
+suite: a state it cannot reach is still photographed and marked in red on the
+page. It runs against the UX lab in WordPress Playground, not wp-env, so it needs
+no Docker:
+
+```bash
+npx playwright install chromium   # once
+npm run ux:gallery                # builds the plugin, starts the lab, writes ux-gallery/index.html
+```
+
+[`bin/ux-gallery.sh`](bin/ux-gallery.sh) builds the plugin, starts the lab with
+[`playground/ux-lab/blueprint-local.json`](playground/ux-lab/blueprint-local.json) (see [`playground/README.md`](playground/README.md)),
+runs the spec with its own config ([`playwright.ux-gallery.config.ts`](playwright.ux-gallery.config.ts), so
+`npm run test:e2e` never picks it up), and builds the page with
+[`bin/build-ux-gallery.mjs`](bin/build-ux-gallery.mjs). CI's `ux-gallery.yml` publishes the `main` gallery to
+<https://dknauss.github.io/Maestro/>, and attaches it as the `ux-gallery`
+artifact on pull requests that touch the editor.
+
+To add a state, add an entry to `STATES` in the spec: an `id`, a `title`, a
+`note`, the steps that reach it, and `absent` for sizes where it does not exist
+by design (Settings is hidden below 961px).
+
 ### Test isolation and why the suite runs serially
 
 The plugin keeps its entire state in **one** WordPress option (`maestro_config`)

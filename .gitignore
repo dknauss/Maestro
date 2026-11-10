@@ -28,3 +28,6 @@ Thumbs.db
 *.swp
 .idea/
 .vscode/
+
+# UX gallery output (npm run ux:gallery); published to GitHub Pages by CI
+/ux-gallery/

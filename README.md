@@ -7,12 +7,15 @@
 [![PHP 7.4+](https://img.shields.io/badge/PHP-7.4%2B-777bb4.svg?logo=php&logoColor=white)](https://www.php.net/)
 [![▶ Playground (latest release)](https://img.shields.io/badge/▶_Playground-Latest_release-3858e9.svg?logo=wordpress&logoColor=white)](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/main/playground/blueprint-stable.json) [![▶ Playground (main)](https://img.shields.io/badge/▶_Playground-main_branch-6e40c9.svg?logo=wordpress&logoColor=white)](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/main/playground/blueprint-hosted.json)
 [![WordPress.org](https://img.shields.io/badge/WordPress.org-Install-21759b.svg?logo=wordpress&logoColor=white)](https://wordpress.org/plugins/maestro-menu-editor/)
+[![UX gallery](https://img.shields.io/badge/UX_gallery-Every_state-d63638.svg)](https://dknauss.github.io/Maestro/) [![▶ Playground (UX lab)](https://img.shields.io/badge/▶_Playground-UX_lab-d63638.svg?logo=wordpress&logoColor=white)](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/main/playground/blueprint-ux-lab.json)
 
 ![Maestro banner](.wordpress-org/banner-1544x500.png)
 
 In-place editing of the WordPress admin menu — rename items, reorder them, swap top-level icons, and hide items per role, per person or per visibility group. Preview the menu as a role, widen it, and copy a finished configuration to another site with export/import. Global configuration, no separate settings screen: the editor is toggled from the admin bar and operates on the menu itself.
 
 **▶ [Try it live in WordPress Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/main/playground/blueprint-stable.json)** — boots a throwaway site with the plugin active in edit mode, User Switching with a "Viewing as" admin-bar user switcher, and named test users (Adam Admin, Emma Editor, Andy Author, Carrie Contributor, Steven Subscriber; logins `editor` / `author` / `contributor` / `subscriber`, password `password`) so you can try per-role visibility by switching users. This demo installs the **latest released version**. ([Development build (main)](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/main/playground/blueprint-hosted.json) also available.)
+
+**[UX gallery](https://dknauss.github.io/Maestro/)** — every editor state (the saved menu, edit mode, a selected item, a long submenu, the icon, visibility, profiles, preview, and settings dialogs, and the tour) photographed at desktop, tablet, and phone sizes from the `main` build, in a lab site with the hard cases: a long list of plugin menus, image icons, a ten-item submenu, a custom role, and saved rules. **[Open the UX lab in Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/main/playground/blueprint-ux-lab.json)** to try those cases yourself.
 
 ## Try the new selected-row controls (prototype)
 
