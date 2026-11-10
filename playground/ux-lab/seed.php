@@ -85,9 +85,6 @@ $saved = ( new \Maestro\Config() )->save(
 			'ux-newsletter'     => array(
 				'hidden_users' => array( $ids['author'] ),
 			),
-			'ux-events'         => array(
-				'hidden_profiles' => array( 'p_1' ),
-			),
 		),
 		'top_order'  => array(
 			'index.php',
@@ -103,7 +100,8 @@ $saved = ( new \Maestro\Config() )->save(
 			'p_1' => array(
 				'name'  => 'Writers',
 				'users' => array( $ids['author'], $ids['contributor'] ),
-				'hides' => array( 'tools.php', 'ux-forms' ),
+				// Profile hides are stored here; Maestro compiles them onto the items.
+				'hides' => array( 'tools.php', 'ux-forms', 'ux-events' ),
 			),
 			'p_2' => array(
 				'name'  => 'Shop staff',
