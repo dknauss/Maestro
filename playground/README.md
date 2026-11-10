@@ -53,6 +53,29 @@ always tracks the current release. This is the primary "Try it live" demo linked
 from the README. The release asset is built and attached by the release workflow
 (`bin/build.sh` + `.github/workflows/release.yml`).
 
+### [`blueprint-ux-lab.json`](blueprint-ux-lab.json) — hosted UX lab, tracks `main`
+
+Playground URL:
+`https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/main/playground/blueprint-ux-lab.json`
+
+The `main` demo plus the hard cases, for trying and reviewing the interface:
+
+- [`ux-lab/maestro-ux-lab.php`](ux-lab/maestro-ux-lab.php), a must-use plugin:
+  eleven plugin-style menus (long names, a URL icon and a base64 SVG icon, a
+  ten-item Shop submenu) and a custom Shop Manager role.
+- [`ux-lab/seed.php`](ux-lab/seed.php), run with `wp eval-file`: Adam Admin
+  plus Emma Editor, Andy Author, Carrie Contributor, Steven Subscriber, and Sam
+  Shopkeeper (Shop Manager), password `password`; and saved Maestro settings with
+  a rename, a new icon, a custom order with an added separator, and per-role,
+  per-person, and visibility-group rules. It acts as the admin, because Maestro
+  keeps rules that name people only when the saver can list users.
+
+The hosted blueprint fetches both files from `main`.
+[`ux-lab/blueprint-local.json`](ux-lab/blueprint-local.json) is the local
+version: `npm run ux:gallery` mounts the built plugin and both files before it
+runs, then photographs every state for the [UX gallery](https://dknauss.github.io/Maestro/)
+(see TESTING.md, "UX gallery").
+
 ## Release rule
 
 Nothing to do for the demos. The stable demo installs from

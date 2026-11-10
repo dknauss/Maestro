@@ -1,0 +1,116 @@
+name: UX gallery
+
+# Photographs every editor state in the UX lab (playground/ux-lab/) at desktop,
+# tablet, and phone sizes with `npm run ux:gallery`.
+#
+#   - On a push to main, publishes the gallery to GitHub Pages:
+#     https://dknauss.github.io/Maestro/
+#     (Settings → Pages → Source must be "GitHub Actions".)
+#   - On a pull request that touches the editor, uploads the gallery as the
+#     `ux-gallery` artifact so a reviewer can compare it with the published one.
+#
+# A state that cannot be reached is photographed anyway and marked in red on the
+# page, so the run does not fail for it; only a broken lab or capture fails it.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'assets/**'
+      - 'includes/**'
+      - 'maestro-menu-editor.php'
+      - 'playground/ux-lab/**'
+      - 'tests/ux-gallery/**'
+      - 'bin/ux-gallery.sh'
+      - 'bin/build-ux-gallery.mjs'
+      - 'playwright.ux-gallery.config.ts'
+      - '.github/workflows/ux-gallery.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'assets/**'
+      - 'includes/**'
+      - 'maestro-menu-editor.php'
+      - 'playground/ux-lab/**'
+      - 'tests/ux-gallery/**'
+      - 'bin/ux-gallery.sh'
+      - 'bin/build-ux-gallery.mjs'
+      - 'playwright.ux-gallery.config.ts'
+      - '.github/workflows/ux-gallery.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ux-gallery-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  capture:
+    name: Capture the UX gallery
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          check-latest: true
+          cache: npm
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Capture the gallery
+        run: npm run ux:gallery
+
+      - name: Upload the lab server log
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ux-lab-server-log
+          path: build/ux-lab-server.log
+          retention-days: 7
+
+      - name: Upload the gallery for review
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v7
+        with:
+          name: ux-gallery
+          path: ux-gallery
+          retention-days: 14
+
+      - name: Upload the Pages site
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ux-gallery
+
+  deploy:
+    name: Publish to GitHub Pages
+    if: github.event_name != 'pull_request'
+    needs: capture
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4

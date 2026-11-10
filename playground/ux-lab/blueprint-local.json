@@ -1,0 +1,21 @@
+{
+	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
+	"meta": {
+		"title": "Maestro UX lab (local)",
+		"author": "dknauss",
+		"description": "Used by bin/ux-gallery.sh. bin/ux-gallery.sh mounts the built plugin, the lab menus (maestro-ux-lab.php), and seed.php before this runs."
+	},
+	"landingPage": "/wp-admin/index.php?maestro_edit=1",
+	"preferredVersions": { "php": "8.3", "wp": "latest" },
+	"login": true,
+	"steps": [
+		{
+			"step": "wp-cli",
+			"command": "wp plugin activate maestro-menu-editor/maestro-menu-editor.php"
+		},
+		{
+			"step": "wp-cli",
+			"command": "wp eval-file /wordpress/maestro-ux-lab-seed.php"
+		}
+	]
+}
