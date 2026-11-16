@@ -119,6 +119,13 @@ class Registry_Icons {
 	 * Config::sanitize_icon() stores, is left out rather than offered and then
 	 * dropped on save.
 	 *
+	 * An icon whose SVG matches one already listed is left out too. WordPress
+	 * 7.2 registers most admin icons twice, as core/{name} and
+	 * core-admin/{name}, from the same file; the picker would otherwise show
+	 * each one twice. The first registration wins, so core's own name and
+	 * label are kept, and an icon that is only in core-admin (such as Pin)
+	 * is still offered.
+	 *
 	 * @return array[] Each { label, terms, src }.
 	 */
 	public function icons() {
@@ -137,15 +144,17 @@ class Registry_Icons {
 			}
 		}
 
+		$seen = array();
 		foreach ( \WP_Icons_Registry::get_instance()->get_registered_icons() as $icon ) {
 			if ( empty( $icon['name'] ) ) {
 				continue;
 			}
 			$name = (string) $icon['name'];
 			$src  = self::data_uri( wp_get_icon( $name, array( 'size' => null ) ) );
-			if ( '' === $src || strlen( $src ) > Config::MAX_DATA_URI_BYTES ) {
+			if ( '' === $src || strlen( $src ) > Config::MAX_DATA_URI_BYTES || isset( $seen[ $src ] ) ) {
 				continue;
 			}
+			$seen[ $src ] = true;
 
 			$parts      = explode( '/', $name, 2 );
 			$slug       = isset( $icon['collection'] ) ? (string) $icon['collection'] : $parts[0];

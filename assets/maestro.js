@@ -48,6 +48,12 @@ window.maestroBuild = '1.11.0';
 	var lastSaveOk = true;     // outcome of the last settled save (role preview waits on it)
 	var savedClearTimer = null; // reverts the transient "Saved" tile back to idle
 	var groupIdSeq = 0;    // monotonic counter for unique role-group heading ids
+	// Top-level slug -> the icon value the row was rendered with on page load
+	// (Replay's result, so a saved override, else core's own). Lets the icon
+	// preview hand back core's exact markup when the icon returns to it.
+	var renderedIcons = Object.create( null );
+	// div.wp-menu-image -> its markup as first rendered. See snapshotIcon().
+	var iconSnapshots = typeof WeakMap === 'function' ? new WeakMap() : null;
 	// Core/plugin separators the user removed. A removed row is not rendered,
 	// so it cannot be read back from the DOM; carry the stored list forward.
 	var removedSeparators = ( ( D.config && D.config.removed_separators ) || [] ).slice();
@@ -409,6 +415,7 @@ window.maestroBuild = '1.11.0';
 		trackMenuWidth();
 
 		D.menu.forEach( function ( node ) {
+			renderedIcons[ node.slug ] = node.icon || '';
 			model[ node.slug ] = {
 				title: node.title,
 				icon: node.icon,
@@ -2364,6 +2371,16 @@ window.maestroBuild = '1.11.0';
 		var img = li.querySelector( '.wp-menu-image' );
 		if ( ! img ) { return; }
 
+		// Back to the icon the row was rendered with (Reset, or re-picking it):
+		// hand back core's own markup. Only core can draw some icons, such as
+		// the inline SVG that WordPress 7.2 swaps in for many Dashicons, so a
+		// rebuild from the value alone would show the old font glyph instead.
+		var snap = snapshotIcon( li, img );
+		if ( snap && ( icon || 'none' ) === ( snap.icon || 'none' ) ) {
+			restoreIconSnapshot( li, img, snap );
+			return;
+		}
+
 		// #172: an SVG data-URI is painted as a mask in the glyph colour
 		// (maestro-admin-bar.css), the way Replay marks a stored one. Every
 		// other icon form clears the mark, including one Replay put there.
@@ -2376,8 +2393,10 @@ window.maestroBuild = '1.11.0';
 		}
 
 		// A URL icon (UpdraftPlus, miniOrange SAML, ...) is printed by core as an
-		// <img> inside the menu image, which would sit on top of any new icon.
-		Array.prototype.forEach.call( img.querySelectorAll( 'img' ), function ( el ) {
+		// <img> inside the menu image, and WordPress 7.2+ prints an inline <svg>
+		// for Dashicons it has replaced and for registry icon names. Either would
+		// sit on top of, or beside, any new icon, so drop both.
+		Array.prototype.forEach.call( img.querySelectorAll( 'img, svg' ), function ( el ) {
 			el.parentNode.removeChild( el );
 		} );
 
@@ -2394,11 +2413,12 @@ window.maestroBuild = '1.11.0';
 			} );
 		}
 
-		// Drop every dashicons-* token (including dashicons-before) and the svg
-		// marker, so each branch starts from a clean slate. Splitting on
-		// whitespace avoids a regex that also matched dashicons-before.
+		// Drop every dashicons-* token (including dashicons-before), the svg
+		// marker and 7.2's svg-icon marker (its flex layout is only for the
+		// inline <svg> removed above), so each branch starts from a clean slate.
+		// Splitting on whitespace avoids a regex that also matched dashicons-before.
 		var keep = img.className.split( /\s+/ ).filter( function ( c ) {
-			return c && c.indexOf( 'dashicons-' ) !== 0 && c !== 'svg';
+			return c && c.indexOf( 'dashicons-' ) !== 0 && c !== 'svg' && c !== 'svg-icon';
 		} );
 
 		function clearBg() {
@@ -2450,6 +2470,59 @@ window.maestroBuild = '1.11.0';
 			img.className = keep.join( ' ' );
 			clearBg();
 		}
+	}
+
+	// Record a row's icon markup the first time the preview touches it, before
+	// anything has changed it. Returns null when there is nothing to restore to
+	// (no WeakMap, or a row the model did not seed).
+	function snapshotIcon( li, img ) {
+		if ( ! iconSnapshots ) { return null; }
+		var snap = iconSnapshots.get( img );
+		if ( snap ) { return snap; }
+		var slug = li.getAttribute( 'data-maestro-slug' );
+		if ( ! slug || ! ( slug in renderedIcons ) ) { return null; }
+		var anchor = li.querySelector( 'a' );
+		snap = {
+			icon:      renderedIcons[ slug ],
+			html:      img.innerHTML,
+			className: img.className,
+			style:     img.getAttribute( 'style' ),
+			// Core prints menu-icon-* on both the <li> and its <a>; the preview
+			// strips it for image icons. The mask mark is Replay's (#172).
+			liIconClasses: ( li.className.match( /\bmenu-icon-[\w-]+/g ) || [] ),
+			aIconClasses:  anchor ? ( anchor.className.match( /\bmenu-icon-[\w-]+/g ) || [] ) : [],
+			masked:    li.classList.contains( 'maestro-mask-icon' )
+		};
+		iconSnapshots.set( img, snap );
+		return snap;
+	}
+
+	function restoreIconSnapshot( li, img, snap ) {
+		img.innerHTML = snap.html;
+		img.className = snap.className;
+		if ( null === snap.style ) {
+			img.removeAttribute( 'style' );
+		} else {
+			img.setAttribute( 'style', snap.style );
+		}
+		// svg-painter.js caches the colour it painted; let it re-read the
+		// restored background.
+		if ( window.jQuery ) {
+			Object.keys( window.jQuery.data( img ) ).forEach( function ( key ) {
+				if ( /^wp-?ui-?svg/i.test( key ) ) {
+					window.jQuery.removeData( img, key );
+				}
+			} );
+		}
+		snap.liIconClasses.forEach( function ( c ) { li.classList.add( c ); } );
+		var anchor = li.querySelector( 'a' );
+		if ( anchor ) {
+			snap.aIconClasses.forEach( function ( c ) { anchor.classList.add( c ); } );
+		}
+		// Replay's per-icon class carries --maestro-icon for a stored SVG, so
+		// only the mark and the preview's inline override need resetting.
+		li.classList.toggle( 'maestro-mask-icon', snap.masked );
+		li.style.removeProperty( '--maestro-icon' );
 	}
 
 	/* ---------- visibility picker ----------------------------------------- */

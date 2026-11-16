@@ -252,8 +252,10 @@ test.describe( 'Admin Menu Maestro — editor', () => {
 
 		// Preview keeps core's .svg sizing class and paints the SVG as a mask on
 		// the glyph slot (#172), so it takes the menu's icon colour.
+		// (The class match is exact: WordPress 7.2 gives its own SVG-drawn icons
+		// an `svg-icon` class, which a `\bsvg\b` match would also accept.)
 		const img = page.locator( '#menu-posts .wp-menu-image' );
-		await expect( img ).toHaveClass( /\bsvg\b/ );
+		await expect( img ).toHaveClass( /(^|\s)svg(\s|$)/ );
 
 		// Regression: the icon must actually PAINT, not merely carry the class.
 		// Core's `menu-icon-* div.wp-menu-image:before { content: ... }` used to
@@ -270,7 +272,7 @@ test.describe( 'Admin Menu Maestro — editor', () => {
 		// Persistence: core re-renders the data-URI icon after reload, and
 		// Replay marks the row so the mask, not the grey background, shows.
 		await page.goto( '/wp-admin/index.php?maestro_edit=1' );
-		await expect( img ).toHaveClass( /\bsvg\b/ );
+		await expect( img ).toHaveClass( /(^|\s)svg(\s|$)/ );
 		await expect( img ).toHaveAttribute( 'style', /data:image\/svg\+xml;base64,/ );
 		await expect( page.locator( '#menu-posts' ) ).toHaveClass( /\bmaestro-mask-icon\b/ );
 		await expect.poll( maskOf ).toMatch( /^url\("?data:image\/svg\+xml;base64,/ );
@@ -296,7 +298,7 @@ test.describe( 'Admin Menu Maestro — editor', () => {
 		// Clean up.
 		page.once( 'dialog', d => d.accept() );
 		await page.locator( '.maestro-reset-all' ).click();
-		await expect( page.locator( '#menu-posts .wp-menu-image' ) ).not.toHaveClass( /\bsvg\b/ );
+		await expect( page.locator( '#menu-posts .wp-menu-image' ) ).not.toHaveClass( /(^|\s)svg(\s|$)/ );
 	} );
 
 	test( 'a WordPress registry icon (7.1+) saves, masks and reopens on its tab', async ( { page } ) => {
@@ -348,7 +350,7 @@ test.describe( 'Admin Menu Maestro — editor', () => {
 
 		page.once( 'dialog', d => d.accept() );
 		await page.locator( '.maestro-reset-all' ).click();
-		await expect( img ).not.toHaveClass( /\bsvg\b/ );
+		await expect( img ).not.toHaveClass( /(^|\s)svg(\s|$)/ );
 	} );
 
 	test( 'a failed Bootstrap download can be retried without a stale error', async ( { page } ) => {

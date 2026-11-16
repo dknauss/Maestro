@@ -121,6 +121,30 @@ class IconSetsTest extends WP_UnitTestCase {
 		}
 	}
 
+	public function test_an_icon_registered_twice_with_the_same_svg_is_offered_once() {
+		$this->require_registry();
+		// WordPress 7.2 registers most admin icons as both core/{name} and
+		// core-admin/{name} from one file. Mimic that with two collections.
+		$svg = '<svg viewBox="0 0 24 24"><path d="M2 2h20v20H2z"/></svg>';
+		wp_register_icon_collection( 'maestro-test-a', array( 'label' => 'Maestro Test A' ) );
+		wp_register_icon_collection( 'maestro-test-b', array( 'label' => 'Maestro Test B' ) );
+		wp_register_icon( 'maestro-test-a/twin', array( 'label' => 'Twin', 'content' => $svg ) );
+		wp_register_icon( 'maestro-test-b/twin', array( 'label' => 'Twin', 'content' => $svg ) );
+
+		try {
+			$labels = array_column( ( new Registry_Icons() )->icons(), 'label' );
+			$this->assertContains( 'Twin (Maestro Test A)', $labels, 'The first registration is offered.' );
+			$this->assertNotContains( 'Twin (Maestro Test B)', $labels, 'The same SVG is not offered twice.' );
+			$srcs = array_column( ( new Registry_Icons() )->icons(), 'src' );
+			$this->assertSame( count( $srcs ), count( array_unique( $srcs ) ), 'No icon is offered twice.' );
+		} finally {
+			wp_unregister_icon( 'maestro-test-a/twin' );
+			wp_unregister_icon( 'maestro-test-b/twin' );
+			wp_unregister_icon_collection( 'maestro-test-a' );
+			wp_unregister_icon_collection( 'maestro-test-b' );
+		}
+	}
+
 	public function test_icon_set_of_recognises_a_registry_icon() {
 		$this->require_registry();
 		$method = new ReflectionMethod( Assets::class, 'icon_set_of' );
