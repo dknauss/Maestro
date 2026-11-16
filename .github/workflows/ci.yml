@@ -262,6 +262,63 @@ jobs:
         if: always()
         run: npm run env:stop
 
+  wp-next-icons:
+    # Not a required check, on purpose: it runs against WordPress trunk (7.2
+    # beta at the time of writing), which moves under us. It covers what 7.2
+    # changes for Maestro: core draws many menu icons as an inline <svg> in
+    # div.wp-menu-image.svg-icon instead of a Dashicons glyph, and the live
+    # icon preview has to clear that <svg> and give it back on Reset.
+    # svg-menu-icons.spec.ts skips on earlier WordPress, so the required job
+    # above cannot cover it until .wp-env.json moves to 7.2.
+    name: Icon E2E (WordPress next)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Point wp-env at WordPress trunk
+        run: |
+          echo '{ "core": "WordPress/WordPress#master" }' > .wp-env.override.json
+          echo "### WordPress under test: \`WordPress/WordPress#master\`" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          check-latest: true
+          cache: npm
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Start wp-env (Docker)
+        run: npm run env:start
+
+      - name: Report WordPress version
+        run: npx wp-env run tests-cli wp core version >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Install Playwright Chromium
+        timeout-minutes: 20
+        run: npx playwright install --with-deps chromium
+
+      - name: Icon E2E tests (Playwright)
+        run: npm run test:e2e -- tests/e2e/svg-menu-icons.spec.ts tests/e2e/editor.spec.ts
+
+      - name: Upload Playwright artefacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-artefacts-wp-next
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Stop wp-env
+        if: always()
+        run: npm run env:stop
+
   package-check:
     name: Runtime package + Plugin Check
     runs-on: ubuntu-latest
