@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.11
 milestone_name: Acceptance & Polish
-status: shipped
-stopped_at: "v1.11.0 shipped to WordPress.org 2026-10-29 (tag on 3296942). Human acceptance per milestones/v1.11-ACCEPTANCE.md remains open."
-last_updated: "2026-10-29T14:00:00.000Z"
-last_activity: "2026-10-29 — v1.11.0 released to WordPress.org."
+status: release_prep
+stopped_at: "v1.11.1 release PR open 2026-11-17 (iPad fixes #279, count badges #284, WP 7.2 SVG icons #286; Tested up to 7.2). Awaits merge and Dan's v1.11.1 tag. Dan's hardware script in milestones/v1.11-ACCEPTANCE.md not yet recorded."
+last_updated: "2026-11-17T23:59:00.000Z"
+last_activity: "2026-11-17 — v1.11.1 release prep."
 progress:
   total_phases: 3
   completed_phases: 0
@@ -23,6 +23,14 @@ v1.10.0 shipped to WordPress.org on 2026-10-27 (tag on `46bce57`). Dan chose
 phases and prep for his iPad, touch and VoiceOver passes. Plan:
 [milestones/v1.11-ROADMAP.md](milestones/v1.11-ROADMAP.md). #261 stays a
 separate prototype; #167/#168 stay watch-only.
+
+**Release prep — 1.11.1 (2026-11-17).** Patch release for the iPad touch fixes
+(#279), clean item names without count badges (#284) and the WordPress 7.2
+inline SVG icon preview and duplicate-icon fixes (#286). "Tested up to" moves
+to 7.2: the "Icon E2E (WordPress next)" job passed on main (run 44165632113)
+against WordPress `7.2-RC1-65560`. `.wp-env.json` stays on 7.1.3 until 7.2 is
+final. Issue #287 is a follow-up, not in this release. Dan pushes the
+`v1.11.1` tag.
 
 **Shipped — 1.11.0 (2026-10-29).** Dan tagged `v1.11.0` on `3296942`; release run 40880549320 built the GitHub Release and deployed to WordPress.org at 13:31Z. The follow-up docs PR recaptures screenshot 1 for the icon-only separator buttons.
 
