@@ -3,8 +3,8 @@ Contributors: dpknauss
 Donate link: https://github.com/sponsors/dknauss
 Tags: admin menu, menu editor, hide menu items, rename menu items, menu icons
 Requires at least: 6.4
-Tested up to: 7.1
-Stable tag: 1.11.0
+Tested up to: 7.2
+Stable tag: 1.11.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -220,6 +220,13 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 
 == Changelog ==
 
+= 1.11.1 =
+* **Fixed: icon previews on WordPress 7.2.** WordPress 7.2 draws many core menu icons as inline SVG instead of a Dashicons glyph. Choosing **No icon**, an image or an image URL now replaces that SVG in the live preview instead of showing both, and **Reset** brings back the icon WordPress drew.
+* **Fixed: the WordPress icon tab lists each icon once on WordPress 7.2,** which registers most admin icons under two names.
+* **Fixed: count badges no longer leak into item names.** Selecting Comments, Plugins or a WooCommerce item with a count filled the rename field with text like "Comments 00 Comments in moderation". The field now starts with the plain name.
+* **Improved: iPad and other touch screens.** Fields in the editor no longer make Safari zoom in when tapped, the editing toolbar's buttons are 44px tall on touch screens, and the menu width handle is easier to grab with a finger.
+* Tested up to WordPress 7.2.
+
 = 1.11.0 =
 * **New: WordPress icons.** On WordPress 7.1 and later, the icon picker has a third tab, **WordPress**, with every icon in WordPress's own icon library, plus any icons another plugin adds to it. Icons from another plugin name their source in the tooltip. A chosen icon follows the menu colours like the others, and keeps showing if the plugin that added it is removed. The tab loads the first time you open it. Below 7.1 the picker is unchanged.
 * **Improved: separators.** Selecting a separator now puts focus on its move-up button, not on **Remove separator**, so pressing Enter twice can no longer remove one by accident. A move that would put two separators together, or a separator at the end of the menu, is refused with the reason, because WordPress would hide the separator there. Removing a separator also removes any hidden twin in the same place, so nothing reappears. The separator line is now visible on light colour schemes, and the add and remove separator buttons show only their icons at every width, keeping their names for screen readers and as tooltips.
@@ -363,6 +370,9 @@ If Maestro saves you time or brings you or your clients the joy of a tidy admin 
 * Editor: click-to-select with a shared panel, debounced single-flight autosave, and folded-mode neutralization.
 
 == Upgrade Notice ==
+
+= 1.11.1 =
+Fixes icon previews with WordPress 7.2's SVG menu icons, count badges in item names, and iPad zoom and touch targets. Tested up to WordPress 7.2.
 
 = 1.11.0 =
 Adds a WordPress icon tab on WordPress 7.1 and later, safer separator editing, a notice when the browser runs old editor files, and a lasting saved check. Hiding stays cosmetic.
