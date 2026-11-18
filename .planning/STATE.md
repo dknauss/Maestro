@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.11
 milestone_name: Acceptance & Polish
 status: release_prep
-stopped_at: "v1.11.1 release PR open 2026-11-17 (iPad fixes #279, count badges #284, WP 7.2 SVG icons #286; Tested up to 7.2). Awaits merge and Dan's v1.11.1 tag. Dan's hardware script in milestones/v1.11-ACCEPTANCE.md not yet recorded."
+stopped_at: "v1.11.1 release PR open 2026-11-17 (iPad fixes #279, count badges #284, WP 7.2 SVG icons #286; Tested up to 7.2). Awaits merge and Dan's v1.11.1 tag. Dan's hardware script skipped (no iPad), recorded in milestones/v1.11-ACCEPTANCE.md."
 last_updated: "2026-11-17T23:59:00.000Z"
 last_activity: "2026-11-17 — v1.11.1 release prep."
 progress:
