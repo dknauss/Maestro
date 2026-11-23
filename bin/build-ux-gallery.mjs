@@ -7,7 +7,8 @@
  * (bin/ux-gallery.sh runs it after the capture.)
  */
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const dir = resolve( process.argv[ 2 ] || 'ux-gallery' );
 const { viewports, states } = JSON.parse( readFileSync( join( dir, 'states.json' ), 'utf8' ) );
@@ -53,6 +54,13 @@ const sections = states
 	} )
 	.join( '\n' );
 
+// The Maestro brand mark as the page's favicon, inlined so the page stays one file.
+const favicon = readFileSync(
+	join( dirname( fileURLToPath( import.meta.url ) ), '..', '.wordpress-org', 'source', 'favicon.svg' ),
+	'utf8'
+).trim();
+const faviconHref = `data:image/svg+xml;base64,${ Buffer.from( favicon ).toString( 'base64' ) }`;
+
 const nav = states.map( ( state ) => `<a href="#${ escape( state.id ) }">${ escape( state.title ) }</a>` ).join( '' );
 
 const html = `<!doctype html>
@@ -61,6 +69,7 @@ const html = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Maestro UX Gallery</title>
+<link rel="icon" type="image/svg+xml" href="${ faviconHref }">
 <style>
 :root { --bg: #f6f7f7; --fg: #1d2327; --muted: #50575e; --card: #fff; --line: #dcdcde; --accent: #2271b1; --error: #b32d2e; }
 @media (prefers-color-scheme: dark) { :root { --bg: #1d2327; --fg: #f0f0f1; --muted: #a7aaad; --card: #2c3338; --line: #3c434a; --accent: #72aee6; --error: #f86368; } }
