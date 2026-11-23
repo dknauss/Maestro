@@ -11,6 +11,10 @@ can re-tint, re-letter or resize it without redrawing anything.
 | `icon-256x256.png` | 256×256 | retina icon / SVG fallback |
 | `icon-128x128.png` | 128×128 | standard icon |
 
+`favicon.svg` (in this folder) is a hand-tuned 32×32 version of the mark, with
+three rows instead of four so it stays readable at 16px. `bin/build-ux-gallery.mjs`
+inlines it as the favicon of the UX gallery site.
+
 ## Run
 
 From the repo root: `npm run assets:banners`. That writes into `.wordpress-org/`.
