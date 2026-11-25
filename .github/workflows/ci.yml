@@ -262,24 +262,36 @@ jobs:
         if: always()
         run: npm run env:stop
 
-  wp-next-icons:
-    # Not a required check, on purpose: it runs against WordPress trunk (7.2
-    # beta at the time of writing), which moves under us. It covers what 7.2
-    # changes for Maestro: core draws many menu icons as an inline <svg> in
-    # div.wp-menu-image.svg-icon instead of a Dashicons glyph, and the live
-    # icon preview has to clear that <svg> and give it back on Reset.
-    # svg-menu-icons.spec.ts skips on earlier WordPress, so the required job
-    # above cannot cover it until .wp-env.json moves to 7.2.
-    name: Icon E2E (WordPress next)
+  wp-next:
+    # Not a required check, on purpose: it runs against a moving branch. Until
+    # 7.2.0 ships on December 8, 2026 that is WordPress/WordPress#7.2-branch
+    # (7.2 RC), not master, which is now 7.3 alpha. It runs the whole suite --
+    # integration (single site and multisite) and every E2E spec -- so
+    # "Tested up to: 7.2" rests on full coverage, not only the icon specs.
+    # svg-menu-icons.spec.ts covers what 7.2 changes for Maestro: core draws
+    # many menu icons as an inline <svg> in div.wp-menu-image.svg-icon instead
+    # of a Dashicons glyph, and the live icon preview has to clear that <svg>
+    # and give it back on Reset. It skips on earlier WordPress, so the required
+    # job above cannot cover it until .wp-env.json moves to 7.2.
+    #
+    # After 7.2.0 ships: pin .wp-env.json to 7.2.0 and point this job back at
+    # master for 7.3.
+    name: Full suite (WordPress next)
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v7
 
-      - name: Point wp-env at WordPress trunk
+      - name: Point wp-env at the WordPress 7.2 branch
         run: |
-          echo '{ "core": "WordPress/WordPress#master" }' > .wp-env.override.json
-          echo "### WordPress under test: \`WordPress/WordPress#master\`" >> "$GITHUB_STEP_SUMMARY"
+          echo '{ "core": "WordPress/WordPress#7.2-branch" }' > .wp-env.override.json
+          echo "### WordPress under test: \`WordPress/WordPress#7.2-branch\`" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer
 
       - name: Set up Node
         uses: actions/setup-node@v7
@@ -287,6 +299,9 @@ jobs:
           node-version: '24'
           check-latest: true
           cache: npm
+
+      - name: Install Composer dependencies
+        run: composer install --no-progress --prefer-dist --no-interaction
 
       - name: Install npm dependencies
         run: npm ci
@@ -297,12 +312,18 @@ jobs:
       - name: Report WordPress version
         run: npx wp-env run tests-cli wp core version >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Integration tests (PHPUnit in wp-env)
+        run: npm run test:php
+
+      - name: Integration tests (multisite)
+        run: npm run test:php:multisite
+
       - name: Install Playwright Chromium
         timeout-minutes: 20
         run: npx playwright install --with-deps chromium
 
-      - name: Icon E2E tests (Playwright)
-        run: npm run test:e2e -- tests/e2e/svg-menu-icons.spec.ts tests/e2e/editor.spec.ts
+      - name: E2E tests (Playwright)
+        run: npm run test:e2e
 
       - name: Upload Playwright artefacts
         if: always()
