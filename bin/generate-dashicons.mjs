@@ -4,7 +4,8 @@
  * for the editor's icon picker.
  *
  * Core stopped adding Dashicons in WordPress 5.5, and the stylesheet is
- * identical from 6.4 (our minimum) through 7.1, so a static list is safe.
+ * unchanged from 6.4 (our minimum) through 7.2, so a static list is safe.
+ * 7.2 writes the selectors with `::before` instead of `:before`, so both match.
  * A few classes are aliases on one code point (share1, exerpt-view, ...); the
  * first name in stylesheet order wins so no glyph shows twice.
  * tests/integration/IconSetsTest.php checks the list against the running core.
@@ -26,8 +27,8 @@ if ( ! src ) {
 const css     = readFileSync( src, 'utf8' );
 const seen    = new Set();
 const classes = [];
-for ( const [ , selectors, glyph ] of css.matchAll( /((?:\.dashicons-[a-z0-9-]+:before,?\s*)+)\{\s*content:\s*"([^"]+)"/g ) ) {
-	for ( const [ , name ] of selectors.matchAll( /\.(dashicons-[a-z0-9-]+):before/g ) ) {
+for ( const [ , selectors, glyph ] of css.matchAll( /((?:\.dashicons-[a-z0-9-]+::?before,?\s*)+)\{\s*content:\s*"([^"]+)"/g ) ) {
+	for ( const [ , name ] of selectors.matchAll( /\.(dashicons-[a-z0-9-]+)::?before/g ) ) {
 		if ( ! seen.has( glyph ) ) {
 			seen.add( glyph );
 			classes.push( name );

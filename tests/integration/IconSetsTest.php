@@ -171,12 +171,12 @@ class IconSetsTest extends WP_UnitTestCase {
 	 */
 	private function core_glyphs() {
 		$css = file_get_contents( ABSPATH . WPINC . '/css/dashicons.css' );
-		preg_match_all( '/((?:\.dashicons-[a-z0-9-]+:before,?\s*)+)\{\s*content:\s*"([^"]+)"/', $css, $rules, PREG_SET_ORDER );
+		preg_match_all( '/((?:\.dashicons-[a-z0-9-]+::?before,?\s*)+)\{\s*content:\s*"([^"]+)"/', $css, $rules, PREG_SET_ORDER );
 
 		$seen    = array();
 		$classes = array();
 		foreach ( $rules as $rule ) {
-			preg_match_all( '/\.(dashicons-[a-z0-9-]+):before/', $rule[1], $names );
+			preg_match_all( '/\.(dashicons-[a-z0-9-]+)::?before/', $rule[1], $names );
 			foreach ( $names[1] as $name ) {
 				if ( ! isset( $seen[ $rule[2] ] ) ) {
 					$seen[ $rule[2] ] = true;
