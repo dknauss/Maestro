@@ -21,6 +21,12 @@
 
 ## Next up
 
+**Watching: PHP floor (decided 2026-11-25).** Stay on PHP 7.4, matching
+WordPress core. When core drops 7.4, raise the floor in the next minor release
+with an upgrade notice. See the
+[todo](todos/pending/2026-11-25-raise-php-floor-after-core.md). CI covers PHP
+7.4 through 8.5 since #295.
+
 **v1.11 (2026-10-28):** 1.10.0 shipped to WordPress.org 2026-10-27. 1.11 is
 planned in [milestones/v1.11-ROADMAP.md](milestones/v1.11-ROADMAP.md). Phases
 32–37 complete: 1.11.0 shipped to WordPress.org 2026-10-29. Human iPad, touch and VoiceOver acceptance is open.
