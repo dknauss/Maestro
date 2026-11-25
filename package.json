@@ -23,7 +23,7 @@
 		"preplayground": "bash bin/build.sh",
 		"playground": "npx @wp-playground/cli@latest server --mount-before-install=./build/maestro-menu-editor:/wordpress/wp-content/plugins/maestro-menu-editor --blueprint=playground/blueprint.json",
 		"ux:gallery": "bash bin/ux-gallery.sh",
-		"assets:banners": "OUT_DIR=.wordpress-org python3 .wordpress-org/source/build_final.py"
+		"assets:banners": "python3 .wordpress-org/source/build.py"
 	},
 	"devDependencies": {
 		"@axe-core/playwright": "^4.14.0",
