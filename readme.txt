@@ -1,7 +1,7 @@
 === Maestro: The Inline Admin Menu Editor ===
 Contributors: dpknauss
 Donate link: https://github.com/sponsors/dknauss
-Tags: admin menu, menu editor, hide menu items, rename menu items, menu icons
+Tags: admin menu, menu editor, hide menu items, user roles, dashboard
 Requires at least: 6.4
 Tested up to: 7.2
 Stable tag: 1.11.1
@@ -9,52 +9,55 @@ Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Hide admin menu items per user role, rename them, reorder them, swap their icons — an inline admin menu editor you drive right on the menu itself.
+Edit the WordPress admin menu right on the menu. Rename, reorder, re-icon, and hide items by role or person. No settings screen, no Pro upsell.
 
 == Description ==
 
-Maestro lets you orchestrate the appearance of the WordPress admin menu. Rename admin menu items, reorder them, change their icons, and hide admin menu items from the roles and people who don't need them. **Do it all within the admin menu directly with no separate settings screen.**
+Click **Edit Menu** in the admin bar, and your admin menu becomes the editor. Rename a cryptic plugin label, drag what you use every day to the top, give it a better icon, or hide it from the people who don't need it. There's no settings screen to learn, because the menu you're editing *is* the menu you're looking at.
 
-Every WordPress install accumulates menu clutter. A dozen plugins each claim a top-level slot, submenus sit in an order nobody chose, and clients meet a dashboard full of tools that aren't theirs. Maestro is how you customize the admin menu back into shape: **declutter** it for a client site, **rename** cryptic plugin labels into the words your team actually uses, **reorder** the admin menu so what you touch daily is at the top, and **hide admin menu items per user role** — or from one named person — so everyone sees only their own work.
+Every WordPress site collects menu clutter. A dozen plugins each claim a top-level slot, submenus sit in an order nobody chose, and clients log in to a dashboard full of tools that aren't theirs. Maestro puts it back in shape in a few minutes. It's built for agencies handing sites to clients, for multi-author sites, and for anyone with a plugin-heavy dashboard.
 
-Instead of a separate settings screen, Maestro turns the admin menu into something you edit *in place* — right where it lives. Toggle **Edit Menu** from the admin bar, and the menu becomes editable. Click a menu item to rename it, hide it from selected user roles, or change its icon. Drag submenu items and whole menu groups to reorder them. Nothing to configure first, and nothing to learn: the menu you are editing *is* the menu you are looking at.
+**Every feature is free.** Hide items by role, by person or with visibility groups, preview the menu as a role, and copy your menu to another site. It's all in the plugin you install here, with no Pro version and no upsell.
 
-And it stays out of the way. Maestro adds **no autoloaded options** and does no work at all on the front end, so a menu you tidied for the dashboard costs your visitors nothing (see **Performance & footprint** below).
+**Try it before you install.** [Launch a live demo](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/main/playground/blueprint-hosted.json) in WordPress Playground. It opens a throwaway site with Maestro already in edit mode and a test user for each role, so you can switch accounts and see per-role hiding in action.
 
-**Try Maestro right here.** Launch a demo in [WordPress Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/Maestro/main/playground/blueprint-hosted.json) — it boots a throwaway site with the plugin active in edit mode, plus User Switching with a one-click admin-bar user switcher and named test users (Adam Admin, Emma Editor, Andy Author, Carrie Contributor, Steven Subscriber; password `password`) so you can try per-role visibility by switching to another user's account.
+= Features =
 
-= What you can do — as a site administrator =
+* **Rename anything.** Click a label and type. "WPForms" can become "Contact forms."
+* **Reorder by dragging,** or with the keyboard.
+* **Group the menu with separators.** Add, move or remove them.
+* **Give everyone a cleaner menu.** Hide items by role, from one named person, or from a visibility group, like "Client staff." Custom roles from plugins such as [User Role Editor](https://wordpress.org/plugins/user-role-editor/) and [Members](https://wordpress.org/plugins/members/) show up automatically.
+* **Preview as a role** to see exactly what an Editor sees before they do.
+* **Swap icons** from 700+ searchable Dashicons and Bootstrap Icons, plus WordPress's own icon library on 7.1 and later. The built-in icons follow your admin colour scheme, just like a Dashicon.
+* **Widen the menu** so long labels fit on one line.
+* **Copy your menu to another site** with export and import, and review the file before anything changes.
+* **Undo anything.** Reset one item, or the whole menu, at any time.
 
-Maestro's enhancements are only activated for logged-in users with an Administrator role. They can:
+Only administrators can edit the menu, and one configuration applies to the whole site. Hiding is the exception: it lets each role, person or group see a different menu.
 
-* **Rename** any top-level or submenu item — just click the label.
-* **Reorder** items by dragging (top-level items among themselves, submenu items within their parent), or with the keyboard (`Alt`+`Arrow`).
-* **Group** the menu with separators: move or remove the existing ones, or add a new separator below any top-level item.
-* **Swap icons** on top-level items. The icon picker offers all 342 Dashicons and 437 bundled Bootstrap Icons, grouped and searchable by admin topic, and on WordPress 7.1+ the icons in WordPress's icon library, including any other plugins register. SVG icons take the menu's colours in every admin colour scheme, just like a Dashicon. It accepts any of WordPress's four native icon forms (dashicon, "none", base64 image data-URI, or an image URL).
-* **Hide** items from chosen roles — including administrators. **All other roles** at the top of the list ticks every role except your own in one step. Custom roles registered by other plugins ([User Role Editor](https://wordpress.org/plugins/user-role-editor/), [Members](https://wordpress.org/plugins/members/), etc.) appear automatically.
-* **Hide items from specific people**, by name, when a role is the wrong unit — one person on a shared role who doesn't need a particular tool. Search for someone in the visibility popover and add them; a parent's sub-items can be hidden per person too, with the parent left visible. Like every other hide in Maestro, this is cosmetic only: the page still loads by URL for anyone authorized to see it.
-* **Hide items from a named group of people** with a visibility group — say "Reduced view" for the client's staff. Make the group once under **Visibility groups** in the editing toolbar, add people to it, then tick it in any item's visibility popover. Change who is in it later and every item it hides follows. A group is not a role: WordPress never sees it, and it grants or removes nothing. It is cosmetic only, like every hide in Maestro: the page still loads by URL for anyone authorized to see it.
-* **Widen the menu** so longer labels fit on one line. Drag the menu's edge while editing, or set an exact width under **Settings** (the gear in the editing toolbar). The width applies on every admin page, for everyone, on screens 961px and wider. If another plugin already sets the menu width, that plugin wins and Maestro tells you so.
-* **Preview the menu as a role.** Press **Preview as**, choose a role, and the Dashboard shows that role's menu under a read-only banner. You stay signed in as yourself, and nothing is saved.
-* **Copy a menu to another site** with export/import under **Settings**. Export a JSON file of names, icons, role rules, ordering, separators and menu width, then review it on the destination before anything changes. Rules for named people and visibility groups never leave the site.
-* **Reset** a single item to its WordPress default, or reset everything at once.
+= Menus, not permissions =
 
-Changes are **global** — one configuration applies to everyone. Your custom menu configuration is stored as a sparse delta (just the differences) layered over the menu WordPress builds on each load. Nothing is rebuilt or duplicated, so a reset simply removes the delta, and the original menu returns. 
+Maestro tidies what people *see*. It doesn't change what they're *allowed* to do: a hidden page still opens by URL for anyone whose role permits it. To lock pages down, pair Maestro with a capability manager like [PublishPress Capabilities](https://wordpress.org/plugins/capability-manager-enhanced/).
 
-= Important: visibility is cosmetic, not access control =
+= Light enough to forget about =
 
-Hiding a menu item only declutters the menu. The underlying admin page still loads for anyone who knows or types its URL if they're authorized to see it. That's because a page's own registered **capability** is the true lock. Maestro operates on the menu (presentation), which is a different plane from authorization.
+Maestro does nothing on your public pages: no extra queries, and nothing added to the settings WordPress loads for every visitor. In the admin, it adds about a tenth of a millisecond to a page. It stores one small database row, created when you first save a change, and uninstalling removes it.
 
-If you need to actually prevent *access*, pair Maestro with a capability manager like [PublishPress Capabilities](https://wordpress.org/plugins/capability-manager-enhanced/)**. It's menu-aware, and its Pro tier can block admin pages by URL.
+* **Nothing autoloaded.** Maestro's one option is explicitly non-autoloaded, so front-end visitors never pay for admin-only data.
+* **One cached query in the admin,** and none with a persistent object cache like Redis or Memcached.
+* **Small download,** about 290 KB. Nearly a third of that is Bootstrap Icons, which load only when you open that tab.
 
-The `maestro_capability` filter lets such a plugin hand editing rights to a custom capability instead of the default `manage_options`.
+Full method and numbers: [config size vs. page-load cost](https://github.com/dknauss/Maestro/blob/main/docs/performance/config-size-and-page-load.md). (Timings measured 2026-08-03 on WordPress 7.0 and PHP 8.3.)
 
-= Accessibility and localization =
+= Accessible, and ready in six languages =
 
-The editor is keyboard-operable end to end — select with `Enter`/`Space`, reorder with `Alt`+`Arrow`, and every move and save is announced to screen
-readers. Modified items carry a non-color indicator with screen-reader text, so their state is never indicated by color alone.
+You can do everything with the keyboard: select with `Enter` or `Space`, reorder with `Alt`+`Arrow`, and hear every move and save announced by your screen reader. Changed items are marked with more than colour alone.
 
-Maestro uses the `maestro-menu-editor` text domain and ships a translation template plus starter language packs for Spanish (`es_ES`), German (`de_DE`), Japanese (`ja`), French (`fr_FR`), Portuguese – Brazil (`pt_BR`), and Italian (`it_IT`). WordPress.org language packs override and extend these; native-speaker and WordPress Polyglots reviews are welcome.
+Maestro ships with Spanish, German, Japanese, French, Brazilian Portuguese and Italian translations. WordPress.org language packs override and extend them, and reviews from native speakers are welcome.
+
+= For developers =
+
+Maestro stores only your changes, as a sparse delta in one option, and replays them over the menu WordPress builds on each admin load. The `maestro_capability` filter hands editing rights to a custom capability instead of `manage_options`. The architecture, REST endpoint and design notes are in the [spec on GitHub](https://github.com/dknauss/Maestro/blob/main/SPEC.md#architecture).
 
 == Installation ==
 
@@ -65,93 +68,61 @@ Maestro uses the `maestro-menu-editor` text domain and ships a translation templ
 
 == Frequently Asked Questions ==
 
-= Can I copy a configuration to another site? =
+= Is Maestro free? Is there a Pro version? =
 
-Yes. In Edit Menu, open Settings, export the JSON file, then review and import
-it on the destination. Import replaces portable menu settings and reports
-missing roles and menu items. People rules and visibility groups are excluded
-from exports; those already on the destination are preserved. Hiding remains
-cosmetic and does not change page access.
+Maestro is free, and every feature is in the version on WordPress.org. There is no Pro version. If it saves you time, you can support its maintenance through [GitHub Sponsors](https://github.com/sponsors/dknauss).
 
+= Does hiding a menu item block access to that page? =
 
-= Does hiding a menu item block access to that page or disable its features? =
+No, and this is important. Hiding an item is cosmetic: it removes the link from the admin menu, but anyone allowed to open the page can still reach it by typing or bookmarking its URL. Real access is governed by each page's registered capability. To block a page, use a capability manager such as [User Role Editor](https://wordpress.org/plugins/user-role-editor/) or [PublishPress Capabilities](https://wordpress.org/plugins/capability-manager-enhanced/).
 
-No — and this is important. Hiding an item is **cosmetic**: it removes the link from the admin menu but does not stop anyone from reaching the page by typing or
-bookmarking its URL. Real access is governed by each page's registered capability. To truly block all access to a page, use a capability manager such as
-[User Role Editor](https://wordpress.org/plugins/user-role-editor/) or [PublishPress Capabilities](https://wordpress.org/plugins/capability-manager-enhanced/).
+= Will it slow down my site? =
+
+No. Maestro does no work on your public pages, adds nothing to the options WordPress autoloads, and adds about a tenth of a millisecond to an admin page. See **Light enough to forget about** above for the numbers.
 
 = Do my changes affect everyone, or just me? =
 
-Everyone. Maestro stores one global configuration that applies to all users. *Visibility* is the exception: you can hide items from chosen roles, or from
-named individuals, so what each person sees can differ. The rename/reorder/icon changes themselves are global.
+Everyone. Maestro stores one configuration for the whole site, so renames, order and icons are the same for all users. Hiding is the exception: you can hide items from chosen roles, named people or visibility groups, so what each person sees can differ.
 
 = Can I see the menu the way an Editor would? =
 
-Yes. Press **Preview as** (the screen button in the editor toolbar), choose a
-role and press **Preview**. The Dashboard shows that role's menu, with your rules for the role
-applied, under a read-only banner with **Exit preview**. You stay signed in as
-yourself and nothing is saved. It is an approximation: rules for specific
-people or visibility groups, capabilities given to individual users, people with several
-roles, and plugins that check the user directly can differ. Network super
-admins on multisite cannot preview.
+Yes. Press **Preview as** (the screen button in the editor toolbar), choose a role and press **Preview**. The Dashboard shows that role's menu, with your rules for the role applied, under a read-only banner with **Exit preview**. You stay signed in as yourself and nothing is saved.
+
+It is an approximation: rules for specific people or visibility groups, capabilities given to individual users, people with several roles, and plugins that check the user directly can differ. Network super admins on multisite cannot preview.
 
 = Can I hide something from just one person? =
 
-Yes. Alongside the role lists, the visibility popover has a search box for
-people. Type a name, pick them, and the item disappears from that person's menu
-only — everyone else with the same role still sees it. You can target several
-people, and on an item with children you can hide the sub-items per person while
-the parent stays visible.
+Yes. Alongside the role lists, the visibility popover has a search box for people. Type a name, pick them, and the item disappears from that person's menu only. Everyone else with the same role still sees it. You can target several people, and on an item with children you can hide the sub-items per person while the parent stays visible.
 
-Use it when a role is the wrong unit: one editor on a team of editors who
-doesn't need a particular tool. If you find yourself adding the same person list
-to many items, a role is probably the better fit.
+Use it when a role is the wrong unit: one editor on a team of editors who doesn't need a particular tool. If you find yourself adding the same people to many items, a visibility group or a role is probably the better fit.
 
-Two notes. Targeting your own account is allowed — Maestro warns you, and you
-can always get back in, because the Edit Menu control lives in the admin bar and
-no hide rule can remove it. And on a multisite network, network super admins are
-exempt from person-targeted hides (role-targeted hides still apply to them, as
-they always have).
+Targeting your own account is allowed. Maestro warns you, and you can always get back in, because the Edit Menu control lives in the admin bar and no hide rule can remove it. On a multisite network, network super admins are exempt from person-targeted hides (role-targeted hides still apply to them).
 
 = What is a visibility group, and when should I use one instead of a role? =
 
-A visibility group is a named list of people that you can tick in any item's
-visibility popover, the way you tick a role. Create it under **Visibility groups**
-in the editing toolbar, add people with the same search box, and tick it on the
-items it should hide. Who is in it is read on every page load, so adding or
-removing someone takes effect right away on every item the group hides,
-without touching those items.
+A visibility group is a named list of people, like "Client staff," that you can tick in any item's visibility popover the way you tick a role. Create it under **Visibility groups** in the editing toolbar, add people with the same search box, and tick it on the items it should hide. Change who is in the group later, and every item it hides follows right away.
 
-**A visibility group is not access control.** It sounds more like a permission
-than a role checkbox does, so to be plain: it only removes links from those
-people's admin menu. They can still open every one of those pages by URL, and
-no capability is granted or removed. If people must not reach a page, use a
-capability manager.
+Use a group when a role is the wrong unit and you would otherwise add the same few people to many items, for example a client's staff who share the Editor role with your own team. If a role already matches the people you mean, use the role: it is simpler, and it is how WordPress itself groups people.
 
-Use a group when a role is the wrong unit and you would otherwise add the
-same few people to many items, for example a client's staff who share the
-Editor role with your own team. If a role already matches the people you mean,
-use the role: it is simpler, and it is how WordPress itself groups people.
+A group is not a role and not a permission. WordPress never sees it, and it grants or removes nothing; it only changes those people's menu.
 
-Groups are made and edited by people who can list users (administrators, by
-default); anyone else using the editor does not see them, and their saves leave
-groups alone. On a multisite network, network super admins are exempt from
-group hides, as they are from person-targeted hides.
-
-= Can I hide items from administrators, too? =
-
-Yes. The hide by role feature includes the administrator role. However, you have to be an administrator to use Maestro's features, so if you hide a menu item from administrators, you are hiding it from yourself as well.
-
-Remember that this is cosmetic, not a permission change, and you can reset any or all of the changes made in Maestro at any time.
-
-= Does it work with custom roles from other plugins? =
-
-Yes. Any role registered on the site — including custom roles from User Role Editor, Members, and similar plugins — appears automatically in the visibility
-control.
+Groups are made and edited by people who can list users (administrators, by default). Anyone else using the editor does not see them, and their saves leave groups alone. On a multisite network, network super admins are exempt from group hides, as they are from person-targeted hides.
 
 = Can I use it alongside Admin Menu Editor? =
 
 It will run, but the two will fight. Admin Menu Editor rebuilds the menu from its own saved settings, so its order, names, icons, and hidden items can override the changes you make in Maestro, and the reverse. Use one menu editor at a time. While Admin Menu Editor is active, Maestro shows a warning in edit mode.
+
+= Can I copy a configuration to another site? =
+
+Yes. In Edit Menu, open **Settings**, export the JSON file, then review and import it on the destination. Import replaces names, icons, role rules, order, separators and menu width, and reports any roles or menu items the destination lacks. Rules for named people and visibility groups never leave the site, and those already on the destination are kept.
+
+= Does it work with custom roles from other plugins? =
+
+Yes. Any role registered on the site, including custom roles from User Role Editor, Members, and similar plugins, appears automatically in the visibility popover.
+
+= Can I hide items from administrators, too? =
+
+Yes. You can hide items from the Administrator role, but since only administrators can use Maestro, that hides them from you as well. **All other roles** at the top of the list ticks every role except your own in one step. You can reset any change at any time.
 
 = Is the editor keyboard accessible? =
 
@@ -159,60 +130,33 @@ Yes. You can select, rename, reorder (`Alt`+`Arrow`), open the icon and visibili
 
 = What happens when I deactivate or reset the plugin? =
 
-The admin menu returns to exactly what WordPress and your active plugins generate. Your customizations live in a single option as a sparse delta; **Reset All** deletes that option, and deactivating the plugin stops it from being applied.
+The admin menu returns to exactly what WordPress and your active plugins generate. Maestro keeps your changes in a single option: **Reset All** deletes it, and deactivating the plugin stops it from being applied.
 
 = Can I move an item between a top-level position and a submenu? =
 
-Not yet. Reparenting is deliberately deferred (see "Known limits" below). Top-level items reorder among top-level items, and submenu items reorder within
-their current parent.
+Not yet (see **Known limits** below). Top-level items reorder among top-level items, and submenu items reorder within their current parent.
 
 == Screenshots ==
 
-1. The inline editor — select any admin-menu item to edit it in place using the quiet, wp-admin-native editing toolbar (rename, move, icon, visibility, reset, and the menu-wide tools on the right). A single admin-bar toggle enters and exits edit mode — labelled "Edit Menu" when idle and "Exit Menu Editor" while editing.
-2. The icon picker: searchable Dashicons and Bootstrap Icons tabs, in square single-colour cells, for swapping a top-level admin menu icon.
-3. Visibility — open the selector to hide an item from selected roles, named individuals or visibility groups, and (on an item with children) to hide its sub-items independently while the parent stays visible. Cosmetic declutter, not access control.
-4. A renamed item ("My Content Hub") with the transient "Saved" status above the toolbar — it clears on its own once the autosave settles.
-5. Reordering a top-level menu group by dragging — a live sortable-helper shows the item in motion.
-6. Reordering a submenu item using the ▲/▼ move controls — the OS-independent, keyboard-accessible reorder path.
-7. Settings: the menu width, and export/import after reviewing a file. The review lists what this site can't apply, and nothing changes until you press Import configuration.
-8. Preview as: the Dashboard as an Editor sees it, under the read-only preview banner with Exit preview.
+1. Click any menu item to edit it right where it is. One admin-bar button turns editing on and off.
+2. Pick a new icon from 700+ searchable Dashicons and Bootstrap Icons.
+3. Hide an item from chosen roles, specific people or a visibility group, or hide just its sub-items.
+4. Rename an item, and it saves automatically.
+5. Drag whole menu groups into the order you want.
+6. Prefer the keyboard? Move items up and down with the arrow controls.
+7. Set the menu width, or copy your whole menu to another site after reviewing the file.
+8. Preview as: see exactly what an Editor sees before they do.
 
-== Architecture (for developers) ==
+== Known limits ==
 
-* `Config` — reads/writes/sanitizes a single option (`maestro_config`) holding only the deltas. Reset = delete the option; the natural menu returns automatically.
-* `Replay` — on a late `admin_menu` pass, applies rename/icon/visibility to the `$menu`/`$submenu` globals and reorders submenus. Top-level order uses the core `custom_menu_order` + `menu_order` filters. Resilient to missing slugs (orphans are skipped) and new items (appended at the end).
-* `Rest` — `maestro/v1/config` (GET/POST/DELETE), capability-gated, `X-WP-Nonce`.
-* The editor JS is driven by a localized model (with DOM ids), not DOM scraping, and diffs against captured pristine defaults so the stored config stays sparse.
-* Localized editor labels are passed from PHP to JavaScript in `maestroData.i18n`; the runtime zip includes the bundled POT template and starter catalogs.
-
-== Performance & footprint ==
-
-**Unlike other admin menu editors, Maestro won't hurt your site's performance. It's small enough that there is nothing to compress, optimize, or tune.**
-
-Maestro is built to stay out of the way:
-
-* **Nothing added to `alloptions` — the one that matters.** WordPress loads every *autoloaded* option into memory on every request that boots it, including front-end pages served to logged-out visitors. A menu configuration is admin-only data, so an autoloaded one is a tax on traffic that will never read it — and a bloated autoloaded bundle is a classic cause of a sluggish site. Maestro's option is explicitly non-autoloaded. **Check it on your own site:** `wp option list --autoload=on` will not list `maestro_config`.
-* **Zero extra database queries on the front end.** Not merely "light" — inert. Every hook is admin-gated, so a public page load reads nothing at all.
-* **One extra query on an admin page** — a single, *non-autoloaded* option (`maestro_config`), read once per request and cached, no matter how many parts of the plugin ask for it. With a persistent object cache (Redis / Memcached) that drops to zero. This is a deliberate trade: one query where the data is actually used, so that public traffic — the bulk of what a live site serves — pays nothing.
-* **A wider menu costs one CSS rule.** If you set a menu width, admin pages get one small inline style and no extra query. A site that never sets one gets nothing.
-* **Storage tracks your edits, not your plugin count.** Maestro stores a sparse delta: three renamed items are three renamed items, whether the site runs five plugins or fifty. A typical configuration is 5–15 KB, with a hard 1 MB ceiling.
-* **Minimal storage.** One `wp_options` row, created only when you first save a change — a fresh install stores nothing. No custom tables, no post or user meta, no transients, no cron jobs. Uninstalling deletes that single row.
-* **Measured, not asserted.** At a typical configuration size Maestro adds roughly **0.1 ms** to an admin page load; even a pathological config at the 1 MB ceiling adds about **1 ms**. Menu changes are applied in memory during the `admin_menu` pass, not through extra queries. Method and full numbers: [config size vs. page-load cost](https://github.com/dknauss/Maestro/blob/main/docs/performance/config-size-and-page-load.md).
-* **Small install** — roughly a 290 KB download. Nearly a third of that is the Bootstrap Icons set, which the editor fetches only when you first open its tab in the icon picker.
-
-(Size figures are a v1.10.0 snapshot; timings were measured 2026-08-03 on WordPress 7.0 / PHP 8.3.)
-
-== Known limits / deferred to v2 ==
-
-* **Reparenting** (moving an item between a top-level position and a submenu) is not included. Top-level items reorder among top-level items, and submenu items reorder within their current parent. Reparenting needs hand-splicing of the globals plus `parent_file`/`submenu_file` highlighting fixes — a known minefield, parked deliberately.
-* **Separators** are top-level only; WordPress has no submenu separator. Core also drops a separator that directly follows another one or ends the menu, so one placed there will not show.
-* **Renaming** an item drops any core-appended count badge (e.g., pending comments) from that label, since the badge lives inside the title string.
-* Submenu sort relies on items registering by the late `admin_menu` pass; a plugin that registers submenus on an unusually late hook may not be captured.
+* **Moving items between levels** (from top level into a submenu, or the reverse) isn't supported yet. Top-level items reorder among top-level items, and submenu items reorder within their current parent.
+* **Separators** are top-level only, because WordPress has no submenu separator. WordPress also hides a separator that directly follows another one or ends the menu.
+* **Renaming** an item drops any count badge WordPress adds to its label, such as pending comments, because the badge is part of the label text.
+* A plugin that adds its submenus unusually late may not have them picked up for sorting.
 
 == Credits ==
 
-Bundled [Bootstrap Icons](https://icons.getbootstrap.com/) are © The Bootstrap Authors, licensed under the MIT License. They are recoloured to WordPress
-menu grey and stored as data-URIs in `assets/icons-bootstrap.json`; see `bin/generate-bootstrap-icons.mjs`.
+Bundled [Bootstrap Icons](https://icons.getbootstrap.com/) are © The Bootstrap Authors, licensed under the MIT License. They are recoloured to WordPress menu grey and stored as data-URIs in `assets/icons-bootstrap.json`; see `bin/generate-bootstrap-icons.mjs`.
 
 == Support This Plugin ==
 
