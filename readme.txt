@@ -28,7 +28,7 @@ Every WordPress site collects menu clutter. A dozen plugins each claim a top-lev
 * **Group the menu with separators.** Add, move or remove them.
 * **Give everyone a cleaner menu.** Hide items by role, from one named person, or from a visibility group, like "Client staff." Custom roles from plugins such as [User Role Editor](https://wordpress.org/plugins/user-role-editor/) and [Members](https://wordpress.org/plugins/members/) show up automatically.
 * **Preview as a role** to see exactly what an Editor sees before they do.
-* **Swap icons** from 700+ searchable Dashicons and Bootstrap Icons, plus WordPress's own icon library on 7.1 and later. The built-in icons follow your admin colour scheme, just like a Dashicon.
+* **Swap icons** from 700+ searchable Dashicons and Bootstrap Icons, plus WordPress's own icon library on 7.1 and later. All three icon sets follow your admin colour scheme.
 * **Widen the menu** so long labels fit on one line.
 * **Copy your menu to another site** with export and import, and review the file before anything changes.
 * **Undo anything.** Reset one item, or the whole menu, at any time.
